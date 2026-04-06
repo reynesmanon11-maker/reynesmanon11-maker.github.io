@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rudy Ricciotti – Architecte du lycée Ernest-Ferroul</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #1a1e22; --sand: #e8e0d0; --clay: #c4825a; --mineral: #5b8fa8;
+  --quartz: #a8c5d6; --petra-bg: #f0f4f8; --user-bg: #2a4a5e;
+  --border: rgba(255,255,255,0.07);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); font-family: 'Nunito', sans-serif; }
+body { display: flex; align-items: center; justify-content: center; padding: 8px; min-height: 100vh; }
+body::before { content: ''; position: fixed; inset: 0; background: radial-gradient(ellipse at 20% 50%, rgba(91,143,168,0.07) 0%, transparent 60%), radial-gradient(ellipse at 80% 20%, rgba(196,130,90,0.05) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+.app { width: 100%; max-width: 660px; height: calc(100vh - 16px); max-height: 740px; display: flex; flex-direction: column; position: relative; z-index: 1; }
+.header { display: flex; align-items: center; gap: 12px; padding: 13px 17px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 16px 16px 0 0; }
+.avatar { width: 46px; height: 46px; border-radius: 50%; background: linear-gradient(135deg, #3a3a3a, #5b6a7a); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; animation: pulse 3s ease-in-out infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 3px rgba(91,143,168,0.22); } 50% { box-shadow: 0 0 0 6px rgba(91,143,168,0.1); } }
+.header-info h1 { font-family: 'Space Mono', monospace; font-size: 0.92rem; font-weight: 700; color: var(--sand); }
+.header-info p { font-size: 0.7rem; color: var(--quartz); opacity: 0.65; margin-top: 2px; }
+.dot-on { width: 7px; height: 7px; background: #4ade80; border-radius: 50%; display: inline-block; margin-right: 4px; animation: blink 2s ease-in-out infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+.badge { margin-left: auto; background: rgba(91,143,168,0.18); border: 1px solid rgba(91,143,168,0.3); border-radius: 20px; padding: 3px 10px; font-size: 0.65rem; color: var(--quartz); font-family: 'Space Mono', monospace; white-space: nowrap; }
+.chips { padding: 8px 13px 6px; background: rgba(255,255,255,0.02); border-left: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 5px; }
+.chip-label { font-size: 0.6rem; color: rgba(255,255,255,0.26); width: 100%; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.chip { background: rgba(91,143,168,0.1); border: 1px solid rgba(91,143,168,0.2); border-radius: 20px; padding: 3px 10px; font-size: 0.68rem; color: var(--quartz); cursor: pointer; transition: all 0.18s; font-family: 'Nunito', sans-serif; font-weight: 600; }
+.chip:hover { background: rgba(91,143,168,0.22); border-color: rgba(91,143,168,0.42); color: white; transform: translateY(-1px); }
+.chat-area { flex: 1; overflow-y: auto; padding: 13px; background: rgba(0,0,0,0.18); border-left: 1px solid var(--border); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 11px; scroll-behavior: smooth; }
+.chat-area::-webkit-scrollbar { width: 3px; }
+.chat-area::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+.message { display: flex; gap: 8px; animation: fadeUp 0.25s ease-out; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.message.user { flex-direction: row-reverse; }
+.msg-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; margin-top: 2px; }
+.msg-av.p { background: linear-gradient(135deg, #3a3a3a, #5b6a7a); }
+.msg-av.u { background: #1e3448; border: 1px solid rgba(255,255,255,0.07); }
+.bubble { max-width: 82%; padding: 9px 13px; border-radius: 15px; font-size: 0.84rem; line-height: 1.6; }
+.bubble.p { background: var(--petra-bg); color: #2a3038; border-radius: 3px 15px 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.16); }
+.bubble.u { background: var(--user-bg); color: #daeeff; border-radius: 15px 3px 15px 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.16); }
+.bubble strong { color: #1a4a6a; }
+.bubble.u strong { color: var(--quartz); }
+.bubble em { color: #666; font-style: italic; }
+.typing { display: flex; gap: 8px; align-items: flex-start; }
+.typing-dots { background: var(--petra-bg); border-radius: 3px 15px 15px 15px; padding: 10px 13px; display: flex; gap: 5px; align-items: center; }
+.d { width: 6px; height: 6px; background: var(--clay); border-radius: 50%; animation: b 1.4s infinite ease-in-out; }
+.d:nth-child(1){animation-delay:0s} .d:nth-child(2){animation-delay:.2s} .d:nth-child(3){animation-delay:.4s}
+@keyframes b { 0%,60%,100%{transform:translateY(0);opacity:.5} 30%{transform:translateY(-5px);opacity:1} }
+.input-area { display: flex; gap: 7px; padding: 10px 13px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 0 0 16px 16px; }
+textarea { flex: 1; background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 12px; color: white; font-family: 'Nunito', sans-serif; font-size: 0.84rem; resize: none; outline: none; transition: border-color 0.2s; max-height: 78px; min-height: 38px; line-height: 1.4; }
+textarea::placeholder { color: rgba(255,255,255,0.26); }
+textarea:focus { border-color: rgba(91,143,168,0.42); background: rgba(255,255,255,0.09); }
+.btn { width: 38px; height: 38px; border-radius: 10px; background: linear-gradient(135deg, var(--mineral), #3a6a82); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.18s; flex-shrink: 0; align-self: flex-end; }
+.btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(91,143,168,0.35); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn svg { width: 16px; height: 16px; fill: white; }
+.foot { text-align: center; font-size: 0.58rem; color: rgba(255,255,255,0.16); margin-top: 4px; font-family: 'Space Mono', monospace; }
+@media (max-width: 480px) { body { padding: 0; } .app { max-height: 100vh; height: 100vh; border-radius: 0; } .header { border-radius: 0; } .input-area { border-radius: 0; } .badge { display: none; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="avatar">🏛️</div>
+    <div class="header-info">
+      <h1>Rudy Ricciotti</h1>
+      <p><span class="dot-on"></span>Architecte · Lycée Ernest-Ferroul · En ligne</p>
+    </div>
+    <div class="badge">SVT · Seconde</div>
+  </div>
+  <div class="chips">
+    <span class="chip-label">Questions rapides :</span>
+    <span class="chip" onclick="q('sable')">Sable</span>
+    <span class="chip" onclick="q('calcaire')">Calcaire</span>
+    <span class="chip" onclick="q('gypse')">Gypse</span>
+    <span class="chip" onclick="q('argile')">Argile</span>
+    <span class="chip" onclick="q('grès')">Grès</span>
+    <span class="chip" onclick="q('granite')">Granite</span>
+    <span class="chip" onclick="q('sédimentation')">Sédimentation</span>
+    <span class="chip" onclick="q('érosion')">Érosion</span>
+    <span class="chip" onclick="q('maison')">Maison complète</span>
+  </div>
+  <div class="chat-area" id="chat">
+    <div class="message">
+      <div class="msg-av p">🏛️</div>
+      <div class="bubble p">
+        Bonjour ! Je suis <strong>Rudy Ricciotti</strong>, l'architecte qui a conçu votre lycée 😊<br><br>
+        Posez-moi une question sur les <strong>roches</strong>, la <strong>géologie sédimentaire</strong> ou les <strong>matériaux de construction</strong> — j'explique d'où ils viennent et où on les retrouve dans votre lycée !
+      </div>
+    </div>
+  </div>
+  <div class="input-area">
+    <textarea id="inp" placeholder="Ex : C'est quoi la sédimentation ?" rows="1"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,78)+'px'"></textarea>
+    <button class="btn" id="btn" onclick="send()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+  <div class="foot">Rudy Ricciotti · Architecte · Lycée Ernest-Ferroul · SVT Seconde Géologie sédimentaire</div>
+</div>
+
+<script>
+const R = {
+
+  // ══════════════════════════════════════════════
+  // PROCESSUS GÉOLOGIQUES
+  // ══════════════════════════════════════════════
+
+  erosion: {
+    mots: ['erosion','érosion','eroder','altération','alteration','weathering','désagrégation','desagregation'],
+    texte: `L'<strong>érosion</strong> c'est l'ensemble des processus qui brisent et transportent les roches. Il en existe deux grands types.<br><br>
+L'<strong>érosion physique</strong> (ou mécanique) : la roche se fragmente sans changer de composition chimique — par les variations de température (gel/dégel), le vent, le choc des galets entre eux dans les rivières. On obtient des fragments de plus en plus petits : blocs → graviers → sables → limons.<br><br>
+L'<strong>érosion chimique</strong> : la roche se dissout ou se transforme chimiquement. Le calcaire se dissout dans l'eau chargée en CO₂ (c'est la karstification — grottes, gouffres !). Les feldspaths des granites se transforment en argile par hydrolyse.<br><br>
+Dans votre lycée, c'est l'érosion chimique et physique de millions d'années qui a produit le <strong>sable et l'argile</strong> qui composent le béton et les tuiles ! Savez-vous combien de temps il faut pour produire 1 cm de sol par érosion ?`
+  },
+
+  sedimentation: {
+    mots: ['sedimentation','sédimentation','sédiment','sediment','dépôt','depot','alluvion','alluvions','bassin','bassin sédimentaire'],
+    texte: `La <strong>sédimentation</strong> c'est le dépôt des particules arrachées par l'érosion. Quand un cours d'eau ralentit (en arrivant dans une plaine, un lac ou la mer), il n'a plus assez d'énergie pour transporter ses sédiments — il les dépose.<br><br>
+La <strong>loi de Stokes</strong> gouverne tout : les particules les plus lourdes (graviers, sables grossiers) se déposent en premier, les plus légères (argiles, limons) se déposent en dernier, très loin. C'est pourquoi on trouve du sable grossier près des montagnes et de l'argile fine près de la mer.<br><br>
+Avec le temps, les couches de sédiments s'accumulent, se compactent et se cimentent → elles deviennent des <strong>roches sédimentaires</strong> ! Ce processus s'appelle la <em>diagénèse</em>.<br><br>
+Dans votre lycée, les <strong>granulats et sables</strong> du béton sont d'anciens dépôts alluviaux de la rivière Aude. Savez-vous combien de temps il faut pour transformer des sédiments en roche ?`
+  },
+
+  transport: {
+    mots: ['transport','transporter','riviere','rivière','fleuve','courant','charriage','saltation','suspension'],
+    texte: `Le <strong>transport</strong> des sédiments se fait selon trois modes selon la taille des particules et la vitesse du courant.<br><br>
+La <strong>suspension</strong> : les particules très fines (argiles, limons) restent en suspension dans l'eau et voyagent très loin — parfois jusqu'à la mer.<br>
+Le <strong>saltation</strong> : les grains de sable sautent sur le fond par bonds successifs.<br>
+Le <strong>charriage</strong> : les galets et graviers roulent sur le fond.<br><br>
+Plus le courant est fort, plus il peut transporter des particules grosses. C'est pourquoi les <strong>rivières de montagne</strong> transportent des blocs, et les <strong>rivières de plaine</strong> seulement du sable et des limons.<br><br>
+La rivière Aude transporte des sédiments des Pyrénées jusqu'à la Méditerranée — les <strong>sables alluvionnaires</strong> déposés dans la plaine de Carcassonne ont servi à fabriquer le béton de votre lycée ! Savez-vous ce qu'on appelle un delta ?`
+  },
+
+  diagenese: {
+    mots: ['diagenese','diagénèse','lithification','compaction','cimentation','roche sédimentaire','formation des roches','comment se forme'],
+    texte: `La <strong>diagénèse</strong> c'est la transformation des sédiments meubles en roche dure — la "naissance" d'une roche sédimentaire !<br><br>
+Elle se passe en deux étapes principales. D'abord la <strong>compaction</strong> : le poids des couches supérieures écrase les sédiments, expulse l'eau et réduit les vides. Ensuite la <strong>cimentation</strong> : des minéraux précipitent entre les grains et les "collent" entre eux (calcite, silice, oxydes de fer).<br><br>
+Résultat : du sable meuble → <strong>grès</strong>, de la vase argileuse → <strong>argile lithifiée</strong>, des coquilles → <strong>calcaire</strong>. Ce processus peut prendre des milliers à des millions d'années et nécessite un enfouissement de plusieurs centaines de mètres.<br><br>
+Dans votre lycée, le <strong>grès</strong> de certains revêtements de sol est du sable diagénisé — du sable devenu pierre après des millions d'années ! Pouvez-vous nommer les deux étapes de la diagénèse ?`
+  },
+
+  stratification: {
+    mots: ['strate','strates','stratification','couche','couches','lit','litage','stratigraphie','superposition','principe'],
+    texte: `Les <strong>strates</strong> sont les couches horizontales que l'on voit dans les roches sédimentaires — comme les pages d'un livre de l'histoire de la Terre !<br><br>
+Le <strong>principe de superposition</strong> (Sténon, 1669) dit que dans une série de strates non déformées, les couches les plus anciennes sont en bas, les plus récentes en haut. Simple mais révolutionnaire !<br><br>
+Chaque strate correspond à une période de dépôt dans un environnement particulier : une mer, un lac, un désert, une rivière... La couleur, la taille des grains et les fossiles nous racontent ce qui se passait à cette époque.<br><br>
+Dans les <strong>Corbières</strong> tout autour de votre lycée, on peut voir ces strates dans les falaises et les bords de route — un véritable livre de géologie ouvert ! Votre lycée est littéralement entouré de millions d'années d'histoire géologique. Savez-vous lire les strates ?`
+  },
+
+  fossile: {
+    mots: ['fossile','fossiles','fossilisation','paléontologie','dinosaure','ammonite','bivalve','coquille','organisme'],
+    texte: `Un <strong>fossile</strong> c'est le reste ou la trace d'un organisme vivant conservé dans une roche sédimentaire. La fossilisation est un événement très rare — moins de 1% des organismes morts se fossilisent !<br><br>
+Pour se fossiliser, il faut : un enterrement rapide par les sédiments (avant décomposition), des parties dures (os, coquilles, dents), et un enfouissement progressif avec minéralisation des tissus organiques par des minéraux.<br><br>
+Les fossiles sont <strong>essentiels en géologie</strong> : ils permettent de dater les roches (biostratigraphie) et de reconstituer les paléoenvironnements. Un calcaire à ammonites = mer ouverte au Jurassique. Un calcaire à huîtres = milieu côtier peu profond.<br><br>
+Le <strong>calcaire</strong> de votre lycée est souvent d'origine biogène — fabriqué par accumulation de coquilles et squelettes d'organismes marins ! Pouvez-vous nommer un fossile caractéristique du Jurassique ?`
+  },
+
+  paleoenvironnement: {
+    mots: ['paléoenvironnement','paleoenvironnement','milieu de dépôt','environnement de dépôt','milieu marin','milieu continental','lacustre','fluviatile','marin','deltaque'],
+    texte: `Un <strong>paléoenvironnement</strong> c'est la reconstitution de l'environnement dans lequel une roche sédimentaire s'est formée, à partir des indices laissés dans la roche.<br><br>
+Les principaux milieux de dépôt :<br>
+— <strong>Milieu marin profond</strong> : argiles fines, marnes, pas de fossiles benthiques<br>
+— <strong>Milieu marin peu profond</strong> : calcaires à fossiles variés, récifs coralliens<br>
+— <strong>Milieu côtier/lagune</strong> : évaporites (gypse !), sel, argiles rouges<br>
+— <strong>Milieu fluviatile</strong> : grès, conglomérats, sables grossiers<br>
+— <strong>Milieu lacustre</strong> : calcaires fins, argiles, diatomites<br><br>
+Le <strong>gypse</strong> de votre plâtre s'est formé en milieu lagunaire sous climat aride — une mer peu profonde qui s'évaporait au Trias, il y a 225 Ma ! Et le calcaire de votre ciment vient d'une mer chaude et peu profonde du Jurassique. Savez-vous quel paléoenvironnement correspond à votre lycée aujourd'hui ?`
+  },
+
+  // ══════════════════════════════════════════════
+  // TYPES DE ROCHES SÉDIMENTAIRES
+  // ══════════════════════════════════════════════
+
+  rochesSedimentaires: {
+    mots: ['roche sedimentaire','roche sédimentaire','roches sedimentaires','roches sédimentaires','sedimentaire','sédimentaire','classification','types de roches','détritique','detritique','chimique','biochimique','organogène'],
+    texte: `Les <strong>roches sédimentaires</strong> couvrent 75% de la surface terrestre ! On les classe en trois grandes familles.<br><br>
+Les <strong>roches détritiques</strong> (ou clastiques) : formées par accumulation de fragments d'autres roches. La taille des grains donne le nom : conglomérat (galets), grès (sable), argilite (argile). Elles racontent le transport et le dépôt.<br><br>
+Les <strong>roches chimiques</strong> : précipitées directement depuis une solution. Le <em>calcaire chimique</em> précipite du CaCO₃ dissous, le <em>gypse</em> précipite du CaSO₄ lors de l'évaporation de l'eau de mer, le <em>sel gemme</em> de même.<br><br>
+Les <strong>roches biochimiques</strong> (ou organogènes) : formées par accumulation de restes d'organismes. Le calcaire récifal, la craie (coccolithes), le charbon (matière végétale compactée), les silex.<br><br>
+Dans votre lycée : sable et argile = détritiques, calcaire du ciment = biochimique, gypse du plâtre = chimique. Trois familles pour un seul bâtiment ! Pouvez-vous classer le grès dans la bonne famille ?`
+  },
+
+  // ══════════════════════════════════════════════
+  // ROCHES ET MATÉRIAUX
+  // ══════════════════════════════════════════════
+
+  sable: {
+    mots: ['sable','sableux','alluvion','alluvial','graviers'],
+    texte: `Le <strong>sable</strong> est un produit de l'érosion physique et chimique : des fragments de roches transportés par les rivières, usés et arrondis au fil du temps. C'est une roche sédimentaire <em>détritique</em> — ses grains mesurent entre 0,06 mm et 2 mm.<br><br>
+Il sert à deux choses très différentes selon la transformation :<br>
+— <strong>Béton</strong> : mélangé avec granulats + ciment + eau. Aucune transformation chimique, juste un mélange qui durcit par hydratation du ciment<br>
+— <strong>Verre</strong> : le sable siliceux (quartz SiO₂) est fondu à 1700°C avec de la soude et du calcaire<br><br>
+Dans votre lycée, le sable est partout : dans le <strong>béton blanc des casquettes</strong> (2 km de moule, 24 à 38 tonnes par élément !) et dans les <strong>immenses façades vitrées</strong>. Les sables du béton viennent des dépôts alluviaux des rivières locales. Savez-vous pourquoi les grains de sable sont ronds et non anguleux ?`
+  },
+
+  calcaire: {
+    mots: ['calcaire','calcaires','carbonate','caco3','craie','travertin','limestone','tuf'],
+    texte: `Le <strong>calcaire</strong> (CaCO₃) est une roche sédimentaire biochimique formée par accumulation de coquilles et squelettes d'organismes marins (coraux, mollusques, foraminifères) dans des mers chaudes et peu profondes, puis compactés et cimentés.<br><br>
+Il se transforme en plusieurs matériaux :<br>
+— <strong>Ciment</strong> : broyage puis chauffage à 900°C → CaCO₃ → CaO (chaux vive) + CO₂, puis on obtient le clinker que l'on broie en poudre<br>
+— <strong>Pierre de taille</strong> : simple découpe, aucune transformation chimique<br>
+— <strong>Chaux</strong> : calcination à 900°C, utilisée en mortier traditionnel<br><br>
+Dans votre lycée, le ciment du <strong>béton blanc</strong> vient du calcaire. Ces casquettes de 24 à 38 tonnes ne tiennent que grâce à du calcaire transformé ! La réaction de décarbonatation est : CaCO₃ → CaO + CO₂. Connaissez-vous la différence entre calcaire et marbre ?`
+  },
+
+  gypse: {
+    mots: ['gypse','plâtre','platre','enduit','cloison','evaporite','évaporite','anhydrite','sulfate','trias','triasique'],
+    texte: `Le <strong>gypse</strong> (CaSO₄·2H₂O) est une roche sédimentaire chimique <em>évaporite</em> : elle s'est formée au Trias (il y a 225 millions d'années) par évaporation d'une mer peu profonde sous climat tropical aride. Quand l'eau s'évapore, les sels précipitent dans un ordre précis : d'abord la calcite, puis le gypse, puis le sel gemme.<br><br>
+Sa transformation est élégante : chauffé à seulement <strong>150-180°C</strong>, il perd partiellement son eau → CaSO₄·½H₂O (plâtre en poudre). Ajoutez de l'eau → re-cristallisation → durcit en 10-20 minutes ! C'est réversible contrairement au ciment.<br><br>
+Dans votre lycée : <strong>cloisons intérieures</strong> (plaques de plâtre = BA13), <strong>plafonds</strong>, <strong>enduits</strong> des murs. Toute la structure légère intérieure repose sur le gypse triasique. Savez-vous pourquoi on ne peut pas utiliser le plâtre à l'extérieur ?`
+  },
+
+  argile: {
+    mots: ['argile','argileux','argiles','kaolinite','illite','smectite','montmorillonite','brique','tuile','céramique','carrelage','terre cuite'],
+    texte: `L'<strong>argile</strong> est une roche sédimentaire détritique composée de minuscules feuillets de silicates d'aluminium (minéraux argileux : kaolinite, illite, smectite) résultant de l'altération chimique des feldspaths. Ses grains font moins de 0,002 mm !<br><br>
+Sa propriété clé : <strong>plastique quand humide, dure quand cuite</strong>. Elle se transforme ainsi :<br>
+— <strong>Tuile et brique</strong> : modelage ou extrusion + séchage + cuisson à 900-1100°C → les minéraux argileux se recristallisent en céramique irréversible<br>
+— <strong>Carrelage</strong> : modelage + cuisson + émaillage (couche de verre en surface)<br>
+— <strong>Céramique de précision</strong> : cuisson à 1200-1400°C → grès cérame très résistant<br><br>
+Dans votre lycée : <strong>tuiles des toits</strong> des annexes, sols <strong>carrelés</strong>. Les argiles oligocènes de la région de Lézignan ont fourni les tuiles rouge-orangé typiques du Midi. Pouvez-vous expliquer pourquoi les tuiles sont imperméables après cuisson ?`
+  },
+
+  gres: {
+    mots: ['grès','gres','gréseux','grésifié','arénite','arkose','sandstone'],
+    texte: `Le <strong>grès</strong> est une roche sédimentaire détritique issue de la diagénèse du sable : des grains de quartz (0,06 à 2 mm) cimentés par de la silice, de la calcite ou des oxydes de fer. C'est littéralement du sable devenu pierre !<br><br>
+La couleur du grès trahit son ciment :<br>
+— <strong>Grès blanc ou gris</strong> : ciment siliceux (très dur, résistant)<br>
+— <strong>Grès rouge ou brun</strong> : ciment d'oxydes de fer (grès des Vosges, grès permien)<br>
+— <strong>Grès beige</strong> : ciment calcitique (moins résistant, sensible aux acides)<br><br>
+Il ne subit aucune transformation chimique pour la construction — on le <strong>taille et polit</strong> simplement. Sa solidité naturelle en fait un excellent matériau de dallage.<br><br>
+Dans votre lycée, certains <strong>revêtements de sol</strong> et <strong>encadrements</strong> sont en grès. Et saviez-vous que le grès est la même roche que le sable, juste cimentée par la diagénèse ? Pouvez-vous expliquer la différence entre grès et quartzite ?`
+  },
+
+  granite: {
+    mots: ['granite','granit','granitique','magmatique','plutonique','intrusif','cristallin','feldspath','mica','quartz blanc'],
+    texte: `Le <strong>granite</strong> est une roche magmatique plutonique (pas sédimentaire !) : elle s'est formée par refroidissement lent du magma en profondeur (10-30 km), ce qui lui donne ses grands cristaux visibles à l'œil nu — quartz gris, feldspath rose ou blanc, mica noir brillant.<br><br>
+Il est très différent des roches sédimentaires : pas de strates, pas de fossiles, pas de grains arrondis. Sa résistance à l'érosion est très élevée — les massifs granitiques forment les reliefs les plus anciens.<br><br>
+Pour la construction, on le <strong>taille et polit</strong> uniquement. Sa dureté (7 sur l'échelle de Mohs) en fait un matériau très durable pour les dallages et plans de travail.<br><br>
+Dans votre lycée, le granite peut apparaître dans certains <strong>revêtements de sol robustes</strong>. Et c'est l'altération chimique du granite qui produit l'argile ! Les feldspaths se transforment en kaolinite par hydrolyse. Savez-vous distinguer le granite du gneiss à l'œil nu ?`
+  },
+
+  marbre: {
+    mots: ['marbre','marbré','métamorphique','métamorphisme','metamorphisme','caunes','minervois','marbre rouge','incarnat'],
+    texte: `Le <strong>marbre</strong> est une roche métamorphique : du calcaire transformé par une chaleur (300-700°C) et une pression intenses lors de la formation des montagnes. Les grains de calcite se recristallisent en grands cristaux brillants — c'est pour ça que le marbre est lisse et scintille.<br><br>
+La couleur vient des impuretés : marbre blanc pur (calcaire très pur), marbre rouge (oxydes de fer), marbre noir (matière organique), marbre vert (chlorite, serpentine).<br><br>
+Il est plus noble mais plus fragile que le granite — sensible aux acides (le jus de citron le ternit !). On le taille et polit pour des revêtements de prestige.<br><br>
+Il y a une carrière de marbre célèbre tout près d'ici dans l'Aude — mais c'est justement l'énigme de la carte géologique 😉 Ce que je peux dire : ce marbre a orné des monuments royaux ! Savez-vous quelle roche a donné naissance au marbre par métamorphisme ?`
+  },
+
+  evaporites: {
+    mots: ['evaporite','évaporite','évaporites','evaporites','sel','halite','sel gemme','anhydrite','sylvite','précipitation','précipité'],
+    texte: `Les <strong>évaporites</strong> sont des roches sédimentaires chimiques formées par évaporation de l'eau de mer ou de lacs salés. Quand l'eau s'évapore, les sels dissous atteignent leur point de saturation et précipitent dans un ordre précis (du moins au plus soluble) :<br><br>
+1. <strong>Calcite</strong> (CaCO₃) — précipite en premier<br>
+2. <strong>Gypse</strong> (CaSO₄·2H₂O) — après 80% d'évaporation<br>
+3. <strong>Halite</strong> = sel gemme (NaCl) — après 90% d'évaporation<br>
+4. <strong>Sylvite</strong> (KCl) et autres sels potassiques — en dernier<br><br>
+Les évaporites triasiques des Pyrénées et des Corbières témoignent d'une mer tropicale peu profonde il y a 225 Ma. Le <strong>gypse du plâtre</strong> de votre lycée est une évaporite triasique ! Et les diapirs de sel dans les Corbières ont guidé la formation des structures pétrolières régionales. Savez-vous pourquoi les évaporites se trouvent souvent associées aux gisements pétroliers ?`
+  },
+
+  calcaireChimique: {
+    mots: ['précipitation chimique','stalactite','stalagmite','travertin','tuf calcaire','karst','karstification','dissolution','grotte','caverne'],
+    texte: `Le <strong>calcaire</strong> peut aussi se former par précipitation chimique directe, sans organisme ! C'est le cas des <strong>stalactites et stalagmites</strong> dans les grottes.<br><br>
+Voici le mécanisme : l'eau de pluie absorbe le CO₂ atmosphérique → forme de l'acide carbonique (H₂CO₃) → dissout le calcaire (CaCO₃ + H₂CO₃ → Ca²⁺ + 2HCO₃⁻). Quand cette eau arrive dans une grotte et perd son CO₂, le calcaire précipite à nouveau → stalactite !<br><br>
+C'est aussi le principe de la <strong>karstification</strong> : les paysages de garrigues avec leurs lapiez, dolines et gouffres sont sculptés par cette dissolution chimique du calcaire. Les Corbières et la région de Lézignan sont un terrain karstique typique !<br><br>
+Dans votre lycée, les calcaires utilisés ont été formés il y a des millions d'années dans des mers peu profondes. Savez-vous ce qu'est un lapiez ?`
+  },
+
+  // ══════════════════════════════════════════════
+  // MATÉRIAUX DE CONSTRUCTION
+  // ══════════════════════════════════════════════
+
+  beton: {
+    mots: ['béton','beton','mortier','béton armé','béton armé','béton blanc','casquette','chape'],
+    texte: `Le <strong>béton</strong> est un matériau composite fabriqué à partir de plusieurs roches ! Recette d'1 m³ : <strong>350 kg de ciment</strong> (calcaire calciné) + <strong>700 kg de sable</strong> (érosion fluviale) + <strong>1100 kg de granulats</strong> (roches concassées) + <strong>180 L d'eau</strong>.<br><br>
+La réaction d'<strong>hydratation du ciment</strong> crée des liaisons cristallines qui font durcir l'ensemble en quelques heures — sans aucune chaleur ! Le béton continue à durcir pendant des semaines.<br><br>
+Le <strong>béton armé</strong> associe béton (résistant en compression) et acier (résistant en traction) — une combinaison parfaite pour les structures.<br><br>
+Dans votre lycée, le béton blanc est ma signature architecturale 😊 Les <strong>casquettes blanches</strong> coulées sur place dans 2 km de moule, pesant jusqu'à 38 tonnes chacune, sont en béton armé. La couleur blanche vient du choix d'un ciment blanc et de granulats clairs. Combien de types de roches différentes peut-on compter dans 1 m³ de béton ?`
+  },
+
+  verre: {
+    mots: ['verre','vitrage','vitre','fenêtre','facade','façade vitrée','silice','siliceux'],
+    texte: `Le <strong>verre</strong> est fabriqué à partir de <strong>sable siliceux</strong> (quartz SiO₂) fondu à environ <strong>1700°C</strong> avec de la soude (Na₂CO₃) et du calcaire (CaCO₃). Ces trois ingrédients fondent ensemble en un liquide visqueux qui, en refroidissant, forme du verre transparent.<br><br>
+Le verre est techniquement un <em>solide amorphe</em> — ses molécules n'ont pas de structure cristalline régulière, contrairement à une vraie roche. C'est pour ça qu'il casse en morceaux irréguliers et non selon des plans de clivage.<br><br>
+C'est l'une des transformations les plus énergivores de la construction : 1700°C pour du sable de rivière !<br><br>
+Dans votre lycée, les <strong>immenses façades vitrées</strong> ont été conçues pour jouer avec la lumière méditerranéenne tout en gérant les contraintes du vent fort des Corbières. Du sable de rivière transformé en transparence ! Savez-vous depuis quand l'humanité fabrique du verre ?`
+  },
+
+  platre: {
+    mots: ['plâtre','platre','cloison','ba13','placo','plaque','enduit','staff','stuc'],
+    texte: `Le <strong>plâtre</strong> vient du gypse (CaSO₄·2H₂O). La transformation est simple : chauffage à 150-180°C → perte d'eau → hémihydrate (CaSO₄·½H₂O) = plâtre en poudre.<br><br>
+Quand on re-ajoute de l'eau, la réaction inverse se produit : le plâtre re-cristallise et durcit en 10-20 minutes en dégageant un peu de chaleur. C'est une des rares <strong>réactions réversibles</strong> dans les matériaux de construction !<br><br>
+Le plâtre est léger, facile à travailler, bon isolant phonique, naturellement résistant au feu (l'eau de cristallisation absorbe la chaleur). Mais il ne résiste pas à l'humidité — donc jamais à l'extérieur !<br><br>
+Dans votre lycée, les <strong>plaques de plâtre BA13</strong> (13 mm d'épaisseur) forment toutes les cloisons intérieures et la plupart des plafonds. 13 mm de plâtre = 13 mm de gypse triasique ! Pouvez-vous expliquer pourquoi le plâtre dégage de la chaleur en durcissant ?`
+  },
+
+  ciment: {
+    mots: ['ciment','clinker','portland','liant','calcination','hydratation du ciment'],
+    texte: `Le <strong>ciment Portland</strong> (le plus courant) est fabriqué par la cuisson d'un mélange de <strong>calcaire</strong> (80%) et d'<strong>argile</strong> (20%) à 1400-1500°C dans un four rotatif géant. Cette décarbonatation transforme le calcaire en chaux vive et l'argile en silicates : on obtient le <strong>clinker</strong>.<br><br>
+Le clinker est ensuite broyé finement avec un peu de gypse (pour réguler la prise) → <strong>ciment</strong>.<br><br>
+Quand on ajoute de l'eau, des réactions d'hydratation complexes créent des fibres de silicates de calcium hydratés qui s'entrelacent et font durcir le tout. La résistance maximale est atteinte après 28 jours !<br><br>
+Dans votre lycée, le ciment est l'ingrédient clé du béton des <strong>casquettes, murs et dalles</strong>. Un lycée de 50 millions d'euros repose sur du calcaire et de l'argile cuits ensemble. Savez-vous quelle différence il y a entre ciment, mortier et béton ?`
+  },
+
+  acier: {
+    mots: ['acier','fer','metal','métal','minerai','hematite','magnétite','fonte','haut-fourneau','armature','charpente'],
+    texte: `L'<strong>acier</strong> vient du minerai de fer (hématite Fe₂O₃ ou magnétite Fe₃O₄) extrait du sous-sol. La transformation est la plus énergivore de tous les matériaux de construction.<br><br>
+Dans le <strong>haut-fourneau</strong> à 1500°C, le minerai de fer est réduit par le carbone du coke : Fe₂O₃ + 3CO → 2Fe + 3CO₂. On obtient de la <em>fonte</em> (fer + 4% carbone). Dans le <strong>convertisseur</strong>, on insuffle de l'oxygène pour brûler l'excès de carbone → <em>acier</em> (fer + 0,1 à 1,5% carbone).<br><br>
+Plus il y a de carbone, plus l'acier est dur mais fragile. L'acier des armatures de béton est soigneusement dosé pour être à la fois résistant et ductile.<br><br>
+Dans votre lycée, l'acier est <strong>partout mais invisible</strong> : toutes les <strong>armatures</strong> dans le béton des casquettes de 38 tonnes, les <strong>charpentes</strong>, les <strong>menuiseries</strong> des façades vitrées. Sans acier, les casquettes s'effondreraient ! Savez-vous comment on appelle le béton renforcé d'acier ?`
+  },
+
+  maison: {
+    mots: ['maison','batiment','bâtiment','construction','construire','matériaux','lycée','ferroul','tout','liste','quoi'],
+    texte: `Voici toutes les roches qui se cachent dans votre lycée Ernest-Ferroul 😊<br><br>
+<strong>Sable</strong> (érosion fluviale) → Béton des casquettes + Façades vitrées<br>
+<strong>Calcaire</strong> (sédim. biochimique) → Ciment du béton (broyage + 900°C)<br>
+<strong>Argile</strong> (sédim. détritique) → Tuiles des toits annexes (cuisson 900°C)<br>
+<strong>Gypse</strong> (évaporite triasique) → Plâtre des cloisons et plafonds (150°C)<br>
+<strong>Grès</strong> (sédim. détritique) → Carrelage et dallages (taille)<br>
+<strong>Granulats calcaires</strong> (érosion) → Béton et parking (aucune transformation)<br>
+<strong>Minerai de fer</strong> → Acier des armatures et charpentes (1500°C)<br>
+<strong>Sable siliceux</strong> → Verre des façades (fondu à 1700°C)<br><br>
+Votre lycée de 50 millions d'euros est un véritable musée de géologie sédimentaire vivant ! Et où ont été extraites toutes ces roches ? C'est l'énigme de la carte 😉 Combien de ces roches sont sédimentaires ?`
+  },
+
+  // ══════════════════════════════════════════════
+  // QUESTIONS SUR LE LYCÉE
+  // ══════════════════════════════════════════════
+
+  lycee: {
+    mots: ['lycée','lycee','ferroul','ernest','lézignan','lezignan','bâtiment','batiment','architecture','casquette','façade'],
+    texte: `Le lycée <strong>Ernest-Ferroul</strong> est mon œuvre dont je suis très fier ! Inauguré en septembre 2016 à Lézignan-Corbières, 50 millions d'euros, 1370 élèves, lieu-dit l'Estagnol.<br><br>
+Ses éléments architecturaux distinctifs sont directement liés à la géologie :<br>
+— Les <strong>casquettes de béton blanc</strong> : 2 km de moule, 24 à 38 tonnes par élément — du sable, du calcaire et du minerai de fer réunis !<br>
+— Les <strong>façades vitrées très larges</strong> : du sable fondu à 1700°C<br>
+— L'architecture "responsable dans l'usage des matériaux" pour répondre au vent fort et aux écarts thermiques méditerranéens<br>
+— La <strong>chaufferie bois</strong> mutualisée avec le collège voisin — seul matériau non minéral !<br><br>
+J'ai voulu un lycée qui ressemble à un siège d'entreprise sérieux — "on ne rigole pas avec la pédagogie" 😊 Savez-vous combien de types de roches différentes composent votre lycée ?`
+  },
+
+  localisation: {
+    mots: ['où','ou ','trouve','gisement','carrière','carriere','extraction','provient','vient de','localisation','site','commune','village'],
+    texte: `Bonne question ! Mais c'est justement <strong>l'énigme suivante</strong> dans votre enquête géologique… 🗺️<br><br>
+Je vous laisse mener l'enquête sur la <strong>carte géologique de l'Aude</strong> — vous y trouverez tous les indices pour localiser les gisements des roches qui ont servi à construire votre lycée.<br><br>
+Ce que je peux vous dire sans trop en dévoiler : toutes les roches de votre lycée viennent d'un rayon de <strong>moins de 200 km</strong>, et l'Aude est un département géologiquement extraordinairement riche — calcaires jurassiques, argiles oligocènes, gypse triasique, marbres métamorphiques, sables alluviaux quaternaires... Tout est là, autour de vous ! 😉`
+  },
+
+  inconnu: {
+    texte: `Hmm, je ne suis pas sûr de comprendre votre question 😊<br><br>
+Ma spécialité c'est la <strong>géologie sédimentaire</strong> et les <strong>matériaux de construction</strong> du lycée ! Vous pouvez me poser des questions sur :<br><br>
+Les <em>processus</em> : érosion, transport, sédimentation, diagénèse, stratification<br>
+Les <em>roches</em> : sable, calcaire, argile, gypse, grès, granite, marbre, évaporites<br>
+Les <em>matériaux</em> : béton, verre, plâtre, ciment, acier, carrelage, tuile<br>
+Le <em>lycée</em> : ses matériaux, son architecture, ses caractéristiques<br><br>
+Ou cliquez sur un des boutons en haut pour commencer !`
+  }
+};
+
+// ══════════════════════════════════════════════
+// MOTEUR DE RECONNAISSANCE
+// ══════════════════════════════════════════════
+function normalise(txt) {
+  return txt.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9 ]/g, ' ');
+}
+
+function trouver(msg) {
+  const m = normalise(msg);
+
+  // Localisation en priorité absolue
+  for (const mot of R.localisation.mots) {
+    if (m.includes(normalise(mot))) return R.localisation.texte;
+  }
+
+  // Ordre de priorité des catégories
+  const ordre = [
+    'beton','verre','platre','ciment','acier','maison','lycee',
+    'sable','calcaire','gypse','argile','gres','granite','marbre',
+    'evaporites','calcaireChimique','rochesSedimentaires',
+    'erosion','sedimentation','transport','diagenese',
+    'stratification','fossile','paleoenvironnement'
+  ];
+
+  for (const cle of ordre) {
+    if (!R[cle] || !R[cle].mots) continue;
+    for (const mot of R[cle].mots) {
+      if (m.includes(normalise(mot))) return R[cle].texte;
+    }
+  }
+
+  return R.inconnu.texte;
+}
+
+// ══════════════════════════════════════════════
+// INTERFACE
+// ══════════════════════════════════════════════
+function addMsg(role, html) {
+  const chat = document.getElementById('chat');
+  const wrap = document.createElement('div');
+  wrap.className = 'message' + (role === 'user' ? ' user' : '');
+  const av = document.createElement('div');
+  av.className = 'msg-av ' + (role === 'user' ? 'u' : 'p');
+  av.textContent = role === 'user' ? '🎓' : '🏛️';
+  const b = document.createElement('div');
+  b.className = 'bubble ' + (role === 'user' ? 'u' : 'p');
+  b.innerHTML = html;
+  wrap.appendChild(av); wrap.appendChild(b);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function showTyping() {
+  const chat = document.getElementById('chat');
+  const t = document.createElement('div');
+  t.className = 'typing'; t.id = 'typ';
+  t.innerHTML = '<div class="msg-av p">🏛️</div><div class="typing-dots"><div class="d"></div><div class="d"></div><div class="d"></div></div>';
+  chat.appendChild(t);
+  chat.scrollTop = chat.scrollHeight;
+}
+function hideTyping() { const t = document.getElementById('typ'); if(t) t.remove(); }
+
+function q(text) { document.getElementById('inp').value = text; send(); }
+
+function send() {
+  const inp = document.getElementById('inp');
+  const btn = document.getElementById('btn');
+  const text = inp.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  inp.value = ''; inp.style.height = 'auto';
+  btn.disabled = true;
+  showTyping();
+  setTimeout(() => {
+    hideTyping();
+    addMsg('assistant', trouver(text));
+    btn.disabled = false;
+    inp.focus();
+  }, 500 + Math.random() * 400);
+}
+</script>
+</body>
+</html>
