@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carrières & Géologie de l'Aude – 2nde SVT</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root {
+  --marbre: #c4625a;
+  --calcaire: #5c8f6a;
+  --granulats: #c98a1a;
+  --argile: #a0521e;
+  --gypse: #6e5fa8;
+  --mine: #3a6e9a;
+  --lycee: #1f6e3a;
+  --industrie: #6a6a68;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: #1a1a1a; }
+#map { width: 100vw; height: 100vh; }
+
+/* ---- POPUP ---- */
+.leaflet-popup-content-wrapper {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.22) !important;
+  border: none !important;
+  padding: 0 !important;
+  overflow: hidden;
+  max-width: 290px;
+}
+.leaflet-popup-content { margin: 0 !important; }
+.leaflet-popup-tip-container { display: none; }
+
+.popup-top {
+  height: 6px;
+  width: 100%;
+}
+.popup-inner { padding: 14px 16px 12px; }
+
+.popup-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #111;
+  line-height: 1.25;
+  margin-bottom: 3px;
+}
+.popup-commune {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 9px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.popup-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+.tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.popup-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-bottom: 9px;
+}
+.popup-grid.full { grid-template-columns: 1fr; }
+
+.info-block {
+  background: #f7f6f4;
+  border-radius: 8px;
+  padding: 7px 9px;
+}
+.info-label {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #bbb;
+  margin-bottom: 3px;
+}
+.info-value {
+  font-size: 11px;
+  color: #222;
+  line-height: 1.4;
+  font-weight: 500;
+}
+.info-value.light { font-weight: 400; color: #444; }
+
+.popup-anecdote {
+  background: #fffbf0;
+  border-left: 3px solid #e8a838;
+  border-radius: 0 8px 8px 0;
+  padding: 7px 10px;
+  font-size: 10.5px;
+  color: #555;
+  line-height: 1.5;
+  font-style: italic;
+  margin-bottom: 9px;
+}
+.popup-anecdote::before { content: '✨ '; }
+
+.popup-gps {
+  font-family: 'SF Mono', 'Fira Mono', monospace;
+  font-size: 9px;
+  color: #ccc;
+  padding-top: 7px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ---- TITRE ---- */
+.map-title {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+  border-radius: 12px;
+  padding: 9px 22px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.map-title-main { font-size: 13px; font-weight: 700; color: #111; }
+.map-title-sub { font-size: 10px; color: #aaa; margin-top: 1px; }
+
+/* ---- LÉGENDE ---- */
+.legend {
+  position: absolute;
+  bottom: 32px;
+  right: 10px;
+  background: white;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+  z-index: 1000;
+  min-width: 180px;
+}
+.legend-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #aaa;
+  margin-bottom: 10px;
+}
+.leg-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 6px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.2s;
+  margin-bottom: 2px;
+}
+.leg-row:hover { background: #f5f5f5; }
+.leg-row.off { opacity: 0.3; }
+.leg-pip {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.leg-text { font-size: 11px; color: #333; flex: 1; }
+.leg-n {
+  font-size: 9.5px;
+  color: #aaa;
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+.legend-divider { height: 1px; background: #f0f0f0; margin: 8px 0; }
+.legend-hint { font-size: 9px; color: #ccc; text-align: center; }
+
+/* ---- COMPTEUR ---- */
+.counter {
+  position: absolute;
+  top: 66px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.95);
+  border-radius: 20px;
+  padding: 4px 14px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  font-size: 10.5px;
+  color: #888;
+  white-space: nowrap;
+}
+
+/* ---- BRGM badge ---- */
+.brgm-badge {
+  position: absolute;
+  bottom: 32px;
+  left: 10px;
+  background: rgba(255,255,255,0.92);
+  border-radius: 8px;
+  padding: 5px 10px;
+  font-size: 9.5px;
+  color: #666;
+  z-index: 1000;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.12);
+}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="map-title">
+  <div>
+    <div class="map-title-main">🪨 Géologie de l'Aude — Carrières & Matériaux</div>
+    <div class="map-title-sub">Projet coopératif — Construction du lycée — 2nde SVT</div>
+  </div>
+</div>
+
+<div class="counter" id="counter">22 sites • cliquer sur un marqueur pour les détails</div>
+
+<div class="legend">
+  <div class="legend-title">Types de sites</div>
+  <div class="leg-row" id="leg-lycee" onclick="toggle('lycee')"><div class="leg-pip" style="background:var(--lycee)"></div><span class="leg-text">Lycée</span><span class="leg-n">1</span></div>
+  <div class="leg-row" id="leg-marbre" onclick="toggle('marbre')"><div class="leg-pip" style="background:var(--marbre)"></div><span class="leg-text">Marbre</span><span class="leg-n">3</span></div>
+  <div class="leg-row" id="leg-calcaire" onclick="toggle('calcaire')"><div class="leg-pip" style="background:var(--calcaire)"></div><span class="leg-text">Calcaire</span><span class="leg-n">4</span></div>
+  <div class="leg-row" id="leg-granulats" onclick="toggle('granulats')"><div class="leg-pip" style="background:var(--granulats)"></div><span class="leg-text">Granulats / Sablières</span><span class="leg-n">6</span></div>
+  <div class="leg-row" id="leg-argile" onclick="toggle('argile')"><div class="leg-pip" style="background:var(--argile)"></div><span class="leg-text">Argile / Céramique</span><span class="leg-n">2</span></div>
+  <div class="leg-row" id="leg-gypse" onclick="toggle('gypse')"><div class="leg-pip" style="background:var(--gypse)"></div><span class="leg-text">Gypse / Évaporites</span><span class="leg-n">2</span></div>
+  <div class="leg-row" id="leg-mine" onclick="toggle('mine')"><div class="leg-pip" style="background:var(--mine)"></div><span class="leg-text">Mine / Métal</span><span class="leg-n">3</span></div>
+  <div class="leg-row" id="leg-industrie" onclick="toggle('industrie')"><div class="leg-pip" style="background:var(--industrie)"></div><span class="leg-text">Industrie / BTP</span><span class="leg-n">2</span></div>
+  <div class="legend-divider"></div>
+  <div class="legend-hint">Cliquer pour afficher / masquer</div>
+</div>
+
+<div class="brgm-badge">Fond géologique © BRGM — Carte au 1/50 000</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map', { center: [43.15, 2.45], zoom: 9, zoomControl: true });
+
+const topo = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri', maxZoom: 18 });
+const sat  = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: '© Esri', maxZoom: 18 });
+topo.addTo(map);
+
+const geol = L.tileLayer.wms('https://geoservices.brgm.fr/geologie', {
+  layers:'GEOLOGIE', format:'image/png', transparent:true, version:'1.3.0', attribution:'© BRGM', opacity:0.72
+});
+geol.addTo(map);
+
+L.control.layers({ 'Topographique':topo, 'Satellite':sat }, { 'Carte géologique BRGM':geol }, { position:'topright' }).addTo(map);
+L.control.scale({ imperial:false, position:'bottomleft' }).addTo(map);
+
+// COULEURS CSS
+const COL = {
+  lycee:'#1f6e3a', marbre:'#c4625a', calcaire:'#5c8f6a',
+  granulats:'#c98a1a', argile:'#a0521e', gypse:'#6e5fa8',
+  mine:'#3a6e9a', industrie:'#6a6a68'
+};
+
+// BADGES statut
+const STAT = {
+  'Actif':     { bg:'#d6f0da', c:'#145a28' },
+  'Fermé':     { bg:'#fdddd8', c:'#8b1a0a' },
+  'Historique':{ bg:'#fef3cd', c:'#7a4800' },
+  'Patrimoine':{ bg:'#e8d8f5', c:'#4a1080' }
+};
+
+// BADGES type
+const TYPE_BADGE = {
+  lycee:    { bg:'#d6f0da', c:'#145a28', l:'Lycée — Point de départ' },
+  marbre:   { bg:'#fce8e7', c:'#8b2020', l:'Marbre' },
+  calcaire: { bg:'#e0f0e4', c:'#1a5c2a', l:'Calcaire' },
+  granulats:{ bg:'#fef3d8', c:'#7a4a00', l:'Granulats' },
+  argile:   { bg:'#f5e8dc', c:'#6b2d00', l:'Argile' },
+  gypse:    { bg:'#ede8f5', c:'#3d2070', l:'Gypse' },
+  mine:     { bg:'#ddeaf5', c:'#1a3d5c', l:'Mine / Métal' },
+  industrie:{ bg:'#eeeeec', c:'#3a3a38', l:'Industrie / BTP' }
+};
+
+function icon(type) {
+  const c = COL[type];
+  return L.divIcon({
+    className:'',
+    html:`<svg width="30" height="38" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">
+      <filter id="sh"><feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity="0.25"/></filter>
+      <path d="M15 0C6.7 0 0 6.7 0 15c0 10 15 23 15 23S30 25 30 15C30 6.7 23.3 0 15 0z" fill="${c}" filter="url(#sh)"/>
+      <path d="M15 2C7.8 2 2 7.8 2 15c0 9.5 13 21.5 13 21.5S28 24.5 28 15C28 7.8 22.2 2 15 2z" fill="${c}"/>
+      <circle cx="15" cy="15" r="6" fill="white" opacity="0.95"/>
+    </svg>`,
+    iconSize:[30,38], iconAnchor:[15,38], popupAnchor:[0,-40]
+  });
+}
+
+function popup(d) {
+  const tb = TYPE_BADGE[d.type];
+  const sb = d.statut && STAT[d.statut] ? STAT[d.statut] : null;
+  const c  = COL[d.type];
+  return `
+    <div class="popup-top" style="background:${c}"></div>
+    <div class="popup-inner">
+      <div class="popup-title">${d.nom}</div>
+      <div class="popup-commune">📍 ${d.commune}</div>
+      <div class="popup-tags">
+        <span class="tag" style="background:${tb.bg};color:${tb.c}">${tb.l}</span>
+        ${sb ? `<span class="tag" style="background:${sb.bg};color:${sb.c}">${d.statut}</span>` : ''}
+      </div>
+      <div class="popup-grid">
+        ${d.roche   ? `<div class="info-block"><div class="info-label">Roche extraite</div><div class="info-value light">${d.roche}</div></div>` : ''}
+        ${d.age     ? `<div class="info-block"><div class="info-label">Âge géologique</div><div class="info-value light">${d.age}</div></div>` : ''}
+      </div>
+      ${d.materiaux ? `<div class="info-block" style="margin-bottom:7px"><div class="info-label">Matériaux produits</div><div class="info-value light">${d.materiaux}</div></div>` : ''}
+      ${d.usage     ? `<div class="info-block" style="margin-bottom:7px"><div class="info-label">Lien avec le lycée</div><div class="info-value light">${d.usage}</div></div>` : ''}
+      ${d.anecdote  ? `<div class="popup-anecdote">${d.anecdote}</div>` : ''}
+      <div class="popup-gps">📌 ${d.gps}</div>
+    </div>`;
+}
+
+// ========== DONNÉES ==========
+const DATA = [
+  // LYCÉE
+  { lat:43.1817304, lng:2.7588377, type:'lycee', statut:'',
+    nom:'Lycée Ernest Ferroul', commune:'Lézignan-Corbières (11200)',
+    materiaux:'Béton, acier, briques, vitrages',
+    anecdote:'Toutes les matières du lycée viennent de carrières dans un rayon de moins de 200 km.',
+    gps:'43.182°N · 2.759°E' },
+
+  // MARBRES
+  { lat:43.3372388, lng:2.5404437, type:'marbre', statut:'Actif',
+    nom:'Carrières de Caunes-Minervois', commune:'Caunes-Minervois (11160)',
+    roche:'Marbre rouge (calcaire transformé par la chaleur de la Terre)', age:'Dévonien, −385 Ma',
+    materiaux:'Blocs, dalles, granulats décoratifs, sable de marbre',
+    usage:'Revêtements de sol et murs de prestige dans les édifices publics.',
+    anecdote:'Les colonnes du chateau Versailles, de l\'Opéra Garnier!',
+    gps:'43.337°N · 2.540°E' },
+
+  { lat:43.334, lng:2.537, type:'marbre', statut:'Patrimoine',
+    nom:'Carrière de Marbre Gris – Caunes', commune:'Caunes-Minervois (11160)',
+    roche:'Marbre gris (calcaire métamorphique)', age:'Dévonien, −385 Ma',
+    materiaux:'Pierre ornementale, sculpture, colonnes monolithes',
+    usage:'Patrimoine classé Monument Historique (2006). Visites guidées disponibles.',
+    anecdote:'Des colonnes en marbre gris de Caunes furent exportées au IXe siècle pour la Grande Mosquée de Cordoue !',
+    gps:'43.334°N · 2.537°E' },
+
+  { lat:43.311, lng:2.564, type:'marbre', statut:'Actif',
+    nom:'Marbres – Trausse', commune:'Trausse (11160)',
+    roche:'Marbre rouge et gris (calcaire métamorphique)', age:'Dévonien, −385 Ma',
+    materiaux:'Granulats décoratifs de marbre, sables colorés, dalles',
+    usage:'Sables et granulats marbre pour sols décoratifs, terrains et espaces publics.',
+    gps:'43.311°N · 2.564°E' },
+
+  // CALCAIRES
+  { lat:43.279, lng:2.189, type:'calcaire', statut:'Actif',
+    nom:'Carrière de Moussoulens – Groupe Mauri', commune:'Moussoulens (11170)',
+    roche:'Calcaire compact (Jurassique)', age:'Jurassique, −150 à −200 Ma',
+    materiaux:'Granulats concassés, gravillons, tout-venant BTP',
+    usage:'Béton, routes, remblais. Alimente les chantiers du bassin carcassonnais.',
+    gps:'43.279°N · 2.189°E' },
+
+  { lat:43.370, lng:2.280, type:'calcaire', statut:'Actif',
+    nom:'Carrière de Lastours – Groupe Mauri', commune:'Lastours (11600)',
+    roche:'Calcaire de la Montagne Noire', age:'Dévonien–Carbonifère, −300 à −380 Ma',
+    materiaux:'Granulats calcaires, enrochements',
+    usage:'Matériaux de construction pour la région. Géologie hercynienne du Massif Central.',
+    gps:'43.370°N · 2.280°E' },
+
+  { lat:42.920, lng:3.036, type:'calcaire', statut:'Actif',
+    nom:'Carrière Leucate', commune:'Leucate (11370)',
+    roche:'Calcaire Éocène', age:'Éocène, −40 à −55 Ma',
+    materiaux:'Enrochements, granulats gros tonnage, ballast train',
+    usage:'A fourni les enrochements du port de Port-la-Nouvelle et les travaux de l\'autoroute A61.',
+    gps:'42.920°N · 3.036°E' },
+
+  { lat:43.240, lng:2.350, type:'calcaire', statut:'Actif',
+    nom:'Calcaire à ciment – région Carcassonne', commune:'Région Carcassonne (11)',
+    roche:'Calcaire crétacé', age:'Crétacé, −65 à −100 Ma',
+    materiaux:'Ciment, chaux vive',
+    usage:'Le ciment est l\'ingrédient clé du béton des murs, dalles et fondations.',
+    anecdote:'CaCO₃ + chaleur (900°C) → CaO + CO₂. 1 tonne de calcaire donne 560 kg de chaux vive, base de tout béton.',
+    gps:'43.240°N · 2.350°E' },
+
+  // GRANULATS
+  { lat:43.1693375, lng:2.9121434, type:'granulats', statut:'Actif',
+    nom:'Domitia Granulats – Montredon-des-Corbières', commune:'Montredon-des-Corbières (11100)',
+    roche:'Calcaire des Corbières', age:'Jurassique–Crétacé, −65 à −180 Ma',
+    materiaux:'Granulats calcaires, sables, gravillons — ~500 000 t/an',
+    usage:'Principal fournisseur de granulats de la région Narbonnaise. Groupe Eurovia (filiale Vinci).',
+    anecdote:'500 000 tonnes par an = 50 000 camions de chantier chaque année ! L\'un des plus gros producteurs de l\'Aude.',
+    gps:'43.169°N · 2.912°E' },
+
+  { lat:43.1669, lng:2.3063, type:'granulats', statut:'Actif',
+    nom:'Sablière de Couffoulens – Groupe Mauri', commune:'Couffoulens (11250)',
+    roche:'Alluvions quaternaires de l\'Aude', age:'Quaternaire, < −2 Ma',
+    materiaux:'Sables alluvionnaires roulés, graviers, béton prêt à l\'emploi',
+    usage:'Granulats roulés calibrés, bétons de structure.',
+    gps:'43.167°N · 2.306°E' },
+
+  { lat:43.235, lng:2.119, type:'granulats', statut:'Actif',
+    nom:'NEXSTONE – Sablière de Bram', commune:'Bram (11150)',
+    roche:'Alluvions quaternaires', age:'Quaternaire, < −2 Ma',
+    materiaux:'"Sable de Bram" — sable fin calibré, très prisé pour les bétons de haute qualité',
+    usage:'Bétons de structure et d\'ouvrage d\'art. Réputation régionale depuis les années 1990.',
+    gps:'43.235°N · 2.119°E' },
+
+  { lat:43.210, lng:2.411, type:'granulats', statut:'Actif',
+    nom:'Sablière Rivière – Berriac', commune:'Berriac (11000)',
+    roche:'Alluvions de la rivière Aude (terrasses quaternaires)', age:'Quaternaire, < −2 Ma',
+    materiaux:'Granulats alluvionnaires, sables de construction',
+    usage:'Approvisionne les centrales à béton du bassin carcassonnais.',
+    anecdote:'Chaque grain de sable alluvionnaire raconte l\'érosion des Pyrénées : un voyage de centaines de km !',
+    gps:'43.210°N · 2.411°E' },
+
+  { lat:42.875, lng:2.182, type:'granulats', statut:'Actif',
+    nom:'Carrière de Quillan', commune:'Quillan (11500)',
+    roche:'Calcaire et grès crétacés', age:'Crétacé–Éocène, −40 à −100 Ma',
+    materiaux:'Granulats calcaires, pierres concassées',
+    anecdote:'Les gorges spectaculaires de l\'Aude à Quillan sont taillées dans ces mêmes calcaires crétacés — cela montre l\'érosion!',
+    gps:'42.875°N · 2.182°E' },
+
+  { lat:43.151, lng:2.728, type:'granulats', statut:'Actif',
+    nom:'Usine béton – Ferrals-les-Corbières', commune:'Ferrals-les-Corbières (11200)',
+    roche:'Transformation de granulats calcaires + ciment', age:'Roche venues de toute la région',
+    materiaux:'Béton prêt à l\'emploi (BPE), éléments préfabriqués, graviers',
+    usage:'Produit le béton utilisé pour les chantiers locaux.',
+    anecdote:'Recette d\'1 m³ de béton : 350 kg de ciment + 700 kg de sable + 1100 kg de graviers + 180 L d\'eau.',
+    gps:'43.151°N · 2.728°E' },
+
+  // ARGILES
+
+  { lat:43.315, lng:1.955, type:'argile', statut:'Historique',
+    nom:'Argiles – Castelnaudary', commune:'Castelnaudary (11400)',
+    roche:'Argile lacustre miocène', age:'Miocène, −5 à −23 Ma',
+    materiaux:'Céramique, poterie, cassole du cassoulet',
+    usage:'Argile cuite à 900-1100°C → grès céramique.',
+    anecdote:'Le cassoulet doit son nom à la "cassole" — une poterie en argile locale fabriquée depuis le Moyen Âge !',
+    gps:'43.315°N · 1.955°E' },
+
+  // GYPSE
+  { lat:42.8754, lng:2.2061, type:'gypse', statut:'Actif',
+    nom:'Gypse triasique – Quillan', commune:'Quillan (11500)',
+    roche:'Gypse (CaSO₄·2H₂O) — évaporite triasique', age:'Trias, −200 à −250 Ma',
+    materiaux:'Plâtre (cuisson 150-180°C → hémihydrate CaSO₄·½H₂O)',
+    anecdote:'Le gypse s\'est formé par évaporation d\'une mer peu profonde sous climat tropical aride il y a 225 millions d\'années !',
+    gps:'42.875°N · 2.206°E' },
+
+  { lat:43.095, lng:2.810, type:'gypse', statut:'Historique',
+    nom:'Évaporites triasiques – Corbières', commune:'Région Corbières (11)',
+    roche:'Gypse et anhydrite (évaporites)', age:'Trias, −200 à −250 Ma',
+    materiaux:'Gypse pour plâtre et anhydrite industrielle',
+    anecdote:'Les diapirs de sel et de gypse ont guidé la mise en place de la nappe des Corbières (présence de quartz bipyramidés (à vous de chercher).',
+    gps:'43.094°N · 2.810°E' },
+
+  // MINES
+
+  { lat:43.316, lng:2.380, type:'mine', statut:'Fermé',
+    nom:'Site principal – Mine de Salsigne', commune:'Salsigne (11600)',
+    roche:'Filons hydrothermaux (même phénomène au niveau des dorsales) orifères (pyrite, arsénopyrite)  dans schistes', age:'Hercynien, −300 Ma',
+    materiaux:'Production : ~1 t d\'or par an au maximum de la production (années 1990)',
+    usage:'Ancienne mine d\'or la plus productive d\'Europe. Fermée en 2004.',
+    anecdote:'Après 110 ans d\'exploitation pour 100 tonnes d\'or extrait — et au moins autant d\'années de dépollution à financer. La rivière Orbiel en aval affiche encore 50× la norme en arsenic — important impact environnemental.',
+    gps:'43.316°N · 2.380°E' },
+
+  { lat:43.370, lng:2.323, type:'mine', statut:'Fermé',
+    nom:'Mines de la Montagne Noire', commune:'Massif Montagne Noire (11)',
+    roche:'Minerais de fer, zinc, plomb', age:' −300 à −350 Ma',
+    materiaux:'Fer, zinc, plomb...',
+    anecdote:'La Montagne Noire abrite l\'une des zones métallogéniques les plus riches du Massif Central.',
+    gps:'43.370°N · 2.323°E' }
+];
+
+// ========== CARTE ==========
+const byType = {};
+const vis = {};
+
+DATA.forEach(d => {
+  if (!byType[d.type]) { byType[d.type] = []; vis[d.type] = true; }
+  const m = L.marker([d.lat, d.lng], { icon: icon(d.type) });
+  m.bindPopup(popup(d), { maxWidth:290, minWidth:260 });
+  m.addTo(map);
+  byType[d.type].push(m);
+});
+
+function toggle(type) {
+  vis[type] = !vis[type];
+  byType[type]?.forEach(m => vis[type] ? m.addTo(map) : map.removeLayer(m));
+  const el = document.getElementById('leg-' + type);
+  if (el) el.classList.toggle('off', !vis[type]);
+}
+</script>
+</body>
+</html>
