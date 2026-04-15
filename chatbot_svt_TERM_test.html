@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SVT · Révisions Terminale</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111318; --surface: #191c24; --surface2: #1e2230;
+    --border: #262c3e; --border2: #2e3650;
+    --green: #4ade80; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171;
+    --text: #dde1ee; --muted: #636b88; --muted2: #8891aa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  /* ── Overlay clé API ── */
+  #overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+  #overlay.off { display: none; }
+  .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 420px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .ocard h2 { font-size: 1rem; font-weight: 600; color: var(--text); }
+  .ocard h2 span { color: var(--green); }
+  .ocard p { font-size: 0.78rem; color: var(--muted2); line-height: 1.6; }
+  .ocard a { color: var(--blue); }
+  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; transition: border-color .18s; }
+  #keyinput:focus { border-color: var(--green); }
+  #keyinput::placeholder { color: var(--muted); font-family: 'Sora', sans-serif; }
+  #keybtn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px; font-family: 'Sora', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background .18s; }
+  #keybtn:hover { background: #6ee89a; }
+  #keybtn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  #keyerr { font-size: 0.74rem; color: var(--red); display: none; }
+  #keyerr.on { display: block; }
+  .onote { font-size: 0.72rem; color: var(--muted); padding: 8px 11px; background: var(--surface2); border-radius: 6px; line-height: 1.5; }
+
+  /* ── Top bar ── */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
+  .logo { font-weight: 600; font-size: 0.95rem; color: var(--text); letter-spacing: -0.02em; }
+  .logo span { color: var(--green); }
+  .chap-group { display: flex; gap: 6px; align-items: center; }
+  .chap-tag { padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border2); font-size: 0.72rem; font-weight: 500; color: var(--muted2); cursor: pointer; transition: all 0.18s; user-select: none; }
+  .chap-tag.on { background: #18281e; border-color: var(--green); color: var(--green); }
+  .chap-tag:hover:not(.on) { border-color: var(--muted2); color: var(--text); }
+  .chap-sep { color: var(--border2); font-size: 0.7rem; }
+
+  /* ── Tabs ── */
+  #modetabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 20px; background: var(--bg); }
+  .tab { padding: 10px 18px; font-size: 0.78rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.18s; user-select: none; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--green); }
+
+  /* ── Chat ── */
+  #chat { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  #chat::-webkit-scrollbar { width: 4px; }
+  #chat::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+  .msg { display: flex; gap: 10px; }
+  .msg.user { flex-direction: row-reverse; }
+  .ava { width: 28px; height: 28px; border-radius: 50%; font-size: 0.65rem; font-weight: 600; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .ava.bot { background: #18281e; border: 1.5px solid var(--green); color: var(--green); }
+  .ava.user { background: #18243a; border: 1.5px solid var(--blue); color: var(--blue); }
+  .bub { max-width: 76%; padding: 11px 15px; border-radius: 12px; line-height: 1.7; font-size: 0.875rem; font-weight: 300; animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+  .msg.bot .bub { background: var(--surface); border: 1px solid var(--border); border-top-left-radius: 3px; color: var(--text); }
+  .msg.user .bub { background: var(--surface2); border: 1px solid var(--border2); border-top-right-radius: 3px; color: #b8c8f0; }
+  .bub b, .bub strong { font-weight: 600; color: var(--text); }
+  .bub .kw { color: var(--green); font-weight: 500; }
+  .bub .ok { color: var(--green); }
+  .bub .ko { color: var(--red); }
+  .bub .warn { color: var(--amber); }
+  .bub code { font-family: 'DM Mono', monospace; background: var(--surface2); padding: 1px 5px; border-radius: 3px; font-size: 0.78rem; color: var(--amber); }
+  .bub .note { margin-top: 9px; padding: 7px 11px; background: #18281e; border-left: 2px solid var(--green); border-radius: 0 5px 5px 0; font-size: 0.8rem; color: #9dd6aa; line-height: 1.5; }
+  .bub .note.blue { background: #18243a; border-color: var(--blue); color: #9ac0f0; }
+  .bub ul { padding-left: 16px; margin-top: 5px; }
+  .bub li { margin-bottom: 3px; }
+  .thinking { display: flex; gap: 4px; align-items: center; padding: 11px 15px; }
+  .thinking span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); opacity: 0.5; animation: pulse 1.2s infinite; }
+  .thinking span:nth-child(2) { animation-delay: 0.2s; }
+  .thinking span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes pulse { 0%,60%,100% { transform: translateY(0); opacity: 0.35; } 30% { transform: translateY(-5px); opacity: 1; } }
+
+  /* ── Input ── */
+  #inputbar { padding: 12px 20px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
+  #inp { flex: 1; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Sora', sans-serif; font-size: 0.875rem; font-weight: 300; resize: none; min-height: 42px; max-height: 120px; outline: none; transition: border-color 0.18s; line-height: 1.5; }
+  #inp:focus { border-color: var(--green); }
+  #inp::placeholder { color: var(--muted); }
+  #sendbtn { background: var(--green); color: #111318; border: none; border-radius: 8px; width: 40px; height: 40px; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.18s; }
+  #sendbtn:hover { background: #6ee89a; }
+  #sendbtn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+  /* ── Chips ── */
+  #chips { padding: 0 20px 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { padding: 4px 11px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.72rem; color: var(--muted2); cursor: pointer; transition: all 0.15s; font-family: 'Sora', sans-serif; background: transparent; }
+  .chip:hover { border-color: var(--green); color: var(--green); }
+</style>
+</head>
+<body>
+
+<!-- Overlay clé API -->
+<div id="overlay">
+  <div class="ocard">
+    <h2>SVT · <span>Révisions Terminale</span></h2>
+    <p>Collez votre clé API OpenAI pour démarrer.<br>
+    À obtenir sur <a href="https://platform.openai.com/api-keys" target="_blank">platform.openai.com/api-keys</a></p>
+    <input id="keyinput" type="password" placeholder="sk-…" autocomplete="off"
+      onkeydown="if(event.key==='Enter') go()"/>
+    <span id="keyerr">❌ Clé invalide ou erreur réseau. Vérifiez et réessayez.</span>
+    <button id="keybtn" onclick="go()">Démarrer →</button>
+    <div class="onote">🔒 La clé reste uniquement en mémoire — elle disparaît à la fermeture de l'onglet.</div>
+  </div>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="logo">SVT · <span>Terminale Spé</span></div>
+  <div class="chap-group">
+    <span class="chap-sep">Chapitres :</span>
+    <div class="chap-tag on" id="tag-angio" onclick="toggleChap('angio')">🌿 Angiospermes</div>
+    <div class="chap-tag on" id="tag-climat" onclick="toggleChap('climat')">🌍 Climat</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div id="modetabs">
+  <div class="tab active" id="tab-cours" onclick="switchTab('cours')">📖 Cours</div>
+  <div class="tab" id="tab-entrainement" onclick="switchTab('entrainement')">🎯 Entraînement</div>
+  <div class="tab" id="tab-liens" onclick="switchTab('liens')">🔗 Liens</div>
+</div>
+
+<!-- Chat -->
+<div id="chat"></div>
+
+<!-- Chips -->
+<div id="chips"></div>
+
+<!-- Input -->
+<div id="inputbar">
+  <textarea id="inp" placeholder="Votre réponse ou question…" rows="1"
+    onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+  <button id="sendbtn" onclick="send()">↑</button>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────
+let API_KEY = '';
+let mode = 'cours';
+let chaps = { angio: true, climat: true };
+let history = [];
+let loading = false;
+let sessionScore = 0;
+let questionCount = 0;
+
+// ── Clé API ────────────────────────────────────────────────
+function go() {
+  const val = document.getElementById('keyinput').value.trim();
+  if (!val.startsWith('sk-')) {
+    const err = document.getElementById('keyerr');
+    err.textContent = '❌ La clé doit commencer par sk- ou sk-proj-';
+    err.classList.add('on');
+    return;
+  }
+  API_KEY = val;
+  document.getElementById('overlay').classList.add('off');
+  renderWelcome('cours');
+}
+
+// ── Welcome messages ───────────────────────────────────────
+const WELCOME = {
+  cours: {
+    text: `<b>Mode Cours</b> — posez-moi n'importe quelle question sur vos chapitres actifs.\n\nJe peux expliquer une notion, définir un terme, décrire un mécanisme, ou vous donner un mémo.\n<div class="note blue">Exemples : <i>« À quoi servent les poils absorbants ? »</i> · <i>« Qu'est-ce que l'albédo ? »</i> · <i>« Explique la dormance »</i></div>`,
+    chips: ["C'est quoi l'effet de serre ?", "Rôle du xylème et phloème ?", "Définir l'anémophilie", "Qu'est-ce que δ18O ?", "Gènes ABC ?"]
+  },
+  entrainement: {
+    text: `<b>Mode Entraînement</b> — je vous interroge comme au bac, avec progression automatique.\n\nJe commence par des questions courtes (définition, vrai/faux, compléter). Si vos réponses sont bonnes, je passerai à des formats plus longs.\n<div class="note">Tapez <code>go</code> pour commencer, ou choisissez un chapitre.</div>`,
+    chips: ["Go !", "Questions sur les angiospermes", "Questions sur le climat"]
+  },
+  liens: {
+    text: `<b>Mode Liens</b> — réfléchissons ensemble aux connexions entre vos deux chapitres.\n\nPhotosynthèse ↔ cycle du carbone, stomates ↔ CO₂, coévolution ↔ biodiversité… C'est là que les sujets de bac deviennent ambitieux.\n<div class="note blue">Je ne donne pas la réponse directement — je vous guide pour construire le raisonnement vous-même.</div>`,
+    chips: ["Plantes et cycle du carbone", "Impact du climat sur les plantes", "Photosynthèse et effet de serre", "Coévolution et biodiversité"]
+  }
+};
+
+// ── Cours ──────────────────────────────────────────────────
+const COURS = `
+=== CHAPITRE 1 – ANGIOSPERMES & VIE FIXÉE ===
+
+PROBLÉMATIQUE : Comment les Angiospermes assurent-ils leur survie malgré un mode de vie fixe ?
+
+I – NUTRITION
+Photosynthèse : 6CO2 + 6H2O → C6H12O6 + 6O2 (chloroplastes, lumière + sels minéraux).
+Besoins dans 2 milieux : sol (eau + sels minéraux, 0,1-1,4 mol/mL) et air (CO2 = 0,038%).
+
+Surfaces d'échanges :
+- Poils absorbants (système racinaire) : absorbent eau + sels minéraux. Surface : centaines de m². Augmentent en milieu carencé.
+- Feuilles (système caulinaire) : chloroplastes → thylakoïdes (1000 m²). Pigments : chlorophylle a+b (absorbe rouge+bleu), caroténoïdes (bleu). Vert non absorbé = feuilles vertes.
+- Stomates : entrée CO2, fermés 12h-14h (éviter pertes eau). Surface d'échange CO2 : milliers de m² (vs 100 m² poumons).
+
+Système conducteur :
+- Xylème : cellules mortes, lignine (vert au carmin-vert d'iode). Sève brute (eau + sels minéraux) = racines → feuilles.
+- Phloème : tubes criblés, cellulose (rose). Sève élaborée (eau + sels minéraux + saccharose + acides aminés) = distribution dans toute la plante.
+
+II – REPRODUCTION
+Fleur : hermaphrodite mais autofécondation impossible.
+Verticilles : sépales (calice) + pétales (corolle) + étamines (mâle) + pistil/carpelles (femelle).
+Gènes ABC : A→sépales, A+B→pétales, B+C→étamines, C→carpelles. Étudié chez Arabidopsis thaliana.
+
+Pollinisation :
+- Anémophilie (vent) : fleurs petites, inodores, longs stigmates, pollen petit (10-25µm), non adhérent.
+- Entomophilie (insectes) : fleurs colorées, nectar ; pollen jusqu'à 100 000 grains transportés.
+- Ornithophilie (oiseaux/colibris) : fleurs rouges/orangées, tubulaires.
+- Cheiroptérophilie (chauves-souris) : fleurs pâles, nocturnes.
+Pollinisation croisée : pollen sur stigmate → tube pollinique → fécondation ovule.
+
+Dissémination des graines :
+Fleur → fruit (paroi ovaire = paroi fruit).
+Autochorie, anémochorie (vent), hydrochorie (eau), épizoochorie passive (crochets sur pelage), épizoochorie active (animal volontaire), endozoochorie (avalé, rejeté avec excréments).
+Coévolution : évolution conjointe plante-pollinisateur (ex. Orchidée de Darwin + papillon sphinx).
+
+III – DÉFENSE
+Contre prédateurs : mécanique (épines, poils, cuticule), chimique constitutif (tanins : Acacia + éthylène pour alerter voisins), chimique induit (éliciteurs).
+Contre plantes concurrentes : ombre, molécules racinaires toxiques (eucalyptus).
+Contre mauvaise saison : dormance contrôlée par ABA (acide abscissique). Automne : ABA↑ → déshydratation, réserves (tubercules, rhizomes). Printemps : ABA↓ → levée dormance, débourrement, germination.
+Sécheresse (tropiques) : stomates en crypte pilifère, cuticule épaisse.
+
+VOCABULAIRE : stomate, poils absorbants, thylakoïdes, chloroplaste, pigments chlorophylliens, xylème, phloème, sève brute/élaborée, lignine, cellulose, tube pollinique, gènes ABC, verticille, anémophilie, entomophilie, zoogamie, épizoochorie, endozoochorie, coévolution, dormance, ABA, éliciteur.
+
+=== CHAPITRE 5 – CLIMAT PASSÉ, ACTUEL ET FUTUR ===
+
+PROBLÉMATIQUE : Comment connaître les climats passés et prédire les futurs pour préserver la biodiversité ?
+
+I – CLIMAT ACTUEL
+Depuis 1850 : +1°C mondial, +3°C en France (forte hausse depuis 1990).
+Indices : recul glaces arctiques (max 2007), vêlage icebergs, recul glaciers (-30-40 ans), migrations oiseaux précoces, vendanges plus tôt.
+Causes : CO2 de 208 ppm (1850) → 405 ppm. CH4 (agriculture = 2× sources naturelles). Forçage radiatif = effet de serre additionnel. Puits de carbone : végétaux + océans (acidification → blanchiment coraux).
+Albédo = énergie réfléchie/reçue. Sans GES : -18°C. Avec GES naturels : +15°C. Vapeur d'eau = 60% effet de serre naturel.
+
+II – PRÉCAMBRIEN
+Hadéen (-4,5 à -3,8 Ga) : atmosphère primitive réductrice (CO2, SO2, N2, H2O). Formation océans dès 100°C.
+Archéen (-3,8 à -2,5 Ga) : BIF = roches marines avec O2 libre. Cyanobactéries libèrent O2 dès 3,5 Ga.
+Protérozoïque (-2,5 Ga à -542 Ma) : paléosols rouges (hématite Fe2O3) dès 2,2 Ga → atmosphère oxydante.
+
+III – -540 Ma À -800 000 ans
+Indices sédimentologiques : foraminifères + coccolithophoridés (chaud), bauxite/latérites (tropical), évaporites (chaud+aride), tillites (glaciaire), 87Sr/86Sr (altération continentale).
+Indices paléontologiques : fossiles végétaux, crocodiles Groenland (Crétacé chaud), indice stomatique Ginkgo biloba → taux CO2.
+Crétacé = chaud (dorsales + LIP → CO2↑). Permo-Carbonifère = froid (Pangée → faible volcanisme + chaîne hercynienne → altération consomme CO2 + fougères enfouies → CO2↓).
+Facteurs : volcanisme, altération chimique roches, piégeage matière organique, albédo, sédimentation carbonatée, paramètres astronomiques (excentricité 100ka, obliquité 41ka, précession 23ka).
+
+IV – -800 000 ans À AUJOURD'HUI
+Carottes de glace : bulles d'air → composition atmosphère. δ18O et δD → paléotempératures. T basse → δ18O et δD faibles dans glace. Dans carbonates foraminifères : δ18O faible = T eau chaude (inverse !).
+Pollen : exine résistante → spectre pollinique → diagramme pollinique → biomes → climat.
+Cycles glaciaires/interglaciaires ~100 000 ans (ΔT = 8-12°C). Dernier maximum glaciaire : -20 000 ans. Optimum médiéval (900-1300). Petit âge glaciaire (1300-1850) : éruption Samalas 1257 + minimum de Maunder 1645-1715.
+Causes : paramètres de Milankovitch → rétroactions amplificatrices (albédo + solubilité CO2 dans océans).
+
+VOCABULAIRE : albédo, forçage radiatif, rétroaction, cycles de Milankovitch, obliquité, excentricité, précession, GES, δ18O, BIF, stromatolithes, indice stomatique, foraminifères, spectre pollinique, biome, altération, piégeage CO2, minimum de Maunder.
+`;
+
+// ── System prompt ──────────────────────────────────────────
+function buildSystem() {
+  const actifs = [];
+  if (chaps.angio) actifs.push('Chapitre 1 – Angiospermes & vie fixée');
+  if (chaps.climat) actifs.push('Chapitre 5 – Climat passé, actuel et futur');
+  if (!actifs.length) return 'Dis à l\'élève de sélectionner au moins un chapitre.';
+
+  const base = `Tu es un assistant pédagogique SVT pour Terminale Spécialité. Chapitres actifs : ${actifs.join(' + ')}.
+BASE DE CONNAISSANCE :
+${COURS}
+RÈGLES : Reste strictement dans le contenu du cours. Réponds en français, vocabulaire scientifique du programme. Pas de markdown lourd (pas de # ##). Sois concis et précis. Utilise [mot-clé] pour les termes incontournables. Symboles : ✅ correct · ❌ incorrect · ⚠️ partiel.`;
+
+  if (mode === 'cours') return base + `
+MODE COURS : L'élève pose des questions libres. Explique clairement, donne des exemples du cours. Si l'élève ne comprend pas, reformule différemment. Termine parfois par une question courte de vérification.`;
+
+  if (mode === 'entrainement') return base + `
+MODE ENTRAÎNEMENT (sessionScore=${sessionScore}, questionCount=${questionCount}) :
+Niveau 1 (défaut) : définition en 1 phrase, vrai/faux + justification courte, compléter une phrase, citer 2 exemples.
+Niveau 2 (après 3 bonnes réponses consécutives) : expliquer en 2-3 phrases, comparer 2 concepts, donner un exemple illustré.
+Niveau 3 (après 6 bonnes réponses) : question ouverte type bac avec réponse structurée attendue.
+Après chaque réponse : ✅/❌/⚠️ + mots-clés attendus [entre crochets] + question suivante directement.
+Une seule question à la fois.`;
+
+  if (mode === 'liens') return base + `
+MODE LIENS : Guide l'élève pour construire des raisonnements reliant les deux chapitres. Thèmes : photosynthèse ↔ cycle du carbone, stomates ↔ CO2, cyanobactéries ↔ oxygénation atmosphère, coévolution ↔ biodiversité, végétaux ↔ piégeage carbone. Pose des questions ouvertes, ne donne pas la réponse directement. Guide par sous-questions si l'élève bloque.`;
+
+  return base;
+}
+
+// ── UI ─────────────────────────────────────────────────────
+function renderWelcome(m) {
+  document.getElementById('chat').innerHTML = '';
+  history = []; sessionScore = 0; questionCount = 0;
+  addBot(WELCOME[m].text);
+  renderChips(WELCOME[m].chips);
+}
+
+function renderChips(arr) {
+  const c = document.getElementById('chips'); c.innerHTML = '';
+  arr.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = t;
+    b.onclick = () => quickSend(t);
+    c.appendChild(b);
+  });
+}
+
+function addBot(html) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div'); div.className = 'msg bot';
+  div.innerHTML = `<div class="ava bot">IA</div><div class="bub">${fmt(html)}</div>`;
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+
+function addUser(text) {
+  const chat = document.getElementById('chat');
+  const div = document.createElement('div'); div.className = 'msg user';
+  div.innerHTML = `<div class="ava user">Moi</div><div class="bub">${esc(text)}</div>`;
+  chat.appendChild(div); chat.scrollTop = chat.scrollHeight;
+}
+
+function fmt(t) {
+  return t
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\[(.+?)\]/g, '<span class="kw">[$1]</span>')
+    .replace(/✅\s*(.+)/g, '<span class="ok">✅ $1</span>')
+    .replace(/❌\s*(.+)/g, '<span class="ko">❌ $1</span>')
+    .replace(/⚠️\s*(.+)/g, '<span class="warn">⚠️ $1</span>')
+    .replace(/`(.+?)`/g, '<code>$1</code>')
+    .replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+}
+function esc(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function showThinking() {
+  const chat = document.getElementById('chat');
+  const d = document.createElement('div'); d.className = 'msg bot'; d.id = 'think';
+  d.innerHTML = `<div class="ava bot">IA</div><div class="bub thinking"><span></span><span></span><span></span></div>`;
+  chat.appendChild(d); chat.scrollTop = chat.scrollHeight;
+}
+function hideThinking() { const t = document.getElementById('think'); if(t) t.remove(); }
+
+// ── Controls ───────────────────────────────────────────────
+function switchTab(m) {
+  mode = m;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + m).classList.add('active');
+  renderWelcome(m);
+}
+
+function toggleChap(c) {
+  const other = c === 'angio' ? 'climat' : 'angio';
+  if (chaps[c] && !chaps[other]) return;
+  chaps[c] = !chaps[c];
+  document.getElementById('tag-' + c).classList.toggle('on', chaps[c]);
+}
+
+// ── Send ───────────────────────────────────────────────────
+async function send() {
+  if (loading) return;
+  const inp = document.getElementById('inp');
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = ''; inp.style.height = '';
+  addUser(text);
+  history.push({ role: 'user', content: text });
+  loading = true;
+  document.getElementById('sendbtn').disabled = true;
+  document.getElementById('chips').innerHTML = '';
+  showThinking();
+
+  try {
+    const messages = [{ role: 'system', content: buildSystem() }, ...history];
+    const res = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + API_KEY
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 1000,
+        messages: messages
+      })
+    });
+    const data = await res.json();
+    hideThinking();
+    if (data.choices?.[0]?.message?.content) {
+      const reply = data.choices[0].message.content;
+      history.push({ role: 'assistant', content: reply });
+      addBot(reply);
+      if (mode === 'entrainement') {
+        questionCount++;
+        if (reply.includes('✅')) sessionScore++;
+        else if (reply.includes('❌')) sessionScore = 0;
+      }
+    } else {
+      addBot('⚠️ Une erreur est survenue. Réessayez.');
+    }
+  } catch(e) {
+    hideThinking();
+    addBot('⚠️ Erreur de connexion. Vérifiez votre clé API.');
+  }
+  loading = false;
+  document.getElementById('sendbtn').disabled = false;
+}
+
+function quickSend(t) { document.getElementById('inp').value = t; send(); }
+function handleKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+</script>
+</body>
+</html>
