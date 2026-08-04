@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correction·IA — Correction de copies</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #111318; --surface: #191c24; --surface2: #1e2230;
+    --border: #262c3e; --border2: #2e3650;
+    --green: #4ade80; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171; --purple: #c084fc;
+    --text: #dde1ee; --muted: #636b88; --muted2: #8891aa;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+  a { color: var(--blue); }
+  button { font-family: 'Sora', sans-serif; cursor: pointer; }
+  textarea, input, select { font-family: 'Sora', sans-serif; }
+
+  /* ── Overlay clé API ── */
+  #overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+  #overlay.off { display: none; }
+  .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 460px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .ocard h2 { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+  .ocard h2 span { color: var(--green); }
+  .ocard p { font-size: 0.78rem; color: var(--muted2); line-height: 1.6; }
+  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; transition: border-color .18s; }
+  #keyinput:focus { border-color: var(--green); }
+  #keyinput::placeholder { color: var(--muted); font-family: 'Sora', sans-serif; }
+  #keybtn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; transition: background .18s; }
+  #keybtn:hover { background: #6ee89a; }
+  #keyerr { font-size: 0.74rem; color: var(--red); display: none; }
+  #keyerr.on { display: block; }
+  .onote { font-size: 0.72rem; color: var(--muted); padding: 8px 11px; background: var(--surface2); border-radius: 6px; line-height: 1.6; }
+  .onote b { color: var(--amber); }
+
+  /* ── Top bar ── */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
+  .logo { font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
+  .logo span { color: var(--green); }
+  .topright { display: flex; align-items: center; gap: 10px; }
+  .pillbtn { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); border-radius: 20px; padding: 6px 13px; font-size: 0.74rem; font-weight: 500; transition: all .15s; }
+  .pillbtn:hover { border-color: var(--green); color: var(--green); }
+
+  /* ── Tabs ── */
+  #modetabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 22px; background: var(--bg); overflow-x: auto; }
+  .tab { padding: 12px 18px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.18s; user-select: none; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--text); border-bottom-color: var(--green); }
+
+  #main { flex: 1; padding: 22px; max-width: 1100px; width: 100%; margin: 0 auto; }
+  .panel { display: none; flex-direction: column; gap: 18px; }
+  .panel.active { display: flex; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
+  .card h3 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
+  .card .sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 12px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .col { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 180px; }
+  label { font-size: 0.72rem; color: var(--muted2); font-weight: 500; }
+  select, .field { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.82rem; outline: none; width: 100%; transition: border-color .15s; }
+  select:focus, .field:focus { border-color: var(--green); }
+  textarea.field { resize: vertical; min-height: 90px; line-height: 1.55; font-weight: 300; }
+  .btn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.82rem; font-weight: 600; transition: background .15s; white-space: nowrap; }
+  .btn:hover { background: #6ee89a; }
+  .btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
+  .btn.secondary:hover { border-color: var(--muted2); background: var(--surface2); }
+  .btn.danger { background: transparent; color: var(--red); border: 1px solid #4a2530; }
+  .btn.danger:hover { background: #241318; }
+  .btn.small { padding: 6px 12px; font-size: 0.74rem; }
+
+  .tabbar2 { display: flex; gap: 6px; margin-bottom: 10px; }
+  .tabbar2 .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.74rem; color: var(--muted2); cursor: pointer; transition: all .15s; background: transparent; }
+  .tabbar2 .chip.on { background: #18281e; border-color: var(--green); color: var(--green); }
+
+  #dropzone { border: 1.5px dashed var(--border2); border-radius: 10px; padding: 22px; text-align: center; color: var(--muted); font-size: 0.78rem; cursor: pointer; transition: all .15s; }
+  #dropzone:hover, #dropzone.drag { border-color: var(--green); color: var(--green); background: #14261a20; }
+  #thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .thumb { position: relative; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border2); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb .rm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; line-height: 1; }
+
+  .loadrow { display: flex; align-items: center; gap: 8px; color: var(--muted2); font-size: 0.8rem; padding: 6px 0; }
+  .dot3 span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin: 0 1px; opacity: .5; animation: pulse 1.2s infinite; }
+  .dot3 span:nth-child(2) { animation-delay: .2s; } .dot3 span:nth-child(3) { animation-delay: .4s; }
+  @keyframes pulse { 0%,60%,100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: 1; } }
+
+  .noteBig { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 500; color: var(--green); }
+  .noteBig small { font-size: 1rem; color: var(--muted); }
+  .critere-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+  .critere-row:last-child { border-bottom: none; }
+  .critere-name { font-weight: 500; }
+  .critere-pts { font-family: 'DM Mono', monospace; color: var(--muted2); white-space: nowrap; }
+  .critere-comment { color: var(--muted2); font-size: 0.76rem; margin-top: 3px; line-height: 1.5; }
+  .taglist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tag { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; }
+  .tag.ok { background: #18281e; color: var(--green); }
+  .tag.warn { background: #2a2010; color: var(--amber); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted2); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .03em; }
+  tr:hover td { background: var(--surface2); }
+  .bar-wrap { background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; width: 100%; }
+  .bar-fill { height: 100%; border-radius: 6px; background: var(--green); }
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 12px; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+  .stat .v { font-family: 'DM Mono', monospace; font-size: 1.35rem; color: var(--text); }
+  .stat .l { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+  .empty { color: var(--muted); font-size: 0.8rem; padding: 20px; text-align: center; }
+  .err-msg { background: #2a1418; border: 1px solid #4a2530; color: var(--red); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; }
+  .ok-msg { background: #14261a; border: 1px solid #245030; color: var(--green); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; }
+  hr.sep { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+  .exlist { display: flex; flex-direction: column; gap: 14px; }
+  .exlist .ex { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .exlist .ex .en { font-size: 0.85rem; margin-bottom: 8px; line-height: 1.6; white-space: pre-wrap; }
+  .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; white-space: pre-wrap; line-height: 1.6; }
+  @media print {
+    #topbar, #modetabs, .noprint { display: none !important; }
+    body { background: #fff; color: #111; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Overlay clé API -->
+<div id="overlay">
+  <div class="ocard">
+    <h2>Correction·<span>IA</span></h2>
+    <p>Collez votre clé API Anthropic (Claude) pour démarrer.<br>
+    À obtenir sur <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com/settings/keys</a></p>
+    <input id="keyinput" type="password" placeholder="sk-ant-…" autocomplete="off" />
+    <span id="keyerr">❌ Clé invalide ou erreur réseau. Vérifiez et réessayez.</span>
+    <button id="keybtn">Démarrer →</button>
+    <div class="onote">🔒 La clé reste uniquement en mémoire dans votre navigateur — elle n'est jamais enregistrée ni envoyée ailleurs qu'à l'API Anthropic, et disparaît à la fermeture de l'onglet.<br><br>
+    <b>Élèves mineurs :</b> évitez de transmettre le nom complet des élèves ; privilégiez initiales ou pseudonymes. Les copies (texte/images) sont envoyées à l'API Anthropic pour être corrigées.</div>
+  </div>
+</div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="logo">Correction·<span>IA</span></div>
+  <div class="topright">
+    <button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div id="modetabs">
+  <div class="tab active" data-tab="correction">✍️ Correction</div>
+  <div class="tab" data-tab="dashboard">📊 Tableau de bord</div>
+  <div class="tab" data-tab="remediation">✨ Remédiation</div>
+  <div class="tab" data-tab="settings">⚙️ Réglages</div>
+</div>
+
+<div id="main">
+
+  <!-- ══ Correction ══ -->
+  <div class="panel active" id="panel-correction">
+    <div class="card">
+      <h3>1. Contexte</h3>
+      <div class="sub">Choisissez la classe, le devoir et l'élève concernés.</div>
+      <div class="row">
+        <div class="col">
+          <label>Classe</label>
+          <select id="c-classe"></select>
+        </div>
+        <div class="col">
+          <label>Devoir</label>
+          <select id="c-devoir"></select>
+        </div>
+        <div class="col">
+          <label>Élève (nom/initiales)</label>
+          <input class="field" id="c-eleve" placeholder="ex : A.M." />
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn secondary small" id="c-newclasse">+ Nouvelle classe</button>
+        <button class="btn secondary small" id="c-newdevoir">+ Nouveau devoir</button>
+      </div>
+    </div>
+
+    <div class="card" id="c-baremecard" style="display:none">
+      <h3>2. Barème du devoir</h3>
+      <div class="sub" id="c-baremesub">Barème utilisé pour toutes les copies de ce devoir (modifiable ici, s'applique aux prochaines corrections).</div>
+      <textarea class="field" id="c-bareme" placeholder="Collez ici le barème : questions attendues, points par critère, éléments de correction attendus…"></textarea>
+    </div>
+
+    <div class="card">
+      <h3>3. Copie de l'élève</h3>
+      <div class="tabbar2">
+        <div class="chip on" data-src="texte">📝 Texte</div>
+        <div class="chip" data-src="image">🖼️ Photo(s) de copie</div>
+      </div>
+      <textarea class="field" id="c-texte" placeholder="Collez ici le texte de la copie de l'élève…"></textarea>
+      <div id="c-imagearea" style="display:none">
+        <div id="dropzone">Cliquez ou déposez ici les photos des pages de la copie (JPEG/PNG/WebP)</div>
+        <input type="file" id="c-fileinput" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none">
+        <div id="thumbs"></div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="c-corriger">Corriger cette copie →</button>
+      </div>
+      <div id="c-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Correction en cours…</div>
+      <div id="c-error"></div>
+    </div>
+
+    <div class="card" id="c-result" style="display:none">
+      <h3>Résultat (modifiable avant enregistrement)</h3>
+      <div class="row" style="align-items:flex-end; gap:16px; margin:8px 0 14px">
+        <div class="noteBig"><input id="r-note" style="width:70px;background:transparent;border:none;color:var(--green);font:inherit;outline:none" type="number" step="0.5"> <small>/ <input id="r-notemax" style="width:50px;background:transparent;border:none;color:var(--muted);font:inherit;outline:none" type="number"></small></div>
+      </div>
+      <label>Appréciation générale</label>
+      <textarea class="field" id="r-appreciation" style="min-height:60px"></textarea>
+      <div id="r-details" style="margin-top:14px"></div>
+      <div class="row" style="margin-top:14px; gap:24px; align-items:flex-start">
+        <div class="col">
+          <label>✅ Points forts</label>
+          <div id="r-forts" class="taglist"></div>
+        </div>
+        <div class="col">
+          <label>⚠️ Points à travailler</label>
+          <div id="r-faibles" class="taglist"></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" id="r-save">💾 Enregistrer cette correction</button>
+        <button class="btn secondary" id="r-print">🖨️ Imprimer</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Copies déjà corrigées pour ce devoir</h3>
+      <div id="c-history"></div>
+    </div>
+  </div>
+
+  <!-- ══ Dashboard ══ -->
+  <div class="panel" id="panel-dashboard">
+    <div class="card">
+      <div class="row">
+        <div class="col">
+          <label>Classe</label>
+          <select id="d-classe"></select>
+        </div>
+        <div class="col">
+          <label>Devoir</label>
+          <select id="d-devoir"></select>
+        </div>
+      </div>
+    </div>
+    <div id="d-content"></div>
+  </div>
+
+  <!-- ══ Remédiation ══ -->
+  <div class="panel" id="panel-remediation">
+    <div class="card">
+      <h3>Générer une activité de remédiation</h3>
+      <div class="sub">Basée sur les points à travailler identifiés lors des corrections.</div>
+      <div class="row">
+        <div class="col">
+          <label>Classe</label>
+          <select id="m-classe"></select>
+        </div>
+        <div class="col">
+          <label>Devoir (optionnel — pour cibler les difficultés observées)</label>
+          <select id="m-devoir"></select>
+        </div>
+      </div>
+      <div class="col" style="margin-top:10px">
+        <label>Compétence(s)/notion(s) à cibler</label>
+        <textarea class="field" id="m-cible" style="min-height:60px" placeholder="Précisez ou complétez ce que l'activité doit travailler (pré-rempli automatiquement depuis le devoir choisi)…"></textarea>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn" id="m-generer">✨ Générer l'activité →</button>
+      </div>
+      <div id="m-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Génération en cours…</div>
+      <div id="m-error"></div>
+    </div>
+    <div class="card" id="m-result" style="display:none">
+      <h3 id="m-titre"></h3>
+      <div class="sub" id="m-objectif"></div>
+      <p id="m-consignes" style="font-size:0.85rem; line-height:1.6; margin-bottom:14px"></p>
+      <div class="exlist" id="m-exercices"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn secondary" id="m-print">🖨️ Imprimer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ Réglages ══ -->
+  <div class="panel" id="panel-settings">
+    <div class="card">
+      <h3>Modèle IA</h3>
+      <div class="sub">Sonnet : plus fin, recommandé pour la correction. Haiku : plus rapide/économique, utile pour de gros volumes.</div>
+      <select id="s-model" style="max-width:320px">
+        <option value="claude-sonnet-5">Claude Sonnet 5 (recommandé)</option>
+        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (rapide)</option>
+        <option value="claude-opus-5">Claude Opus 5 (le plus précis, plus lent/coûteux)</option>
+      </select>
+    </div>
+
+    <div class="card">
+      <h3>Classes</h3>
+      <div id="s-classes"></div>
+      <div class="row" style="margin-top:10px">
+        <input class="field" id="s-newclassename" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:260px">
+        <button class="btn secondary small" id="s-addclasse">+ Ajouter</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Barèmes enregistrés</h3>
+      <div id="s-baremes"></div>
+    </div>
+
+    <div class="card">
+      <h3>Données</h3>
+      <div class="sub">Toutes les données (classes, devoirs, copies, notes) sont stockées uniquement dans ce navigateur (localStorage). Pensez à exporter régulièrement pour ne rien perdre.</div>
+      <div class="row">
+        <button class="btn secondary" id="s-export">⬇️ Exporter (JSON)</button>
+        <button class="btn secondary" id="s-import">⬆️ Importer</button>
+        <input type="file" id="s-importfile" accept="application/json" style="display:none">
+        <button class="btn danger" id="s-wipe">🗑️ Effacer toutes les données</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// State & persistence
+// ══════════════════════════════════════════════════════════════
+let API_KEY = '';
+const DB_KEY = 'corrIA_db_v1';
+let db = loadDB();
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(DB_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) { console.warn('DB load failed', e); }
+  return { classes: [], devoirs: [], copies: [], baremes: [], model: 'claude-sonnet-5' };
+}
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+let uploadedImages = []; // { mediaType, base64, name }
+let sourceMode = 'texte';
+let currentResult = null; // last graded result, before saving
+
+// ══════════════════════════════════════════════════════════════
+// API key overlay
+// ══════════════════════════════════════════════════════════════
+const overlay = document.getElementById('overlay');
+document.getElementById('keybtn').onclick = tryKey;
+document.getElementById('keyinput').addEventListener('keydown', e => { if (e.key === 'Enter') tryKey(); });
+
+function tryKey() {
+  const v = document.getElementById('keyinput').value.trim();
+  const err = document.getElementById('keyerr');
+  if (!v.startsWith('sk-ant-')) {
+    err.textContent = '❌ La clé doit commencer par "sk-ant-".';
+    err.classList.add('on');
+    return;
+  }
+  API_KEY = v;
+  err.classList.remove('on');
+  overlay.classList.add('off');
+}
+document.getElementById('forgetKeyBtn').onclick = () => {
+  API_KEY = '';
+  document.getElementById('keyinput').value = '';
+  overlay.classList.remove('off');
+};
+
+// ══════════════════════════════════════════════════════════════
+// Tabs
+// ══════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'remediation') renderRemediationSelectors();
+  if (name === 'settings') renderSettings();
+  if (name === 'correction') renderCorrectionSelectors();
+}
+
+// ══════════════════════════════════════════════════════════════
+// Claude API call
+// ══════════════════════════════════════════════════════════════
+async function callClaude({ system, userContent, tool }) {
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': API_KEY,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: db.model || 'claude-sonnet-5',
+      max_tokens: 4096,
+      system,
+      messages: [{ role: 'user', content: userContent }],
+      tools: [tool],
+      tool_choice: { type: 'tool', name: tool.name }
+    })
+  });
+  if (!res.ok) {
+    const t = await res.text().catch(() => '');
+    throw new Error(`Erreur API (${res.status}) : ${t.slice(0, 300) || res.statusText}`);
+  }
+  const data = await res.json();
+  const toolUse = (data.content || []).find(b => b.type === 'tool_use');
+  if (!toolUse) throw new Error("L'IA n'a pas renvoyé de réponse structurée. Réessayez.");
+  return toolUse.input;
+}
+
+const CORRECTION_TOOL = {
+  name: 'enregistrer_correction',
+  description: 'Enregistre la correction structurée de la copie.',
+  input_schema: {
+    type: 'object',
+    properties: {
+      note: { type: 'number', description: 'Note obtenue' },
+      note_max: { type: 'number', description: 'Note maximale (total du barème)' },
+      appreciation_globale: { type: 'string', description: 'Appréciation générale, bienveillante et constructive, 2-4 phrases' },
+      details: {
+        type: 'array',
+        description: 'Détail point par point selon les critères du barème',
+        items: {
+          type: 'object',
+          properties: {
+            critere: { type: 'string' },
+            points_obtenus: { type: 'number' },
+            points_max: { type: 'number' },
+            commentaire: { type: 'string' }
+          },
+          required: ['critere', 'points_obtenus', 'points_max', 'commentaire']
+        }
+      },
+      points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 points forts courts' },
+      points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 points à travailler courts, formulés comme des notions/compétences (ex: "Rédaction de l\'argumentation", "Unités et significativité des chiffres")' }
+    },
+    required: ['note', 'note_max', 'appreciation_globale', 'details', 'points_forts', 'points_a_travailler']
+  }
+};
+
+const REMEDIATION_TOOL = {
+  name: 'generer_activite',
+  description: "Enregistre l'activité de remédiation générée.",
+  input_schema: {
+    type: 'object',
+    properties: {
+      titre: { type: 'string' },
+      objectif: { type: 'string' },
+      consignes: { type: 'string' },
+      exercices: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: { enonce: { type: 'string' }, correction: { type: 'string' } },
+          required: ['enonce', 'correction']
+        }
+      },
+      competences_ciblees: { type: 'array', items: { type: 'string' } }
+    },
+    required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees']
+  }
+};
+
+// ══════════════════════════════════════════════════════════════
+// Correction tab
+// ══════════════════════════════════════════════════════════════
+function classeOptions(select, includeNone) {
+  select.innerHTML = (includeNone ? '<option value="">— toutes —</option>' : '') +
+    db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
+}
+function devoirOptions(select, classeId, includeNone) {
+  const list = db.devoirs.filter(d => d.classeId === classeId);
+  select.innerHTML = (includeNone ? '<option value="">— tous —</option>' : '<option value="">— choisir —</option>') +
+    list.map(d => `<option value="${d.id}">${esc(d.nom)}</option>`).join('');
+}
+
+function renderCorrectionSelectors() {
+  const cClasse = document.getElementById('c-classe');
+  classeOptions(cClasse, false);
+  if (!cClasse.value && db.classes[0]) cClasse.value = db.classes[0].id;
+  devoirOptions(document.getElementById('c-devoir'), cClasse.value, false);
+  onDevoirChange();
+  renderHistory();
+}
+
+document.getElementById('c-classe').addEventListener('change', e => {
+  devoirOptions(document.getElementById('c-devoir'), e.target.value, false);
+  onDevoirChange();
+});
+document.getElementById('c-devoir').addEventListener('change', onDevoirChange);
+
+function onDevoirChange() {
+  const devoirId = document.getElementById('c-devoir').value;
+  const card = document.getElementById('c-baremecard');
+  const devoir = db.devoirs.find(d => d.id === devoirId);
+  if (devoir) {
+    card.style.display = '';
+    document.getElementById('c-bareme').value = devoir.bareme || '';
+    document.getElementById('c-baremesub').textContent = `Devoir : ${devoir.nom} (${devoir.matiere || 'matière non précisée'})`;
+  } else {
+    card.style.display = 'none';
+  }
+  renderHistory();
+}
+document.getElementById('c-bareme').addEventListener('input', e => {
+  const devoirId = document.getElementById('c-devoir').value;
+  const devoir = db.devoirs.find(d => d.id === devoirId);
+  if (devoir) { devoir.bareme = e.target.value; saveDB(); }
+});
+
+document.getElementById('c-newclasse').onclick = () => {
+  const nom = prompt('Nom de la nouvelle classe :');
+  if (!nom) return;
+  const c = { id: uid(), nom: nom.trim() };
+  db.classes.push(c); saveDB();
+  renderCorrectionSelectors();
+  document.getElementById('c-classe').value = c.id;
+  devoirOptions(document.getElementById('c-devoir'), c.id, false);
+};
+document.getElementById('c-newdevoir').onclick = () => {
+  const classeId = document.getElementById('c-classe').value;
+  if (!classeId) { alert('Créez/choisissez d\'abord une classe.'); return; }
+  const nom = prompt('Nom du devoir (ex : DS n°2 - Génétique) :');
+  if (!nom) return;
+  const matiere = prompt('Matière (optionnel) :') || '';
+  const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), bareme: '', date: new Date().toISOString() };
+  db.devoirs.push(d); saveDB();
+  devoirOptions(document.getElementById('c-devoir'), classeId, false);
+  document.getElementById('c-devoir').value = d.id;
+  onDevoirChange();
+};
+
+// Source mode toggle (texte / image)
+document.querySelectorAll('.tabbar2 .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    sourceMode = chip.dataset.src;
+    document.querySelectorAll('.tabbar2 .chip').forEach(c => c.classList.toggle('on', c === chip));
+    document.getElementById('c-texte').style.display = sourceMode === 'texte' ? '' : 'none';
+    document.getElementById('c-imagearea').style.display = sourceMode === 'image' ? '' : 'none';
+  });
+});
+
+// Image upload
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('c-fileinput');
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('drag');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+
+function handleFiles(files) {
+  [...files].forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(',')[1];
+      uploadedImages.push({ mediaType: file.type, base64, name: file.name });
+      renderThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+  fileInput.value = '';
+}
+function renderThumbs() {
+  document.getElementById('thumbs').innerHTML = uploadedImages.map((img, i) =>
+    `<div class="thumb"><img src="data:${img.mediaType};base64,${img.base64}"><button class="rm" data-i="${i}">✕</button></div>`
+  ).join('');
+  document.querySelectorAll('.thumb .rm').forEach(btn => btn.addEventListener('click', () => {
+    uploadedImages.splice(+btn.dataset.i, 1); renderThumbs();
+  }));
+}
+
+// Corriger
+document.getElementById('c-corriger').onclick = async () => {
+  const errBox = document.getElementById('c-error');
+  errBox.innerHTML = '';
+  if (!API_KEY) { overlay.classList.remove('off'); return; }
+  const bareme = document.getElementById('c-bareme').value.trim();
+  const eleve = document.getElementById('c-eleve').value.trim();
+  const devoirId = document.getElementById('c-devoir').value;
+  const devoir = db.devoirs.find(d => d.id === devoirId);
+  if (!devoir) { errBox.innerHTML = '<div class="err-msg">Choisissez ou créez un devoir.</div>'; return; }
+  if (!bareme) { errBox.innerHTML = '<div class="err-msg">Renseignez le barème du devoir.</div>'; return; }
+  if (sourceMode === 'texte' && !document.getElementById('c-texte').value.trim()) {
+    errBox.innerHTML = '<div class="err-msg">Collez le texte de la copie, ou basculez sur "Photo(s)".</div>'; return;
+  }
+  if (sourceMode === 'image' && uploadedImages.length === 0) {
+    errBox.innerHTML = '<div class="err-msg">Ajoutez au moins une photo de la copie.</div>'; return;
+  }
+
+  const content = [];
+  content.push({ type: 'text', text: `Corrige la copie suivante pour le devoir "${devoir.nom}" (matière : ${devoir.matiere || 'non précisée'}), élève : ${eleve || 'non précisé'}.\n\nBarème et éléments de correction attendus :\n${bareme}\n\n${sourceMode === 'texte' ? 'Voici le texte de la copie de l\'élève :' : 'Voici les photos des pages de la copie de l\'élève (dans l\'ordre) :'}` });
+  if (sourceMode === 'texte') {
+    content.push({ type: 'text', text: document.getElementById('c-texte').value.trim() });
+  } else {
+    uploadedImages.forEach(img => content.push({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } }));
+  }
+
+  const btn = document.getElementById('c-corriger');
+  btn.disabled = true;
+  document.getElementById('c-loading').style.display = 'flex';
+  document.getElementById('c-result').style.display = 'none';
+  try {
+    const result = await callClaude({
+      system: `Tu es un professeur rigoureux, précis et bienveillant qui corrige la copie d'un·e élève en te basant strictement sur le barème fourni. Utilise l'outil enregistrer_correction pour renvoyer ta correction structurée. Justifie chaque point retiré, valorise ce qui est réussi, et formule les points à travailler comme des notions/compétences réutilisables.`,
+      userContent: content,
+      tool: CORRECTION_TOOL
+    });
+    currentResult = { ...result, devoirId, eleve, sourceMode };
+    showResult(currentResult);
+  } catch (e) {
+    errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('c-loading').style.display = 'none';
+  }
+};
+
+function showResult(r) {
+  document.getElementById('c-result').style.display = '';
+  document.getElementById('r-note').value = r.note;
+  document.getElementById('r-notemax').value = r.note_max;
+  document.getElementById('r-appreciation').value = r.appreciation_globale;
+  document.getElementById('r-details').innerHTML = (r.details || []).map(d => `
+    <div class="critere-row">
+      <div style="flex:1">
+        <div class="critere-name">${esc(d.critere)}</div>
+        <div class="critere-comment">${esc(d.commentaire)}</div>
+      </div>
+      <div class="critere-pts">${d.points_obtenus} / ${d.points_max}</div>
+    </div>`).join('') || '<div class="empty">Pas de détail par critère.</div>';
+  document.getElementById('r-forts').innerHTML = (r.points_forts || []).map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
+  document.getElementById('r-faibles').innerHTML = (r.points_a_travailler || []).map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
+  document.getElementById('c-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+document.getElementById('r-save').onclick = () => {
+  if (!currentResult) return;
+  const copie = {
+    id: uid(),
+    devoirId: currentResult.devoirId,
+    eleve: document.getElementById('c-eleve').value.trim() || 'Élève',
+    date: new Date().toISOString(),
+    note: parseFloat(document.getElementById('r-note').value) || 0,
+    note_max: parseFloat(document.getElementById('r-notemax').value) || 20,
+    appreciation_globale: document.getElementById('r-appreciation').value,
+    details: currentResult.details || [],
+    points_forts: currentResult.points_forts || [],
+    points_a_travailler: currentResult.points_a_travailler || []
+  };
+  db.copies.push(copie); saveDB();
+  currentResult = null;
+  document.getElementById('c-result').style.display = 'none';
+  document.getElementById('c-texte').value = '';
+  uploadedImages = []; renderThumbs();
+  document.getElementById('c-eleve').value = '';
+  renderHistory();
+};
+document.getElementById('r-print').onclick = () => window.print();
+
+function renderHistory() {
+  const devoirId = document.getElementById('c-devoir').value;
+  const list = db.copies.filter(c => c.devoirId === devoirId).sort((a, b) => b.date.localeCompare(a.date));
+  const box = document.getElementById('c-history');
+  if (!devoirId) { box.innerHTML = '<div class="empty">Choisissez un devoir.</div>'; return; }
+  if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie corrigée pour ce devoir.</div>'; return; }
+  box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>Points à travailler</th><th></th></tr></thead><tbody>` +
+    list.map(c => `<tr>
+      <td>${esc(c.eleve)}</td>
+      <td>${c.note} / ${c.note_max}</td>
+      <td>${(c.points_a_travailler || []).slice(0, 2).map(esc).join(', ')}</td>
+      <td><button class="btn danger small" data-del="${c.id}">Supprimer</button></td>
+    </tr>`).join('') + `</tbody></table>`;
+  box.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => {
+    if (!confirm('Supprimer cette copie ?')) return;
+    db.copies = db.copies.filter(c => c.id !== btn.dataset.del);
+    saveDB(); renderHistory();
+  }));
+}
+
+// ══════════════════════════════════════════════════════════════
+// Dashboard tab
+// ══════════════════════════════════════════════════════════════
+document.getElementById('d-classe').addEventListener('change', e => {
+  devoirOptions(document.getElementById('d-devoir'), e.target.value, true);
+  renderDashboard();
+});
+document.getElementById('d-devoir').addEventListener('change', renderDashboard);
+
+function renderDashboard() {
+  classeOptions(document.getElementById('d-classe'), false);
+  const dClasse = document.getElementById('d-classe');
+  if (!dClasse.value && db.classes[0]) dClasse.value = db.classes[0].id;
+  devoirOptions(document.getElementById('d-devoir'), dClasse.value, true);
+
+  const classeId = dClasse.value;
+  const devoirId = document.getElementById('d-devoir').value;
+  const devoirIds = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id);
+  const copies = db.copies.filter(c => devoirIds.includes(c.devoirId));
+  const content = document.getElementById('d-content');
+
+  if (!classeId) { content.innerHTML = '<div class="card empty">Créez une classe dans Réglages pour commencer.</div>'; return; }
+  if (copies.length === 0) { content.innerHTML = '<div class="card empty">Aucune copie corrigée pour cette sélection.</div>'; return; }
+
+  const notesSur20 = copies.map(c => (c.note / c.note_max) * 20);
+  const moyenne = notesSur20.reduce((a, b) => a + b, 0) / notesSur20.length;
+  const sorted = [...notesSur20].sort((a, b) => a - b);
+  const mediane = sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
+  const minN = Math.min(...notesSur20), maxN = Math.max(...notesSur20);
+
+  const buckets = [0, 0, 0, 0, 0]; // <5, 5-10, 10-14, 14-16, 16-20
+  notesSur20.forEach(n => {
+    if (n < 5) buckets[0]++; else if (n < 10) buckets[1]++; else if (n < 14) buckets[2]++; else if (n < 16) buckets[3]++; else buckets[4]++;
+  });
+  const bucketLabels = ['0–5', '5–10', '10–14', '14–16', '16–20'];
+
+  // Aggregate critère success rate
+  const critereAgg = {};
+  copies.forEach(c => (c.details || []).forEach(d => {
+    if (!d.points_max) return;
+    const key = d.critere;
+    if (!critereAgg[key]) critereAgg[key] = { obtenu: 0, max: 0, n: 0 };
+    critereAgg[key].obtenu += d.points_obtenus; critereAgg[key].max += d.points_max; critereAgg[key].n++;
+  }));
+  const critereList = Object.entries(critereAgg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0, n: v.n }))
+    .sort((a, b) => a.taux - b.taux);
+
+  // Aggregate points à travailler frequency
+  const freq = {};
+  copies.forEach(c => (c.points_a_travailler || []).forEach(p => { freq[p] = (freq[p] || 0) + 1; }));
+  const freqList = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  content.innerHTML = `
+    <div class="card">
+      <h3>Vue d'ensemble</h3>
+      <div class="statgrid">
+        <div class="stat"><div class="v">${moyenne.toFixed(1)}/20</div><div class="l">Moyenne</div></div>
+        <div class="stat"><div class="v">${mediane.toFixed(1)}/20</div><div class="l">Médiane</div></div>
+        <div class="stat"><div class="v">${minN.toFixed(1)} – ${maxN.toFixed(1)}</div><div class="l">Étendue</div></div>
+        <div class="stat"><div class="v">${copies.length}</div><div class="l">Copies corrigées</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Distribution des notes</h3>
+      <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px">
+        ${bucketLabels.map((l, i) => `
+          <div class="row" style="gap:10px">
+            <div style="width:56px; font-size:0.74rem; color:var(--muted2)">${l}</div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${copies.length ? (buckets[i] / copies.length * 100) : 0}%"></div></div>
+            <div style="width:24px; font-size:0.74rem; color:var(--muted)">${buckets[i]}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3>Compétences/critères les plus en difficulté</h3>
+      <div class="sub">Taux de réussite moyen par critère, sur les devoirs sélectionnés.</div>
+      ${critereList.length === 0 ? '<div class="empty">Pas de détail par critère disponible.</div>' :
+        critereList.slice(0, 10).map(c => `
+          <div class="row" style="gap:10px; margin-bottom:8px">
+            <div style="width:220px; font-size:0.8rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${c.taux < 0.5 ? 'var(--red)' : c.taux < 0.75 ? 'var(--amber)' : 'var(--green)'}"></div></div>
+            <div style="width:44px; font-size:0.74rem; color:var(--muted2)">${(c.taux * 100).toFixed(0)}%</div>
+          </div>`).join('')}
+    </div>
+    <div class="card">
+      <h3>Points à travailler les plus fréquents</h3>
+      <div class="taglist">${freqList.length === 0 ? '<div class="empty">—</div>' : freqList.map(([p, n]) => `<span class="tag warn">${esc(p)} × ${n}</span>`).join('')}</div>
+    </div>
+    <div class="card">
+      <h3>Copies</h3>
+      <table><thead><tr><th>Élève</th><th>Devoir</th><th>Note</th></tr></thead><tbody>
+        ${copies.sort((a,b)=>b.date.localeCompare(a.date)).map(c => `<tr><td>${esc(c.eleve)}</td><td>${esc((db.devoirs.find(d=>d.id===c.devoirId)||{}).nom||'')}</td><td>${c.note}/${c.note_max}</td></tr>`).join('')}
+      </tbody></table>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════════
+// Remediation tab
+// ══════════════════════════════════════════════════════════════
+document.getElementById('m-classe').addEventListener('change', e => {
+  devoirOptions(document.getElementById('m-devoir'), e.target.value, true);
+  prefillCible();
+});
+document.getElementById('m-devoir').addEventListener('change', prefillCible);
+
+function renderRemediationSelectors() {
+  classeOptions(document.getElementById('m-classe'), false);
+  const mClasse = document.getElementById('m-classe');
+  if (!mClasse.value && db.classes[0]) mClasse.value = db.classes[0].id;
+  devoirOptions(document.getElementById('m-devoir'), mClasse.value, true);
+  prefillCible();
+}
+function prefillCible() {
+  const devoirId = document.getElementById('m-devoir').value;
+  const classeId = document.getElementById('m-classe').value;
+  const devoirIds = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id);
+  const copies = db.copies.filter(c => devoirIds.includes(c.devoirId));
+  const freq = {};
+  copies.forEach(c => (c.points_a_travailler || []).forEach(p => { freq[p] = (freq[p] || 0) + 1; }));
+  const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([p]) => p);
+  document.getElementById('m-cible').value = top.join(', ');
+}
+
+document.getElementById('m-generer').onclick = async () => {
+  const errBox = document.getElementById('m-error');
+  errBox.innerHTML = '';
+  if (!API_KEY) { overlay.classList.remove('off'); return; }
+  const cible = document.getElementById('m-cible').value.trim();
+  if (!cible) { errBox.innerHTML = '<div class="err-msg">Précisez au moins une notion/compétence à cibler.</div>'; return; }
+  const devoirId = document.getElementById('m-devoir').value;
+  const devoir = db.devoirs.find(d => d.id === devoirId);
+
+  const btn = document.getElementById('m-generer');
+  btn.disabled = true;
+  document.getElementById('m-loading').style.display = 'flex';
+  document.getElementById('m-result').style.display = 'none';
+  try {
+    const result = await callClaude({
+      system: `Tu es un professeur qui conçoit des activités de remédiation courtes, concrètes et différenciées, avec corrigé, pour aider des élèves à progresser sur des notions précises. Utilise l'outil generer_activite.`,
+      userContent: [{ type: 'text', text: `Conçois une activité de remédiation${devoir ? ` en lien avec le devoir "${devoir.nom}" (matière : ${devoir.matiere || 'non précisée'})` : ''} ciblant les notions/compétences suivantes :\n${cible}\n\nPropose 2 à 4 exercices courts et progressifs, avec leur corrigé détaillé.` }],
+      tool: REMEDIATION_TOOL
+    });
+    document.getElementById('m-titre').textContent = result.titre;
+    document.getElementById('m-objectif').textContent = result.objectif;
+    document.getElementById('m-consignes').textContent = result.consignes;
+    document.getElementById('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `
+      <div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>
+    `).join('');
+    document.getElementById('m-result').style.display = '';
+    document.getElementById('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) {
+    errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    document.getElementById('m-loading').style.display = 'none';
+  }
+};
+document.getElementById('m-print').onclick = () => window.print();
+
+// ══════════════════════════════════════════════════════════════
+// Settings tab
+// ══════════════════════════════════════════════════════════════
+document.getElementById('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
+
+function renderSettings() {
+  document.getElementById('s-model').value = db.model || 'claude-sonnet-5';
+  document.getElementById('s-classes').innerHTML = db.classes.length === 0 ? '<div class="empty">Aucune classe.</div>' :
+    `<table><thead><tr><th>Classe</th><th>Devoirs</th><th></th></tr></thead><tbody>` +
+    db.classes.map(c => `<tr><td>${esc(c.nom)}</td><td>${db.devoirs.filter(d => d.classeId === c.id).length}</td><td><button class="btn danger small" data-delclasse="${c.id}">Supprimer</button></td></tr>`).join('') +
+    `</tbody></table>`;
+  document.querySelectorAll('[data-delclasse]').forEach(btn => btn.addEventListener('click', () => {
+    if (!confirm('Supprimer cette classe et tous ses devoirs/copies associés ?')) return;
+    const id = btn.dataset.delclasse;
+    const devoirIds = db.devoirs.filter(d => d.classeId === id).map(d => d.id);
+    db.copies = db.copies.filter(c => !devoirIds.includes(c.devoirId));
+    db.devoirs = db.devoirs.filter(d => d.classeId !== id);
+    db.classes = db.classes.filter(c => c.id !== id);
+    saveDB(); renderSettings();
+  }));
+
+  document.getElementById('s-baremes').innerHTML = db.devoirs.length === 0 ? '<div class="empty">Aucun barème enregistré (créé automatiquement avec chaque devoir).</div>' :
+    `<table><thead><tr><th>Devoir</th><th>Classe</th><th>Longueur</th></tr></thead><tbody>` +
+    db.devoirs.map(d => `<tr><td>${esc(d.nom)}</td><td>${esc((db.classes.find(c => c.id === d.classeId) || {}).nom || '?')}</td><td>${(d.bareme || '').length} car.</td></tr>`).join('') +
+    `</tbody></table>`;
+}
+document.getElementById('s-addclasse').onclick = () => {
+  const input = document.getElementById('s-newclassename');
+  const nom = input.value.trim();
+  if (!nom) return;
+  db.classes.push({ id: uid(), nom }); saveDB();
+  input.value = '';
+  renderSettings();
+};
+document.getElementById('s-export').onclick = () => {
+  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `correction-ia-export-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+};
+document.getElementById('s-import').onclick = () => document.getElementById('s-importfile').click();
+document.getElementById('s-importfile').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const imported = JSON.parse(reader.result);
+      if (!confirm('Importer ces données remplacera toutes les données actuelles. Continuer ?')) return;
+      db = imported; saveDB();
+      renderSettings(); renderCorrectionSelectors();
+    } catch (err) { alert('Fichier invalide : ' + err.message); }
+  };
+  reader.readAsText(file);
+});
+document.getElementById('s-wipe').onclick = () => {
+  if (!confirm('Effacer toutes les classes, devoirs et copies ? Cette action est irréversible.')) return;
+  db = { classes: [], devoirs: [], copies: [], baremes: [], model: db.model };
+  saveDB();
+  renderSettings(); renderCorrectionSelectors();
+};
+
+// ══════════════════════════════════════════════════════════════
+// Init
+// ══════════════════════════════════════════════════════════════
+renderCorrectionSelectors();
+</script>
+</body>
+</html>
