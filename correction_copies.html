@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v5 — total du barème préservé, export PDF réel, notation reproductible -->
+<!-- Correction·IA v6 — exigence adaptée au niveau (bac/brevet), nettoyage des textes, PDF fiabilisé -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -258,6 +258,9 @@
       <div class="card">
         <h3>📄 Documents de l'évaluation</h3>
         <div class="sub">Déposez vos PDF au niveau du devoir (une seule fois, pas par élève).</div>
+        <div class="row" style="margin-bottom:12px">
+          <div class="col" style="max-width:320px"><label>Niveau évalué (exigence de correction)</label><select id="d2-niveau"></select></div>
+        </div>
         <div class="row" style="align-items:stretch">
           <div class="col" style="min-width:260px">
             <label>Sujet distribué aux élèves</label>
@@ -430,7 +433,10 @@
         <input class="field" id="s-newclasse" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:240px">
         <button class="btn small" id="s-addclasse">+ Créer la classe</button>
       </div>
-      <div class="row" style="margin-bottom:8px"><div class="col"><label>Classe à gérer</label><select id="s-classesel" style="max-width:240px"></select></div></div>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col" style="max-width:240px"><label>Classe à gérer</label><select id="s-classesel"></select></div>
+        <div class="col" style="max-width:280px"><label>Niveau (adapte l'exigence : Bac, Brevet…)</label><select id="s-niveau"></select></div>
+      </div>
       <div id="s-eleves"></div>
       <div class="col" style="margin-top:10px">
         <label>Ajouter des élèves (un par ligne — ex : « Emma R. »)</label>
@@ -526,6 +532,42 @@ async function callClaude({ system, userContent, tool, maxTokens }) {
   const tu = (data.content || []).find(b => b.type === 'tool_use');
   if (!tu) throw new Error('Réponse structurée manquante — réessayez.');
   return tu.input;
+}
+// Niveaux de classe -> attendus / exigence de correction
+const NIVEAUX = [
+  { v: '', label: '— non précisé —' },
+  { v: 'terminale', label: 'Terminale (exigence Bac)' },
+  { v: 'premiere', label: 'Première (exigence Bac)' },
+  { v: 'seconde', label: 'Seconde (lycée)' },
+  { v: 'troisieme', label: '3ème (exigence Brevet)' },
+  { v: 'quatrieme', label: '4ème (collège, vers le Brevet)' },
+  { v: 'cinquieme', label: '5ème (collège)' },
+  { v: 'sixieme', label: '6ème (collège)' },
+  { v: 'primaire', label: 'Primaire (cycle 3)' }
+];
+function niveauLabel(v) { const n = NIVEAUX.find(x => x.v === v); return n ? n.label : ''; }
+function niveauDirectives(v) {
+  const map = {
+    terminale: "NIVEAU : Terminale. Applique les attendus et le niveau d'exigence du BACCALAURÉAT : raisonnement scientifique rigoureux, chaîne causale complète, vocabulaire précis, mise en relation aboutie des documents et des connaissances. Sanctionne nettement un raisonnement incomplet, une confusion de notions ou une conclusion non démontrée — sois exigeant comme un correcteur de bac.",
+    premiere: "NIVEAU : Première. Attendus proches du baccalauréat (épreuve anticipée / contrôle continu) : exigence forte sur l'argumentation, la rigueur scientifique et l'exploitation des documents. Pénalise un raisonnement incomplet ou imprécis.",
+    seconde: "NIVEAU : Seconde. Exigence lycée : rigueur attendue mais bienveillance sur l'autonomie du raisonnement ; valorise la démarche et l'appropriation, sans exiger encore la maîtrise complète du bac.",
+    troisieme: "NIVEAU : 3ème. Applique les attendus du DIPLÔME NATIONAL DU BREVET (DNB) : maîtrise des connaissances du cycle 4, raisonnement simple mais correct, exploitation de documents et rédaction claire. Exigence de fin de collège.",
+    quatrieme: "NIVEAU : 4ème. Attendus du cycle 4 orientés vers le brevet : connaissances et raisonnement en construction, exigence intermédiaire de collège, adaptée à l'âge.",
+    cinquieme: "NIVEAU : 5ème. Attendus du cycle 4 (début) : exigence de collège adaptée à l'âge, on valorise la compréhension et la restitution.",
+    sixieme: "NIVEAU : 6ème. Attendus du cycle 3 (entrée au collège) : exigence adaptée à l'âge, priorité à la compréhension et à la restitution simple.",
+    primaire: "NIVEAU : Primaire (cycle 3). Exigence adaptée à de jeunes élèves : bienveillance, on valorise la compréhension et l'effort, vocabulaire scientifique simple."
+  };
+  return map[v] || "NIVEAU non précisé : adapte l'exigence au contenu de la copie sans référentiel d'examen particulier.";
+}
+// Nettoie un texte renvoyé par l'IA de tout balisage parasite (fuites de tool-use, ex. </appreciation_globale">, <parameter name=...>)
+function cleanText(s) {
+  if (s == null) return '';
+  let t = String(s);
+  // coupe tout ce qui suit une balise de fermeture de champ ou un <parameter ...>
+  t = t.replace(/<\/?(appreciation_globale|points_forts|points_a_travailler|parameter|evaluations|observations)[^>]*>[\s\S]*$/i, '');
+  // retire les balises résiduelles de type <...>
+  t = t.replace(/<\/?[a-z_][^>]*>/gi, '');
+  return t.trim();
 }
 function profileDirectives() {
   const p = db.profile || {};
@@ -631,6 +673,10 @@ function renderDevoirEditor() {
   $('d2-editor').style.display = d ? 'flex' : 'none'; if (!d) return;
   $('d2-sujet').value = d.sujet || ''; $('d2-brute').value = d.grilleBrute || '';
   $('d2-notemaxdecl').value = (d.noteMaxDecl ?? '') === '' ? '' : d.noteMaxDecl;
+  const cls = classeById(d.classeId) || {};
+  const clsLbl = cls.niveau ? niveauLabel(cls.niveau) : 'non précisé';
+  $('d2-niveau').innerHTML = `<option value="">— niveau de la classe (${esc(clsLbl)}) —</option>` + NIVEAUX.filter(n => n.v).map(n => `<option value="${n.v}">${esc(n.label)}</option>`).join('');
+  $('d2-niveau').value = d.niveau || '';
   renderPdfBadge('d2-sujet-badge', d.sujetPdf, () => { d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
   renderPdfBadge('d2-grille-badge', d.grillePdf, () => { d.grillePdf = null; saveDB(); renderDevoirEditor(); });
   renderGrilleEditor(d);
@@ -644,6 +690,7 @@ function renderPdfBadge(boxId, pdf, onRemove) {
 $('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
 $('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
 $('d2-notemaxdecl').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { const v = e.target.value.trim(); d.noteMaxDecl = v === '' ? null : (parseFloat(v.replace(',', '.')) || 0); saveDB(); if (d.grille) renderGrilleEditor(d); } });
+$('d2-niveau').addEventListener('change', e => { const d = devoirById($('d2-devoir').value); if (d) { d.niveau = e.target.value; saveDB(); } });
 
 // Zones PDF sujet / grille
 function wirePdfZone(dzId, inputId, field) {
@@ -749,7 +796,12 @@ function updateGrilleState() {
   if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Évaluations »).</div>'; return; }
   if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas de grille structurée — allez dans « Évaluations ».</div>'; return; }
   const nc = grilleCriteres(d.grille).length;
-  box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujetPdf || d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
+  const cls = classeById(d.classeId) || {};
+  const niveau = (d.niveau ?? '') !== '' ? d.niveau : (cls.niveau || '');
+  const niveauInfo = niveau
+    ? ` Exigence : <b>${esc(niveauLabel(niveau))}</b>.`
+    : ` <b>⚠️ Niveau non précisé</b> — indiquez-le (classe dans Réglages, ou devoir dans Évaluations) pour adapter l'exigence (Bac, Brevet…).`;
+  box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujetPdf || d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}${niveauInfo}</div>`;
 }
 document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => chip.addEventListener('click', () => {
   sourceMode = chip.dataset.src;
@@ -815,6 +867,8 @@ $('q-run').onclick = async () => {
 };
 async function corrigerCopie(q) {
   const d = devoirById(q.devoirId), criteres = grilleCriteres(d.grille);
+  const cls = classeById(q.classeId) || {};
+  const niveau = (d.niveau ?? '') !== '' ? d.niveau : (cls.niveau || '');
   const grilleTxt = d.grille.parties.map(p => `## ${p.titre}\n` + p.criteres.map(c => {
     let s = `- [${c.id}] ${c.intitule} (max ${fmtPts(critMax(c))} pts) — attendus : ${c.attendus} — compétence : ${c.competence}`;
     if (c.niveaux && c.niveaux.length) s += `\n    Niveaux : ` + c.niveaux.map(nv => `${fmtPts(nv.points)}="${nv.descripteur}"`).join(' ; ');
@@ -838,17 +892,24 @@ MÉTHODE DE NOTATION REPRODUCTIBLE (pour qu'une même copie reçoive toujours la
 - Pour un critère SANS niveaux : barème binaire ou proportionnel à ce qui est explicitement attendu (attendus). Ne donne un point que si l'élément attendu est présent. Pas de point « au feeling », pas de bonus hors barème.
 - N'attribue jamais plus que le maximum du critère. En cas d'hésitation entre deux valeurs, choisis la plus basse et justifie-la : sois strict et constant plutôt que généreux et variable.
 
-Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs). ${profileDirectives()} Utilise remplir_grille.`,
+Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs).
+
+${niveauDirectives(niveau)}
+
+${profileDirectives()}
+
+IMPORTANT : renseigne UNIQUEMENT les champs prévus par l'outil (texte simple, sans balise ni code). Utilise remplir_grille.`,
     userContent: content, tool: buildCorrectionTool(d.grille)
   });
   const byId = {}; (out.evaluations || []).forEach(ev => { byId[ev.critere_id] = ev; });
   const evaluations = criteres.map(c => {
     const ev = byId[c.id], max = critMax(c); let pts = ev ? parseFloat(ev.points_obtenus) : 0;
     if (isNaN(pts)) pts = 0; pts = Math.max(0, Math.min(max, pts));
-    return { critereId: c.id, partie: c.partie, intitule: c.intitule, competence: c.competence, niveaux: c.niveaux || [], points_obtenus: pts, points_max: max, commentaire: ev ? ev.commentaire : 'Non évalué par l\'IA — à vérifier.' };
+    return { critereId: c.id, partie: c.partie, intitule: c.intitule, competence: c.competence, niveaux: c.niveaux || [], points_obtenus: pts, points_max: max, commentaire: ev ? cleanText(ev.commentaire) : 'Non évalué par l\'IA — à vérifier.' };
   });
   const note = evaluations.reduce((s, e) => s + e.points_obtenus, 0);
-  return { note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille), appreciation: out.appreciation_globale || '', forts: out.points_forts || [], faibles: out.points_a_travailler || [], observations: out.observations || [], evaluations };
+  const observations = (out.observations || []).map(o => ({ citation: cleanText(o.citation), categorie: cleanText(o.categorie), type: o.type === 'reussite' ? 'reussite' : 'erreur', commentaire: cleanText(o.commentaire) }));
+  return { note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille), appreciation: cleanText(out.appreciation_globale), forts: (out.points_forts || []).map(cleanText).filter(Boolean), faibles: (out.points_a_travailler || []).map(cleanText).filter(Boolean), observations, evaluations };
 }
 
 function openReviewQueue(qid) { const q = queue.find(x => x.id === qid); if (!q || !q.result) return; reviewTarget = { type: 'queue', id: qid }; reviewData = q.result; showReview(q.result, q.eleveNom); }
@@ -976,10 +1037,13 @@ async function pdfCopie(r, eleveNom, btn) {
   try {
     await loadHtml2pdf();
     const el = buildPrintDoc(r, eleveNom);
-    const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1'; holder.appendChild(el); document.body.appendChild(holder);
+    // conteneur hors écran (position absolue en haut de page pour éviter les pages blanches d'html2canvas)
+    const holder = document.createElement('div'); holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:800px;background:#fff'; holder.appendChild(el); document.body.appendChild(holder);
+    const prevScroll = window.scrollY; window.scrollTo(0, 0);
     const fn = `${eleveNom} - ${titre}.pdf`.replace(/[\\/:*?"<>|]/g, '-');
-    await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: fn, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(el).save();
-    document.body.removeChild(holder);
+    try {
+      await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: fn, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 820, scrollX: 0, scrollY: 0, x: 0, y: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(el).save();
+    } finally { document.body.removeChild(holder); window.scrollTo(0, prevScroll); }
   } catch (e) {
     alert("Export PDF direct indisponible (connexion au module ?). J'ouvre la fenêtre d'impression : choisissez « Enregistrer au format PDF » comme destination.");
     printCopie(r, eleveNom);
@@ -1130,9 +1194,14 @@ $('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value
 $('s-longueur').addEventListener('change', e => { db.profile.longueur = e.target.value; saveDB(); });
 $('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
 $('s-classesel').addEventListener('change', renderElevesAdmin);
+$('s-niveau').addEventListener('change', e => { const c = classeById($('s-classesel').value); if (c) { c.niveau = e.target.value; saveDB(); } });
 $('s-addclasse').onclick = () => { const nom = $('s-newclasse').value.trim(); if (!nom) return; const c = { id: uid(), nom, eleves: [] }; db.classes.push(c); saveDB(); $('s-newclasse').value = ''; fillClasseSelect($('s-classesel'), c.id); renderElevesAdmin(); };
 function renderElevesAdmin() {
   const c = classeById($('s-classesel').value), box = $('s-eleves');
+  const nsel = $('s-niveau');
+  nsel.innerHTML = NIVEAUX.map(n => `<option value="${n.v}">${esc(n.label)}</option>`).join('');
+  nsel.value = c ? (c.niveau || '') : '';
+  nsel.disabled = !c;
   if (!c) { box.innerHTML = '<div class="empty">Aucune classe sélectionnée.</div>'; return; }
   const els = c.eleves || [];
   box.innerHTML = els.length === 0 ? '<div class="empty">Aucun élève.</div>' : els.map(e => `<div class="elrow"><span class="eln">${esc(e.nom)}</span><button class="btn danger small" data-elid="${e.id}">✕</button></div>`).join('');
