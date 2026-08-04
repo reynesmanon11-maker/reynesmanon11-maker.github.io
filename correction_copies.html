@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #111318; --surface: #191c24; --surface2: #1e2230;
+    --bg: #111318; --surface: #191c24; --surface2: #1e2230; --surface3: #232840;
     --border: #262c3e; --border2: #2e3650;
     --green: #4ade80; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171; --purple: #c084fc;
     --text: #dde1ee; --muted: #636b88; --muted2: #8891aa;
@@ -21,106 +21,146 @@
   /* ── Overlay clé API ── */
   #overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
   #overlay.off { display: none; }
-  .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 460px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
-  .ocard h2 { font-size: 1.05rem; font-weight: 600; color: var(--text); }
+  .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
+  .ocard h2 { font-size: 1.05rem; font-weight: 600; }
   .ocard h2 span { color: var(--green); }
   .ocard p { font-size: 0.78rem; color: var(--muted2); line-height: 1.6; }
-  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; transition: border-color .18s; }
+  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; }
   #keyinput:focus { border-color: var(--green); }
-  #keyinput::placeholder { color: var(--muted); font-family: 'Sora', sans-serif; }
-  #keybtn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; transition: background .18s; }
+  #keybtn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; }
   #keybtn:hover { background: #6ee89a; }
   #keyerr { font-size: 0.74rem; color: var(--red); display: none; }
   #keyerr.on { display: block; }
   .onote { font-size: 0.72rem; color: var(--muted); padding: 8px 11px; background: var(--surface2); border-radius: 6px; line-height: 1.6; }
   .onote b { color: var(--amber); }
+  .checkrow { display: flex; align-items: flex-start; gap: 8px; font-size: 0.74rem; color: var(--muted2); line-height: 1.5; cursor: pointer; }
+  .checkrow input { margin-top: 2px; accent-color: var(--green); }
 
-  /* ── Top bar ── */
-  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid var(--border); flex-shrink: 0; gap: 12px; flex-wrap: wrap; }
-  .logo { font-weight: 700; font-size: 1rem; color: var(--text); letter-spacing: -0.02em; }
+  /* ── Top bar & tabs ── */
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
+  .logo { font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; }
   .logo span { color: var(--green); }
-  .topright { display: flex; align-items: center; gap: 10px; }
-  .pillbtn { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); border-radius: 20px; padding: 6px 13px; font-size: 0.74rem; font-weight: 500; transition: all .15s; }
+  .pillbtn { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); border-radius: 20px; padding: 6px 13px; font-size: 0.74rem; font-weight: 500; }
   .pillbtn:hover { border-color: var(--green); color: var(--green); }
-
-  /* ── Tabs ── */
-  #modetabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; padding: 0 22px; background: var(--bg); overflow-x: auto; }
-  .tab { padding: 12px 18px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.18s; user-select: none; white-space: nowrap; }
+  #modetabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 22px; background: var(--bg); overflow-x: auto; }
+  .tab { padding: 12px 16px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--text); border-bottom-color: var(--green); }
 
-  #main { flex: 1; padding: 22px; max-width: 1100px; width: 100%; margin: 0 auto; }
+  #main { flex: 1; padding: 22px; max-width: 1160px; width: 100%; margin: 0 auto; }
   .panel { display: none; flex-direction: column; gap: 18px; }
   .panel.active { display: flex; }
 
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .card h3 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
-  .card .sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 12px; }
+  .card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+  .card .sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-  .col { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 180px; }
+  .col { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 170px; }
   label { font-size: 0.72rem; color: var(--muted2); font-weight: 500; }
-  select, .field { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.82rem; outline: none; width: 100%; transition: border-color .15s; }
+  select, .field { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.82rem; outline: none; width: 100%; }
   select:focus, .field:focus { border-color: var(--green); }
-  textarea.field { resize: vertical; min-height: 90px; line-height: 1.55; font-weight: 300; }
-  .btn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.82rem; font-weight: 600; transition: background .15s; white-space: nowrap; }
+  textarea.field { resize: vertical; min-height: 80px; line-height: 1.55; font-weight: 300; }
+  .btn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
   .btn:hover { background: #6ee89a; }
   .btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
   .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
-  .btn.secondary:hover { border-color: var(--muted2); background: var(--surface2); }
+  .btn.secondary:hover { border-color: var(--muted2); }
   .btn.danger { background: transparent; color: var(--red); border: 1px solid #4a2530; }
   .btn.danger:hover { background: #241318; }
   .btn.small { padding: 6px 12px; font-size: 0.74rem; }
+  .btn.purple { background: var(--purple); }
+  .btn.purple:hover { background: #d3a4ff; }
 
-  .tabbar2 { display: flex; gap: 6px; margin-bottom: 10px; }
-  .tabbar2 .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.74rem; color: var(--muted2); cursor: pointer; transition: all .15s; background: transparent; }
-  .tabbar2 .chip.on { background: #18281e; border-color: var(--green); color: var(--green); }
+  .tabbar2 { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+  .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.74rem; color: var(--muted2); cursor: pointer; background: transparent; }
+  .chip.on { background: #18281e; border-color: var(--green); color: var(--green); }
 
-  #dropzone { border: 1.5px dashed var(--border2); border-radius: 10px; padding: 22px; text-align: center; color: var(--muted); font-size: 0.78rem; cursor: pointer; transition: all .15s; }
-  #dropzone:hover, #dropzone.drag { border-color: var(--green); color: var(--green); background: #14261a20; }
-  #thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-  .thumb { position: relative; width: 64px; height: 64px; border-radius: 8px; overflow: hidden; border: 1px solid var(--border2); }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; }
-  .thumb .rm { position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,.6); color: #fff; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 0.65rem; line-height: 1; }
+  .dropzone { border: 1.5px dashed var(--border2); border-radius: 10px; padding: 18px; text-align: center; color: var(--muted); font-size: 0.78rem; cursor: pointer; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--green); color: var(--green); }
+  .filelist { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .fileitem { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 10px; font-size: 0.72rem; color: var(--muted2); }
+  .fileitem img { width: 32px; height: 32px; object-fit: cover; border-radius: 5px; }
+  .fileitem .rm { background: none; border: none; color: var(--red); font-size: 0.8rem; padding: 0 2px; }
 
   .loadrow { display: flex; align-items: center; gap: 8px; color: var(--muted2); font-size: 0.8rem; padding: 6px 0; }
   .dot3 span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin: 0 1px; opacity: .5; animation: pulse 1.2s infinite; }
   .dot3 span:nth-child(2) { animation-delay: .2s; } .dot3 span:nth-child(3) { animation-delay: .4s; }
   @keyframes pulse { 0%,60%,100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: 1; } }
 
+  /* Grille */
+  .gpartie { background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .gpartie-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface3); }
+  .gpartie-head input.ptitre { flex: 1; background: transparent; border: none; color: var(--text); font-weight: 600; font-size: 0.85rem; outline: none; }
+  .gpartie-head .ppts { font-family: 'DM Mono', monospace; color: var(--purple); font-size: 0.8rem; white-space: nowrap; }
+  .gcrit { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--border); align-items: flex-start; }
+  .gcrit .cmain { flex: 1; min-width: 0; }
+  .gcrit input.cint { width: 100%; background: transparent; border: none; color: var(--text); font-size: 0.8rem; outline: none; font-weight: 500; }
+  .gcrit .cattendus { color: var(--muted); font-size: 0.72rem; margin-top: 3px; line-height: 1.45; }
+  .gcrit .ccomp { display: inline-block; margin-top: 5px; padding: 2px 9px; border-radius: 12px; background: #221a30; color: var(--purple); font-size: 0.68rem; }
+  .gcrit input.cpts { width: 52px; background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; color: var(--amber); font-family: 'DM Mono', monospace; font-size: 0.78rem; padding: 4px 6px; text-align: center; outline: none; }
+  .notemax-badge { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--green); }
+
+  /* File d'attente correction */
+  .qitem { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+  .qitem .qname { font-weight: 600; font-size: 0.84rem; min-width: 110px; }
+  .qitem .qsrc { color: var(--muted); font-size: 0.72rem; flex: 1; }
+  .qstatus { font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+  .qstatus.wait { background: var(--surface3); color: var(--muted2); }
+  .qstatus.run { background: #1a2410; color: var(--amber); }
+  .qstatus.done { background: #14261a; color: var(--green); }
+  .qstatus.err { background: #2a1418; color: var(--red); }
+
+  /* Review */
   .noteBig { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 500; color: var(--green); }
   .noteBig small { font-size: 1rem; color: var(--muted); }
-  .critere-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
-  .critere-row:last-child { border-bottom: none; }
-  .critere-name { font-weight: 500; }
-  .critere-pts { font-family: 'DM Mono', monospace; color: var(--muted2); white-space: nowrap; }
-  .critere-comment { color: var(--muted2); font-size: 0.76rem; margin-top: 3px; line-height: 1.5; }
+  .rcrit { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .rcrit:last-child { border-bottom: none; }
+  .rcrit .rhead { display: flex; gap: 10px; align-items: center; }
+  .rcrit .rname { flex: 1; font-size: 0.8rem; font-weight: 500; }
+  .rcrit input.rpts { width: 58px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; color: var(--green); font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 4px 6px; text-align: center; outline: none; }
+  .rcrit .rmax { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 0.78rem; }
+  .rcrit textarea.rcom { width: 100%; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted2); font-size: 0.76rem; padding: 6px 9px; resize: vertical; min-height: 34px; outline: none; line-height: 1.5; }
+  .rpartie-label { font-size: 0.72rem; color: var(--purple); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 12px; }
+
   .taglist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .tag { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; }
   .tag.ok { background: #18281e; color: var(--green); }
   .tag.warn { background: #2a2010; color: var(--amber); }
+  .tag.info { background: #18243a; color: var(--blue); }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
   th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-  th { color: var(--muted2); font-weight: 500; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .03em; }
-  tr:hover td { background: var(--surface2); }
-  .bar-wrap { background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; width: 100%; }
+  th { color: var(--muted2); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .03em; }
+  tr.clickable { cursor: pointer; }
+  tr.clickable:hover td { background: var(--surface2); }
+  .bar-wrap { background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; width: 100%; min-width: 60px; }
   .bar-fill { height: 100%; border-radius: 6px; background: var(--green); }
-  .statgrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(130px,1fr)); gap: 12px; }
+  .statgrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 12px; }
   .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .stat .v { font-family: 'DM Mono', monospace; font-size: 1.35rem; color: var(--text); }
-  .stat .l { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+  .stat .v { font-family: 'DM Mono', monospace; font-size: 1.3rem; }
+  .stat .l { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+  /* Histogramme */
+  .histo { display: flex; align-items: flex-end; gap: 3px; height: 120px; margin-top: 14px; padding-bottom: 4px; }
+  .histo .hb { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; height: 100%; }
+  .histo .hbar { width: 100%; background: var(--purple); border-radius: 3px 3px 0 0; min-height: 2px; opacity: .85; }
+  .histo .hl { font-size: 0.6rem; color: var(--muted); }
+  .histo .hc { font-size: 0.62rem; color: var(--muted2); font-family: 'DM Mono', monospace; }
 
   .empty { color: var(--muted); font-size: 0.8rem; padding: 20px; text-align: center; }
-  .err-msg { background: #2a1418; border: 1px solid #4a2530; color: var(--red); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; }
-  .ok-msg { background: #14261a; border: 1px solid #245030; color: var(--green); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; }
-  hr.sep { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+  .err-msg { background: #2a1418; border: 1px solid #4a2530; color: var(--red); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; margin-top: 8px; }
+  .ok-msg { background: #14261a; border: 1px solid #245030; color: var(--green); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; margin-top: 8px; }
   .exlist { display: flex; flex-direction: column; gap: 14px; }
   .exlist .ex { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
   .exlist .ex .en { font-size: 0.85rem; margin-bottom: 8px; line-height: 1.6; white-space: pre-wrap; }
   .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; white-space: pre-wrap; line-height: 1.6; }
+  .elrow { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; }
+  .elrow .eln { flex: 1; }
   @media print {
     #topbar, #modetabs, .noprint { display: none !important; }
     body { background: #fff; color: #111; }
+    .card { border-color: #ccc; background: #fff; }
+    .exlist .ex { background: #fff; border-color: #ccc; }
   }
 </style>
 </head>
@@ -133,17 +173,18 @@
     <p>Collez votre clé API Anthropic (Claude) pour démarrer.<br>
     À obtenir sur <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com/settings/keys</a></p>
     <input id="keyinput" type="password" placeholder="sk-ant-…" autocomplete="off" />
-    <span id="keyerr">❌ Clé invalide ou erreur réseau. Vérifiez et réessayez.</span>
+    <span id="keyerr"></span>
+    <label class="checkrow"><input type="checkbox" id="keyremember"> Mémoriser la clé sur cet ordinateur (uniquement si c'est votre machine personnelle)</label>
     <button id="keybtn">Démarrer →</button>
-    <div class="onote">🔒 La clé reste uniquement en mémoire dans votre navigateur — elle n'est jamais enregistrée ni envoyée ailleurs qu'à l'API Anthropic, et disparaît à la fermeture de l'onglet.<br><br>
-    <b>Élèves mineurs :</b> évitez de transmettre le nom complet des élèves ; privilégiez initiales ou pseudonymes. Les copies (texte/images) sont envoyées à l'API Anthropic pour être corrigées.</div>
+    <div class="onote">🔒 La clé n'est envoyée qu'à l'API Anthropic. Sans mémorisation, elle disparaît à la fermeture de l'onglet.<br><br>
+    <b>Élèves mineurs :</b> privilégiez prénom + initiale (ex. « Emma R. »). Les copies sont envoyées à l'API Anthropic pour être corrigées.</div>
   </div>
 </div>
 
 <!-- Top bar -->
 <div id="topbar">
   <div class="logo">Correction·<span>IA</span></div>
-  <div class="topright">
+  <div class="row">
     <button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button>
   </div>
 </div>
@@ -151,130 +192,170 @@
 <!-- Tabs -->
 <div id="modetabs">
   <div class="tab active" data-tab="correction">✍️ Correction</div>
+  <div class="tab" data-tab="devoirs">📚 Devoirs & grilles</div>
   <div class="tab" data-tab="dashboard">📊 Tableau de bord</div>
+  <div class="tab" data-tab="eleves">👤 Élèves</div>
   <div class="tab" data-tab="remediation">✨ Remédiation</div>
   <div class="tab" data-tab="settings">⚙️ Réglages</div>
 </div>
 
 <div id="main">
 
-  <!-- ══ Correction ══ -->
+  <!-- ══════════ CORRECTION ══════════ -->
   <div class="panel active" id="panel-correction">
     <div class="card">
-      <h3>1. Contexte</h3>
-      <div class="sub">Choisissez la classe, le devoir et l'élève concernés.</div>
+      <h3>1. Devoir à corriger</h3>
+      <div class="sub">La grille structurée du devoir sera remplie automatiquement pour chaque copie. Créez d'abord le devoir et sa grille dans l'onglet « Devoirs & grilles ».</div>
       <div class="row">
-        <div class="col">
-          <label>Classe</label>
-          <select id="c-classe"></select>
-        </div>
-        <div class="col">
-          <label>Devoir</label>
-          <select id="c-devoir"></select>
-        </div>
-        <div class="col">
-          <label>Élève (nom/initiales)</label>
-          <input class="field" id="c-eleve" placeholder="ex : A.M." />
-        </div>
+        <div class="col"><label>Classe</label><select id="c-classe"></select></div>
+        <div class="col"><label>Devoir</label><select id="c-devoir"></select></div>
       </div>
-      <div class="row" style="margin-top:10px">
-        <button class="btn secondary small" id="c-newclasse">+ Nouvelle classe</button>
-        <button class="btn secondary small" id="c-newdevoir">+ Nouveau devoir</button>
-      </div>
+      <div id="c-grillestate" style="margin-top:10px"></div>
     </div>
 
-    <div class="card" id="c-baremecard" style="display:none">
-      <h3>2. Barème du devoir</h3>
-      <div class="sub" id="c-baremesub">Barème utilisé pour toutes les copies de ce devoir (modifiable ici, s'applique aux prochaines corrections).</div>
-      <textarea class="field" id="c-bareme" placeholder="Collez ici le barème : questions attendues, points par critère, éléments de correction attendus…"></textarea>
+    <div class="card" id="c-addcard">
+      <h3>2. Ajouter des copies à la file</h3>
+      <div class="row">
+        <div class="col"><label>Élève</label><select id="c-eleve"></select></div>
+      </div>
+      <div class="tabbar2" style="margin-top:12px">
+        <div class="chip on" data-src="fichiers">📎 Fichiers (photos / PDF / Word)</div>
+        <div class="chip" data-src="texte">📝 Texte collé</div>
+      </div>
+      <textarea class="field" id="c-texte" placeholder="Collez ici le texte de la copie de l'élève…" style="display:none"></textarea>
+      <div id="c-filearea">
+        <div class="dropzone" id="c-dropzone">Cliquez ou déposez ici les photos des pages, le PDF ou le fichier Word de la copie</div>
+        <input type="file" id="c-fileinput" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.docx" multiple style="display:none">
+        <div class="filelist" id="c-filelist"></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="btn secondary" id="c-addqueue">➕ Ajouter à la file</button>
+      </div>
+      <div id="c-adderr"></div>
     </div>
 
     <div class="card">
-      <h3>3. Copie de l'élève</h3>
-      <div class="tabbar2">
-        <div class="chip on" data-src="texte">📝 Texte</div>
-        <div class="chip" data-src="image">🖼️ Photo(s) de copie</div>
+      <h3>3. File de correction <span id="q-count" style="color:var(--muted);font-weight:400"></span></h3>
+      <div id="q-list"><div class="empty">Aucune copie en attente.</div></div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn" id="q-run">🚀 Corriger la file</button>
+        <span id="q-progress" style="font-size:0.78rem;color:var(--muted2)"></span>
       </div>
-      <textarea class="field" id="c-texte" placeholder="Collez ici le texte de la copie de l'élève…"></textarea>
-      <div id="c-imagearea" style="display:none">
-        <div id="dropzone">Cliquez ou déposez ici les photos des pages de la copie (JPEG/PNG/WebP)</div>
-        <input type="file" id="c-fileinput" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="display:none">
-        <div id="thumbs"></div>
-      </div>
-      <div class="row" style="margin-top:14px">
-        <button class="btn" id="c-corriger">Corriger cette copie →</button>
-      </div>
-      <div id="c-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Correction en cours…</div>
-      <div id="c-error"></div>
     </div>
 
-    <div class="card" id="c-result" style="display:none">
-      <h3>Résultat (modifiable avant enregistrement)</h3>
-      <div class="row" style="align-items:flex-end; gap:16px; margin:8px 0 14px">
-        <div class="noteBig"><input id="r-note" style="width:70px;background:transparent;border:none;color:var(--green);font:inherit;outline:none" type="number" step="0.5"> <small>/ <input id="r-notemax" style="width:50px;background:transparent;border:none;color:var(--muted);font:inherit;outline:none" type="number"></small></div>
+    <div class="card" id="review-card" style="display:none">
+      <h3 id="rv-title">Relecture</h3>
+      <div class="sub">Vérifiez et ajustez la correction proposée avant de l'enregistrer — vous restez maître de la note.</div>
+      <div class="row" style="align-items:flex-end; gap:16px; margin:6px 0 10px">
+        <div class="noteBig"><span id="rv-note">0</span> <small>/ <span id="rv-notemax">20</span></small></div>
+        <span class="tag info" id="rv-eleve"></span>
       </div>
       <label>Appréciation générale</label>
-      <textarea class="field" id="r-appreciation" style="min-height:60px"></textarea>
-      <div id="r-details" style="margin-top:14px"></div>
+      <textarea class="field" id="rv-appreciation" style="min-height:56px"></textarea>
+      <div id="rv-grid" style="margin-top:8px"></div>
       <div class="row" style="margin-top:14px; gap:24px; align-items:flex-start">
-        <div class="col">
-          <label>✅ Points forts</label>
-          <div id="r-forts" class="taglist"></div>
-        </div>
-        <div class="col">
-          <label>⚠️ Points à travailler</label>
-          <div id="r-faibles" class="taglist"></div>
-        </div>
+        <div class="col"><label>✅ Points forts</label><div id="rv-forts" class="taglist"></div></div>
+        <div class="col"><label>⚠️ Points à travailler</label><div id="rv-faibles" class="taglist"></div></div>
       </div>
-      <div class="row" style="margin-top:16px">
-        <button class="btn" id="r-save">💾 Enregistrer cette correction</button>
-        <button class="btn secondary" id="r-print">🖨️ Imprimer</button>
+      <div class="row noprint" style="margin-top:16px">
+        <button class="btn" id="rv-save">💾 Valider & enregistrer</button>
+        <button class="btn secondary" id="rv-print">🖨️ Imprimer</button>
+        <button class="btn secondary" id="rv-close">Fermer sans enregistrer</button>
       </div>
     </div>
 
     <div class="card">
-      <h3>Copies déjà corrigées pour ce devoir</h3>
+      <h3>Copies corrigées pour ce devoir</h3>
       <div id="c-history"></div>
     </div>
   </div>
 
-  <!-- ══ Dashboard ══ -->
+  <!-- ══════════ DEVOIRS ══════════ -->
+  <div class="panel" id="panel-devoirs">
+    <div class="card">
+      <h3>Devoirs</h3>
+      <div class="row">
+        <div class="col"><label>Classe</label><select id="d2-classe"></select></div>
+        <div class="col"><label>Devoir</label><select id="d2-devoir"></select></div>
+        <button class="btn secondary small" id="d2-new" style="align-self:flex-end">+ Nouveau devoir</button>
+        <button class="btn danger small" id="d2-del" style="align-self:flex-end">Supprimer</button>
+      </div>
+    </div>
+
+    <div id="d2-editor" style="display:none; flex-direction:column; gap:18px">
+      <div class="card">
+        <h3>Sujet du devoir <span style="color:var(--muted);font-weight:400">(recommandé)</span></h3>
+        <div class="sub">Le sujet donné aux élèves aide l'IA à comprendre ce qui était attendu. Collez-le ou importez un fichier Word.</div>
+        <textarea class="field" id="d2-sujet" placeholder="Collez ici l'énoncé du devoir…"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn secondary small" id="d2-sujet-import">📄 Importer un .docx</button>
+          <input type="file" id="d2-sujet-file" accept=".docx" style="display:none">
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Grille de correction</h3>
+        <div class="sub">Collez votre barème détaillé (parties, questions, points, attendus de correction), puis laissez l'IA le structurer en grille. Vous pourrez tout ajuster ensuite.</div>
+        <textarea class="field" id="d2-brute" style="min-height:130px" placeholder="Ex :&#10;Partie 1 – Restitution (6 pts)&#10;  Q1. Définir la mitose (2 pts) – attendu : définition + étapes&#10;  Q2. Schéma légendé (4 pts) – attendu : 4 légendes exactes&#10;Partie 2 – Raisonnement (12 pts)&#10;  …"></textarea>
+        <div class="row" style="margin-top:8px">
+          <button class="btn secondary small" id="d2-brute-import">📄 Importer un .docx</button>
+          <input type="file" id="d2-brute-file" accept=".docx" style="display:none">
+          <button class="btn purple" id="d2-structurer">✨ Structurer la grille avec l'IA</button>
+        </div>
+        <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
+        <div id="d2-structerr"></div>
+      </div>
+
+      <div class="card" id="d2-grillecard" style="display:none">
+        <div class="row" style="justify-content:space-between; margin-bottom:8px">
+          <h3 style="margin:0">Grille structurée <span style="color:var(--muted);font-weight:400">(modifiable)</span></h3>
+          <div class="notemax-badge">/ <span id="d2-notemax">0</span></div>
+        </div>
+        <div class="sub" id="d2-grillenote"></div>
+        <div id="d2-grille"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ DASHBOARD ══════════ -->
   <div class="panel" id="panel-dashboard">
     <div class="card">
       <div class="row">
-        <div class="col">
-          <label>Classe</label>
-          <select id="d-classe"></select>
-        </div>
-        <div class="col">
-          <label>Devoir</label>
-          <select id="d-devoir"></select>
-        </div>
+        <div class="col"><label>Classe</label><select id="db-classe"></select></div>
+        <div class="col"><label>Devoir</label><select id="db-devoir"></select></div>
       </div>
     </div>
-    <div id="d-content"></div>
+    <div id="db-content"></div>
   </div>
 
-  <!-- ══ Remédiation ══ -->
+  <!-- ══════════ ÉLÈVES ══════════ -->
+  <div class="panel" id="panel-eleves">
+    <div class="card">
+      <div class="row">
+        <div class="col"><label>Classe</label><select id="e-classe"></select></div>
+      </div>
+    </div>
+    <div id="e-list"></div>
+    <div id="e-detail"></div>
+  </div>
+
+  <!-- ══════════ REMÉDIATION ══════════ -->
   <div class="panel" id="panel-remediation">
     <div class="card">
       <h3>Générer une activité de remédiation</h3>
-      <div class="sub">Basée sur les points à travailler identifiés lors des corrections.</div>
+      <div class="sub">Basée sur les compétences fragiles mesurées lors des corrections — pour toute la classe ou pour un élève en particulier.</div>
       <div class="row">
-        <div class="col">
-          <label>Classe</label>
-          <select id="m-classe"></select>
+        <div class="col"><label>Pour</label>
+          <select id="m-mode"><option value="classe">Toute la classe</option><option value="eleve">Un élève</option></select>
         </div>
-        <div class="col">
-          <label>Devoir (optionnel — pour cibler les difficultés observées)</label>
-          <select id="m-devoir"></select>
-        </div>
+        <div class="col"><label>Classe</label><select id="m-classe"></select></div>
+        <div class="col" id="m-elevecol" style="display:none"><label>Élève</label><select id="m-eleve"></select></div>
       </div>
       <div class="col" style="margin-top:10px">
-        <label>Compétence(s)/notion(s) à cibler</label>
-        <textarea class="field" id="m-cible" style="min-height:60px" placeholder="Précisez ou complétez ce que l'activité doit travailler (pré-rempli automatiquement depuis le devoir choisi)…"></textarea>
+        <label>Compétences / notions à cibler (pré-rempli automatiquement)</label>
+        <textarea class="field" id="m-cible" style="min-height:56px"></textarea>
       </div>
-      <div class="row" style="margin-top:14px">
+      <div class="row" style="margin-top:12px">
         <button class="btn" id="m-generer">✨ Générer l'activité →</button>
       </div>
       <div id="m-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Génération en cours…</div>
@@ -285,46 +366,64 @@
       <div class="sub" id="m-objectif"></div>
       <p id="m-consignes" style="font-size:0.85rem; line-height:1.6; margin-bottom:14px"></p>
       <div class="exlist" id="m-exercices"></div>
-      <div class="row" style="margin-top:16px">
-        <button class="btn secondary" id="m-print">🖨️ Imprimer</button>
-      </div>
+      <div class="row noprint" style="margin-top:16px"><button class="btn secondary" id="m-print">🖨️ Imprimer</button></div>
     </div>
   </div>
 
-  <!-- ══ Réglages ══ -->
+  <!-- ══════════ RÉGLAGES ══════════ -->
   <div class="panel" id="panel-settings">
     <div class="card">
+      <h3>Profil de correcteur</h3>
+      <div class="sub">Ces réglages s'appliquent à toutes les corrections (commentaires adressés à l'élève).</div>
+      <div class="row">
+        <div class="col"><label>Ton</label>
+          <select id="s-ton"><option value="bienveillant">😊 Bienveillant</option><option value="neutre" selected>😐 Neutre</option><option value="exigeant">🎯 Exigeant</option></select>
+        </div>
+        <div class="col"><label>Énonciation</label>
+          <select id="s-enonc"><option value="tutoiement" selected>🤝 Tutoiement</option><option value="vouvoiement">🎩 Vouvoiement</option></select>
+        </div>
+        <div class="col"><label>Longueur des commentaires</label>
+          <select id="s-longueur"><option value="courte">Courte</option><option value="standard" selected>⚖️ Standard</option><option value="detaillee">Détaillée</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
       <h3>Modèle IA</h3>
-      <div class="sub">Sonnet : plus fin, recommandé pour la correction. Haiku : plus rapide/économique, utile pour de gros volumes.</div>
-      <select id="s-model" style="max-width:320px">
+      <div class="sub">Sonnet : recommandé (précision/coût). Opus : le plus fin sur les copies difficiles. Haiku : rapide et économique pour de gros volumes.</div>
+      <select id="s-model" style="max-width:340px">
         <option value="claude-sonnet-5">Claude Sonnet 5 (recommandé)</option>
+        <option value="claude-opus-5">Claude Opus 5 (le plus précis)</option>
         <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (rapide)</option>
-        <option value="claude-opus-5">Claude Opus 5 (le plus précis, plus lent/coûteux)</option>
       </select>
     </div>
 
     <div class="card">
-      <h3>Classes</h3>
-      <div id="s-classes"></div>
-      <div class="row" style="margin-top:10px">
-        <input class="field" id="s-newclassename" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:260px">
-        <button class="btn secondary small" id="s-addclasse">+ Ajouter</button>
+      <h3>Classes & élèves</h3>
+      <div class="row" style="margin-bottom:10px">
+        <input class="field" id="s-newclasse" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:240px">
+        <button class="btn secondary small" id="s-addclasse">+ Créer la classe</button>
+      </div>
+      <div class="row" style="margin-bottom:8px">
+        <div class="col"><label>Classe à gérer</label><select id="s-classesel" style="max-width:240px"></select></div>
+      </div>
+      <div id="s-eleves"></div>
+      <div class="col" style="margin-top:10px">
+        <label>Ajouter des élèves (un par ligne — ex : « Emma R. »)</label>
+        <textarea class="field" id="s-neweleves" style="min-height:60px" placeholder="Emma R.&#10;Lucas M.&#10;…"></textarea>
+        <div class="row"><button class="btn secondary small" id="s-addeleves">+ Ajouter ces élèves</button>
+        <button class="btn danger small" id="s-delclasse">🗑️ Supprimer cette classe</button></div>
       </div>
     </div>
 
     <div class="card">
-      <h3>Barèmes enregistrés</h3>
-      <div id="s-baremes"></div>
-    </div>
-
-    <div class="card">
       <h3>Données</h3>
-      <div class="sub">Toutes les données (classes, devoirs, copies, notes) sont stockées uniquement dans ce navigateur (localStorage). Pensez à exporter régulièrement pour ne rien perdre.</div>
+      <div class="sub">Tout est stocké uniquement dans ce navigateur (localStorage). Exportez régulièrement pour sauvegarder (et pour transférer sur un autre ordinateur).</div>
       <div class="row">
         <button class="btn secondary" id="s-export">⬇️ Exporter (JSON)</button>
         <button class="btn secondary" id="s-import">⬆️ Importer</button>
         <input type="file" id="s-importfile" accept="application/json" style="display:none">
-        <button class="btn danger" id="s-wipe">🗑️ Effacer toutes les données</button>
+        <button class="btn danger" id="s-wipe">🗑️ Tout effacer</button>
       </div>
     </div>
   </div>
@@ -332,72 +431,93 @@
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════════
-// State & persistence
-// ══════════════════════════════════════════════════════════════
+'use strict';
+// ════════════════════════════════════════════════════════════════
+// État & persistance
+// ════════════════════════════════════════════════════════════════
+const DB_KEY = 'corrIA_db_v2';
+const KEY_STORE = 'corrIA_apikey';
 let API_KEY = '';
-const DB_KEY = 'corrIA_db_v1';
 let db = loadDB();
+let queue = [];           // {id, eleveId, eleveNom, kind:'texte'|'fichiers', texte, files:[{name,mediaType,base64,isDoc}], status, result, error}
+let pendingFiles = [];    // fichiers en cours d'ajout
+let sourceMode = 'fichiers';
+let reviewTarget = null;  // {type:'queue'|'copie', id}
 
+function $(id) { return document.getElementById(id); }
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+function freshDB() {
+  return { version: 2, model: 'claude-sonnet-5',
+    profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' },
+    classes: [], devoirs: [], copies: [] };
+}
 function loadDB() {
   try {
     const raw = localStorage.getItem(DB_KEY);
     if (raw) return JSON.parse(raw);
+    // migration depuis v1
+    const old = localStorage.getItem('corrIA_db_v1');
+    if (old) {
+      const v1 = JSON.parse(old);
+      const d = freshDB();
+      d.model = v1.model || d.model;
+      d.classes = (v1.classes || []).map(c => ({ id: c.id, nom: c.nom, eleves: [] }));
+      d.devoirs = (v1.devoirs || []).map(dv => ({ id: dv.id, classeId: dv.classeId, nom: dv.nom, matiere: dv.matiere || '', date: dv.date, sujet: '', grilleBrute: dv.bareme || '', grille: null }));
+      d.copies = (v1.copies || []).map(cp => ({ id: cp.id, devoirId: cp.devoirId, eleveId: null, eleveNom: cp.eleve, date: cp.date,
+        note: cp.note, note_max: cp.note_max, appreciation: cp.appreciation_globale || '',
+        evaluations: (cp.details || []).map(dt => ({ critereId: null, intitule: dt.critere, competence: '', points_obtenus: dt.points_obtenus, points_max: dt.points_max, commentaire: dt.commentaire })),
+        forts: cp.points_forts || [], faibles: cp.points_a_travailler || [] }));
+      return d;
+    }
   } catch (e) { console.warn('DB load failed', e); }
-  return { classes: [], devoirs: [], copies: [], baremes: [], model: 'claude-sonnet-5' };
+  return freshDB();
 }
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
-function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const classeById = id => db.classes.find(c => c.id === id);
+const devoirById = id => db.devoirs.find(d => d.id === id);
+const eleveById = (classe, id) => classe ? (classe.eleves || []).find(e => e.id === id) : null;
+function grilleCriteres(grille) { // liste plate des critères avec ref partie
+  const out = [];
+  (grille?.parties || []).forEach(p => (p.criteres || []).forEach(c => out.push({ ...c, partie: p.titre })));
+  return out;
 }
+function grilleNoteMax(grille) { return grilleCriteres(grille).reduce((s, c) => s + (parseFloat(c.points) || 0), 0); }
 
-let uploadedImages = []; // { mediaType, base64, name }
-let sourceMode = 'texte';
-let currentResult = null; // last graded result, before saving
-
-// ══════════════════════════════════════════════════════════════
-// API key overlay
-// ══════════════════════════════════════════════════════════════
-const overlay = document.getElementById('overlay');
-document.getElementById('keybtn').onclick = tryKey;
-document.getElementById('keyinput').addEventListener('keydown', e => { if (e.key === 'Enter') tryKey(); });
-
+// ════════════════════════════════════════════════════════════════
+// Clé API
+// ════════════════════════════════════════════════════════════════
+(function initKey() {
+  const stored = localStorage.getItem(KEY_STORE);
+  if (stored) { API_KEY = stored; $('overlay').classList.add('off'); }
+})();
 function tryKey() {
-  const v = document.getElementById('keyinput').value.trim();
-  const err = document.getElementById('keyerr');
-  if (!v.startsWith('sk-ant-')) {
-    err.textContent = '❌ La clé doit commencer par "sk-ant-".';
-    err.classList.add('on');
-    return;
-  }
-  API_KEY = v;
-  err.classList.remove('on');
-  overlay.classList.add('off');
+  const v = $('keyinput').value.trim();
+  const err = $('keyerr');
+  if (!v.startsWith('sk-ant-')) { err.textContent = '❌ La clé doit commencer par "sk-ant-".'; err.classList.add('on'); return; }
+  API_KEY = v; err.classList.remove('on');
+  if ($('keyremember').checked) localStorage.setItem(KEY_STORE, v);
+  $('overlay').classList.add('off');
 }
-document.getElementById('forgetKeyBtn').onclick = () => {
-  API_KEY = '';
-  document.getElementById('keyinput').value = '';
-  overlay.classList.remove('off');
-};
+$('keybtn').onclick = tryKey;
+$('keyinput').addEventListener('keydown', e => { if (e.key === 'Enter') tryKey(); });
+$('forgetKeyBtn').onclick = () => { API_KEY = ''; localStorage.removeItem(KEY_STORE); $('keyinput').value = ''; $('overlay').classList.remove('off'); };
 
-// ══════════════════════════════════════════════════════════════
-// Tabs
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
+// Onglets
+// ════════════════════════════════════════════════════════════════
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
-  if (name === 'dashboard') renderDashboard();
-  if (name === 'remediation') renderRemediationSelectors();
-  if (name === 'settings') renderSettings();
-  if (name === 'correction') renderCorrectionSelectors();
+  ({ correction: renderCorrection, devoirs: renderDevoirs, dashboard: renderDashboard,
+     eleves: renderEleves, remediation: renderRemediation, settings: renderSettings }[name] || (()=>{}))();
 }
 
-// ══════════════════════════════════════════════════════════════
-// Claude API call
-// ══════════════════════════════════════════════════════════════
-async function callClaude({ system, userContent, tool }) {
+// ════════════════════════════════════════════════════════════════
+// Appels API Claude
+// ════════════════════════════════════════════════════════════════
+async function callClaude({ system, userContent, tool, maxTokens }) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -408,7 +528,7 @@ async function callClaude({ system, userContent, tool }) {
     },
     body: JSON.stringify({
       model: db.model || 'claude-sonnet-5',
-      max_tokens: 4096,
+      max_tokens: maxTokens || 8192,
       system,
       messages: [{ role: 'user', content: userContent }],
       tools: [tool],
@@ -421,39 +541,84 @@ async function callClaude({ system, userContent, tool }) {
   }
   const data = await res.json();
   const toolUse = (data.content || []).find(b => b.type === 'tool_use');
-  if (!toolUse) throw new Error("L'IA n'a pas renvoyé de réponse structurée. Réessayez.");
+  if (!toolUse) throw new Error("Réponse structurée manquante — réessayez.");
   return toolUse.input;
 }
 
-const CORRECTION_TOOL = {
-  name: 'enregistrer_correction',
-  description: 'Enregistre la correction structurée de la copie.',
+function profileDirectives() {
+  const p = db.profile || {};
+  const ton = { bienveillant: 'un ton chaleureux et encourageant', neutre: 'un ton neutre et professionnel', exigeant: 'un ton exigeant et direct, sans complaisance' }[p.ton || 'neutre'];
+  const enonc = p.enonc === 'vouvoiement' ? 'Vouvoie l\'élève dans les commentaires.' : 'Tutoie l\'élève dans les commentaires.';
+  const lg = { courte: 'Commentaires très courts (une phrase max par critère).', standard: 'Commentaires d\'une à deux phrases par critère.', detaillee: 'Commentaires détaillés (2 à 4 phrases par critère, en citant des éléments précis de la copie).' }[p.longueur || 'standard'];
+  return `Adopte ${ton}. ${enonc} ${lg}`;
+}
+
+const STRUCT_TOOL = {
+  name: 'structurer_grille',
+  description: 'Enregistre la grille de correction structurée.',
   input_schema: {
     type: 'object',
     properties: {
-      note: { type: 'number', description: 'Note obtenue' },
-      note_max: { type: 'number', description: 'Note maximale (total du barème)' },
-      appreciation_globale: { type: 'string', description: 'Appréciation générale, bienveillante et constructive, 2-4 phrases' },
-      details: {
+      remarque: { type: 'string', description: "Remarque courte sur la structuration (incohérences de points détectées, choix faits). Vide si rien à signaler." },
+      parties: {
         type: 'array',
-        description: 'Détail point par point selon les critères du barème',
+        description: 'Les grandes parties du devoir, dans l\'ordre',
         items: {
           type: 'object',
           properties: {
-            critere: { type: 'string' },
-            points_obtenus: { type: 'number' },
-            points_max: { type: 'number' },
-            commentaire: { type: 'string' }
+            titre: { type: 'string' },
+            criteres: {
+              type: 'array',
+              description: 'Critères évaluables de cette partie (questions, attendus)',
+              items: {
+                type: 'object',
+                properties: {
+                  intitule: { type: 'string', description: 'Intitulé court du critère (ex : "Q1. Définition de la mitose")' },
+                  points: { type: 'number', description: 'Points max de ce critère' },
+                  attendus: { type: 'string', description: 'Éléments de correction attendus pour ce critère' },
+                  competence: { type: 'string', description: 'Compétence travaillée, formulée courte et réutilisable entre devoirs (ex : "Restituer des connaissances", "Exploiter des documents", "Raisonner / argumenter", "Communiquer (schéma, rédaction)")' }
+                },
+                required: ['intitule', 'points', 'attendus', 'competence']
+              }
+            }
           },
-          required: ['critere', 'points_obtenus', 'points_max', 'commentaire']
+          required: ['titre', 'criteres']
         }
-      },
-      points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 points forts courts' },
-      points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 points à travailler courts, formulés comme des notions/compétences (ex: "Rédaction de l\'argumentation", "Unités et significativité des chiffres")' }
+      }
     },
-    required: ['note', 'note_max', 'appreciation_globale', 'details', 'points_forts', 'points_a_travailler']
+    required: ['parties', 'remarque']
   }
 };
+
+function buildCorrectionTool(grille) {
+  const ids = grilleCriteres(grille).map(c => c.id);
+  return {
+    name: 'remplir_grille',
+    description: 'Enregistre l\'évaluation de la copie, critère par critère, selon la grille fournie.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        evaluations: {
+          type: 'array',
+          description: 'Une évaluation pour CHAQUE critère de la grille (aucun oubli).',
+          items: {
+            type: 'object',
+            properties: {
+              critere_id: { type: 'string', enum: ids },
+              points_obtenus: { type: 'number', description: 'Points attribués (demi-points et quarts autorisés), entre 0 et le max du critère' },
+              commentaire: { type: 'string', description: 'Justification adressée à l\'élève : ce qui est réussi, ce qui manque' }
+            },
+            required: ['critere_id', 'points_obtenus', 'commentaire']
+          }
+        },
+        appreciation_globale: { type: 'string', description: 'Appréciation générale de la copie (structure : appréciation, forces, faiblesses), 2-4 phrases' },
+        points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 points forts courts' },
+        points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 axes de progrès courts, formulés comme des compétences' }
+      },
+      required: ['evaluations', 'appreciation_globale', 'points_forts', 'points_a_travailler']
+    }
+  };
+}
 
 const REMEDIATION_TOOL = {
   name: 'generer_activite',
@@ -461,471 +626,788 @@ const REMEDIATION_TOOL = {
   input_schema: {
     type: 'object',
     properties: {
-      titre: { type: 'string' },
-      objectif: { type: 'string' },
-      consignes: { type: 'string' },
-      exercices: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: { enonce: { type: 'string' }, correction: { type: 'string' } },
-          required: ['enonce', 'correction']
-        }
-      },
+      titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' },
+      exercices: { type: 'array', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } },
       competences_ciblees: { type: 'array', items: { type: 'string' } }
     },
     required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees']
   }
 };
 
-// ══════════════════════════════════════════════════════════════
-// Correction tab
-// ══════════════════════════════════════════════════════════════
-function classeOptions(select, includeNone) {
-  select.innerHTML = (includeNone ? '<option value="">— toutes —</option>' : '') +
-    db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
-}
-function devoirOptions(select, classeId, includeNone) {
-  const list = db.devoirs.filter(d => d.classeId === classeId);
-  select.innerHTML = (includeNone ? '<option value="">— tous —</option>' : '<option value="">— choisir —</option>') +
-    list.map(d => `<option value="${d.id}">${esc(d.nom)}</option>`).join('');
-}
-
-function renderCorrectionSelectors() {
-  const cClasse = document.getElementById('c-classe');
-  classeOptions(cClasse, false);
-  if (!cClasse.value && db.classes[0]) cClasse.value = db.classes[0].id;
-  devoirOptions(document.getElementById('c-devoir'), cClasse.value, false);
-  onDevoirChange();
-  renderHistory();
-}
-
-document.getElementById('c-classe').addEventListener('change', e => {
-  devoirOptions(document.getElementById('c-devoir'), e.target.value, false);
-  onDevoirChange();
-});
-document.getElementById('c-devoir').addEventListener('change', onDevoirChange);
-
-function onDevoirChange() {
-  const devoirId = document.getElementById('c-devoir').value;
-  const card = document.getElementById('c-baremecard');
-  const devoir = db.devoirs.find(d => d.id === devoirId);
-  if (devoir) {
-    card.style.display = '';
-    document.getElementById('c-bareme').value = devoir.bareme || '';
-    document.getElementById('c-baremesub').textContent = `Devoir : ${devoir.nom} (${devoir.matiere || 'matière non précisée'})`;
-  } else {
-    card.style.display = 'none';
+// ════════════════════════════════════════════════════════════════
+// Fichiers : lecture, docx
+// ════════════════════════════════════════════════════════════════
+let mammothPromise = null;
+function loadMammoth() {
+  if (window.mammoth) return Promise.resolve();
+  if (!mammothPromise) {
+    mammothPromise = new Promise((ok, ko) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
+      s.onload = ok; s.onerror = () => ko(new Error('Impossible de charger le module Word (connexion ?)'));
+      document.head.appendChild(s);
+    });
   }
-  renderHistory();
+  return mammothPromise;
 }
-document.getElementById('c-bareme').addEventListener('input', e => {
-  const devoirId = document.getElementById('c-devoir').value;
-  const devoir = db.devoirs.find(d => d.id === devoirId);
-  if (devoir) { devoir.bareme = e.target.value; saveDB(); }
-});
+async function docxToText(file) {
+  await loadMammoth();
+  const buf = await file.arrayBuffer();
+  const r = await window.mammoth.extractRawText({ arrayBuffer: buf });
+  return r.value || '';
+}
+function fileToB64(file) {
+  return new Promise((ok, ko) => {
+    const r = new FileReader();
+    r.onload = () => ok(r.result.split(',')[1]);
+    r.onerror = ko;
+    r.readAsDataURL(file);
+  });
+}
+async function ingestFiles(fileList, targetArr, renderFn) {
+  for (const file of fileList) {
+    const name = file.name || 'fichier';
+    if (/\.docx$/i.test(name)) {
+      try { const txt = await docxToText(file); targetArr.push({ name, isDoc: true, text: txt }); }
+      catch (e) { alert('Lecture du .docx impossible : ' + e.message); }
+    } else if (file.type === 'application/pdf') {
+      targetArr.push({ name, mediaType: 'application/pdf', base64: await fileToB64(file), isPdf: true });
+    } else if (file.type.startsWith('image/')) {
+      targetArr.push({ name, mediaType: file.type, base64: await fileToB64(file) });
+    }
+  }
+  renderFn();
+}
 
-document.getElementById('c-newclasse').onclick = () => {
-  const nom = prompt('Nom de la nouvelle classe :');
-  if (!nom) return;
-  const c = { id: uid(), nom: nom.trim() };
-  db.classes.push(c); saveDB();
-  renderCorrectionSelectors();
-  document.getElementById('c-classe').value = c.id;
-  devoirOptions(document.getElementById('c-devoir'), c.id, false);
-};
-document.getElementById('c-newdevoir').onclick = () => {
-  const classeId = document.getElementById('c-classe').value;
-  if (!classeId) { alert('Créez/choisissez d\'abord une classe.'); return; }
-  const nom = prompt('Nom du devoir (ex : DS n°2 - Génétique) :');
+// ════════════════════════════════════════════════════════════════
+// Sélecteurs communs
+// ════════════════════════════════════════════════════════════════
+function fillClasseSelect(sel, selected) {
+  sel.innerHTML = db.classes.length === 0 ? '<option value="">— créez une classe (Réglages) —</option>'
+    : db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
+  if (selected && db.classes.some(c => c.id === selected)) sel.value = selected;
+}
+function fillDevoirSelect(sel, classeId, selected, includeAll) {
+  const list = db.devoirs.filter(d => d.classeId === classeId);
+  sel.innerHTML = (includeAll ? '<option value="">— tous les devoirs —</option>' : '<option value="">— choisir —</option>') +
+    list.map(d => `<option value="${d.id}">${esc(d.nom)}</option>`).join('');
+  if (selected && list.some(d => d.id === selected)) sel.value = selected;
+  else if (!includeAll && list.length === 1) sel.value = list[0].id;
+}
+function fillEleveSelect(sel, classeId, selected) {
+  const c = classeById(classeId);
+  const list = c ? (c.eleves || []) : [];
+  sel.innerHTML = list.length === 0 ? '<option value="">— ajoutez des élèves (Réglages) —</option>'
+    : list.map(e => `<option value="${e.id}">${esc(e.nom)}</option>`).join('');
+  if (selected) sel.value = selected;
+}
+
+// ════════════════════════════════════════════════════════════════
+// ONGLET DEVOIRS & GRILLES
+// ════════════════════════════════════════════════════════════════
+function renderDevoirs() {
+  fillClasseSelect($('d2-classe'), $('d2-classe').value);
+  fillDevoirSelect($('d2-devoir'), $('d2-classe').value, $('d2-devoir').value, false);
+  renderDevoirEditor();
+}
+$('d2-classe').addEventListener('change', () => { fillDevoirSelect($('d2-devoir'), $('d2-classe').value, null, false); renderDevoirEditor(); });
+$('d2-devoir').addEventListener('change', renderDevoirEditor);
+
+$('d2-new').onclick = () => {
+  const classeId = $('d2-classe').value;
+  if (!classeId) { alert('Créez d\'abord une classe dans Réglages.'); return; }
+  const nom = prompt('Nom du devoir (ex : DS n°2 – Génétique) :');
   if (!nom) return;
   const matiere = prompt('Matière (optionnel) :') || '';
-  const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), bareme: '', date: new Date().toISOString() };
+  const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), date: new Date().toISOString(), sujet: '', grilleBrute: '', grille: null };
   db.devoirs.push(d); saveDB();
-  devoirOptions(document.getElementById('c-devoir'), classeId, false);
-  document.getElementById('c-devoir').value = d.id;
-  onDevoirChange();
+  fillDevoirSelect($('d2-devoir'), classeId, d.id, false);
+  renderDevoirEditor();
+};
+$('d2-del').onclick = () => {
+  const d = devoirById($('d2-devoir').value);
+  if (!d) return;
+  if (!confirm(`Supprimer « ${d.nom} » et toutes ses copies corrigées ?`)) return;
+  db.copies = db.copies.filter(c => c.devoirId !== d.id);
+  db.devoirs = db.devoirs.filter(x => x.id !== d.id);
+  saveDB(); renderDevoirs();
 };
 
-// Source mode toggle (texte / image)
-document.querySelectorAll('.tabbar2 .chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    sourceMode = chip.dataset.src;
-    document.querySelectorAll('.tabbar2 .chip').forEach(c => c.classList.toggle('on', c === chip));
-    document.getElementById('c-texte').style.display = sourceMode === 'texte' ? '' : 'none';
-    document.getElementById('c-imagearea').style.display = sourceMode === 'image' ? '' : 'none';
-  });
+function renderDevoirEditor() {
+  const d = devoirById($('d2-devoir').value);
+  $('d2-editor').style.display = d ? 'flex' : 'none';
+  if (!d) return;
+  $('d2-sujet').value = d.sujet || '';
+  $('d2-brute').value = d.grilleBrute || '';
+  renderGrilleEditor(d);
+}
+$('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
+$('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
+$('d2-sujet-import').onclick = () => $('d2-sujet-file').click();
+$('d2-sujet-file').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const t = await docxToText(f); $('d2-sujet').value = t; $('d2-sujet').dispatchEvent(new Event('input')); }
+  catch (err) { alert(err.message); }
+  e.target.value = '';
+});
+$('d2-brute-import').onclick = () => $('d2-brute-file').click();
+$('d2-brute-file').addEventListener('change', async e => {
+  const f = e.target.files[0]; if (!f) return;
+  try { const t = await docxToText(f); $('d2-brute').value = t; $('d2-brute').dispatchEvent(new Event('input')); }
+  catch (err) { alert(err.message); }
+  e.target.value = '';
 });
 
-// Image upload
-const dropzone = document.getElementById('dropzone');
-const fileInput = document.getElementById('c-fileinput');
-dropzone.addEventListener('click', () => fileInput.click());
-dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
-dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
-dropzone.addEventListener('drop', e => {
-  e.preventDefault(); dropzone.classList.remove('drag');
-  handleFiles(e.dataTransfer.files);
-});
-fileInput.addEventListener('change', e => handleFiles(e.target.files));
-
-function handleFiles(files) {
-  [...files].forEach(file => {
-    if (!file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result.split(',')[1];
-      uploadedImages.push({ mediaType: file.type, base64, name: file.name });
-      renderThumbs();
-    };
-    reader.readAsDataURL(file);
-  });
-  fileInput.value = '';
-}
-function renderThumbs() {
-  document.getElementById('thumbs').innerHTML = uploadedImages.map((img, i) =>
-    `<div class="thumb"><img src="data:${img.mediaType};base64,${img.base64}"><button class="rm" data-i="${i}">✕</button></div>`
-  ).join('');
-  document.querySelectorAll('.thumb .rm').forEach(btn => btn.addEventListener('click', () => {
-    uploadedImages.splice(+btn.dataset.i, 1); renderThumbs();
-  }));
-}
-
-// Corriger
-document.getElementById('c-corriger').onclick = async () => {
-  const errBox = document.getElementById('c-error');
-  errBox.innerHTML = '';
-  if (!API_KEY) { overlay.classList.remove('off'); return; }
-  const bareme = document.getElementById('c-bareme').value.trim();
-  const eleve = document.getElementById('c-eleve').value.trim();
-  const devoirId = document.getElementById('c-devoir').value;
-  const devoir = db.devoirs.find(d => d.id === devoirId);
-  if (!devoir) { errBox.innerHTML = '<div class="err-msg">Choisissez ou créez un devoir.</div>'; return; }
-  if (!bareme) { errBox.innerHTML = '<div class="err-msg">Renseignez le barème du devoir.</div>'; return; }
-  if (sourceMode === 'texte' && !document.getElementById('c-texte').value.trim()) {
-    errBox.innerHTML = '<div class="err-msg">Collez le texte de la copie, ou basculez sur "Photo(s)".</div>'; return;
-  }
-  if (sourceMode === 'image' && uploadedImages.length === 0) {
-    errBox.innerHTML = '<div class="err-msg">Ajoutez au moins une photo de la copie.</div>'; return;
-  }
-
-  const content = [];
-  content.push({ type: 'text', text: `Corrige la copie suivante pour le devoir "${devoir.nom}" (matière : ${devoir.matiere || 'non précisée'}), élève : ${eleve || 'non précisé'}.\n\nBarème et éléments de correction attendus :\n${bareme}\n\n${sourceMode === 'texte' ? 'Voici le texte de la copie de l\'élève :' : 'Voici les photos des pages de la copie de l\'élève (dans l\'ordre) :'}` });
-  if (sourceMode === 'texte') {
-    content.push({ type: 'text', text: document.getElementById('c-texte').value.trim() });
-  } else {
-    uploadedImages.forEach(img => content.push({ type: 'image', source: { type: 'base64', media_type: img.mediaType, data: img.base64 } }));
-  }
-
-  const btn = document.getElementById('c-corriger');
-  btn.disabled = true;
-  document.getElementById('c-loading').style.display = 'flex';
-  document.getElementById('c-result').style.display = 'none';
+$('d2-structurer').onclick = async () => {
+  const d = devoirById($('d2-devoir').value);
+  const errBox = $('d2-structerr'); errBox.innerHTML = '';
+  if (!d) return;
+  if (!API_KEY) { $('overlay').classList.remove('off'); return; }
+  if (!(d.grilleBrute || '').trim()) { errBox.innerHTML = '<div class="err-msg">Collez d\'abord votre barème.</div>'; return; }
+  if (d.grille && !confirm('Une grille structurée existe déjà — la remplacer ? (les copies déjà corrigées gardent leurs résultats)')) return;
+  $('d2-structloading').style.display = 'flex'; $('d2-structurer').disabled = true;
   try {
-    const result = await callClaude({
-      system: `Tu es un professeur rigoureux, précis et bienveillant qui corrige la copie d'un·e élève en te basant strictement sur le barème fourni. Utilise l'outil enregistrer_correction pour renvoyer ta correction structurée. Justifie chaque point retiré, valorise ce qui est réussi, et formule les points à travailler comme des notions/compétences réutilisables.`,
-      userContent: content,
-      tool: CORRECTION_TOOL
+    const content = [{ type: 'text', text:
+      `Transforme ce barème de correction en grille structurée (parties → critères notés).\n` +
+      `Conserve fidèlement les points indiqués par l'enseignant. Si les points sont incohérents ou manquants, répartis au mieux et signale-le dans "remarque".\n` +
+      (d.sujet ? `\nSujet du devoir (contexte) :\n${d.sujet}\n` : '') +
+      `\nBarème fourni par l'enseignant :\n${d.grilleBrute}` }];
+    const out = await callClaude({
+      system: 'Tu structures des barèmes de correction pour des enseignants. Utilise l\'outil structurer_grille. Chaque critère doit être individuellement évaluable et porter une compétence courte réutilisable.',
+      userContent: content, tool: STRUCT_TOOL
     });
-    currentResult = { ...result, devoirId, eleve, sourceMode };
-    showResult(currentResult);
+    let n = 0;
+    d.grille = {
+      remarque: out.remarque || '',
+      parties: (out.parties || []).map(p => ({
+        titre: p.titre,
+        criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence }))
+      }))
+    };
+    saveDB();
+    renderGrilleEditor(d);
   } catch (e) {
     errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
   } finally {
-    btn.disabled = false;
-    document.getElementById('c-loading').style.display = 'none';
+    $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false;
   }
 };
 
-function showResult(r) {
-  document.getElementById('c-result').style.display = '';
-  document.getElementById('r-note').value = r.note;
-  document.getElementById('r-notemax').value = r.note_max;
-  document.getElementById('r-appreciation').value = r.appreciation_globale;
-  document.getElementById('r-details').innerHTML = (r.details || []).map(d => `
-    <div class="critere-row">
-      <div style="flex:1">
-        <div class="critere-name">${esc(d.critere)}</div>
-        <div class="critere-comment">${esc(d.commentaire)}</div>
+function renderGrilleEditor(d) {
+  const card = $('d2-grillecard');
+  if (!d.grille) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  $('d2-grillenote').textContent = d.grille.remarque ? '💡 ' + d.grille.remarque : '';
+  $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
+  $('d2-grille').innerHTML = d.grille.parties.map((p, pi) => `
+    <div class="gpartie">
+      <div class="gpartie-head">
+        <input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}">
+        <span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + (parseFloat(c.points) || 0), 0))} pts</span>
       </div>
-      <div class="critere-pts">${d.points_obtenus} / ${d.points_max}</div>
-    </div>`).join('') || '<div class="empty">Pas de détail par critère.</div>';
-  document.getElementById('r-forts').innerHTML = (r.points_forts || []).map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
-  document.getElementById('r-faibles').innerHTML = (r.points_a_travailler || []).map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
-  document.getElementById('c-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      ${p.criteres.map((c, ci) => `
+        <div class="gcrit">
+          <div class="cmain">
+            <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}">
+            <div class="cattendus">${esc(c.attendus)}</div>
+            <span class="ccomp">${esc(c.competence)}</span>
+          </div>
+          <input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${c.points}">
+        </div>`).join('')}
+    </div>`).join('');
+  $('d2-grille').querySelectorAll('input.ptitre').forEach(inp => inp.addEventListener('input', () => {
+    d.grille.parties[+inp.dataset.pi].titre = inp.value; saveDB();
+  }));
+  $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => {
+    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB();
+  }));
+  $('d2-grille').querySelectorAll('input.cpts').forEach(inp => inp.addEventListener('input', () => {
+    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0;
+    saveDB();
+    $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
+    inp.closest('.gpartie').querySelector('.ppts').textContent =
+      fmtPts(d.grille.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + (parseFloat(c.points) || 0), 0)) + ' pts';
+  }));
+}
+function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
+
+// ════════════════════════════════════════════════════════════════
+// ONGLET CORRECTION
+// ════════════════════════════════════════════════════════════════
+function renderCorrection() {
+  fillClasseSelect($('c-classe'), $('c-classe').value);
+  fillDevoirSelect($('c-devoir'), $('c-classe').value, $('c-devoir').value, false);
+  fillEleveSelect($('c-eleve'), $('c-classe').value, $('c-eleve').value);
+  updateGrilleState(); renderQueue(); renderHistory();
+}
+$('c-classe').addEventListener('change', () => {
+  fillDevoirSelect($('c-devoir'), $('c-classe').value, null, false);
+  fillEleveSelect($('c-eleve'), $('c-classe').value, null);
+  updateGrilleState(); renderHistory();
+});
+$('c-devoir').addEventListener('change', () => { updateGrilleState(); renderHistory(); });
+
+function updateGrilleState() {
+  const d = devoirById($('c-devoir').value);
+  const box = $('c-grillestate');
+  if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Devoirs & grilles »).</div>'; return; }
+  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas encore de grille structurée — allez dans « Devoirs & grilles » pour la créer.</div>'; return; }
+  const nc = grilleCriteres(d.grille).length;
+  box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
 }
 
-document.getElementById('r-save').onclick = () => {
-  if (!currentResult) return;
-  const copie = {
-    id: uid(),
-    devoirId: currentResult.devoirId,
-    eleve: document.getElementById('c-eleve').value.trim() || 'Élève',
-    date: new Date().toISOString(),
-    note: parseFloat(document.getElementById('r-note').value) || 0,
-    note_max: parseFloat(document.getElementById('r-notemax').value) || 20,
-    appreciation_globale: document.getElementById('r-appreciation').value,
-    details: currentResult.details || [],
-    points_forts: currentResult.points_forts || [],
-    points_a_travailler: currentResult.points_a_travailler || []
-  };
-  db.copies.push(copie); saveDB();
-  currentResult = null;
-  document.getElementById('c-result').style.display = 'none';
-  document.getElementById('c-texte').value = '';
-  uploadedImages = []; renderThumbs();
-  document.getElementById('c-eleve').value = '';
-  renderHistory();
+// Source des copies
+document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    sourceMode = chip.dataset.src;
+    document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(c => c.classList.toggle('on', c === chip));
+    $('c-texte').style.display = sourceMode === 'texte' ? '' : 'none';
+    $('c-filearea').style.display = sourceMode === 'fichiers' ? '' : 'none';
+  });
+});
+$('c-dropzone').addEventListener('click', () => $('c-fileinput').click());
+$('c-dropzone').addEventListener('dragover', e => { e.preventDefault(); $('c-dropzone').classList.add('drag'); });
+$('c-dropzone').addEventListener('dragleave', () => $('c-dropzone').classList.remove('drag'));
+$('c-dropzone').addEventListener('drop', e => { e.preventDefault(); $('c-dropzone').classList.remove('drag'); ingestFiles(e.dataTransfer.files, pendingFiles, renderPendingFiles); });
+$('c-fileinput').addEventListener('change', e => { ingestFiles(e.target.files, pendingFiles, renderPendingFiles); e.target.value = ''; });
+function renderPendingFiles() {
+  $('c-filelist').innerHTML = pendingFiles.map((f, i) =>
+    `<span class="fileitem">${f.mediaType && f.mediaType.startsWith('image/') ? `<img src="data:${f.mediaType};base64,${f.base64}">` : (f.isPdf ? '📕' : '📄')} ${esc(f.name)}<button class="rm" data-i="${i}">✕</button></span>`).join('');
+  $('c-filelist').querySelectorAll('.rm').forEach(b => b.addEventListener('click', () => { pendingFiles.splice(+b.dataset.i, 1); renderPendingFiles(); }));
+}
+
+$('c-addqueue').onclick = () => {
+  const errBox = $('c-adderr'); errBox.innerHTML = '';
+  const d = devoirById($('c-devoir').value);
+  if (!d || !d.grille) { errBox.innerHTML = '<div class="err-msg">Choisissez un devoir avec une grille structurée.</div>'; return; }
+  const classe = classeById($('c-classe').value);
+  const el = eleveById(classe, $('c-eleve').value);
+  if (!el) { errBox.innerHTML = '<div class="err-msg">Choisissez un élève (ajoutez le roster de la classe dans Réglages).</div>'; return; }
+  if (queue.some(q => q.eleveId === el.id && q.status !== 'err')) {
+    if (!confirm(`${el.nom} est déjà dans la file — ajouter quand même ?`)) return;
+  }
+  let item;
+  if (sourceMode === 'texte') {
+    const t = $('c-texte').value.trim();
+    if (!t) { errBox.innerHTML = '<div class="err-msg">Collez le texte de la copie.</div>'; return; }
+    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'texte', texte: t, files: [], status: 'wait' };
+    $('c-texte').value = '';
+  } else {
+    if (pendingFiles.length === 0) { errBox.innerHTML = '<div class="err-msg">Ajoutez au moins un fichier.</div>'; return; }
+    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'fichiers', texte: '', files: pendingFiles.slice(), status: 'wait' };
+    pendingFiles = []; renderPendingFiles();
+  }
+  item.devoirId = d.id; item.classeId = classe.id;
+  queue.push(item);
+  renderQueue();
 };
-document.getElementById('r-print').onclick = () => window.print();
+
+function renderQueue() {
+  const box = $('q-list');
+  $('q-count').textContent = queue.length ? `(${queue.length})` : '';
+  if (queue.length === 0) { box.innerHTML = '<div class="empty">Aucune copie en attente.</div>'; return; }
+  const labels = { wait: 'En attente', run: 'Correction…', done: 'À relire', err: 'Erreur' };
+  box.innerHTML = queue.map(q => `
+    <div class="qitem">
+      <span class="qname">${esc(q.eleveNom)}</span>
+      <span class="qsrc">${q.kind === 'texte' ? '📝 texte' : q.files.map(f => esc(f.name)).join(', ')}</span>
+      <span class="qstatus ${q.status}">${labels[q.status]}${q.status === 'done' && q.result ? ` — ${fmtPts(q.result.note)}/${fmtPts(q.result.note_max)}` : ''}</span>
+      ${q.status === 'done' ? `<button class="btn small" data-review="${q.id}">Relire ✔</button>` : ''}
+      ${q.status === 'err' ? `<button class="btn secondary small" data-retry="${q.id}" title="${esc(q.error || '')}">↻ Réessayer</button>` : ''}
+      <button class="btn danger small" data-qdel="${q.id}">✕</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-qdel]').forEach(b => b.addEventListener('click', () => { queue = queue.filter(q => q.id !== b.dataset.qdel); renderQueue(); }));
+  box.querySelectorAll('[data-retry]').forEach(b => b.addEventListener('click', () => { const q = queue.find(x => x.id === b.dataset.retry); if (q) { q.status = 'wait'; renderQueue(); } }));
+  box.querySelectorAll('[data-review]').forEach(b => b.addEventListener('click', () => openReviewQueue(b.dataset.review)));
+}
+
+let running = false;
+$('q-run').onclick = async () => {
+  if (running) return;
+  if (!API_KEY) { $('overlay').classList.remove('off'); return; }
+  const pendings = queue.filter(q => q.status === 'wait');
+  if (pendings.length === 0) { $('q-progress').textContent = 'Rien à corriger.'; return; }
+  running = true; $('q-run').disabled = true;
+  let done = 0;
+  for (const q of pendings) {
+    q.status = 'run'; renderQueue();
+    $('q-progress').textContent = `Correction ${done + 1}/${pendings.length} — ${q.eleveNom}…`;
+    try {
+      q.result = await corrigerCopie(q);
+      q.status = 'done';
+    } catch (e) {
+      q.status = 'err'; q.error = e.message;
+    }
+    done++; renderQueue();
+  }
+  $('q-progress').textContent = `Terminé : ${queue.filter(q => q.status === 'done').length} copie(s) à relire.`;
+  running = false; $('q-run').disabled = false;
+};
+
+async function corrigerCopie(q) {
+  const d = devoirById(q.devoirId);
+  const criteres = grilleCriteres(d.grille);
+  const grilleTxt = d.grille.parties.map(p =>
+    `## ${p.titre}\n` + p.criteres.map(c =>
+      `- [${c.id}] ${c.intitule} (${c.points} pts) — attendus : ${c.attendus} — compétence : ${c.competence}`).join('\n')
+  ).join('\n');
+  const content = [{ type: 'text', text:
+    `Corrige la copie de l'élève « ${q.eleveNom} » pour le devoir « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\n` +
+    (d.sujet ? `SUJET DONNÉ AUX ÉLÈVES :\n${d.sujet}\n\n` : '') +
+    `GRILLE DE CORRECTION (évalue chaque critère par son id) :\n${grilleTxt}\n\n` +
+    (q.kind === 'texte' ? 'COPIE DE L\'ÉLÈVE (texte) :\n' + q.texte : 'COPIE DE L\'ÉLÈVE (documents joints, dans l\'ordre) :') }];
+  if (q.kind === 'fichiers') {
+    for (const f of q.files) {
+      if (f.isDoc) content.push({ type: 'text', text: `--- Contenu du fichier ${f.name} ---\n${f.text}` });
+      else if (f.isPdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.base64 } });
+      else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
+    }
+  }
+  const out = await callClaude({
+    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille fournie, critère par critère (chaque critère, même non traité par l'élève : 0 avec explication). Ne note que ce qui est présent dans la copie ; en cas de doute (écriture illisible, page manquante), signale-le dans le commentaire du critère. ${profileDirectives()} Utilise l'outil remplir_grille.`,
+    userContent: content, tool: buildCorrectionTool(d.grille)
+  });
+  // Reconstitution : chaque critère de la grille reçoit son évaluation
+  const byId = {}; (out.evaluations || []).forEach(ev => { byId[ev.critere_id] = ev; });
+  const evaluations = criteres.map(c => {
+    const ev = byId[c.id];
+    const max = parseFloat(c.points) || 0;
+    let pts = ev ? parseFloat(ev.points_obtenus) : 0;
+    if (isNaN(pts)) pts = 0;
+    pts = Math.max(0, Math.min(max, pts));
+    return { critereId: c.id, partie: c.partie, intitule: c.intitule, competence: c.competence,
+      points_obtenus: pts, points_max: max, commentaire: ev ? ev.commentaire : 'Non évalué par l\'IA — à vérifier.' };
+  });
+  const note = evaluations.reduce((s, e) => s + e.points_obtenus, 0);
+  return {
+    note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille),
+    appreciation: out.appreciation_globale || '',
+    forts: out.points_forts || [], faibles: out.points_a_travailler || [],
+    evaluations
+  };
+}
+
+// ── Relecture ──
+function openReviewQueue(qid) {
+  const q = queue.find(x => x.id === qid);
+  if (!q || !q.result) return;
+  reviewTarget = { type: 'queue', id: qid };
+  showReview(q.result, q.eleveNom);
+}
+function showReview(r, eleveNom) {
+  $('review-card').style.display = '';
+  $('rv-eleve').textContent = eleveNom;
+  $('rv-note').textContent = fmtPts(r.note);
+  $('rv-notemax').textContent = fmtPts(r.note_max);
+  $('rv-appreciation').value = r.appreciation;
+  let lastPartie = null; let html = '';
+  r.evaluations.forEach((ev, i) => {
+    if (ev.partie !== lastPartie) { html += `<div class="rpartie-label">${esc(ev.partie || '')}</div>`; lastPartie = ev.partie; }
+    html += `<div class="rcrit">
+      <div class="rhead">
+        <span class="rname">${esc(ev.intitule)} <span class="ccomp" style="margin-left:6px">${esc(ev.competence || '')}</span></span>
+        <input class="rpts" type="number" step="0.25" min="0" max="${ev.points_max}" data-i="${i}" value="${ev.points_obtenus}">
+        <span class="rmax">/ ${fmtPts(ev.points_max)}</span>
+      </div>
+      <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea>
+    </div>`;
+  });
+  $('rv-grid').innerHTML = html;
+  $('rv-forts').innerHTML = r.forts.map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
+  $('rv-faibles').innerHTML = r.faibles.map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
+  $('rv-grid').querySelectorAll('.rpts').forEach(inp => inp.addEventListener('input', () => {
+    const ev = r.evaluations[+inp.dataset.i];
+    let v = parseFloat(inp.value); if (isNaN(v)) v = 0;
+    ev.points_obtenus = Math.max(0, Math.min(ev.points_max, v));
+    r.note = Math.round(r.evaluations.reduce((s, e) => s + e.points_obtenus, 0) * 100) / 100;
+    $('rv-note').textContent = fmtPts(r.note);
+  }));
+  $('rv-grid').querySelectorAll('.rcom').forEach(ta => ta.addEventListener('input', () => {
+    r.evaluations[+ta.dataset.i].commentaire = ta.value;
+  }));
+  $('rv-appreciation').oninput = () => { r.appreciation = $('rv-appreciation').value; };
+  $('review-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+$('rv-close').onclick = () => { $('review-card').style.display = 'none'; reviewTarget = null; };
+$('rv-print').onclick = () => window.print();
+$('rv-save').onclick = () => {
+  if (!reviewTarget) return;
+  if (reviewTarget.type === 'queue') {
+    const q = queue.find(x => x.id === reviewTarget.id);
+    if (!q) return;
+    db.copies.push({
+      id: uid(), devoirId: q.devoirId, classeId: q.classeId, eleveId: q.eleveId, eleveNom: q.eleveNom,
+      date: new Date().toISOString(), ...q.result
+    });
+    saveDB();
+    queue = queue.filter(x => x.id !== q.id);
+  }
+  $('review-card').style.display = 'none'; reviewTarget = null;
+  renderQueue(); renderHistory();
+};
 
 function renderHistory() {
-  const devoirId = document.getElementById('c-devoir').value;
+  const devoirId = $('c-devoir').value;
+  const box = $('c-history');
   const list = db.copies.filter(c => c.devoirId === devoirId).sort((a, b) => b.date.localeCompare(a.date));
-  const box = document.getElementById('c-history');
   if (!devoirId) { box.innerHTML = '<div class="empty">Choisissez un devoir.</div>'; return; }
-  if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie corrigée pour ce devoir.</div>'; return; }
-  box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>Points à travailler</th><th></th></tr></thead><tbody>` +
+  if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie enregistrée pour ce devoir.</div>'; return; }
+  box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>À travailler</th><th></th></tr></thead><tbody>` +
     list.map(c => `<tr>
-      <td>${esc(c.eleve)}</td>
-      <td>${c.note} / ${c.note_max}</td>
-      <td>${(c.points_a_travailler || []).slice(0, 2).map(esc).join(', ')}</td>
-      <td><button class="btn danger small" data-del="${c.id}">Supprimer</button></td>
+      <td>${esc(c.eleveNom)}</td>
+      <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td>
+      <td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
+      <td class="noprint"><button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td>
     </tr>`).join('') + `</tbody></table>`;
-  box.querySelectorAll('[data-del]').forEach(btn => btn.addEventListener('click', () => {
+  box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
     if (!confirm('Supprimer cette copie ?')) return;
-    db.copies = db.copies.filter(c => c.id !== btn.dataset.del);
-    saveDB(); renderHistory();
+    db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory();
+  }));
+  box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
+    const c = db.copies.find(x => x.id === b.dataset.view);
+    if (!c) return;
+    reviewTarget = { type: 'copie', id: c.id };
+    showReview(c, c.eleveNom); // édite directement l'objet copie ; rv-save referme simplement
   }));
 }
 
-// ══════════════════════════════════════════════════════════════
-// Dashboard tab
-// ══════════════════════════════════════════════════════════════
-document.getElementById('d-classe').addEventListener('change', e => {
-  devoirOptions(document.getElementById('d-devoir'), e.target.value, true);
-  renderDashboard();
-});
-document.getElementById('d-devoir').addEventListener('change', renderDashboard);
-
+// ════════════════════════════════════════════════════════════════
+// ONGLET TABLEAU DE BORD
+// ════════════════════════════════════════════════════════════════
 function renderDashboard() {
-  classeOptions(document.getElementById('d-classe'), false);
-  const dClasse = document.getElementById('d-classe');
-  if (!dClasse.value && db.classes[0]) dClasse.value = db.classes[0].id;
-  devoirOptions(document.getElementById('d-devoir'), dClasse.value, true);
+  fillClasseSelect($('db-classe'), $('db-classe').value);
+  fillDevoirSelect($('db-devoir'), $('db-classe').value, $('db-devoir').value, true);
+  drawDashboard();
+}
+$('db-classe').addEventListener('change', () => { fillDevoirSelect($('db-devoir'), $('db-classe').value, null, true); drawDashboard(); });
+$('db-devoir').addEventListener('change', drawDashboard);
 
-  const classeId = dClasse.value;
-  const devoirId = document.getElementById('d-devoir').value;
+function quantile(sorted, p) {
+  if (sorted.length === 0) return 0;
+  const idx = (sorted.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);
+  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
+}
+function copiesFor(classeId, devoirId) {
   const devoirIds = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id);
-  const copies = db.copies.filter(c => devoirIds.includes(c.devoirId));
-  const content = document.getElementById('d-content');
+  return db.copies.filter(c => devoirIds.includes(c.devoirId));
+}
+function competenceAgg(copies) {
+  const agg = {};
+  copies.forEach(c => (c.evaluations || []).forEach(ev => {
+    const k = ev.competence || 'Autre';
+    if (!agg[k]) agg[k] = { obtenu: 0, max: 0, n: 0 };
+    agg[k].obtenu += ev.points_obtenus; agg[k].max += ev.points_max; agg[k].n++;
+  }));
+  return Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0, n: v.n })).sort((a, b) => a.taux - b.taux);
+}
 
+function drawDashboard() {
+  const classeId = $('db-classe').value, devoirId = $('db-devoir').value;
+  const content = $('db-content');
   if (!classeId) { content.innerHTML = '<div class="card empty">Créez une classe dans Réglages pour commencer.</div>'; return; }
+  const copies = copiesFor(classeId, devoirId);
   if (copies.length === 0) { content.innerHTML = '<div class="card empty">Aucune copie corrigée pour cette sélection.</div>'; return; }
 
-  const notesSur20 = copies.map(c => (c.note / c.note_max) * 20);
-  const moyenne = notesSur20.reduce((a, b) => a + b, 0) / notesSur20.length;
-  const sorted = [...notesSur20].sort((a, b) => a - b);
-  const mediane = sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2;
-  const minN = Math.min(...notesSur20), maxN = Math.max(...notesSur20);
+  const sur20 = copies.map(c => c.note_max ? (c.note / c.note_max) * 20 : 0).sort((a, b) => a - b);
+  const moyenne = sur20.reduce((a, b) => a + b, 0) / sur20.length;
+  const med = quantile(sur20, .5), q1 = quantile(sur20, .25), q3 = quantile(sur20, .75);
 
-  const buckets = [0, 0, 0, 0, 0]; // <5, 5-10, 10-14, 14-16, 16-20
-  notesSur20.forEach(n => {
-    if (n < 5) buckets[0]++; else if (n < 10) buckets[1]++; else if (n < 14) buckets[2]++; else if (n < 16) buckets[3]++; else buckets[4]++;
-  });
-  const bucketLabels = ['0–5', '5–10', '10–14', '14–16', '16–20'];
+  // Histogramme par note entière /20
+  const bins = Array.from({ length: 21 }, () => 0);
+  sur20.forEach(n => bins[Math.max(0, Math.min(20, Math.round(n)))]++);
+  const maxBin = Math.max(...bins, 1);
 
-  // Aggregate critère success rate
-  const critereAgg = {};
-  copies.forEach(c => (c.details || []).forEach(d => {
-    if (!d.points_max) return;
-    const key = d.critere;
-    if (!critereAgg[key]) critereAgg[key] = { obtenu: 0, max: 0, n: 0 };
-    critereAgg[key].obtenu += d.points_obtenus; critereAgg[key].max += d.points_max; critereAgg[key].n++;
-  }));
-  const critereList = Object.entries(critereAgg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0, n: v.n }))
-    .sort((a, b) => a.taux - b.taux);
+  const comps = competenceAgg(copies);
+  const critAgg = {};
+  if (devoirId) {
+    copies.forEach(c => (c.evaluations || []).forEach(ev => {
+      const k = ev.intitule;
+      if (!critAgg[k]) critAgg[k] = { obtenu: 0, max: 0 };
+      critAgg[k].obtenu += ev.points_obtenus; critAgg[k].max += ev.points_max;
+    }));
+  }
+  const critList = Object.entries(critAgg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0 })).sort((a, b) => a.taux - b.taux);
 
-  // Aggregate points à travailler frequency
-  const freq = {};
-  copies.forEach(c => (c.points_a_travailler || []).forEach(p => { freq[p] = (freq[p] || 0) + 1; }));
-  const freqList = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const faiblesFreq = {};
+  copies.forEach(c => (c.faibles || []).forEach(p => { faiblesFreq[p] = (faiblesFreq[p] || 0) + 1; }));
+  const faiblesTop = Object.entries(faiblesFreq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+
+  const barColor = t => t < 0.5 ? 'var(--red)' : t < 0.7 ? 'var(--amber)' : 'var(--green)';
 
   content.innerHTML = `
     <div class="card">
-      <h3>Vue d'ensemble</h3>
+      <h3>Résultats ${devoirId ? 'du devoir' : 'de la classe (tous devoirs)'}</h3>
       <div class="statgrid">
-        <div class="stat"><div class="v">${moyenne.toFixed(1)}/20</div><div class="l">Moyenne</div></div>
-        <div class="stat"><div class="v">${mediane.toFixed(1)}/20</div><div class="l">Médiane</div></div>
-        <div class="stat"><div class="v">${minN.toFixed(1)} – ${maxN.toFixed(1)}</div><div class="l">Étendue</div></div>
+        <div class="stat"><div class="v" style="color:var(--green)">${moyenne.toFixed(1)}<span style="font-size:.7em;color:var(--muted)">/20</span></div><div class="l">Moyenne</div></div>
+        <div class="stat"><div class="v">${med.toFixed(1)}</div><div class="l">Médiane</div></div>
+        <div class="stat"><div class="v">${q1.toFixed(1)} · ${q3.toFixed(1)}</div><div class="l">Quartiles Q1 · Q3</div></div>
+        <div class="stat"><div class="v">${sur20[0].toFixed(1)} – ${sur20[sur20.length-1].toFixed(1)}</div><div class="l">Min – Max</div></div>
         <div class="stat"><div class="v">${copies.length}</div><div class="l">Copies corrigées</div></div>
       </div>
-    </div>
-    <div class="card">
-      <h3>Distribution des notes</h3>
-      <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px">
-        ${bucketLabels.map((l, i) => `
-          <div class="row" style="gap:10px">
-            <div style="width:56px; font-size:0.74rem; color:var(--muted2)">${l}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:${copies.length ? (buckets[i] / copies.length * 100) : 0}%"></div></div>
-            <div style="width:24px; font-size:0.74rem; color:var(--muted)">${buckets[i]}</div>
-          </div>`).join('')}
+      <div class="histo">
+        ${bins.map((b, i) => `<div class="hb"><span class="hc">${b || ''}</span><div class="hbar" style="height:${(b / maxBin * 100)}%"></div><span class="hl">${i}</span></div>`).join('')}
       </div>
     </div>
     <div class="card">
-      <h3>Compétences/critères les plus en difficulté</h3>
-      <div class="sub">Taux de réussite moyen par critère, sur les devoirs sélectionnés.</div>
-      ${critereList.length === 0 ? '<div class="empty">Pas de détail par critère disponible.</div>' :
-        critereList.slice(0, 10).map(c => `
+      <h3>Analyse des apprentissages — compétences</h3>
+      <div class="sub">Taux de réussite moyen par compétence sur la sélection.</div>
+      ${comps.length === 0 ? '<div class="empty">Pas de données par compétence (grilles structurées requises).</div>' :
+        comps.map(c => `
           <div class="row" style="gap:10px; margin-bottom:8px">
-            <div style="width:220px; font-size:0.8rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${c.taux < 0.5 ? 'var(--red)' : c.taux < 0.75 ? 'var(--amber)' : 'var(--green)'}"></div></div>
-            <div style="width:44px; font-size:0.74rem; color:var(--muted2)">${(c.taux * 100).toFixed(0)}%</div>
+            <div style="width:250px; font-size:0.8rem">${esc(c.nom)}</div>
+            <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
+            <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
           </div>`).join('')}
     </div>
+    ${devoirId && critList.length ? `<div class="card">
+      <h3>Réussite par critère du devoir</h3>
+      ${critList.map(c => `
+        <div class="row" style="gap:10px; margin-bottom:8px">
+          <div style="width:250px; font-size:0.78rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
+          <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
+        </div>`).join('')}
+    </div>` : ''}
     <div class="card">
-      <h3>Points à travailler les plus fréquents</h3>
-      <div class="taglist">${freqList.length === 0 ? '<div class="empty">—</div>' : freqList.map(([p, n]) => `<span class="tag warn">${esc(p)} × ${n}</span>`).join('')}</div>
+      <h3>Axes de progrès les plus fréquents</h3>
+      <div class="taglist">${faiblesTop.length === 0 ? '<div class="empty">—</div>' : faiblesTop.map(([p, n]) => `<span class="tag warn">${esc(p)} × ${n}</span>`).join('')}</div>
     </div>
     <div class="card">
       <h3>Copies</h3>
-      <table><thead><tr><th>Élève</th><th>Devoir</th><th>Note</th></tr></thead><tbody>
-        ${copies.sort((a,b)=>b.date.localeCompare(a.date)).map(c => `<tr><td>${esc(c.eleve)}</td><td>${esc((db.devoirs.find(d=>d.id===c.devoirId)||{}).nom||'')}</td><td>${c.note}/${c.note_max}</td></tr>`).join('')}
+      <table><thead><tr><th>Élève</th><th>Devoir</th><th>Note</th><th>/20</th></tr></thead><tbody>
+        ${copies.slice().sort((a, b) => b.date.localeCompare(a.date)).map(c => `<tr>
+          <td>${esc(c.eleveNom)}</td><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td>
+          <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td>
+          <td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td></tr>`).join('')}
       </tbody></table>
-    </div>
-  `;
+    </div>`;
 }
 
-// ══════════════════════════════════════════════════════════════
-// Remediation tab
-// ══════════════════════════════════════════════════════════════
-document.getElementById('m-classe').addEventListener('change', e => {
-  devoirOptions(document.getElementById('m-devoir'), e.target.value, true);
-  prefillCible();
-});
-document.getElementById('m-devoir').addEventListener('change', prefillCible);
+// ════════════════════════════════════════════════════════════════
+// ONGLET ÉLÈVES (suivi)
+// ════════════════════════════════════════════════════════════════
+let eleveDetailId = null;
+function renderEleves() {
+  fillClasseSelect($('e-classe'), $('e-classe').value);
+  drawEleves();
+}
+$('e-classe').addEventListener('change', () => { eleveDetailId = null; drawEleves(); });
 
-function renderRemediationSelectors() {
-  classeOptions(document.getElementById('m-classe'), false);
-  const mClasse = document.getElementById('m-classe');
-  if (!mClasse.value && db.classes[0]) mClasse.value = db.classes[0].id;
-  devoirOptions(document.getElementById('m-devoir'), mClasse.value, true);
+function drawEleves() {
+  const classe = classeById($('e-classe').value);
+  const list = $('e-list'), detail = $('e-detail');
+  detail.innerHTML = '';
+  if (!classe) { list.innerHTML = '<div class="card empty">Créez une classe dans Réglages.</div>'; return; }
+  const eleves = classe.eleves || [];
+  if (eleves.length === 0) { list.innerHTML = '<div class="card empty">Ajoutez les élèves de cette classe dans Réglages.</div>'; return; }
+  const rows = eleves.map(el => {
+    const copies = db.copies.filter(c => c.eleveId === el.id);
+    const sur20 = copies.filter(c => c.note_max).map(c => (c.note / c.note_max) * 20);
+    const moy = sur20.length ? sur20.reduce((a, b) => a + b, 0) / sur20.length : null;
+    const comps = competenceAgg(copies);
+    const fragile = comps.length ? comps[0] : null;
+    return { el, n: copies.length, moy, fragile };
+  });
+  list.innerHTML = `<div class="card"><h3>Suivi de la classe ${esc(classe.nom)}</h3>
+    <table><thead><tr><th>Élève</th><th>Copies</th><th>Moyenne /20</th><th>Compétence la plus fragile</th></tr></thead><tbody>
+    ${rows.map(r => `<tr class="clickable" data-el="${r.el.id}">
+      <td>${esc(r.el.nom)}</td><td>${r.n}</td>
+      <td style="font-family:'DM Mono',monospace">${r.moy === null ? '—' : r.moy.toFixed(1)}</td>
+      <td>${r.fragile ? `${esc(r.fragile.nom)} <span style="color:var(--muted);font-family:'DM Mono',monospace">(${(r.fragile.taux * 100).toFixed(0)}%)</span>` : '—'}</td>
+    </tr>`).join('')}</tbody></table></div>`;
+  list.querySelectorAll('[data-el]').forEach(tr => tr.addEventListener('click', () => { eleveDetailId = tr.dataset.el; drawEleveDetail(); }));
+  if (eleveDetailId) drawEleveDetail();
+}
+
+function drawEleveDetail() {
+  const classe = classeById($('e-classe').value);
+  const el = eleveById(classe, eleveDetailId);
+  const box = $('e-detail');
+  if (!el) { box.innerHTML = ''; return; }
+  const copies = db.copies.filter(c => c.eleveId === el.id).sort((a, b) => a.date.localeCompare(b.date));
+  const comps = competenceAgg(copies);
+  const barColor = t => t < 0.5 ? 'var(--red)' : t < 0.7 ? 'var(--amber)' : 'var(--green)';
+  const faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 6);
+  box.innerHTML = `<div class="card">
+    <div class="row" style="justify-content:space-between">
+      <h3>👤 ${esc(el.nom)}</h3>
+      <button class="btn purple small" id="e-remed">✨ Remédiation individuelle</button>
+    </div>
+    ${copies.length === 0 ? '<div class="empty">Aucune copie corrigée pour cet élève.</div>' : `
+    <table style="margin-top:8px"><thead><tr><th>Devoir</th><th>Date</th><th>Note</th><th>/20</th></tr></thead><tbody>
+      ${copies.map(c => `<tr><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td>
+        <td>${new Date(c.date).toLocaleDateString('fr-FR')}</td>
+        <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td>
+        <td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td></tr>`).join('')}
+    </tbody></table>
+    <div style="margin-top:14px"><label>Compétences (taux de réussite)</label>
+      ${comps.map(c => `
+        <div class="row" style="gap:10px; margin-top:8px">
+          <div style="width:250px; font-size:0.8rem">${esc(c.nom)}</div>
+          <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
+          <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
+        </div>`).join('')}
+    </div>
+    ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}
+  </div>`;
+  const btn = $('e-remed');
+  if (btn) btn.addEventListener('click', () => {
+    switchTab('remediation');
+    $('m-mode').value = 'eleve'; $('m-mode').dispatchEvent(new Event('change'));
+    fillClasseSelect($('m-classe'), classe.id);
+    fillEleveSelect($('m-eleve'), classe.id, el.id);
+    prefillCible();
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// ONGLET REMÉDIATION
+// ════════════════════════════════════════════════════════════════
+function renderRemediation() {
+  fillClasseSelect($('m-classe'), $('m-classe').value);
+  fillEleveSelect($('m-eleve'), $('m-classe').value, $('m-eleve').value);
   prefillCible();
+}
+$('m-mode').addEventListener('change', () => { $('m-elevecol').style.display = $('m-mode').value === 'eleve' ? '' : 'none'; prefillCible(); });
+$('m-classe').addEventListener('change', () => { fillEleveSelect($('m-eleve'), $('m-classe').value, null); prefillCible(); });
+$('m-eleve').addEventListener('change', prefillCible);
+
+function weakCompetences(copies) {
+  return competenceAgg(copies).filter(c => c.taux < 0.7).slice(0, 5).map(c => `${c.nom} (réussite ${(c.taux * 100).toFixed(0)}%)`);
 }
 function prefillCible() {
-  const devoirId = document.getElementById('m-devoir').value;
-  const classeId = document.getElementById('m-classe').value;
-  const devoirIds = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id);
-  const copies = db.copies.filter(c => devoirIds.includes(c.devoirId));
-  const freq = {};
-  copies.forEach(c => (c.points_a_travailler || []).forEach(p => { freq[p] = (freq[p] || 0) + 1; }));
-  const top = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([p]) => p);
-  document.getElementById('m-cible').value = top.join(', ');
+  const classeId = $('m-classe').value;
+  let copies;
+  if ($('m-mode').value === 'eleve') copies = db.copies.filter(c => c.eleveId === $('m-eleve').value);
+  else copies = copiesFor(classeId, '');
+  const weak = weakCompetences(copies);
+  const faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 4);
+  $('m-cible').value = [...weak, ...faibles.filter(f => !weak.some(w => w.includes(f)))].join('\n');
 }
 
-document.getElementById('m-generer').onclick = async () => {
-  const errBox = document.getElementById('m-error');
-  errBox.innerHTML = '';
-  if (!API_KEY) { overlay.classList.remove('off'); return; }
-  const cible = document.getElementById('m-cible').value.trim();
-  if (!cible) { errBox.innerHTML = '<div class="err-msg">Précisez au moins une notion/compétence à cibler.</div>'; return; }
-  const devoirId = document.getElementById('m-devoir').value;
-  const devoir = db.devoirs.find(d => d.id === devoirId);
-
-  const btn = document.getElementById('m-generer');
-  btn.disabled = true;
-  document.getElementById('m-loading').style.display = 'flex';
-  document.getElementById('m-result').style.display = 'none';
+$('m-generer').onclick = async () => {
+  const errBox = $('m-error'); errBox.innerHTML = '';
+  if (!API_KEY) { $('overlay').classList.remove('off'); return; }
+  const cible = $('m-cible').value.trim();
+  if (!cible) { errBox.innerHTML = '<div class="err-msg">Indiquez au moins une compétence/notion à cibler.</div>'; return; }
+  const isEleve = $('m-mode').value === 'eleve';
+  const classe = classeById($('m-classe').value);
+  const el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
+  const devoirsClasse = db.devoirs.filter(d => d.classeId === $('m-classe').value);
+  const contexteMatiere = devoirsClasse.map(d => d.matiere).filter(Boolean)[0] || '';
+  $('m-generer').disabled = true; $('m-loading').style.display = 'flex'; $('m-result').style.display = 'none';
   try {
     const result = await callClaude({
-      system: `Tu es un professeur qui conçoit des activités de remédiation courtes, concrètes et différenciées, avec corrigé, pour aider des élèves à progresser sur des notions précises. Utilise l'outil generer_activite.`,
-      userContent: [{ type: 'text', text: `Conçois une activité de remédiation${devoir ? ` en lien avec le devoir "${devoir.nom}" (matière : ${devoir.matiere || 'non précisée'})` : ''} ciblant les notions/compétences suivantes :\n${cible}\n\nPropose 2 à 4 exercices courts et progressifs, avec leur corrigé détaillé.` }],
+      system: `Tu conçois des activités de remédiation courtes, concrètes et progressives, avec corrigés détaillés, pour aider des élèves à progresser sur des compétences précises. ${profileDirectives()} Utilise l'outil generer_activite.`,
+      userContent: [{ type: 'text', text:
+        `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour l'élève ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${contexteMatiere ? ` en ${contexteMatiere}` : ''}.\n` +
+        `Compétences/notions à travailler (issues des corrections) :\n${cible}\n\n` +
+        `Propose 2 à 4 exercices courts et progressifs avec corrigé détaillé, directement utilisables en classe ou à la maison.` }],
       tool: REMEDIATION_TOOL
     });
-    document.getElementById('m-titre').textContent = result.titre;
-    document.getElementById('m-objectif').textContent = result.objectif;
-    document.getElementById('m-consignes').textContent = result.consignes;
-    document.getElementById('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `
-      <div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>
-    `).join('');
-    document.getElementById('m-result').style.display = '';
-    document.getElementById('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    $('m-titre').textContent = result.titre;
+    $('m-objectif').textContent = result.objectif;
+    $('m-consignes').textContent = result.consignes;
+    $('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `
+      <div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>`).join('');
+    $('m-result').style.display = '';
+    $('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (e) {
     errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
   } finally {
-    btn.disabled = false;
-    document.getElementById('m-loading').style.display = 'none';
+    $('m-generer').disabled = false; $('m-loading').style.display = 'none';
   }
 };
-document.getElementById('m-print').onclick = () => window.print();
+$('m-print').onclick = () => window.print();
 
-// ══════════════════════════════════════════════════════════════
-// Settings tab
-// ══════════════════════════════════════════════════════════════
-document.getElementById('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
-
+// ════════════════════════════════════════════════════════════════
+// ONGLET RÉGLAGES
+// ════════════════════════════════════════════════════════════════
 function renderSettings() {
-  document.getElementById('s-model').value = db.model || 'claude-sonnet-5';
-  document.getElementById('s-classes').innerHTML = db.classes.length === 0 ? '<div class="empty">Aucune classe.</div>' :
-    `<table><thead><tr><th>Classe</th><th>Devoirs</th><th></th></tr></thead><tbody>` +
-    db.classes.map(c => `<tr><td>${esc(c.nom)}</td><td>${db.devoirs.filter(d => d.classeId === c.id).length}</td><td><button class="btn danger small" data-delclasse="${c.id}">Supprimer</button></td></tr>`).join('') +
-    `</tbody></table>`;
-  document.querySelectorAll('[data-delclasse]').forEach(btn => btn.addEventListener('click', () => {
-    if (!confirm('Supprimer cette classe et tous ses devoirs/copies associés ?')) return;
-    const id = btn.dataset.delclasse;
-    const devoirIds = db.devoirs.filter(d => d.classeId === id).map(d => d.id);
-    db.copies = db.copies.filter(c => !devoirIds.includes(c.devoirId));
-    db.devoirs = db.devoirs.filter(d => d.classeId !== id);
-    db.classes = db.classes.filter(c => c.id !== id);
-    saveDB(); renderSettings();
-  }));
-
-  document.getElementById('s-baremes').innerHTML = db.devoirs.length === 0 ? '<div class="empty">Aucun barème enregistré (créé automatiquement avec chaque devoir).</div>' :
-    `<table><thead><tr><th>Devoir</th><th>Classe</th><th>Longueur</th></tr></thead><tbody>` +
-    db.devoirs.map(d => `<tr><td>${esc(d.nom)}</td><td>${esc((db.classes.find(c => c.id === d.classeId) || {}).nom || '?')}</td><td>${(d.bareme || '').length} car.</td></tr>`).join('') +
-    `</tbody></table>`;
+  $('s-ton').value = db.profile.ton; $('s-enonc').value = db.profile.enonc; $('s-longueur').value = db.profile.longueur;
+  $('s-model').value = db.model || 'claude-sonnet-5';
+  fillClasseSelect($('s-classesel'), $('s-classesel').value);
+  renderElevesAdmin();
 }
-document.getElementById('s-addclasse').onclick = () => {
-  const input = document.getElementById('s-newclassename');
-  const nom = input.value.trim();
+$('s-ton').addEventListener('change', e => { db.profile.ton = e.target.value; saveDB(); });
+$('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value; saveDB(); });
+$('s-longueur').addEventListener('change', e => { db.profile.longueur = e.target.value; saveDB(); });
+$('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
+$('s-classesel').addEventListener('change', renderElevesAdmin);
+
+$('s-addclasse').onclick = () => {
+  const nom = $('s-newclasse').value.trim();
   if (!nom) return;
-  db.classes.push({ id: uid(), nom }); saveDB();
-  input.value = '';
-  renderSettings();
+  const c = { id: uid(), nom, eleves: [] };
+  db.classes.push(c); saveDB();
+  $('s-newclasse').value = '';
+  fillClasseSelect($('s-classesel'), c.id);
+  renderElevesAdmin();
 };
-document.getElementById('s-export').onclick = () => {
+function renderElevesAdmin() {
+  const c = classeById($('s-classesel').value);
+  const box = $('s-eleves');
+  if (!c) { box.innerHTML = '<div class="empty">Aucune classe sélectionnée.</div>'; return; }
+  const els = c.eleves || [];
+  box.innerHTML = els.length === 0 ? '<div class="empty">Aucun élève dans cette classe.</div>' :
+    els.map(e => `<div class="elrow"><span class="eln">${esc(e.nom)}</span><button class="btn danger small" data-elid="${e.id}">✕</button></div>`).join('');
+  box.querySelectorAll('[data-elid]').forEach(b => b.addEventListener('click', () => {
+    if (!confirm('Retirer cet élève ? (ses copies déjà corrigées sont conservées)')) return;
+    c.eleves = c.eleves.filter(e => e.id !== b.dataset.elid); saveDB(); renderElevesAdmin();
+  }));
+}
+$('s-addeleves').onclick = () => {
+  const c = classeById($('s-classesel').value);
+  if (!c) { alert('Créez/choisissez une classe.'); return; }
+  const noms = $('s-neweleves').value.split('\n').map(s => s.trim()).filter(Boolean);
+  if (noms.length === 0) return;
+  c.eleves = c.eleves || [];
+  noms.forEach(n => c.eleves.push({ id: uid(), nom: n }));
+  saveDB(); $('s-neweleves').value = ''; renderElevesAdmin();
+};
+$('s-delclasse').onclick = () => {
+  const c = classeById($('s-classesel').value);
+  if (!c) return;
+  if (!confirm(`Supprimer la classe « ${c.nom} », ses devoirs et toutes ses copies ?`)) return;
+  const devoirIds = db.devoirs.filter(d => d.classeId === c.id).map(d => d.id);
+  db.copies = db.copies.filter(cp => !devoirIds.includes(cp.devoirId));
+  db.devoirs = db.devoirs.filter(d => d.classeId !== c.id);
+  db.classes = db.classes.filter(x => x.id !== c.id);
+  saveDB(); renderSettings();
+};
+
+$('s-export').onclick = () => {
   const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `correction-ia-export-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
 };
-document.getElementById('s-import').onclick = () => document.getElementById('s-importfile').click();
-document.getElementById('s-importfile').addEventListener('change', e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = () => {
+$('s-import').onclick = () => $('s-importfile').click();
+$('s-importfile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = () => {
     try {
-      const imported = JSON.parse(reader.result);
-      if (!confirm('Importer ces données remplacera toutes les données actuelles. Continuer ?')) return;
-      db = imported; saveDB();
-      renderSettings(); renderCorrectionSelectors();
+      const imported = JSON.parse(r.result);
+      if (!confirm('Importer remplacera toutes les données actuelles. Continuer ?')) return;
+      db = imported; saveDB(); renderSettings(); renderCorrection();
     } catch (err) { alert('Fichier invalide : ' + err.message); }
   };
-  reader.readAsText(file);
+  r.readAsText(file);
+  e.target.value = '';
 });
-document.getElementById('s-wipe').onclick = () => {
-  if (!confirm('Effacer toutes les classes, devoirs et copies ? Cette action est irréversible.')) return;
-  db = { classes: [], devoirs: [], copies: [], baremes: [], model: db.model };
-  saveDB();
-  renderSettings(); renderCorrectionSelectors();
+$('s-wipe').onclick = () => {
+  if (!confirm('Effacer TOUTES les données (classes, élèves, devoirs, copies) ? Irréversible.')) return;
+  const model = db.model, profile = db.profile;
+  db = freshDB(); db.model = model; db.profile = profile;
+  saveDB(); renderSettings(); renderCorrection();
 };
 
-// ══════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════════
 // Init
-// ══════════════════════════════════════════════════════════════
-renderCorrectionSelectors();
+// ════════════════════════════════════════════════════════════════
+renderCorrection();
 </script>
 </body>
 </html>
