@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<!-- Correction·IA v5 — total du barème préservé, export PDF réel, notation reproductible -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -275,9 +276,11 @@
               <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="Parties, questions, points OU niveaux/curseurs avec descripteurs…"></textarea></details>
           </div>
         </div>
-        <div class="row" style="margin-top:14px">
+        <div class="row" style="margin-top:14px; align-items:flex-end">
+          <div class="col" style="max-width:230px"><label>Total exact de votre barème</label><input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="ex : 9"></div>
           <button class="btn purple" id="d2-structurer">✨ Structurer la grille avec l'IA</button>
         </div>
+        <div class="sub" style="margin-top:6px">💡 Indiquez le total exact de votre barème : l'IA conservera ce total <b>sans le modifier</b> et reprendra vos critères tels quels.</div>
         <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
         <div id="d2-structerr"></div>
       </div>
@@ -347,7 +350,8 @@
       <div id="rv-obs"></div>
       <div class="row noprint" style="margin-top:16px">
         <button class="btn" id="rv-save">💾 Valider & enregistrer</button>
-        <button class="btn secondary" id="rv-print">🖨️ Imprimer la copie corrigée</button>
+        <button class="btn secondary" id="rv-pdf">⬇️ Télécharger en PDF</button>
+        <button class="btn secondary" id="rv-print">🖨️ Imprimer</button>
         <button class="btn secondary" id="rv-close">Fermer sans enregistrer</button>
       </div>
     </div>
@@ -626,6 +630,7 @@ function renderDevoirEditor() {
   const d = devoirById($('d2-devoir').value);
   $('d2-editor').style.display = d ? 'flex' : 'none'; if (!d) return;
   $('d2-sujet').value = d.sujet || ''; $('d2-brute').value = d.grilleBrute || '';
+  $('d2-notemaxdecl').value = (d.noteMaxDecl ?? '') === '' ? '' : d.noteMaxDecl;
   renderPdfBadge('d2-sujet-badge', d.sujetPdf, () => { d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
   renderPdfBadge('d2-grille-badge', d.grillePdf, () => { d.grillePdf = null; saveDB(); renderDevoirEditor(); });
   renderGrilleEditor(d);
@@ -638,6 +643,7 @@ function renderPdfBadge(boxId, pdf, onRemove) {
 }
 $('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
 $('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
+$('d2-notemaxdecl').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { const v = e.target.value.trim(); d.noteMaxDecl = v === '' ? null : (parseFloat(v.replace(',', '.')) || 0); saveDB(); if (d.grille) renderGrilleEditor(d); } });
 
 // Zones PDF sujet / grille
 function wirePdfZone(dzId, inputId, field) {
@@ -673,12 +679,16 @@ $('d2-structurer').onclick = async () => {
   if (d.grille && !confirm('Une grille existe déjà — la remplacer ? (les copies corrigées gardent leurs résultats)')) return;
   $('d2-structloading').style.display = 'flex'; $('d2-structurer').disabled = true;
   try {
-    const content = [{ type: 'text', text: `Transforme la grille/barème de correction ci-dessous en grille structurée. Conserve fidèlement les points. Si des niveaux/curseurs (ex 4/3/2/1/0) existent, remplis "niveaux". Signale toute incohérence dans "remarque".` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '') }];
+    const totalDecl = (d.noteMaxDecl ?? '') === '' ? null : d.noteMaxDecl;
+    const consigneTotal = totalDecl != null
+      ? `\n\n⚠️ RÈGLE ABSOLUE : le total de la grille structurée DOIT être STRICTEMENT ÉGAL à ${fmtPts(totalDecl)} points (le total de mon barème). Ne change JAMAIS ce total.`
+      : `\n\n⚠️ RÈGLE ABSOLUE : conserve EXACTEMENT le total de points de mon barème. Ne le change pas.`;
+    const content = [{ type: 'text', text: `Recopie fidèlement la grille/barème ci-dessous en grille structurée, SANS RIEN CHANGER aux points.\n\nRÈGLES :\n1. Reprends CHAQUE critère du barème tel quel, avec EXACTEMENT le nombre de points indiqué.\n2. Ne DÉCOUPE PAS un critère en sous-critères. Ne FUSIONNE PAS deux critères. N'AJOUTE aucun critère. Un critère du barème = un critère de la grille.\n3. N'invente aucun point. Si un critère vaut 2 points dans mon barème, il vaut 2 points dans la grille.\n4. Si le barème utilise une échelle/curseur (ex 4/3/2/1/0), remplis "niveaux" : le maximum des niveaux = les points du critère.\n5. Ajoute seulement une "competence" courte réutilisable par critère.${consigneTotal}\n\nDans "remarque", indique le total que tu obtiens et confirme qu'il est identique à mon barème (ou signale l'écart si tu n'as pas pu faire autrement).` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '') }];
     if (d.grillePdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.grillePdf.base64 } });
     else content.push({ type: 'text', text: '\nBarème :\n' + d.grilleBrute });
     if (d.sujetPdf) { content.push({ type: 'text', text: 'Sujet distribué (PDF, pour contexte) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
     const out = await callClaude({
-      system: "Tu structures des barèmes de correction. Utilise structurer_grille. Chaque critère porte une compétence courte réutilisable. Remplis niveaux si le barème est à échelles/curseurs.",
+      system: "Tu structures des barèmes de correction SANS jamais modifier le total des points. Utilise structurer_grille. Reprends chaque critère tel quel, un pour un, avec ses points exacts — interdiction de découper, fusionner, ajouter ou rééchelonner les critères. Chaque critère porte une compétence courte réutilisable. Remplis niveaux uniquement si le barème est déjà à échelles/curseurs.",
       userContent: content, tool: STRUCT_TOOL
     });
     let n = 0;
@@ -689,12 +699,22 @@ $('d2-structurer').onclick = async () => {
   finally { $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false; }
 };
 
+function updateGrilleNote(d) {
+  const total = grilleNoteMax(d.grille), decl = (d.noteMaxDecl ?? '') === '' ? null : d.noteMaxDecl;
+  let note = d.grille.remarque ? '💡 ' + esc(d.grille.remarque) : '';
+  if (decl != null && Math.abs(total - decl) > 0.01) {
+    note += `<div class="err-msg" style="margin-top:8px">⚠️ Le total structuré est de <b>${fmtPts(total)}</b> alors que votre barème est sur <b>${fmtPts(decl)}</b>. Ajustez les points ci-dessous (ou relancez la structuration) pour retrouver votre total exact.</div>`;
+  } else if (decl != null) {
+    note += `<div class="ok-msg" style="margin-top:8px">✅ Total conforme à votre barème : ${fmtPts(total)} points.</div>`;
+  }
+  $('d2-grillenote').innerHTML = note;
+  $('d2-notemax').textContent = fmtPts(total);
+}
 function renderGrilleEditor(d) {
   const card = $('d2-grillecard');
   if (!d.grille) { card.style.display = 'none'; return; }
   card.style.display = '';
-  $('d2-grillenote').textContent = d.grille.remarque ? '💡 ' + d.grille.remarque : '';
-  $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
+  updateGrilleNote(d);
   $('d2-grille').innerHTML = d.grille.parties.map((p, pi) => `
     <div class="gpartie">
       <div class="gpartie-head"><input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}"><span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + critMax(c), 0))} pts</span></div>
@@ -710,7 +730,7 @@ function renderGrilleEditor(d) {
   $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
   $('d2-grille').querySelectorAll('input.cpts:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
     d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0; saveDB();
-    $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
+    updateGrilleNote(d);
     inp.closest('.gpartie').querySelector('.ppts').textContent = fmtPts(d.grille.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + critMax(c), 0)) + ' pts';
   }));
 }
@@ -810,7 +830,15 @@ async function corrigerCopie(q) {
     else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
   }
   const out = await callClaude({
-    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille, critère par critère (chaque critère, même non traité : 0 avec explication). Ne note que ce qui est présent ; signale toute illisibilité/page manquante dans le commentaire concerné. Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs). ${profileDirectives()} Utilise remplir_grille.`,
+    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille, critère par critère (chaque critère, même non traité : 0 avec explication). Ne note que ce qui est présent ; signale toute illisibilité/page manquante dans le commentaire concerné.
+
+MÉTHODE DE NOTATION REPRODUCTIBLE (pour qu'une même copie reçoive toujours la même note) :
+- Traite les critères dans l'ordre, indépendamment les uns des autres. Ne compense pas un critère par un autre.
+- Pour un critère À NIVEAUX : identifie le descripteur qui correspond le mieux à la copie, puis attribue EXACTEMENT les points de ce niveau. N'utilise un demi-niveau que si la copie est réellement à cheval entre deux descripteurs voisins. Dans le commentaire, nomme le niveau retenu.
+- Pour un critère SANS niveaux : barème binaire ou proportionnel à ce qui est explicitement attendu (attendus). Ne donne un point que si l'élément attendu est présent. Pas de point « au feeling », pas de bonus hors barème.
+- N'attribue jamais plus que le maximum du critère. En cas d'hésitation entre deux valeurs, choisis la plus basse et justifie-la : sois strict et constant plutôt que généreux et variable.
+
+Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs). ${profileDirectives()} Utilise remplir_grille.`,
     userContent: content, tool: buildCorrectionTool(d.grille)
   });
   const byId = {}; (out.evaluations || []).forEach(ev => { byId[ev.critere_id] = ev; });
@@ -868,6 +896,7 @@ function renderObs(r) {
 }
 $('rv-close').onclick = () => { $('review-card').style.display = 'none'; reviewTarget = null; reviewData = null; };
 $('rv-print').onclick = () => { if (reviewData) printCopie(reviewData, $('rv-eleve').textContent); };
+$('rv-pdf').onclick = () => { if (reviewData) pdfCopie(reviewData, $('rv-eleve').textContent, $('rv-pdf')); };
 $('rv-save').onclick = () => {
   if (!reviewTarget) return;
   if (reviewTarget.type === 'queue') {
@@ -885,19 +914,22 @@ function renderHistory() {
   if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie enregistrée pour ce devoir.</div>'; return; }
   box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>À travailler</th><th></th></tr></thead><tbody>` +
     list.map(c => `<tr><td>${esc(c.eleveNom)}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td><td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
-    <td class="noprint"><button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
+    <td class="noprint"><button class="btn secondary small" data-pdf="${c.id}">⬇️ PDF</button> <button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
   box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette copie ?')) return; db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory(); }));
   box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.view); if (!c) return; reviewTarget = { type: 'copie', id: c.id }; reviewData = c; showReview(c, c.eleveNom); }));
   box.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.print); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
+  box.querySelectorAll('[data-pdf]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.pdf); if (c) { reviewTarget = { type: 'copie', id: c.id }; pdfCopie(c, c.eleveNom, b); } }));
 }
 
-function pdots(taux) {
+function pdotsInline(taux) {
   const n = taux >= .875 ? 4 : taux >= .625 ? 3 : taux >= .375 ? 2 : taux >= .125 ? 1 : 0;
   const col = n >= 3 ? '#2a9d6a' : '#e08a2a';
-  let s = ''; for (let i = 0; i < 4; i++) s += `<span class="pr-pdot" style="${i < n ? `background:${col};border-color:${col}` : ''}"></span>`;
+  let s = ''; for (let i = 0; i < 4; i++) { const on = i < n; s += `<span style="display:inline-block;width:11px;height:11px;border-radius:50%;margin-left:3px;border:1.4px solid ${on ? col : '#c2c2d0'};background:${on ? col : 'transparent'}"></span>`; }
   return s;
 }
-function printCopie(r, eleveNom) {
+const PR_SEC = 'font-weight:700;color:#5a4bd8;font-size:11pt;margin:14px 0 6px';
+// Construit le bulletin corrigé avec des styles en ligne (utilisable à l'écran, à l'impression ET pour l'export PDF réel).
+function buildPrintDoc(r, eleveNom) {
   const dvId = (reviewTarget && reviewTarget.type === 'copie') ? (db.copies.find(c => c.id === reviewTarget.id) || {}).devoirId : r.devoirId;
   const dv = devoirById(dvId) || {}; const titre = dv.nom || 'Devoir';
   const agg = {};
@@ -905,22 +937,53 @@ function printCopie(r, eleveNom) {
   const comps = Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.m ? v.o / v.m : 0 }));
   let last = null, detail = '';
   (r.evaluations || []).forEach(ev => {
-    if (ev.partie !== last) { detail += `<div class="pr-sec">${esc(ev.partie || '')}</div>`; last = ev.partie; }
-    detail += `<div class="pr-crit"><div class="pc-h"><span>${esc(ev.intitule)}</span><span>${fmtPts(ev.points_obtenus)} / ${fmtPts(ev.points_max)}</span></div><div class="pc-b">${esc(ev.commentaire)}</div></div>`;
+    if (ev.partie !== last) { detail += `<div style="${PR_SEC}">${esc(ev.partie || '')}</div>`; last = ev.partie; }
+    detail += `<div style="border:1px solid #e5e5f0;border-radius:8px;margin-bottom:8px;page-break-inside:avoid"><div style="display:flex;justify-content:space-between;background:#f4f3fc;padding:6px 12px;font-weight:600;font-size:10pt"><span>${esc(ev.intitule)}</span><span style="white-space:nowrap">${fmtPts(ev.points_obtenus)} / ${fmtPts(ev.points_max)}</span></div><div style="padding:7px 12px;font-size:9.5pt;color:#333;line-height:1.5">${esc(ev.commentaire)}</div></div>`;
   });
-  const obs = (r.observations || []).map(o => `<div class="pr-obs ${o.type === 'reussite' ? 'reussite' : 'erreur'}"><div class="po-t">${o.type === 'reussite' ? '✓' : '✕'} ${esc(o.categorie)}</div><div class="po-c">« ${esc(o.citation)} »</div><div class="po-x">${esc(o.commentaire)}</div></div>`).join('');
-  $('printroot').innerHTML = `
-    <div class="pr-head"><div class="pr-title">${esc(titre)}</div><div class="pr-meta">${esc(eleveNom)} · ${new Date(r.date || Date.now()).toLocaleDateString('fr-FR')}</div></div>
-    <div class="pr-flex">
-      <div class="pr-notebox"><div class="pn">${fmtPts(r.note)}</div><div class="pns">/ ${fmtPts(r.note_max)}</div></div>
-      <div class="pr-comment" style="flex:1"><div class="pr-sec">Commentaire</div><div>${esc(r.appreciation || '')}</div>
-        ${(r.forts || []).length ? `<div class="pr-sec">Réussites</div><ul>${r.forts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
-        ${(r.faibles || []).length ? `<div class="pr-sec">À améliorer en priorité</div><ul>${r.faibles.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+  const obs = (r.observations || []).map(o => { const win = o.type === 'reussite'; return `<div style="border:1px solid #eee;border-left:3px solid ${win ? '#2a9d6a' : '#dd6666'};border-radius:6px;padding:6px 10px;margin-bottom:6px;background:${win ? '#f2fbf6' : '#fdf2f4'};page-break-inside:avoid"><div style="font-size:7.5pt;font-weight:700;text-transform:uppercase;color:${win ? '#2a9d6a' : '#c0485a'}">${win ? '✓' : '✕'} ${esc(o.categorie)}</div><div style="font-style:italic;font-size:9pt;border-left:2px solid #ccc;padding-left:7px;margin:3px 0">« ${esc(o.citation)} »</div><div style="font-size:9pt;color:#444">${esc(o.commentaire)}</div></div>`; }).join('');
+  const wrap = document.createElement('div');
+  wrap.style.cssText = "width:760px;padding:26px 30px;background:#fff;color:#1a1a2e;font-family:'Sora',sans-serif;box-sizing:border-box";
+  wrap.innerHTML = `
+    <div style="text-align:center;border-bottom:2px solid #6c5ce7;padding-bottom:10px;margin-bottom:16px">
+      <div style="font-size:16pt;font-weight:700;color:#5a4bd8">${esc(titre)}</div>
+      <div style="font-size:9pt;color:#666;margin-top:3px">${esc(eleveNom)} · ${new Date(r.date || Date.now()).toLocaleDateString('fr-FR')}</div>
+    </div>
+    <div style="display:flex;gap:18px;align-items:flex-start;margin-bottom:16px">
+      <div style="border:1.5px solid #d8d5f5;border-radius:10px;padding:12px 18px;text-align:center"><div style="font-size:22pt;font-weight:700;color:#5a4bd8">${fmtPts(r.note)}</div><div style="font-size:11pt;color:#888">/ ${fmtPts(r.note_max)}</div></div>
+      <div style="flex:1"><div style="${PR_SEC};margin-top:0">Commentaire</div><div style="font-size:10pt;line-height:1.5">${esc(r.appreciation || '')}</div>
+        ${(r.forts || []).length ? `<div style="${PR_SEC}">Réussites</div><ul style="margin:4px 0 8px 18px;font-size:10pt">${r.forts.map(f => `<li style="margin-bottom:3px">${esc(f)}</li>`).join('')}</ul>` : ''}
+        ${(r.faibles || []).length ? `<div style="${PR_SEC}">À améliorer en priorité</div><ul style="margin:4px 0 8px 18px;font-size:10pt">${r.faibles.map(f => `<li style="margin-bottom:3px">${esc(f)}</li>`).join('')}</ul>` : ''}
       </div></div>
-    ${comps.length ? `<div class="pr-sec">Tableau de compétences</div><div class="pr-compgrid">${comps.map(c => `<div class="pr-comprow"><span>${esc(c.nom)}</span><span>${pdots(c.taux)}</span></div>`).join('')}</div>` : ''}
-    <div class="pr-sec">Résultats détaillés</div>${detail}
-    ${obs ? `<div class="pr-sec">Observations</div>${obs}` : ''}`;
+    ${comps.length ? `<div style="${PR_SEC}">Tableau de compétences</div><div style="border:1px solid #e5e5f0;border-radius:8px;overflow:hidden;margin-bottom:12px">${comps.map(c => `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 12px;border-bottom:1px solid #f0f0f6;font-size:10pt"><span>${esc(c.nom)}</span><span style="white-space:nowrap">${pdotsInline(c.taux)}</span></div>`).join('')}</div>` : ''}
+    <div style="${PR_SEC}">Résultats détaillés</div>${detail}
+    ${obs ? `<div style="${PR_SEC}">Observations</div>${obs}` : ''}`;
+  return wrap;
+}
+function printCopie(r, eleveNom) {
+  const root = $('printroot'); root.innerHTML = ''; root.appendChild(buildPrintDoc(r, eleveNom));
   window.print();
+}
+let html2pdfPromise = null;
+function loadHtml2pdf() {
+  if (window.html2pdf) return Promise.resolve();
+  if (!html2pdfPromise) html2pdfPromise = new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.2/html2pdf.bundle.min.js'; s.onload = ok; s.onerror = () => ko(new Error('Module PDF non chargé (connexion ?)')); document.head.appendChild(s); });
+  return html2pdfPromise;
+}
+async function pdfCopie(r, eleveNom, btn) {
+  const dvId = (reviewTarget && reviewTarget.type === 'copie') ? (db.copies.find(c => c.id === reviewTarget.id) || {}).devoirId : r.devoirId;
+  const titre = (devoirById(dvId) || {}).nom || 'Devoir';
+  const oldTxt = btn ? btn.textContent : null; if (btn) { btn.disabled = true; btn.textContent = '⏳ PDF…'; }
+  try {
+    await loadHtml2pdf();
+    const el = buildPrintDoc(r, eleveNom);
+    const holder = document.createElement('div'); holder.style.cssText = 'position:fixed;left:-10000px;top:0;z-index:-1'; holder.appendChild(el); document.body.appendChild(holder);
+    const fn = `${eleveNom} - ${titre}.pdf`.replace(/[\\/:*?"<>|]/g, '-');
+    await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: fn, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(el).save();
+    document.body.removeChild(holder);
+  } catch (e) {
+    alert("Export PDF direct indisponible (connexion au module ?). J'ouvre la fenêtre d'impression : choisissez « Enregistrer au format PDF » comme destination.");
+    printCopie(r, eleveNom);
+  } finally { if (btn) { btn.disabled = false; btn.textContent = oldTxt; } }
 }
 
 // ════════ DASHBOARD ════════
@@ -1012,7 +1075,7 @@ function drawEleveDetail() {
   box.innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><h3>👤 ${esc(el.nom)}</h3><button class="btn purple small" id="e-remed">✨ Remédiation individuelle</button></div>
     ${copies.length === 0 ? '<div class="empty">Aucune copie corrigée.</div>' : `
     <table style="margin-top:8px"><thead><tr><th>Devoir</th><th>Date</th><th>Note</th><th>/20</th><th></th></tr></thead><tbody>
-      ${copies.map(c => `<tr><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td><td>${new Date(c.date).toLocaleDateString('fr-FR')}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td><td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td><td class="noprint"><button class="btn small" data-eprint="${c.id}">🖨️</button></td></tr>`).join('')}
+      ${copies.map(c => `<tr><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td><td>${new Date(c.date).toLocaleDateString('fr-FR')}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td><td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td><td class="noprint"><button class="btn secondary small" data-epdf="${c.id}">⬇️ PDF</button> <button class="btn small" data-eprint="${c.id}">🖨️</button></td></tr>`).join('')}
     </tbody></table>
     <div style="margin-top:14px"><label>Compétences (taux de réussite)</label>
       ${comps.map(c => `<div class="row" style="gap:10px; margin-top:8px"><div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>${dotsHTML(c.taux)}<div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div><div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div></div>`).join('')}
@@ -1021,6 +1084,7 @@ function drawEleveDetail() {
   const btn = $('e-remed');
   if (btn) btn.addEventListener('click', () => { switchTab('remediation'); $('m-mode').value = 'eleve'; $('m-mode').dispatchEvent(new Event('change')); fillClasseSelect($('m-classe'), classe.id); fillEleveSelect($('m-eleve'), classe.id, el.id); prefillCible(); });
   box.querySelectorAll('[data-eprint]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.eprint); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
+  box.querySelectorAll('[data-epdf]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.epdf); if (c) { reviewTarget = { type: 'copie', id: c.id }; pdfCopie(c, c.eleveNom, b); } }));
 }
 
 // ════════ REMÉDIATION ════════
