@@ -7,196 +7,198 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #111318; --surface: #191c24; --surface2: #1e2230; --surface3: #232840;
-    --border: #262c3e; --border2: #2e3650;
-    --green: #4ade80; --blue: #60a5fa; --amber: #fbbf24; --red: #f87171; --purple: #c084fc;
-    --text: #dde1ee; --muted: #636b88; --muted2: #8891aa;
+    --bg: #eef0fb; --bg2: #f6f5fd; --surface: #ffffff; --surface2: #f4f5fb; --surface3: #eef0fe;
+    --border: #e6e8f5; --border2: #dcdef0;
+    --green: #22b07d; --blue: #4f7cf0; --amber: #e08a2a; --red: #e0576b; --purple: #6c5ce7; --purple-soft: #efedfe;
+    --text: #2d2b45; --muted: #a1a1bd; --muted2: #6b6b8a;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
-  a { color: var(--blue); }
+  body { background: linear-gradient(180deg, var(--bg2), var(--bg)); color: var(--text); font-family: 'Sora', sans-serif; font-size: 14px; min-height: 100vh; display: flex; flex-direction: column; }
+  a { color: var(--purple); }
   button { font-family: 'Sora', sans-serif; cursor: pointer; }
   textarea, input, select { font-family: 'Sora', sans-serif; }
 
   /* Overlay clé API */
-  #overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
+  #overlay { position: fixed; inset: 0; background: linear-gradient(180deg, var(--bg2), var(--bg)); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
   #overlay.off { display: none; }
-  .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
-  .ocard h2 { font-size: 1.05rem; font-weight: 600; }
-  .ocard h2 span { color: var(--green); }
+  .ocard { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 32px 28px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 12px 40px rgba(90,80,160,.14); }
+  .ocard h2 { font-size: 1.15rem; font-weight: 700; }
+  .ocard h2 span { color: var(--purple); }
   .ocard p { font-size: 0.78rem; color: var(--muted2); line-height: 1.6; }
-  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; }
-  #keyinput:focus { border-color: var(--green); }
-  #keybtn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px; font-size: 0.85rem; font-weight: 600; }
-  #keybtn:hover { background: #6ee89a; }
+  #keyinput { background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 11px 14px; color: var(--text); font-family: 'DM Mono', monospace; font-size: 0.8rem; outline: none; width: 100%; }
+  #keyinput:focus { border-color: var(--purple); }
+  #keybtn { background: var(--purple); color: #fff; border: none; border-radius: 10px; padding: 11px; font-size: 0.88rem; font-weight: 600; }
+  #keybtn:hover { background: #5a4bd8; }
   #keyerr { font-size: 0.74rem; color: var(--red); display: none; }
   #keyerr.on { display: block; }
-  .onote { font-size: 0.72rem; color: var(--muted); padding: 8px 11px; background: var(--surface2); border-radius: 6px; line-height: 1.6; }
+  .onote { font-size: 0.72rem; color: var(--muted2); padding: 10px 12px; background: var(--surface2); border-radius: 10px; line-height: 1.6; }
   .onote b { color: var(--amber); }
   .checkrow { display: flex; align-items: flex-start; gap: 8px; font-size: 0.74rem; color: var(--muted2); line-height: 1.5; cursor: pointer; }
-  .checkrow input { margin-top: 2px; accent-color: var(--green); }
+  .checkrow input { margin-top: 2px; accent-color: var(--purple); }
 
-  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
-  .logo { font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; }
-  .logo span { color: var(--green); }
-  .pillbtn { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); border-radius: 20px; padding: 6px 13px; font-size: 0.74rem; font-weight: 500; }
-  .pillbtn:hover { border-color: var(--green); color: var(--green); }
-  #modetabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 22px; background: var(--bg); overflow-x: auto; }
-  .tab { padding: 12px 15px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--text); border-bottom-color: var(--green); }
+  #topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 26px; gap: 12px; flex-wrap: wrap; }
+  .logo { font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+  .logo .mark { width: 30px; height: 30px; border-radius: 9px; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+  .logo span { color: var(--purple); }
+  .pillbtn { background: var(--surface); border: 1px solid var(--border2); color: var(--muted2); border-radius: 22px; padding: 7px 14px; font-size: 0.74rem; font-weight: 500; }
+  .pillbtn:hover { border-color: var(--purple); color: var(--purple); }
+  #modetabs { display: flex; gap: 4px; padding: 0 26px; overflow-x: auto; }
+  .tab { padding: 11px 16px; font-size: 0.83rem; font-weight: 600; color: var(--muted2); cursor: pointer; border-radius: 12px 12px 0 0; user-select: none; white-space: nowrap; border-bottom: 3px solid transparent; }
+  .tab:hover { color: var(--purple); }
+  .tab.active { color: var(--purple); border-bottom-color: var(--purple); background: var(--surface); }
 
-  #main { flex: 1; padding: 22px; max-width: 1160px; width: 100%; margin: 0 auto; }
+  #main { flex: 1; padding: 22px 26px 40px; max-width: 1160px; width: 100%; margin: 0 auto; }
   .panel { display: none; flex-direction: column; gap: 18px; }
   .panel.active { display: flex; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 18px 20px; }
-  .card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
-  .card .sub { font-size: 0.74rem; color: var(--muted); margin-bottom: 12px; line-height: 1.5; }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 20px 22px; box-shadow: 0 4px 18px rgba(90,80,160,.05); }
+  .card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 4px; }
+  .card .sub { font-size: 0.76rem; color: var(--muted2); margin-bottom: 14px; line-height: 1.5; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
   .col { display: flex; flex-direction: column; gap: 6px; flex: 1; min-width: 170px; }
-  label { font-size: 0.72rem; color: var(--muted2); font-weight: 500; }
-  select, .field { background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; color: var(--text); font-size: 0.82rem; outline: none; width: 100%; }
-  select:focus, .field:focus { border-color: var(--green); }
-  textarea.field { resize: vertical; min-height: 80px; line-height: 1.55; font-weight: 300; }
-  .btn { background: var(--green); color: #111318; border: none; border-radius: 8px; padding: 10px 18px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
-  .btn:hover { background: #6ee89a; }
-  .btn:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  label { font-size: 0.72rem; color: var(--muted2); font-weight: 600; }
+  select, .field { background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 0.82rem; outline: none; width: 100%; }
+  select:focus, .field:focus { border-color: var(--purple); }
+  textarea.field { resize: vertical; min-height: 80px; line-height: 1.55; }
+  .btn { background: var(--purple); color: #fff; border: none; border-radius: 10px; padding: 11px 20px; font-size: 0.83rem; font-weight: 600; white-space: nowrap; }
+  .btn:hover { background: #5a4bd8; }
+  .btn:disabled { background: #c9c8e6; color: #fff; cursor: not-allowed; }
   .btn.secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border2); }
-  .btn.secondary:hover { border-color: var(--muted2); }
-  .btn.danger { background: transparent; color: var(--red); border: 1px solid #4a2530; }
-  .btn.danger:hover { background: #241318; }
-  .btn.small { padding: 6px 12px; font-size: 0.74rem; }
-  .btn.purple { background: var(--purple); }
-  .btn.purple:hover { background: #d3a4ff; }
+  .btn.secondary:hover { border-color: var(--purple); color: var(--purple); }
+  .btn.danger { background: #fdeef1; color: var(--red); border: 1px solid #f6d5dc; }
+  .btn.danger:hover { background: #fbe0e6; }
+  .btn.small { padding: 7px 13px; font-size: 0.74rem; }
+  .btn.purple { background: var(--purple); color: #fff; }
+  .btn.purple:hover { background: #5a4bd8; }
+  .btn.ghost { background: transparent; color: var(--purple); border: 1px dashed var(--purple); }
 
-  .tabbar2 { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
-  .chip { padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.74rem; color: var(--muted2); cursor: pointer; background: transparent; }
-  .chip.on { background: #18281e; border-color: var(--green); color: var(--green); }
+  .tabbar2 { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+  .chip { padding: 6px 13px; border-radius: 20px; border: 1px solid var(--border2); font-size: 0.74rem; color: var(--muted2); cursor: pointer; background: var(--surface); }
+  .chip.on { background: var(--purple-soft); border-color: var(--purple); color: var(--purple); font-weight: 600; }
 
-  .dropzone { border: 1.5px dashed var(--border2); border-radius: 10px; padding: 18px; text-align: center; color: var(--muted); font-size: 0.78rem; cursor: pointer; }
-  .dropzone:hover, .dropzone.drag { border-color: var(--green); color: var(--green); }
+  .dropzone { border: 1.5px dashed var(--border2); border-radius: 12px; padding: 20px; text-align: center; color: var(--muted2); font-size: 0.78rem; cursor: pointer; background: var(--surface2); transition: all .15s; }
+  .dropzone:hover, .dropzone.drag { border-color: var(--purple); color: var(--purple); background: var(--purple-soft); }
+  .dropzone .dz-ic { font-size: 1.4rem; display: block; margin-bottom: 4px; }
   .filelist { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-  .fileitem { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 8px; padding: 5px 10px; font-size: 0.72rem; color: var(--muted2); }
-  .fileitem img { width: 32px; height: 32px; object-fit: cover; border-radius: 5px; }
+  .fileitem { display: flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 9px; padding: 6px 11px; font-size: 0.72rem; color: var(--muted2); }
+  .fileitem img { width: 32px; height: 32px; object-fit: cover; border-radius: 6px; }
   .fileitem .rm { background: none; border: none; color: var(--red); font-size: 0.8rem; padding: 0 2px; }
+  .pdfbadge { display: inline-flex; align-items: center; gap: 8px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; padding: 8px 12px; font-size: 0.76rem; color: var(--text); margin-top: 8px; }
+  .pdfbadge .rm { background: none; border: none; color: var(--red); font-size: 0.85rem; }
 
   .loadrow { display: flex; align-items: center; gap: 8px; color: var(--muted2); font-size: 0.8rem; padding: 6px 0; }
-  .dot3 span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--green); margin: 0 1px; opacity: .5; animation: pulse 1.2s infinite; }
+  .dot3 span { display: inline-block; width: 5px; height: 5px; border-radius: 50%; background: var(--purple); margin: 0 1px; opacity: .5; animation: pulse 1.2s infinite; }
   .dot3 span:nth-child(2) { animation-delay: .2s; } .dot3 span:nth-child(3) { animation-delay: .4s; }
   @keyframes pulse { 0%,60%,100% { transform: translateY(0); opacity: .35; } 30% { transform: translateY(-4px); opacity: 1; } }
 
-  /* Grille */
-  .gpartie { background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
-  .gpartie-head { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface3); }
-  .gpartie-head input.ptitre { flex: 1; background: transparent; border: none; color: var(--text); font-weight: 600; font-size: 0.85rem; outline: none; }
-  .gpartie-head .ppts { font-family: 'DM Mono', monospace; color: var(--purple); font-size: 0.8rem; white-space: nowrap; }
-  .gcrit { display: flex; gap: 10px; padding: 9px 14px; border-top: 1px solid var(--border); align-items: flex-start; }
+  .gpartie { background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+  .gpartie-head { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface3); }
+  .gpartie-head input.ptitre { flex: 1; background: transparent; border: none; color: var(--text); font-weight: 700; font-size: 0.85rem; outline: none; }
+  .gpartie-head .ppts { font-family: 'DM Mono', monospace; color: var(--purple); font-size: 0.8rem; white-space: nowrap; font-weight: 500; }
+  .gcrit { display: flex; gap: 10px; padding: 10px 14px; border-top: 1px solid var(--border); align-items: flex-start; }
   .gcrit .cmain { flex: 1; min-width: 0; }
-  .gcrit input.cint { width: 100%; background: transparent; border: none; color: var(--text); font-size: 0.8rem; outline: none; font-weight: 500; }
-  .gcrit .cattendus { color: var(--muted); font-size: 0.72rem; margin-top: 3px; line-height: 1.45; }
-  .gcrit .ccomp { display: inline-block; margin-top: 5px; padding: 2px 9px; border-radius: 12px; background: #221a30; color: var(--purple); font-size: 0.68rem; }
+  .gcrit input.cint { width: 100%; background: transparent; border: none; color: var(--text); font-size: 0.8rem; outline: none; font-weight: 600; }
+  .gcrit .cattendus { color: var(--muted2); font-size: 0.72rem; margin-top: 3px; line-height: 1.45; }
+  .gcrit .ccomp { display: inline-block; margin-top: 5px; padding: 2px 9px; border-radius: 12px; background: var(--purple-soft); color: var(--purple); font-size: 0.68rem; font-weight: 600; }
   .gcrit .cechelle { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
   .gcrit .cniv { font-size: 0.68rem; color: var(--muted2); line-height: 1.4; }
   .gcrit .cniv b { color: var(--blue); font-family: 'DM Mono', monospace; }
-  .gcrit input.cpts { width: 52px; background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; color: var(--amber); font-family: 'DM Mono', monospace; font-size: 0.78rem; padding: 4px 6px; text-align: center; outline: none; }
-  .notemax-badge { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--green); }
+  .gcrit input.cpts { width: 54px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--amber); font-family: 'DM Mono', monospace; font-size: 0.78rem; padding: 5px 6px; text-align: center; outline: none; font-weight: 600; }
+  .notemax-badge { font-family: 'DM Mono', monospace; font-size: 1.5rem; color: var(--purple); font-weight: 600; }
 
-  .qitem { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 8px; flex-wrap: wrap; }
-  .qitem .qname { font-weight: 600; font-size: 0.84rem; min-width: 110px; }
-  .qitem .qsrc { color: var(--muted); font-size: 0.72rem; flex: 1; }
-  .qstatus { font-size: 0.72rem; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+  .qitem { display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+  .qitem .qname { font-weight: 700; font-size: 0.84rem; min-width: 110px; }
+  .qitem .qsrc { color: var(--muted2); font-size: 0.72rem; flex: 1; }
+  .qstatus { font-size: 0.72rem; padding: 4px 11px; border-radius: 12px; white-space: nowrap; font-weight: 600; }
   .qstatus.wait { background: var(--surface3); color: var(--muted2); }
-  .qstatus.run { background: #1a2410; color: var(--amber); }
-  .qstatus.done { background: #14261a; color: var(--green); }
-  .qstatus.err { background: #2a1418; color: var(--red); }
+  .qstatus.run { background: #fff2df; color: var(--amber); }
+  .qstatus.done { background: #e3f7ee; color: var(--green); }
+  .qstatus.err { background: #fdeef1; color: var(--red); }
 
-  .noteBig { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 500; color: var(--green); }
-  .noteBig small { font-size: 1rem; color: var(--muted); }
-  .rcrit { padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .noteBig { font-family: 'DM Mono', monospace; font-size: 2.1rem; font-weight: 600; color: var(--purple); }
+  .noteBig small { font-size: 1rem; color: var(--muted2); }
+  .rcrit { padding: 11px 0; border-bottom: 1px solid var(--border); }
   .rcrit:last-child { border-bottom: none; }
   .rcrit .rhead { display: flex; gap: 10px; align-items: center; }
-  .rcrit .rname { flex: 1; font-size: 0.8rem; font-weight: 500; }
-  .rcrit input.rpts { width: 58px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; color: var(--green); font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 4px 6px; text-align: center; outline: none; }
-  .rcrit .rmax { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 0.78rem; }
+  .rcrit .rname { flex: 1; font-size: 0.8rem; font-weight: 600; }
+  .rcrit input.rpts { width: 60px; background: var(--surface); border: 1px solid var(--border2); border-radius: 8px; color: var(--purple); font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 5px 6px; text-align: center; outline: none; font-weight: 600; }
+  .rcrit .rmax { font-family: 'DM Mono', monospace; color: var(--muted2); font-size: 0.78rem; }
   .rcrit .rniv { font-size: 0.7rem; color: var(--blue); margin-top: 3px; }
-  .rcrit textarea.rcom { width: 100%; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted2); font-size: 0.76rem; padding: 6px 9px; resize: vertical; min-height: 34px; outline: none; line-height: 1.5; }
-  .rpartie-label { font-size: 0.72rem; color: var(--purple); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 12px; }
+  .rcrit textarea.rcom { width: 100%; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted2); font-size: 0.76rem; padding: 7px 10px; resize: vertical; min-height: 34px; outline: none; line-height: 1.5; }
+  .rpartie-label { font-size: 0.72rem; color: var(--purple); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 14px; }
 
-  /* pastilles compétences */
   .dots { display: inline-flex; gap: 3px; align-items: center; }
-  .pdot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--border2); display: inline-block; }
+  .pdot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid var(--border2); display: inline-block; }
 
-  /* observations */
-  .obs { border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; margin-bottom: 8px; }
-  .obs.reussite { border-color: #245030; background: #12211680; }
-  .obs.erreur { border-color: #5a2a30; background: #26141880; }
-  .obs .otag { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
+  .obs { border: 1px solid var(--border2); border-radius: 10px; padding: 10px 13px; margin-bottom: 8px; }
+  .obs.reussite { border-color: #b8e6d1; background: #f2fbf7; }
+  .obs.erreur { border-color: #f3cdd5; background: #fdf3f5; }
+  .obs .otag { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
   .obs.reussite .otag { color: var(--green); }
   .obs.erreur .otag { color: var(--red); }
-  .obs .ocite { font-style: italic; color: var(--text); font-size: 0.78rem; border-left: 2px solid var(--border2); padding-left: 8px; line-height: 1.5; }
+  .obs .ocite { font-style: italic; color: var(--text); font-size: 0.78rem; border-left: 2px solid var(--border2); padding-left: 9px; line-height: 1.5; }
   .obs .ocom { font-size: 0.76rem; color: var(--muted2); margin-top: 5px; line-height: 1.5; }
   .obs .odel { float: right; background: none; border: none; color: var(--muted); font-size: 0.8rem; }
 
   .taglist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-  .tag { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; }
-  .tag.ok { background: #18281e; color: var(--green); }
-  .tag.warn { background: #2a2010; color: var(--amber); }
-  .tag.info { background: #18243a; color: var(--blue); }
+  .tag { padding: 4px 11px; border-radius: 20px; font-size: 0.72rem; font-weight: 500; }
+  .tag.ok { background: #e3f7ee; color: var(--green); }
+  .tag.warn { background: #fff2df; color: var(--amber); }
+  .tag.info { background: var(--purple-soft); color: var(--purple); }
 
   table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
-  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
-  th { color: var(--muted2); font-weight: 500; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .03em; }
+  th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted2); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .03em; }
   tr.clickable { cursor: pointer; }
   tr.clickable:hover td { background: var(--surface2); }
-  .bar-wrap { background: var(--surface2); border-radius: 6px; height: 8px; overflow: hidden; width: 100%; min-width: 60px; }
-  .bar-fill { height: 100%; border-radius: 6px; background: var(--green); }
+  .bar-wrap { background: var(--surface3); border-radius: 6px; height: 8px; overflow: hidden; width: 100%; min-width: 60px; }
+  .bar-fill { height: 100%; border-radius: 6px; background: var(--purple); }
   .statgrid { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 12px; }
-  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
-  .stat .v { font-family: 'DM Mono', monospace; font-size: 1.3rem; }
-  .stat .l { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+  .stat { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 13px 15px; }
+  .stat .v { font-family: 'DM Mono', monospace; font-size: 1.4rem; font-weight: 600; }
+  .stat .l { font-size: 0.68rem; color: var(--muted2); margin-top: 2px; }
 
   .histo { display: flex; align-items: flex-end; gap: 3px; height: 120px; margin-top: 14px; padding-bottom: 4px; }
   .histo .hb { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; height: 100%; }
-  .histo .hbar { width: 100%; background: var(--purple); border-radius: 3px 3px 0 0; min-height: 2px; opacity: .85; }
-  .histo .hl { font-size: 0.6rem; color: var(--muted); }
+  .histo .hbar { width: 100%; background: var(--purple); border-radius: 4px 4px 0 0; min-height: 2px; opacity: .8; }
+  .histo .hl { font-size: 0.6rem; color: var(--muted2); }
   .histo .hc { font-size: 0.62rem; color: var(--muted2); font-family: 'DM Mono', monospace; }
 
-  .empty { color: var(--muted); font-size: 0.8rem; padding: 20px; text-align: center; }
-  .err-msg { background: #2a1418; border: 1px solid #4a2530; color: var(--red); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; margin-top: 8px; }
-  .ok-msg { background: #14261a; border: 1px solid #245030; color: var(--green); font-size: 0.78rem; padding: 10px 13px; border-radius: 8px; margin-top: 8px; }
+  .empty { color: var(--muted2); font-size: 0.8rem; padding: 20px; text-align: center; }
+  .err-msg { background: #fdeef1; border: 1px solid #f3cdd5; color: var(--red); font-size: 0.78rem; padding: 11px 13px; border-radius: 10px; margin-top: 8px; }
+  .ok-msg { background: #e3f7ee; border: 1px solid #b8e6d1; color: var(--green); font-size: 0.78rem; padding: 11px 13px; border-radius: 10px; margin-top: 8px; }
+  .info-msg { background: var(--purple-soft); border: 1px solid #d9d5fb; color: var(--purple); font-size: 0.78rem; padding: 11px 13px; border-radius: 10px; margin-top: 8px; line-height: 1.5; }
   .exlist { display: flex; flex-direction: column; gap: 14px; }
-  .exlist .ex { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; }
+  .exlist .ex { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 15px 16px; }
   .exlist .ex .en { font-size: 0.85rem; margin-bottom: 8px; line-height: 1.6; white-space: pre-wrap; }
-  .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; white-space: pre-wrap; line-height: 1.6; }
-  .elrow { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; }
+  .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 11px; white-space: pre-wrap; line-height: 1.6; }
+  .elrow { display: flex; align-items: center; gap: 8px; padding: 7px 11px; background: var(--surface2); border-radius: 9px; margin-bottom: 6px; font-size: 0.8rem; }
   .elrow .eln { flex: 1; }
 
-  /* ── Impression : copie corrigée façon bulletin ── */
   #printroot { display: none; }
   @media print {
     #overlay, #topbar, #modetabs, #main { display: none !important; }
     #printroot { display: block !important; }
     body { background: #fff; color: #1a1a2e; font-size: 11pt; }
-    .pr-head { text-align: center; border-bottom: 2px solid #5b57d6; padding-bottom: 10px; margin-bottom: 16px; }
-    .pr-head .pr-title { font-size: 16pt; font-weight: 700; color: #3f3aad; }
+    .pr-head { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 10px; margin-bottom: 16px; }
+    .pr-head .pr-title { font-size: 16pt; font-weight: 700; color: #5a4bd8; }
     .pr-head .pr-meta { font-size: 9pt; color: #666; margin-top: 3px; }
     .pr-flex { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px; }
-    .pr-notebox { border: 1.5px solid #cdd; border-radius: 8px; padding: 12px 18px; text-align: center; }
-    .pr-notebox .pn { font-size: 22pt; font-weight: 700; color: #3f3aad; }
+    .pr-notebox { border: 1.5px solid #d8d5f5; border-radius: 10px; padding: 12px 18px; text-align: center; }
+    .pr-notebox .pn { font-size: 22pt; font-weight: 700; color: #5a4bd8; }
     .pr-notebox .pns { font-size: 11pt; color: #888; }
-    .pr-sec { font-weight: 700; color: #3f3aad; font-size: 11pt; margin: 14px 0 6px; }
+    .pr-sec { font-weight: 700; color: #5a4bd8; font-size: 11pt; margin: 14px 0 6px; }
     .pr-comment b { color: #1a1a2e; }
     .pr-comment ul { margin: 4px 0 8px 18px; }
     .pr-comment li { margin-bottom: 3px; }
-    .pr-compgrid { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
-    .pr-comprow { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; border-bottom: 1px solid #eee; font-size: 10pt; }
+    .pr-compgrid { border: 1px solid #e5e5f0; border-radius: 8px; overflow: hidden; margin-bottom: 12px; }
+    .pr-comprow { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; border-bottom: 1px solid #f0f0f6; font-size: 10pt; }
     .pr-comprow:last-child { border-bottom: none; }
     .pr-pdot { width: 11px; height: 11px; border-radius: 50%; border: 1.4px solid #bbb; display: inline-block; margin-left: 3px; }
-    .pr-crit { border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; page-break-inside: avoid; }
-    .pr-crit .pc-h { display: flex; justify-content: space-between; background: #f4f4fb; padding: 6px 12px; font-weight: 600; font-size: 10pt; }
+    .pr-crit { border: 1px solid #e5e5f0; border-radius: 8px; margin-bottom: 8px; page-break-inside: avoid; }
+    .pr-crit .pc-h { display: flex; justify-content: space-between; background: #f4f3fc; padding: 6px 12px; font-weight: 600; font-size: 10pt; }
     .pr-crit .pc-b { padding: 7px 12px; font-size: 9.5pt; color: #333; line-height: 1.5; }
-    .pr-obs { border: 1px solid #eee; border-left-width: 3px; border-radius: 5px; padding: 6px 10px; margin-bottom: 6px; page-break-inside: avoid; }
+    .pr-obs { border: 1px solid #eee; border-left-width: 3px; border-radius: 6px; padding: 6px 10px; margin-bottom: 6px; page-break-inside: avoid; }
     .pr-obs.reussite { border-left-color: #2a9d6a; background: #f2fbf6; }
     .pr-obs.erreur { border-left-color: #d66; background: #fdf2f4; }
     .pr-obs .po-t { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; }
@@ -209,10 +211,9 @@
 </head>
 <body>
 
-<!-- Overlay clé API -->
 <div id="overlay">
   <div class="ocard">
-    <h2>Correction·<span>IA</span></h2>
+    <h2>🐧 Correction·<span>IA</span></h2>
     <p>Collez votre clé API Anthropic (Claude) pour démarrer.<br>
     À obtenir sur <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com/settings/keys</a></p>
     <input id="keyinput" type="password" placeholder="sk-ant-…" autocomplete="off" />
@@ -225,14 +226,14 @@
 </div>
 
 <div id="topbar">
-  <div class="logo">Correction·<span>IA</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
 <div id="modetabs">
-  <div class="tab active" data-tab="correction">✍️ Correction</div>
-  <div class="tab" data-tab="devoirs">📚 Devoirs & grilles</div>
-  <div class="tab" data-tab="dashboard">📊 Tableau de bord</div>
+  <div class="tab active" data-tab="devoirs">📚 Évaluations</div>
+  <div class="tab" data-tab="correction">✍️ Correction</div>
+  <div class="tab" data-tab="dashboard">📊 Analyse des résultats</div>
   <div class="tab" data-tab="eleves">👤 Élèves</div>
   <div class="tab" data-tab="remediation">✨ Remédiation</div>
   <div class="tab" data-tab="settings">⚙️ Réglages</div>
@@ -240,47 +241,96 @@
 
 <div id="main">
 
+  <!-- ÉVALUATIONS / DEVOIRS -->
+  <div class="panel active" id="panel-devoirs">
+    <div class="card">
+      <h3>Mes évaluations</h3>
+      <div class="sub">Créez un devoir, déposez le sujet et la grille de correction (PDF ou texte), puis structurez la grille.</div>
+      <div class="row">
+        <div class="col"><label>Classe</label><select id="d2-classe"></select></div>
+        <div class="col"><label>Devoir</label><select id="d2-devoir"></select></div>
+        <button class="btn small" id="d2-new" style="align-self:flex-end">+ Nouveau devoir</button>
+        <button class="btn danger small" id="d2-del" style="align-self:flex-end">Supprimer</button>
+      </div>
+    </div>
+    <div id="d2-editor" style="display:none; flex-direction:column; gap:18px">
+      <div class="card">
+        <h3>📄 Documents de l'évaluation</h3>
+        <div class="sub">Déposez vos PDF au niveau du devoir (une seule fois, pas par élève).</div>
+        <div class="row" style="align-items:stretch">
+          <div class="col" style="min-width:260px">
+            <label>Sujet distribué aux élèves</label>
+            <div class="dropzone" id="d2-sujet-dz"><span class="dz-ic">📄</span>Déposer le sujet (PDF)</div>
+            <input type="file" id="d2-sujet-file" accept="application/pdf,.docx" style="display:none">
+            <div id="d2-sujet-badge"></div>
+            <details style="margin-top:8px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le texte du sujet</summary>
+              <textarea class="field" id="d2-sujet" style="margin-top:6px" placeholder="Collez ici l'énoncé du devoir…"></textarea></details>
+          </div>
+          <div class="col" style="min-width:260px">
+            <label>Grille de correction / barème</label>
+            <div class="dropzone" id="d2-grille-dz"><span class="dz-ic">📝</span>Déposer la grille (PDF)</div>
+            <input type="file" id="d2-grille-file" accept="application/pdf,.docx" style="display:none">
+            <div id="d2-grille-badge"></div>
+            <details style="margin-top:8px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le barème en texte</summary>
+              <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="Parties, questions, points OU niveaux/curseurs avec descripteurs…"></textarea></details>
+          </div>
+        </div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn purple" id="d2-structurer">✨ Structurer la grille avec l'IA</button>
+        </div>
+        <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
+        <div id="d2-structerr"></div>
+      </div>
+      <div class="card" id="d2-grillecard" style="display:none">
+        <div class="row" style="justify-content:space-between; margin-bottom:8px">
+          <h3 style="margin:0">Grille structurée <span style="color:var(--muted2);font-weight:400">(modifiable)</span></h3>
+          <div class="notemax-badge">/ <span id="d2-notemax">0</span></div>
+        </div>
+        <div class="sub" id="d2-grillenote"></div>
+        <div id="d2-grille"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- CORRECTION -->
-  <div class="panel active" id="panel-correction">
+  <div class="panel" id="panel-correction">
     <div class="card">
       <h3>1. Devoir à corriger</h3>
-      <div class="sub">La grille structurée du devoir est remplie automatiquement pour chaque copie. Créez d'abord le devoir et sa grille dans « Devoirs & grilles ».</div>
+      <div class="sub">Créez d'abord le devoir et sa grille dans « Évaluations ».</div>
       <div class="row">
         <div class="col"><label>Classe</label><select id="c-classe"></select></div>
         <div class="col"><label>Devoir</label><select id="c-devoir"></select></div>
       </div>
       <div id="c-grillestate" style="margin-top:10px"></div>
     </div>
-
     <div class="card" id="c-addcard">
-      <h3>2. Ajouter des copies à la file</h3>
-      <div class="row"><div class="col"><label>Élève</label><select id="c-eleve"></select></div></div>
+      <h3>2. Ajouter des copies scannées à la file</h3>
+      <div class="sub">Déposez la copie d'un élève (PDF scanné, photos ou Word), choisissez l'élève, ajoutez à la file. Répétez pour chaque élève.</div>
+      <div class="row"><div class="col" style="max-width:280px"><label>Élève</label><select id="c-eleve"></select></div></div>
       <div class="tabbar2" style="margin-top:12px">
-        <div class="chip on" data-src="fichiers">📎 Fichiers (photos / PDF / Word)</div>
+        <div class="chip on" data-src="fichiers">📎 Copie scannée (PDF / photos / Word)</div>
         <div class="chip" data-src="texte">📝 Texte collé</div>
       </div>
       <textarea class="field" id="c-texte" placeholder="Collez ici le texte de la copie de l'élève…" style="display:none"></textarea>
       <div id="c-filearea">
-        <div class="dropzone" id="c-dropzone">Cliquez ou déposez ici les photos des pages, le PDF ou le fichier Word de la copie</div>
+        <div class="dropzone" id="c-dropzone"><span class="dz-ic">📎</span>Déposer la copie scannée de l'élève (PDF, photos ou Word)</div>
         <input type="file" id="c-fileinput" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.docx" multiple style="display:none">
         <div class="filelist" id="c-filelist"></div>
       </div>
-      <div class="row" style="margin-top:12px"><button class="btn secondary" id="c-addqueue">➕ Ajouter à la file</button></div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="c-addqueue">➕ Ajouter à la file</button></div>
       <div id="c-adderr"></div>
     </div>
-
     <div class="card">
-      <h3>3. File de correction <span id="q-count" style="color:var(--muted);font-weight:400"></span></h3>
+      <h3>3. File de correction <span id="q-count" style="color:var(--muted2);font-weight:400"></span></h3>
       <div id="q-list"><div class="empty">Aucune copie en attente.</div></div>
       <div class="row" style="margin-top:10px">
         <button class="btn" id="q-run">🚀 Corriger la file</button>
         <span id="q-progress" style="font-size:0.78rem;color:var(--muted2)"></span>
       </div>
     </div>
-
     <div class="card" id="review-card" style="display:none">
       <h3 id="rv-title">Relecture</h3>
-      <div class="sub">Vérifiez et ajustez la correction proposée — vous restez maître de la note.</div>
+      <div class="sub">Vérifiez et ajustez la correction — vous restez maître de la note.</div>
       <div class="row" style="align-items:flex-end; gap:16px; margin:6px 0 10px">
         <div class="noteBig"><span id="rv-note">0</span> <small>/ <span id="rv-notemax">20</span></small></div>
         <span class="tag info" id="rv-eleve"></span>
@@ -301,54 +351,9 @@
         <button class="btn secondary" id="rv-close">Fermer sans enregistrer</button>
       </div>
     </div>
-
     <div class="card">
       <h3>Copies corrigées pour ce devoir</h3>
       <div id="c-history"></div>
-    </div>
-  </div>
-
-  <!-- DEVOIRS -->
-  <div class="panel" id="panel-devoirs">
-    <div class="card">
-      <h3>Devoirs</h3>
-      <div class="row">
-        <div class="col"><label>Classe</label><select id="d2-classe"></select></div>
-        <div class="col"><label>Devoir</label><select id="d2-devoir"></select></div>
-        <button class="btn secondary small" id="d2-new" style="align-self:flex-end">+ Nouveau devoir</button>
-        <button class="btn danger small" id="d2-del" style="align-self:flex-end">Supprimer</button>
-      </div>
-    </div>
-    <div id="d2-editor" style="display:none; flex-direction:column; gap:18px">
-      <div class="card">
-        <h3>Sujet du devoir <span style="color:var(--muted);font-weight:400">(recommandé)</span></h3>
-        <div class="sub">Le sujet donné aux élèves aide l'IA à comprendre ce qui était attendu. Collez-le ou importez un .docx.</div>
-        <textarea class="field" id="d2-sujet" placeholder="Collez ici l'énoncé du devoir…"></textarea>
-        <div class="row" style="margin-top:8px">
-          <button class="btn secondary small" id="d2-sujet-import">📄 Importer un .docx</button>
-          <input type="file" id="d2-sujet-file" accept=".docx" style="display:none">
-        </div>
-      </div>
-      <div class="card">
-        <h3>Grille de correction</h3>
-        <div class="sub">Collez votre barème détaillé (parties, questions, points OU niveaux/curseurs avec descripteurs, attendus), puis laissez l'IA le structurer. Les grilles à échelles (4/3/2/1/0) sont reconnues.</div>
-        <textarea class="field" id="d2-brute" style="min-height:130px" placeholder="Ex. barème par points OU grille à niveaux :&#10;Analyse des documents (4 pts) :&#10;  4 = infos pertinentes, rigoureuses et complètes + connaissances complètes&#10;  3 = pertinentes mais connaissances insuffisantes&#10;  2 = incomplètes…&#10;  1 = quelques éléments…  0 = absence"></textarea>
-        <div class="row" style="margin-top:8px">
-          <button class="btn secondary small" id="d2-brute-import">📄 Importer un .docx</button>
-          <input type="file" id="d2-brute-file" accept=".docx" style="display:none">
-          <button class="btn purple" id="d2-structurer">✨ Structurer la grille avec l'IA</button>
-        </div>
-        <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
-        <div id="d2-structerr"></div>
-      </div>
-      <div class="card" id="d2-grillecard" style="display:none">
-        <div class="row" style="justify-content:space-between; margin-bottom:8px">
-          <h3 style="margin:0">Grille structurée <span style="color:var(--muted);font-weight:400">(modifiable)</span></h3>
-          <div class="notemax-badge">/ <span id="d2-notemax">0</span></div>
-        </div>
-        <div class="sub" id="d2-grillenote"></div>
-        <div id="d2-grille"></div>
-      </div>
     </div>
   </div>
 
@@ -419,14 +424,14 @@
       <h3>Classes & élèves</h3>
       <div class="row" style="margin-bottom:10px">
         <input class="field" id="s-newclasse" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:240px">
-        <button class="btn secondary small" id="s-addclasse">+ Créer la classe</button>
+        <button class="btn small" id="s-addclasse">+ Créer la classe</button>
       </div>
       <div class="row" style="margin-bottom:8px"><div class="col"><label>Classe à gérer</label><select id="s-classesel" style="max-width:240px"></select></div></div>
       <div id="s-eleves"></div>
       <div class="col" style="margin-top:10px">
         <label>Ajouter des élèves (un par ligne — ex : « Emma R. »)</label>
         <textarea class="field" id="s-neweleves" style="min-height:60px" placeholder="Emma R.&#10;Lucas M.&#10;…"></textarea>
-        <div class="row"><button class="btn secondary small" id="s-addeleves">+ Ajouter ces élèves</button>
+        <div class="row"><button class="btn small" id="s-addeleves">+ Ajouter ces élèves</button>
         <button class="btn danger small" id="s-delclasse">🗑️ Supprimer cette classe</button></div>
       </div>
     </div>
@@ -456,14 +461,14 @@ let queue = [];
 let pendingFiles = [];
 let sourceMode = 'fichiers';
 let reviewTarget = null;
-let reviewData = null;   // objet correction en cours de relecture (référence directe)
+let reviewData = null;
 
 function $(id) { return document.getElementById(id); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
-function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-function freshDB() { return { version: 3, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' }, classes: [], devoirs: [], copies: [] }; }
+function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage du navigateur saturé (souvent à cause des PDF de sujets stockés).\nExportez vos données puis supprimez d'anciens devoirs, ou retirez le PDF du sujet une fois la grille structurée."); } }
+function freshDB() { return { version: 4, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' }, classes: [], devoirs: [], copies: [] }; }
 function loadDB() {
   try {
     const raw = localStorage.getItem(DB_KEY);
@@ -487,7 +492,6 @@ function grilleCriteres(g) { const out = []; (g?.parties || []).forEach(p => (p.
 function critMax(c) { return (c.niveaux && c.niveaux.length) ? Math.max(...c.niveaux.map(n => parseFloat(n.points) || 0)) : (parseFloat(c.points) || 0); }
 function grilleNoteMax(g) { return grilleCriteres(g).reduce((s, c) => s + critMax(c), 0); }
 
-// clé
 (function () { const s = localStorage.getItem(KEY_STORE); if (s) { API_KEY = s; $('overlay').classList.add('off'); } })();
 function tryKey() {
   const v = $('keyinput').value.trim(), err = $('keyerr');
@@ -507,7 +511,6 @@ function switchTab(name) {
   ({ correction: renderCorrection, devoirs: renderDevoirs, dashboard: renderDashboard, eleves: renderEleves, remediation: renderRemediation, settings: renderSettings }[name] || (()=>{}))();
 }
 
-// ── API ──
 async function callClaude({ system, userContent, tool, maxTokens }) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -529,50 +532,39 @@ function profileDirectives() {
 }
 
 const STRUCT_TOOL = {
-  name: 'structurer_grille',
-  description: 'Enregistre la grille de correction structurée.',
+  name: 'structurer_grille', description: 'Enregistre la grille de correction structurée.',
   input_schema: { type: 'object', properties: {
     remarque: { type: 'string', description: "Remarque courte (incohérences de points, choix faits). Vide si rien." },
-    parties: { type: 'array', description: 'Grandes parties du devoir, dans l\'ordre', items: { type: 'object', properties: {
+    parties: { type: 'array', items: { type: 'object', properties: {
       titre: { type: 'string' },
-      criteres: { type: 'array', description: 'Critères évaluables', items: { type: 'object', properties: {
-        intitule: { type: 'string', description: 'Intitulé court du critère' },
-        points: { type: 'number', description: 'Points max de ce critère' },
-        attendus: { type: 'string', description: 'Éléments de correction attendus' },
+      criteres: { type: 'array', items: { type: 'object', properties: {
+        intitule: { type: 'string' }, points: { type: 'number' }, attendus: { type: 'string' },
         competence: { type: 'string', description: 'Compétence courte réutilisable (ex : "Sélectionner des informations", "Restituer / mobiliser ses connaissances", "Raisonner / argumenter", "Exploiter et mettre en relation", "Communiquer / rédiger")' },
-        niveaux: { type: 'array', description: "Si le barème utilise une échelle/curseur (ex 4/3/2/1/0 avec descripteurs), liste les niveaux ; sinon laisse vide.", items: { type: 'object', properties: { points: { type: 'number' }, descripteur: { type: 'string' } }, required: ['points', 'descripteur'] } }
+        niveaux: { type: 'array', description: "Si le barème utilise une échelle/curseur (ex 4/3/2/1/0), liste les niveaux ; sinon vide.", items: { type: 'object', properties: { points: { type: 'number' }, descripteur: { type: 'string' } }, required: ['points', 'descripteur'] } }
       }, required: ['intitule', 'points', 'attendus', 'competence', 'niveaux'] } }
     }, required: ['titre', 'criteres'] } }
   }, required: ['parties', 'remarque'] }
 };
-
 function buildCorrectionTool(grille) {
   const ids = grilleCriteres(grille).map(c => c.id);
   return { name: 'remplir_grille', description: 'Enregistre l\'évaluation de la copie selon la grille.', input_schema: { type: 'object', properties: {
-    evaluations: { type: 'array', description: 'Une évaluation pour CHAQUE critère (aucun oubli).', items: { type: 'object', properties: {
-      critere_id: { type: 'string', enum: ids },
-      points_obtenus: { type: 'number', description: 'Points attribués (demi/quart de point autorisés), entre 0 et le max du critère' },
-      commentaire: { type: 'string', description: "Justification adressée à l'élève" }
+    evaluations: { type: 'array', description: 'Une évaluation pour CHAQUE critère.', items: { type: 'object', properties: {
+      critere_id: { type: 'string', enum: ids }, points_obtenus: { type: 'number' }, commentaire: { type: 'string' }
     }, required: ['critere_id', 'points_obtenus', 'commentaire'] } },
-    observations: { type: 'array', description: "6 à 15 observations précises : chacune cite VERBATIM un extrait de la copie de l'élève, puis le commente. Mélange réussites et erreurs.", items: { type: 'object', properties: {
-      citation: { type: 'string', description: "Extrait exact recopié de la copie (transcris fidèlement si copie manuscrite)" },
-      categorie: { type: 'string', description: "Connaissances | Raisonnement scientifique | Interprétation de documents | Méthodologie | Rédaction / expression" },
-      type: { type: 'string', enum: ['reussite', 'erreur'] },
-      commentaire: { type: 'string', description: "Ce qui est réussi, ou l'erreur et comment la corriger" }
+    observations: { type: 'array', description: "6 à 15 observations : citation VERBATIM d'un extrait de la copie + commentaire. Réussites ET erreurs.", items: { type: 'object', properties: {
+      citation: { type: 'string' }, categorie: { type: 'string', description: "Connaissances | Raisonnement scientifique | Interprétation de documents | Méthodologie | Rédaction / expression" }, type: { type: 'string', enum: ['reussite', 'erreur'] }, commentaire: { type: 'string' }
     }, required: ['citation', 'categorie', 'type', 'commentaire'] } },
-    appreciation_globale: { type: 'string', description: 'Appréciation générale, 1-3 phrases' },
-    points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 réussites, phrases courtes' },
-    points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 axes de progrès prioritaires, phrases courtes actionnables' }
+    appreciation_globale: { type: 'string' },
+    points_forts: { type: 'array', items: { type: 'string' } },
+    points_a_travailler: { type: 'array', items: { type: 'string' } }
   }, required: ['evaluations', 'observations', 'appreciation_globale', 'points_forts', 'points_a_travailler'] } };
 }
-
 const REMEDIATION_TOOL = { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: {
   titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' },
   exercices: { type: 'array', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } },
   competences_ciblees: { type: 'array', items: { type: 'string' } }
 }, required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees'] } };
 
-// ── Fichiers ──
 let mammothPromise = null;
 function loadMammoth() {
   if (window.mammoth) return Promise.resolve();
@@ -591,7 +583,6 @@ async function ingestFiles(list, arr, render) {
   render();
 }
 
-// ── sélecteurs ──
 function fillClasseSelect(sel, selected) {
   sel.innerHTML = db.classes.length === 0 ? '<option value="">— créez une classe (Réglages) —</option>' : db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
   if (selected && db.classes.some(c => c.id === selected)) sel.value = selected;
@@ -621,7 +612,7 @@ $('d2-new').onclick = () => {
   if (!classeId) { alert('Créez d\'abord une classe dans Réglages.'); return; }
   const nom = prompt('Nom du devoir (ex : DS n°2 – Génétique) :'); if (!nom) return;
   const matiere = prompt('Matière (optionnel) :') || '';
-  const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), date: new Date().toISOString(), sujet: '', grilleBrute: '', grille: null };
+  const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), date: new Date().toISOString(), sujet: '', sujetPdf: null, grilleBrute: '', grillePdf: null, grille: null };
   db.devoirs.push(d); saveDB();
   fillDevoirSelect($('d2-devoir'), classeId, d.id, false); renderDevoirEditor();
 };
@@ -635,31 +626,65 @@ function renderDevoirEditor() {
   const d = devoirById($('d2-devoir').value);
   $('d2-editor').style.display = d ? 'flex' : 'none'; if (!d) return;
   $('d2-sujet').value = d.sujet || ''; $('d2-brute').value = d.grilleBrute || '';
+  renderPdfBadge('d2-sujet-badge', d.sujetPdf, () => { d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
+  renderPdfBadge('d2-grille-badge', d.grillePdf, () => { d.grillePdf = null; saveDB(); renderDevoirEditor(); });
   renderGrilleEditor(d);
+}
+function renderPdfBadge(boxId, pdf, onRemove) {
+  const box = $(boxId);
+  if (!pdf) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="pdfbadge">📕 ${esc(pdf.name)} <button class="rm" title="Retirer">✕</button></div>`;
+  box.querySelector('.rm').addEventListener('click', onRemove);
 }
 $('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
 $('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
-$('d2-sujet-import').onclick = () => $('d2-sujet-file').click();
-$('d2-sujet-file').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { $('d2-sujet').value = await docxToText(f); $('d2-sujet').dispatchEvent(new Event('input')); } catch (err) { alert(err.message); } e.target.value = ''; });
-$('d2-brute-import').onclick = () => $('d2-brute-file').click();
-$('d2-brute-file').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { $('d2-brute').value = await docxToText(f); $('d2-brute').dispatchEvent(new Event('input')); } catch (err) { alert(err.message); } e.target.value = ''; });
+
+// Zones PDF sujet / grille
+function wirePdfZone(dzId, inputId, field) {
+  const dz = $(dzId), input = $(inputId);
+  dz.addEventListener('click', () => input.click());
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); handlePdfPick(e.dataTransfer.files, field); });
+  input.addEventListener('change', e => { handlePdfPick(e.target.files, field); e.target.value = ''; });
+}
+async function handlePdfPick(files, field) {
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  const f = files[0]; if (!f) return;
+  if (/\.docx$/i.test(f.name)) {
+    try { const txt = await docxToText(f); if (field === 'sujet') { d.sujet = txt; } else { d.grilleBrute = txt; } d[field === 'sujet' ? 'sujetPdf' : 'grillePdf'] = null; saveDB(); renderDevoirEditor(); }
+    catch (e) { alert('.docx illisible : ' + e.message); }
+    return;
+  }
+  if (f.type !== 'application/pdf') { alert('Déposez un PDF (ou un .docx).'); return; }
+  const base64 = await fileToB64(f);
+  d[field === 'sujet' ? 'sujetPdf' : 'grillePdf'] = { name: f.name, base64 };
+  saveDB(); renderDevoirEditor();
+}
+wirePdfZone('d2-sujet-dz', 'd2-sujet-file', 'sujet');
+wirePdfZone('d2-grille-dz', 'd2-grille-file', 'grille');
 
 $('d2-structurer').onclick = async () => {
   const d = devoirById($('d2-devoir').value), errBox = $('d2-structerr'); errBox.innerHTML = '';
   if (!d) return;
   if (!API_KEY) { $('overlay').classList.remove('off'); return; }
-  if (!(d.grilleBrute || '').trim()) { errBox.innerHTML = '<div class="err-msg">Collez d\'abord votre barème.</div>'; return; }
+  const hasGrille = d.grillePdf || (d.grilleBrute || '').trim();
+  if (!hasGrille) { errBox.innerHTML = '<div class="err-msg">Déposez la grille en PDF, ou collez le barème en texte.</div>'; return; }
   if (d.grille && !confirm('Une grille existe déjà — la remplacer ? (les copies corrigées gardent leurs résultats)')) return;
   $('d2-structloading').style.display = 'flex'; $('d2-structurer').disabled = true;
   try {
+    const content = [{ type: 'text', text: `Transforme la grille/barème de correction ci-dessous en grille structurée. Conserve fidèlement les points. Si des niveaux/curseurs (ex 4/3/2/1/0) existent, remplis "niveaux". Signale toute incohérence dans "remarque".` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '') }];
+    if (d.grillePdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.grillePdf.base64 } });
+    else content.push({ type: 'text', text: '\nBarème :\n' + d.grilleBrute });
+    if (d.sujetPdf) { content.push({ type: 'text', text: 'Sujet distribué (PDF, pour contexte) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
     const out = await callClaude({
-      system: "Tu structures des barèmes de correction. Utilise structurer_grille. Chaque critère porte une compétence courte réutilisable. Si le barème donne des niveaux/curseurs avec descripteurs (ex 4/3/2/1/0), remplis niveaux ; sinon laisse niveaux vide.",
-      userContent: [{ type: 'text', text: `Transforme ce barème en grille structurée. Conserve fidèlement les points. Signale toute incohérence dans "remarque".\n` + (d.sujet ? `\nSujet (contexte) :\n${d.sujet}\n` : '') + `\nBarème :\n${d.grilleBrute}` }],
-      tool: STRUCT_TOOL
+      system: "Tu structures des barèmes de correction. Utilise structurer_grille. Chaque critère porte une compétence courte réutilisable. Remplis niveaux si le barème est à échelles/curseurs.",
+      userContent: content, tool: STRUCT_TOOL
     });
     let n = 0;
     d.grille = { remarque: out.remarque || '', parties: (out.parties || []).map(p => ({ titre: p.titre, criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence, niveaux: (c.niveaux || []).map(nv => ({ points: nv.points, descripteur: nv.descripteur })) })) })) };
-    saveDB(); renderGrilleEditor(d);
+    d.grillePdf = null; // libère l'espace : la grille structurée suffit désormais
+    saveDB(); renderDevoirEditor();
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
   finally { $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false; }
 };
@@ -672,20 +697,14 @@ function renderGrilleEditor(d) {
   $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
   $('d2-grille').innerHTML = d.grille.parties.map((p, pi) => `
     <div class="gpartie">
-      <div class="gpartie-head">
-        <input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}">
-        <span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + critMax(c), 0))} pts</span>
-      </div>
+      <div class="gpartie-head"><input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}"><span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + critMax(c), 0))} pts</span></div>
       ${p.criteres.map((c, ci) => `
-        <div class="gcrit">
-          <div class="cmain">
-            <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}">
-            <div class="cattendus">${esc(c.attendus)}</div>
-            <span class="ccomp">${esc(c.competence)}</span>
-            ${(c.niveaux && c.niveaux.length) ? `<div class="cechelle">${c.niveaux.map(nv => `<div class="cniv"><b>${fmtPts(nv.points)}</b> — ${esc(nv.descripteur)}</div>`).join('')}</div>` : ''}
-          </div>
-          <input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${critMax(c)}" ${(c.niveaux && c.niveaux.length) ? 'readonly title="Défini par les niveaux"' : ''}>
-        </div>`).join('')}
+        <div class="gcrit"><div class="cmain">
+          <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}">
+          <div class="cattendus">${esc(c.attendus)}</div>
+          <span class="ccomp">${esc(c.competence)}</span>
+          ${(c.niveaux && c.niveaux.length) ? `<div class="cechelle">${c.niveaux.map(nv => `<div class="cniv"><b>${fmtPts(nv.points)}</b> — ${esc(nv.descripteur)}</div>`).join('')}</div>` : ''}
+        </div><input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${critMax(c)}" ${(c.niveaux && c.niveaux.length) ? 'readonly title="Défini par les niveaux"' : ''}></div>`).join('')}
     </div>`).join('');
   $('d2-grille').querySelectorAll('input.ptitre').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].titre = inp.value; saveDB(); }));
   $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
@@ -707,10 +726,10 @@ $('c-classe').addEventListener('change', () => { fillDevoirSelect($('c-devoir'),
 $('c-devoir').addEventListener('change', () => { updateGrilleState(); renderHistory(); });
 function updateGrilleState() {
   const d = devoirById($('c-devoir').value), box = $('c-grillestate');
-  if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Devoirs & grilles »).</div>'; return; }
-  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas de grille structurée — allez dans « Devoirs & grilles ».</div>'; return; }
+  if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Évaluations »).</div>'; return; }
+  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas de grille structurée — allez dans « Évaluations ».</div>'; return; }
   const nc = grilleCriteres(d.grille).length;
-  box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
+  box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujetPdf || d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
 }
 document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => chip.addEventListener('click', () => {
   sourceMode = chip.dataset.src;
@@ -749,14 +768,12 @@ function renderQueue() {
   if (queue.length === 0) { box.innerHTML = '<div class="empty">Aucune copie en attente.</div>'; return; }
   const labels = { wait: 'En attente', run: 'Correction…', done: 'À relire', err: 'Erreur' };
   box.innerHTML = queue.map(q => `
-    <div class="qitem">
-      <span class="qname">${esc(q.eleveNom)}</span>
+    <div class="qitem"><span class="qname">${esc(q.eleveNom)}</span>
       <span class="qsrc">${q.kind === 'texte' ? '📝 texte' : q.files.map(f => esc(f.name)).join(', ')}</span>
       <span class="qstatus ${q.status}">${labels[q.status]}${q.status === 'done' && q.result ? ` — ${fmtPts(q.result.note)}/${fmtPts(q.result.note_max)}` : ''}</span>
       ${q.status === 'done' ? `<button class="btn small" data-review="${q.id}">Relire ✔</button>` : ''}
       ${q.status === 'err' ? `<button class="btn secondary small" data-retry="${q.id}" title="${esc(q.error || '')}">↻ Réessayer</button>` : ''}
-      <button class="btn danger small" data-qdel="${q.id}">✕</button>
-    </div>`).join('');
+      <button class="btn danger small" data-qdel="${q.id}">✕</button></div>`).join('');
   box.querySelectorAll('[data-qdel]').forEach(b => b.addEventListener('click', () => { queue = queue.filter(q => q.id !== b.dataset.qdel); renderQueue(); }));
   box.querySelectorAll('[data-retry]').forEach(b => b.addEventListener('click', () => { const q = queue.find(x => x.id === b.dataset.retry); if (q) { q.status = 'wait'; renderQueue(); } }));
   box.querySelectorAll('[data-review]').forEach(b => b.addEventListener('click', () => openReviewQueue(b.dataset.review)));
@@ -783,11 +800,10 @@ async function corrigerCopie(q) {
     if (c.niveaux && c.niveaux.length) s += `\n    Niveaux : ` + c.niveaux.map(nv => `${fmtPts(nv.points)}="${nv.descripteur}"`).join(' ; ');
     return s;
   }).join('\n')).join('\n');
-  const content = [{ type: 'text', text:
-    `Corrige la copie de « ${q.eleveNom} » pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\n` +
-    (d.sujet ? `SUJET :\n${d.sujet}\n\n` : '') +
-    `GRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis le nombre de points correspondant au niveau atteint, demi-niveaux autorisés) :\n${grilleTxt}\n\n` +
-    (q.kind === 'texte' ? 'COPIE (texte) :\n' + q.texte : 'COPIE (documents joints, dans l\'ordre) :') }];
+  const content = [{ type: 'text', text: `Corrige la copie de « ${q.eleveNom} » pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés) :\n${grilleTxt}` }];
+  if (d.sujetPdf) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
+  else if (d.sujet) content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
+  content.push({ type: 'text', text: q.kind === 'texte' ? '\nCOPIE DE L\'ÉLÈVE (texte) :\n' + q.texte : '\nCOPIE DE L\'ÉLÈVE (documents joints, dans l\'ordre) :' });
   if (q.kind === 'fichiers') for (const f of q.files) {
     if (f.isDoc) content.push({ type: 'text', text: `--- ${f.name} ---\n${f.text}` });
     else if (f.isPdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.base64 } });
@@ -807,7 +823,6 @@ async function corrigerCopie(q) {
   return { note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille), appreciation: out.appreciation_globale || '', forts: out.points_forts || [], faibles: out.points_a_travailler || [], observations: out.observations || [], evaluations };
 }
 
-// ── Relecture ──
 function openReviewQueue(qid) { const q = queue.find(x => x.id === qid); if (!q || !q.result) return; reviewTarget = { type: 'queue', id: qid }; reviewData = q.result; showReview(q.result, q.eleveNom); }
 function nivAtteint(ev) {
   if (!ev.niveaux || !ev.niveaux.length) return '';
@@ -817,8 +832,7 @@ function nivAtteint(ev) {
 }
 function showReview(r, eleveNom) {
   $('review-card').style.display = '';
-  $('rv-title').textContent = 'Relecture — ' + eleveNom;
-  $('rv-eleve').textContent = eleveNom;
+  $('rv-title').textContent = 'Relecture — ' + eleveNom; $('rv-eleve').textContent = eleveNom;
   $('rv-note').textContent = fmtPts(r.note); $('rv-notemax').textContent = fmtPts(r.note_max);
   $('rv-appreciation').value = r.appreciation;
   $('rv-forts').innerHTML = (r.forts || []).map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
@@ -849,13 +863,7 @@ function showReview(r, eleveNom) {
 function renderObs(r) {
   const box = $('rv-obs'), obs = r.observations || [];
   if (obs.length === 0) { box.innerHTML = '<div class="empty">Aucune observation.</div>'; return; }
-  box.innerHTML = obs.map((o, i) => `
-    <div class="obs ${o.type === 'reussite' ? 'reussite' : 'erreur'}">
-      <button class="odel" data-oi="${i}" title="Retirer">✕</button>
-      <div class="otag">${o.type === 'reussite' ? '✓' : '✕'} ${esc(o.categorie)}</div>
-      <div class="ocite">« ${esc(o.citation)} »</div>
-      <div class="ocom">${esc(o.commentaire)}</div>
-    </div>`).join('');
+  box.innerHTML = obs.map((o, i) => `<div class="obs ${o.type === 'reussite' ? 'reussite' : 'erreur'}"><button class="odel" data-oi="${i}" title="Retirer">✕</button><div class="otag">${o.type === 'reussite' ? '✓' : '✕'} ${esc(o.categorie)}</div><div class="ocite">« ${esc(o.citation)} »</div><div class="ocom">${esc(o.commentaire)}</div></div>`).join('');
   box.querySelectorAll('.odel').forEach(b => b.addEventListener('click', () => { r.observations.splice(+b.dataset.oi, 1); renderObs(r); }));
 }
 $('rv-close').onclick = () => { $('review-card').style.display = 'none'; reviewTarget = null; reviewData = null; };
@@ -866,7 +874,7 @@ $('rv-save').onclick = () => {
     const q = queue.find(x => x.id === reviewTarget.id); if (!q) return;
     db.copies.push({ id: uid(), devoirId: q.devoirId, classeId: q.classeId, eleveId: q.eleveId, eleveNom: q.eleveNom, date: new Date().toISOString(), ...q.result });
     saveDB(); queue = queue.filter(x => x.id !== q.id);
-  } else { saveDB(); } // édition d'une copie existante : déjà référencée
+  } else { saveDB(); }
   $('review-card').style.display = 'none'; reviewTarget = null; reviewData = null;
   renderQueue(); renderHistory();
 };
@@ -880,10 +888,9 @@ function renderHistory() {
     <td class="noprint"><button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
   box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette copie ?')) return; db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory(); }));
   box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.view); if (!c) return; reviewTarget = { type: 'copie', id: c.id }; reviewData = c; showReview(c, c.eleveNom); }));
-  box.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.print); if (c) printCopie(c, c.eleveNom); }));
+  box.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.print); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
 }
 
-// ── Impression copie corrigée (façon bulletin) ──
 function pdots(taux) {
   const n = taux >= .875 ? 4 : taux >= .625 ? 3 : taux >= .375 ? 2 : taux >= .125 ? 1 : 0;
   const col = n >= 3 ? '#2a9d6a' : '#e08a2a';
@@ -891,9 +898,8 @@ function pdots(taux) {
   return s;
 }
 function printCopie(r, eleveNom) {
-  const dv = devoirById(reviewTarget && reviewTarget.type === 'copie' ? (db.copies.find(c => c.id === reviewTarget.id) || {}).devoirId : (r.devoirId)) || {};
-  const titre = dv.nom || 'Devoir';
-  // compétences agrégées sur cette copie
+  const dvId = (reviewTarget && reviewTarget.type === 'copie') ? (db.copies.find(c => c.id === reviewTarget.id) || {}).devoirId : r.devoirId;
+  const dv = devoirById(dvId) || {}; const titre = dv.nom || 'Devoir';
   const agg = {};
   (r.evaluations || []).forEach(ev => { const k = ev.competence || 'Autre'; if (!agg[k]) agg[k] = { o: 0, m: 0 }; agg[k].o += ev.points_obtenus; agg[k].m += ev.points_max; });
   const comps = Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.m ? v.o / v.m : 0 }));
@@ -907,13 +913,10 @@ function printCopie(r, eleveNom) {
     <div class="pr-head"><div class="pr-title">${esc(titre)}</div><div class="pr-meta">${esc(eleveNom)} · ${new Date(r.date || Date.now()).toLocaleDateString('fr-FR')}</div></div>
     <div class="pr-flex">
       <div class="pr-notebox"><div class="pn">${fmtPts(r.note)}</div><div class="pns">/ ${fmtPts(r.note_max)}</div></div>
-      <div class="pr-comment" style="flex:1">
-        <div class="pr-sec">Commentaire</div>
-        <div>${esc(r.appreciation || '')}</div>
+      <div class="pr-comment" style="flex:1"><div class="pr-sec">Commentaire</div><div>${esc(r.appreciation || '')}</div>
         ${(r.forts || []).length ? `<div class="pr-sec">Réussites</div><ul>${r.forts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
         ${(r.faibles || []).length ? `<div class="pr-sec">À améliorer en priorité</div><ul>${r.faibles.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
-      </div>
-    </div>
+      </div></div>
     ${comps.length ? `<div class="pr-sec">Tableau de compétences</div><div class="pr-compgrid">${comps.map(c => `<div class="pr-comprow"><span>${esc(c.nom)}</span><span>${pdots(c.taux)}</span></div>`).join('')}</div>` : ''}
     <div class="pr-sec">Résultats détaillés</div>${detail}
     ${obs ? `<div class="pr-sec">Observations</div>${obs}` : ''}`;
@@ -960,7 +963,7 @@ function drawDashboard() {
   content.innerHTML = `
     <div class="card"><h3>Résultats ${devoirId ? 'du devoir' : 'de la classe (tous devoirs)'}</h3>
       <div class="statgrid">
-        <div class="stat"><div class="v" style="color:var(--green)">${moy.toFixed(1)}<span style="font-size:.7em;color:var(--muted)">/20</span></div><div class="l">Moyenne</div></div>
+        <div class="stat"><div class="v" style="color:var(--purple)">${moy.toFixed(1)}<span style="font-size:.7em;color:var(--muted2)">/20</span></div><div class="l">Moyenne</div></div>
         <div class="stat"><div class="v">${med.toFixed(1)}</div><div class="l">Médiane</div></div>
         <div class="stat"><div class="v">${q1.toFixed(1)} · ${q3.toFixed(1)}</div><div class="l">Q1 · Q3</div></div>
         <div class="stat"><div class="v">${sur20[0].toFixed(1)} – ${sur20[sur20.length-1].toFixed(1)}</div><div class="l">Min – Max</div></div>
@@ -970,12 +973,9 @@ function drawDashboard() {
     </div>
     <div class="card"><h3>Analyse des apprentissages — compétences</h3><div class="sub">Taux de réussite moyen par compétence.</div>
       ${comps.length === 0 ? '<div class="empty">Pas de données par compétence.</div>' : comps.map(c => `
-        <div class="row" style="gap:10px; margin-bottom:9px">
-          <div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>
-          ${dotsHTML(c.taux)}
-          <div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div>
-          <div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
-        </div>`).join('')}
+        <div class="row" style="gap:10px; margin-bottom:9px"><div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>${dotsHTML(c.taux)}
+        <div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div>
+        <div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div></div>`).join('')}
     </div>
     ${devoirId && critList.length ? `<div class="card"><h3>Réussite par critère du devoir</h3>${critList.map(c => `
       <div class="row" style="gap:10px; margin-bottom:8px"><div style="width:250px; font-size:0.78rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
@@ -999,7 +999,7 @@ function drawEleves() {
   const rows = eleves.map(el => { const cs = db.copies.filter(c => c.eleveId === el.id); const s = cs.filter(c => c.note_max).map(c => (c.note / c.note_max) * 20); const moy = s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; const comps = competenceAgg(cs); return { el, n: cs.length, moy, fragile: comps.length ? comps[0] : null }; });
   list.innerHTML = `<div class="card"><h3>Suivi de la classe ${esc(classe.nom)}</h3>
     <table><thead><tr><th>Élève</th><th>Copies</th><th>Moyenne /20</th><th>Compétence la plus fragile</th></tr></thead><tbody>
-    ${rows.map(r => `<tr class="clickable" data-el="${r.el.id}"><td>${esc(r.el.nom)}</td><td>${r.n}</td><td style="font-family:'DM Mono',monospace">${r.moy === null ? '—' : r.moy.toFixed(1)}</td><td>${r.fragile ? `${esc(r.fragile.nom)} <span style="color:var(--muted);font-family:'DM Mono',monospace">(${(r.fragile.taux * 100).toFixed(0)}%)</span>` : '—'}</td></tr>`).join('')}</tbody></table></div>`;
+    ${rows.map(r => `<tr class="clickable" data-el="${r.el.id}"><td>${esc(r.el.nom)}</td><td>${r.n}</td><td style="font-family:'DM Mono',monospace">${r.moy === null ? '—' : r.moy.toFixed(1)}</td><td>${r.fragile ? `${esc(r.fragile.nom)} <span style="color:var(--muted2);font-family:'DM Mono',monospace">(${(r.fragile.taux * 100).toFixed(0)}%)</span>` : '—'}</td></tr>`).join('')}</tbody></table></div>`;
   list.querySelectorAll('[data-el]').forEach(tr => tr.addEventListener('click', () => { eleveDetailId = tr.dataset.el; drawEleveDetail(); }));
   if (eleveDetailId) drawEleveDetail();
 }
@@ -1078,10 +1078,10 @@ $('s-addeleves').onclick = () => { const c = classeById($('s-classesel').value);
 $('s-delclasse').onclick = () => { const c = classeById($('s-classesel').value); if (!c) return; if (!confirm(`Supprimer la classe « ${c.nom} », ses devoirs et copies ?`)) return; const ids = db.devoirs.filter(d => d.classeId === c.id).map(d => d.id); db.copies = db.copies.filter(cp => !ids.includes(cp.devoirId)); db.devoirs = db.devoirs.filter(d => d.classeId !== c.id); db.classes = db.classes.filter(x => x.id !== c.id); saveDB(); renderSettings(); };
 $('s-export').onclick = () => { const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `correction-ia-export-${new Date().toISOString().slice(0, 10)}.json`; a.click(); };
 $('s-import').onclick = () => $('s-importfile').click();
-$('s-importfile').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const imp = JSON.parse(r.result); if (!confirm('Importer remplacera toutes les données actuelles. Continuer ?')) return; db = imp; saveDB(); renderSettings(); renderCorrection(); } catch (err) { alert('Fichier invalide : ' + err.message); } }; r.readAsText(f); e.target.value = ''; });
-$('s-wipe').onclick = () => { if (!confirm('Effacer TOUTES les données ? Irréversible.')) return; const m = db.model, p = db.profile; db = freshDB(); db.model = m; db.profile = p; saveDB(); renderSettings(); renderCorrection(); };
+$('s-importfile').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const imp = JSON.parse(r.result); if (!confirm('Importer remplacera toutes les données actuelles. Continuer ?')) return; db = imp; saveDB(); renderSettings(); renderDevoirs(); } catch (err) { alert('Fichier invalide : ' + err.message); } }; r.readAsText(f); e.target.value = ''; });
+$('s-wipe').onclick = () => { if (!confirm('Effacer TOUTES les données ? Irréversible.')) return; const m = db.model, p = db.profile; db = freshDB(); db.model = m; db.profile = p; saveDB(); renderSettings(); renderDevoirs(); };
 
-renderCorrection();
+renderDevoirs();
 </script>
 </body>
 </html>
