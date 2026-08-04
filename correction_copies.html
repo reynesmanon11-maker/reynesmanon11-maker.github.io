@@ -18,7 +18,7 @@
   button { font-family: 'Sora', sans-serif; cursor: pointer; }
   textarea, input, select { font-family: 'Sora', sans-serif; }
 
-  /* ── Overlay clé API ── */
+  /* Overlay clé API */
   #overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; padding: 24px; }
   #overlay.off { display: none; }
   .ocard { background: var(--surface); border: 1px solid var(--border2); border-radius: 14px; padding: 32px 28px; max-width: 480px; width: 100%; display: flex; flex-direction: column; gap: 14px; }
@@ -36,14 +36,13 @@
   .checkrow { display: flex; align-items: flex-start; gap: 8px; font-size: 0.74rem; color: var(--muted2); line-height: 1.5; cursor: pointer; }
   .checkrow input { margin-top: 2px; accent-color: var(--green); }
 
-  /* ── Top bar & tabs ── */
   #topbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 22px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap; }
   .logo { font-weight: 700; font-size: 1rem; letter-spacing: -0.02em; }
   .logo span { color: var(--green); }
   .pillbtn { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted2); border-radius: 20px; padding: 6px 13px; font-size: 0.74rem; font-weight: 500; }
   .pillbtn:hover { border-color: var(--green); color: var(--green); }
   #modetabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 22px; background: var(--bg); overflow-x: auto; }
-  .tab { padding: 12px 16px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
+  .tab { padding: 12px 15px; font-size: 0.82rem; font-weight: 500; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; user-select: none; white-space: nowrap; }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--text); border-bottom-color: var(--green); }
 
@@ -97,10 +96,12 @@
   .gcrit input.cint { width: 100%; background: transparent; border: none; color: var(--text); font-size: 0.8rem; outline: none; font-weight: 500; }
   .gcrit .cattendus { color: var(--muted); font-size: 0.72rem; margin-top: 3px; line-height: 1.45; }
   .gcrit .ccomp { display: inline-block; margin-top: 5px; padding: 2px 9px; border-radius: 12px; background: #221a30; color: var(--purple); font-size: 0.68rem; }
+  .gcrit .cechelle { margin-top: 6px; display: flex; flex-direction: column; gap: 3px; }
+  .gcrit .cniv { font-size: 0.68rem; color: var(--muted2); line-height: 1.4; }
+  .gcrit .cniv b { color: var(--blue); font-family: 'DM Mono', monospace; }
   .gcrit input.cpts { width: 52px; background: var(--surface); border: 1px solid var(--border2); border-radius: 6px; color: var(--amber); font-family: 'DM Mono', monospace; font-size: 0.78rem; padding: 4px 6px; text-align: center; outline: none; }
   .notemax-badge { font-family: 'DM Mono', monospace; font-size: 1.4rem; color: var(--green); }
 
-  /* File d'attente correction */
   .qitem { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px; margin-bottom: 8px; flex-wrap: wrap; }
   .qitem .qname { font-weight: 600; font-size: 0.84rem; min-width: 110px; }
   .qitem .qsrc { color: var(--muted); font-size: 0.72rem; flex: 1; }
@@ -110,7 +111,6 @@
   .qstatus.done { background: #14261a; color: var(--green); }
   .qstatus.err { background: #2a1418; color: var(--red); }
 
-  /* Review */
   .noteBig { font-family: 'DM Mono', monospace; font-size: 2rem; font-weight: 500; color: var(--green); }
   .noteBig small { font-size: 1rem; color: var(--muted); }
   .rcrit { padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -119,8 +119,24 @@
   .rcrit .rname { flex: 1; font-size: 0.8rem; font-weight: 500; }
   .rcrit input.rpts { width: 58px; background: var(--surface2); border: 1px solid var(--border2); border-radius: 6px; color: var(--green); font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 4px 6px; text-align: center; outline: none; }
   .rcrit .rmax { font-family: 'DM Mono', monospace; color: var(--muted); font-size: 0.78rem; }
+  .rcrit .rniv { font-size: 0.7rem; color: var(--blue); margin-top: 3px; }
   .rcrit textarea.rcom { width: 100%; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; color: var(--muted2); font-size: 0.76rem; padding: 6px 9px; resize: vertical; min-height: 34px; outline: none; line-height: 1.5; }
   .rpartie-label { font-size: 0.72rem; color: var(--purple); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; margin-top: 12px; }
+
+  /* pastilles compétences */
+  .dots { display: inline-flex; gap: 3px; align-items: center; }
+  .pdot { width: 11px; height: 11px; border-radius: 50%; border: 1.5px solid var(--border2); display: inline-block; }
+
+  /* observations */
+  .obs { border: 1px solid var(--border2); border-radius: 8px; padding: 9px 12px; margin-bottom: 8px; }
+  .obs.reussite { border-color: #245030; background: #12211680; }
+  .obs.erreur { border-color: #5a2a30; background: #26141880; }
+  .obs .otag { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 4px; }
+  .obs.reussite .otag { color: var(--green); }
+  .obs.erreur .otag { color: var(--red); }
+  .obs .ocite { font-style: italic; color: var(--text); font-size: 0.78rem; border-left: 2px solid var(--border2); padding-left: 8px; line-height: 1.5; }
+  .obs .ocom { font-size: 0.76rem; color: var(--muted2); margin-top: 5px; line-height: 1.5; }
+  .obs .odel { float: right; background: none; border: none; color: var(--muted); font-size: 0.8rem; }
 
   .taglist { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
   .tag { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; }
@@ -140,7 +156,6 @@
   .stat .v { font-family: 'DM Mono', monospace; font-size: 1.3rem; }
   .stat .l { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
 
-  /* Histogramme */
   .histo { display: flex; align-items: flex-end; gap: 3px; height: 120px; margin-top: 14px; padding-bottom: 4px; }
   .histo .hb { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 3px; height: 100%; }
   .histo .hbar { width: 100%; background: var(--purple); border-radius: 3px 3px 0 0; min-height: 2px; opacity: .85; }
@@ -156,11 +171,39 @@
   .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; white-space: pre-wrap; line-height: 1.6; }
   .elrow { display: flex; align-items: center; gap: 8px; padding: 6px 10px; background: var(--surface2); border-radius: 8px; margin-bottom: 6px; font-size: 0.8rem; }
   .elrow .eln { flex: 1; }
+
+  /* ── Impression : copie corrigée façon bulletin ── */
+  #printroot { display: none; }
   @media print {
-    #topbar, #modetabs, .noprint { display: none !important; }
-    body { background: #fff; color: #111; }
-    .card { border-color: #ccc; background: #fff; }
-    .exlist .ex { background: #fff; border-color: #ccc; }
+    #overlay, #topbar, #modetabs, #main { display: none !important; }
+    #printroot { display: block !important; }
+    body { background: #fff; color: #1a1a2e; font-size: 11pt; }
+    .pr-head { text-align: center; border-bottom: 2px solid #5b57d6; padding-bottom: 10px; margin-bottom: 16px; }
+    .pr-head .pr-title { font-size: 16pt; font-weight: 700; color: #3f3aad; }
+    .pr-head .pr-meta { font-size: 9pt; color: #666; margin-top: 3px; }
+    .pr-flex { display: flex; gap: 18px; align-items: flex-start; margin-bottom: 16px; }
+    .pr-notebox { border: 1.5px solid #cdd; border-radius: 8px; padding: 12px 18px; text-align: center; }
+    .pr-notebox .pn { font-size: 22pt; font-weight: 700; color: #3f3aad; }
+    .pr-notebox .pns { font-size: 11pt; color: #888; }
+    .pr-sec { font-weight: 700; color: #3f3aad; font-size: 11pt; margin: 14px 0 6px; }
+    .pr-comment b { color: #1a1a2e; }
+    .pr-comment ul { margin: 4px 0 8px 18px; }
+    .pr-comment li { margin-bottom: 3px; }
+    .pr-compgrid { border: 1px solid #ddd; border-radius: 6px; overflow: hidden; margin-bottom: 12px; }
+    .pr-comprow { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; border-bottom: 1px solid #eee; font-size: 10pt; }
+    .pr-comprow:last-child { border-bottom: none; }
+    .pr-pdot { width: 11px; height: 11px; border-radius: 50%; border: 1.4px solid #bbb; display: inline-block; margin-left: 3px; }
+    .pr-crit { border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; page-break-inside: avoid; }
+    .pr-crit .pc-h { display: flex; justify-content: space-between; background: #f4f4fb; padding: 6px 12px; font-weight: 600; font-size: 10pt; }
+    .pr-crit .pc-b { padding: 7px 12px; font-size: 9.5pt; color: #333; line-height: 1.5; }
+    .pr-obs { border: 1px solid #eee; border-left-width: 3px; border-radius: 5px; padding: 6px 10px; margin-bottom: 6px; page-break-inside: avoid; }
+    .pr-obs.reussite { border-left-color: #2a9d6a; background: #f2fbf6; }
+    .pr-obs.erreur { border-left-color: #d66; background: #fdf2f4; }
+    .pr-obs .po-t { font-size: 7.5pt; font-weight: 700; text-transform: uppercase; }
+    .pr-obs.reussite .po-t { color: #2a9d6a; }
+    .pr-obs.erreur .po-t { color: #c0485a; }
+    .pr-obs .po-c { font-style: italic; font-size: 9pt; border-left: 2px solid #ccc; padding-left: 7px; margin: 3px 0; }
+    .pr-obs .po-x { font-size: 9pt; color: #444; }
   }
 </style>
 </head>
@@ -181,15 +224,11 @@
   </div>
 </div>
 
-<!-- Top bar -->
 <div id="topbar">
   <div class="logo">Correction·<span>IA</span></div>
-  <div class="row">
-    <button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button>
-  </div>
+  <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
-<!-- Tabs -->
 <div id="modetabs">
   <div class="tab active" data-tab="correction">✍️ Correction</div>
   <div class="tab" data-tab="devoirs">📚 Devoirs & grilles</div>
@@ -201,11 +240,11 @@
 
 <div id="main">
 
-  <!-- ══════════ CORRECTION ══════════ -->
+  <!-- CORRECTION -->
   <div class="panel active" id="panel-correction">
     <div class="card">
       <h3>1. Devoir à corriger</h3>
-      <div class="sub">La grille structurée du devoir sera remplie automatiquement pour chaque copie. Créez d'abord le devoir et sa grille dans l'onglet « Devoirs & grilles ».</div>
+      <div class="sub">La grille structurée du devoir est remplie automatiquement pour chaque copie. Créez d'abord le devoir et sa grille dans « Devoirs & grilles ».</div>
       <div class="row">
         <div class="col"><label>Classe</label><select id="c-classe"></select></div>
         <div class="col"><label>Devoir</label><select id="c-devoir"></select></div>
@@ -215,9 +254,7 @@
 
     <div class="card" id="c-addcard">
       <h3>2. Ajouter des copies à la file</h3>
-      <div class="row">
-        <div class="col"><label>Élève</label><select id="c-eleve"></select></div>
-      </div>
+      <div class="row"><div class="col"><label>Élève</label><select id="c-eleve"></select></div></div>
       <div class="tabbar2" style="margin-top:12px">
         <div class="chip on" data-src="fichiers">📎 Fichiers (photos / PDF / Word)</div>
         <div class="chip" data-src="texte">📝 Texte collé</div>
@@ -228,9 +265,7 @@
         <input type="file" id="c-fileinput" accept="image/png,image/jpeg,image/webp,image/gif,application/pdf,.docx" multiple style="display:none">
         <div class="filelist" id="c-filelist"></div>
       </div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn secondary" id="c-addqueue">➕ Ajouter à la file</button>
-      </div>
+      <div class="row" style="margin-top:12px"><button class="btn secondary" id="c-addqueue">➕ Ajouter à la file</button></div>
       <div id="c-adderr"></div>
     </div>
 
@@ -245,21 +280,24 @@
 
     <div class="card" id="review-card" style="display:none">
       <h3 id="rv-title">Relecture</h3>
-      <div class="sub">Vérifiez et ajustez la correction proposée avant de l'enregistrer — vous restez maître de la note.</div>
+      <div class="sub">Vérifiez et ajustez la correction proposée — vous restez maître de la note.</div>
       <div class="row" style="align-items:flex-end; gap:16px; margin:6px 0 10px">
         <div class="noteBig"><span id="rv-note">0</span> <small>/ <span id="rv-notemax">20</span></small></div>
         <span class="tag info" id="rv-eleve"></span>
       </div>
       <label>Appréciation générale</label>
       <textarea class="field" id="rv-appreciation" style="min-height:56px"></textarea>
-      <div id="rv-grid" style="margin-top:8px"></div>
-      <div class="row" style="margin-top:14px; gap:24px; align-items:flex-start">
-        <div class="col"><label>✅ Points forts</label><div id="rv-forts" class="taglist"></div></div>
-        <div class="col"><label>⚠️ Points à travailler</label><div id="rv-faibles" class="taglist"></div></div>
+      <div class="row" style="margin-top:10px; gap:24px; align-items:flex-start">
+        <div class="col"><label>✅ Réussites</label><div id="rv-forts" class="taglist"></div></div>
+        <div class="col"><label>⚠️ À améliorer en priorité</label><div id="rv-faibles" class="taglist"></div></div>
       </div>
+      <div class="rpartie-label">Résultats détaillés</div>
+      <div id="rv-grid"></div>
+      <div class="rpartie-label">Observations sur la copie</div>
+      <div id="rv-obs"></div>
       <div class="row noprint" style="margin-top:16px">
         <button class="btn" id="rv-save">💾 Valider & enregistrer</button>
-        <button class="btn secondary" id="rv-print">🖨️ Imprimer</button>
+        <button class="btn secondary" id="rv-print">🖨️ Imprimer la copie corrigée</button>
         <button class="btn secondary" id="rv-close">Fermer sans enregistrer</button>
       </div>
     </div>
@@ -270,7 +308,7 @@
     </div>
   </div>
 
-  <!-- ══════════ DEVOIRS ══════════ -->
+  <!-- DEVOIRS -->
   <div class="panel" id="panel-devoirs">
     <div class="card">
       <h3>Devoirs</h3>
@@ -281,22 +319,20 @@
         <button class="btn danger small" id="d2-del" style="align-self:flex-end">Supprimer</button>
       </div>
     </div>
-
     <div id="d2-editor" style="display:none; flex-direction:column; gap:18px">
       <div class="card">
         <h3>Sujet du devoir <span style="color:var(--muted);font-weight:400">(recommandé)</span></h3>
-        <div class="sub">Le sujet donné aux élèves aide l'IA à comprendre ce qui était attendu. Collez-le ou importez un fichier Word.</div>
+        <div class="sub">Le sujet donné aux élèves aide l'IA à comprendre ce qui était attendu. Collez-le ou importez un .docx.</div>
         <textarea class="field" id="d2-sujet" placeholder="Collez ici l'énoncé du devoir…"></textarea>
         <div class="row" style="margin-top:8px">
           <button class="btn secondary small" id="d2-sujet-import">📄 Importer un .docx</button>
           <input type="file" id="d2-sujet-file" accept=".docx" style="display:none">
         </div>
       </div>
-
       <div class="card">
         <h3>Grille de correction</h3>
-        <div class="sub">Collez votre barème détaillé (parties, questions, points, attendus de correction), puis laissez l'IA le structurer en grille. Vous pourrez tout ajuster ensuite.</div>
-        <textarea class="field" id="d2-brute" style="min-height:130px" placeholder="Ex :&#10;Partie 1 – Restitution (6 pts)&#10;  Q1. Définir la mitose (2 pts) – attendu : définition + étapes&#10;  Q2. Schéma légendé (4 pts) – attendu : 4 légendes exactes&#10;Partie 2 – Raisonnement (12 pts)&#10;  …"></textarea>
+        <div class="sub">Collez votre barème détaillé (parties, questions, points OU niveaux/curseurs avec descripteurs, attendus), puis laissez l'IA le structurer. Les grilles à échelles (4/3/2/1/0) sont reconnues.</div>
+        <textarea class="field" id="d2-brute" style="min-height:130px" placeholder="Ex. barème par points OU grille à niveaux :&#10;Analyse des documents (4 pts) :&#10;  4 = infos pertinentes, rigoureuses et complètes + connaissances complètes&#10;  3 = pertinentes mais connaissances insuffisantes&#10;  2 = incomplètes…&#10;  1 = quelques éléments…  0 = absence"></textarea>
         <div class="row" style="margin-top:8px">
           <button class="btn secondary small" id="d2-brute-import">📄 Importer un .docx</button>
           <input type="file" id="d2-brute-file" accept=".docx" style="display:none">
@@ -305,7 +341,6 @@
         <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
         <div id="d2-structerr"></div>
       </div>
-
       <div class="card" id="d2-grillecard" style="display:none">
         <div class="row" style="justify-content:space-between; margin-bottom:8px">
           <h3 style="margin:0">Grille structurée <span style="color:var(--muted);font-weight:400">(modifiable)</span></h3>
@@ -317,37 +352,29 @@
     </div>
   </div>
 
-  <!-- ══════════ DASHBOARD ══════════ -->
+  <!-- DASHBOARD -->
   <div class="panel" id="panel-dashboard">
-    <div class="card">
-      <div class="row">
-        <div class="col"><label>Classe</label><select id="db-classe"></select></div>
-        <div class="col"><label>Devoir</label><select id="db-devoir"></select></div>
-      </div>
-    </div>
+    <div class="card"><div class="row">
+      <div class="col"><label>Classe</label><select id="db-classe"></select></div>
+      <div class="col"><label>Devoir</label><select id="db-devoir"></select></div>
+    </div></div>
     <div id="db-content"></div>
   </div>
 
-  <!-- ══════════ ÉLÈVES ══════════ -->
+  <!-- ÉLÈVES -->
   <div class="panel" id="panel-eleves">
-    <div class="card">
-      <div class="row">
-        <div class="col"><label>Classe</label><select id="e-classe"></select></div>
-      </div>
-    </div>
+    <div class="card"><div class="row"><div class="col"><label>Classe</label><select id="e-classe"></select></div></div></div>
     <div id="e-list"></div>
     <div id="e-detail"></div>
   </div>
 
-  <!-- ══════════ REMÉDIATION ══════════ -->
+  <!-- REMÉDIATION -->
   <div class="panel" id="panel-remediation">
     <div class="card">
       <h3>Générer une activité de remédiation</h3>
-      <div class="sub">Basée sur les compétences fragiles mesurées lors des corrections — pour toute la classe ou pour un élève en particulier.</div>
+      <div class="sub">Basée sur les compétences fragiles mesurées — pour toute la classe ou pour un élève.</div>
       <div class="row">
-        <div class="col"><label>Pour</label>
-          <select id="m-mode"><option value="classe">Toute la classe</option><option value="eleve">Un élève</option></select>
-        </div>
+        <div class="col"><label>Pour</label><select id="m-mode"><option value="classe">Toute la classe</option><option value="eleve">Un élève</option></select></div>
         <div class="col"><label>Classe</label><select id="m-classe"></select></div>
         <div class="col" id="m-elevecol" style="display:none"><label>Élève</label><select id="m-eleve"></select></div>
       </div>
@@ -355,9 +382,7 @@
         <label>Compétences / notions à cibler (pré-rempli automatiquement)</label>
         <textarea class="field" id="m-cible" style="min-height:56px"></textarea>
       </div>
-      <div class="row" style="margin-top:12px">
-        <button class="btn" id="m-generer">✨ Générer l'activité →</button>
-      </div>
+      <div class="row" style="margin-top:12px"><button class="btn" id="m-generer">✨ Générer l'activité →</button></div>
       <div id="m-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Génération en cours…</div>
       <div id="m-error"></div>
     </div>
@@ -370,43 +395,33 @@
     </div>
   </div>
 
-  <!-- ══════════ RÉGLAGES ══════════ -->
+  <!-- RÉGLAGES -->
   <div class="panel" id="panel-settings">
     <div class="card">
       <h3>Profil de correcteur</h3>
-      <div class="sub">Ces réglages s'appliquent à toutes les corrections (commentaires adressés à l'élève).</div>
+      <div class="sub">S'applique à toutes les corrections (commentaires adressés à l'élève).</div>
       <div class="row">
-        <div class="col"><label>Ton</label>
-          <select id="s-ton"><option value="bienveillant">😊 Bienveillant</option><option value="neutre" selected>😐 Neutre</option><option value="exigeant">🎯 Exigeant</option></select>
-        </div>
-        <div class="col"><label>Énonciation</label>
-          <select id="s-enonc"><option value="tutoiement" selected>🤝 Tutoiement</option><option value="vouvoiement">🎩 Vouvoiement</option></select>
-        </div>
-        <div class="col"><label>Longueur des commentaires</label>
-          <select id="s-longueur"><option value="courte">Courte</option><option value="standard" selected>⚖️ Standard</option><option value="detaillee">Détaillée</option></select>
-        </div>
+        <div class="col"><label>Ton</label><select id="s-ton"><option value="bienveillant">😊 Bienveillant</option><option value="neutre" selected>😐 Neutre</option><option value="exigeant">🎯 Exigeant</option></select></div>
+        <div class="col"><label>Énonciation</label><select id="s-enonc"><option value="tutoiement" selected>🤝 Tutoiement</option><option value="vouvoiement">🎩 Vouvoiement</option></select></div>
+        <div class="col"><label>Longueur des commentaires</label><select id="s-longueur"><option value="courte">Courte</option><option value="standard" selected>⚖️ Standard</option><option value="detaillee">Détaillée</option></select></div>
       </div>
     </div>
-
     <div class="card">
       <h3>Modèle IA</h3>
-      <div class="sub">Sonnet : recommandé (précision/coût). Opus : le plus fin sur les copies difficiles. Haiku : rapide et économique pour de gros volumes.</div>
+      <div class="sub">Sonnet : recommandé. Opus : le plus fin sur les copies difficiles. Haiku : rapide et économique.</div>
       <select id="s-model" style="max-width:340px">
         <option value="claude-sonnet-5">Claude Sonnet 5 (recommandé)</option>
         <option value="claude-opus-5">Claude Opus 5 (le plus précis)</option>
         <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (rapide)</option>
       </select>
     </div>
-
     <div class="card">
       <h3>Classes & élèves</h3>
       <div class="row" style="margin-bottom:10px">
         <input class="field" id="s-newclasse" placeholder="Nom de la nouvelle classe (ex : 2nde 4)" style="max-width:240px">
         <button class="btn secondary small" id="s-addclasse">+ Créer la classe</button>
       </div>
-      <div class="row" style="margin-bottom:8px">
-        <div class="col"><label>Classe à gérer</label><select id="s-classesel" style="max-width:240px"></select></div>
-      </div>
+      <div class="row" style="margin-bottom:8px"><div class="col"><label>Classe à gérer</label><select id="s-classesel" style="max-width:240px"></select></div></div>
       <div id="s-eleves"></div>
       <div class="col" style="margin-top:10px">
         <label>Ajouter des élèves (un par ligne — ex : « Emma R. »)</label>
@@ -415,10 +430,9 @@
         <button class="btn danger small" id="s-delclasse">🗑️ Supprimer cette classe</button></div>
       </div>
     </div>
-
     <div class="card">
       <h3>Données</h3>
-      <div class="sub">Tout est stocké uniquement dans ce navigateur (localStorage). Exportez régulièrement pour sauvegarder (et pour transférer sur un autre ordinateur).</div>
+      <div class="sub">Tout est stocké uniquement dans ce navigateur (localStorage). Exportez régulièrement pour sauvegarder / transférer.</div>
       <div class="row">
         <button class="btn secondary" id="s-export">⬇️ Exporter (JSON)</button>
         <button class="btn secondary" id="s-import">⬆️ Importer</button>
@@ -430,70 +444,53 @@
 
 </div>
 
+<div id="printroot"></div>
+
 <script>
 'use strict';
-// ════════════════════════════════════════════════════════════════
-// État & persistance
-// ════════════════════════════════════════════════════════════════
 const DB_KEY = 'corrIA_db_v2';
 const KEY_STORE = 'corrIA_apikey';
 let API_KEY = '';
 let db = loadDB();
-let queue = [];           // {id, eleveId, eleveNom, kind:'texte'|'fichiers', texte, files:[{name,mediaType,base64,isDoc}], status, result, error}
-let pendingFiles = [];    // fichiers en cours d'ajout
+let queue = [];
+let pendingFiles = [];
 let sourceMode = 'fichiers';
-let reviewTarget = null;  // {type:'queue'|'copie', id}
+let reviewTarget = null;
+let reviewData = null;   // objet correction en cours de relecture (référence directe)
 
 function $(id) { return document.getElementById(id); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
 function saveDB() { localStorage.setItem(DB_KEY, JSON.stringify(db)); }
-function freshDB() {
-  return { version: 2, model: 'claude-sonnet-5',
-    profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' },
-    classes: [], devoirs: [], copies: [] };
-}
+function freshDB() { return { version: 3, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' }, classes: [], devoirs: [], copies: [] }; }
 function loadDB() {
   try {
     const raw = localStorage.getItem(DB_KEY);
     if (raw) return JSON.parse(raw);
-    // migration depuis v1
     const old = localStorage.getItem('corrIA_db_v1');
     if (old) {
-      const v1 = JSON.parse(old);
-      const d = freshDB();
+      const v1 = JSON.parse(old); const d = freshDB();
       d.model = v1.model || d.model;
       d.classes = (v1.classes || []).map(c => ({ id: c.id, nom: c.nom, eleves: [] }));
       d.devoirs = (v1.devoirs || []).map(dv => ({ id: dv.id, classeId: dv.classeId, nom: dv.nom, matiere: dv.matiere || '', date: dv.date, sujet: '', grilleBrute: dv.bareme || '', grille: null }));
-      d.copies = (v1.copies || []).map(cp => ({ id: cp.id, devoirId: cp.devoirId, eleveId: null, eleveNom: cp.eleve, date: cp.date,
-        note: cp.note, note_max: cp.note_max, appreciation: cp.appreciation_globale || '',
-        evaluations: (cp.details || []).map(dt => ({ critereId: null, intitule: dt.critere, competence: '', points_obtenus: dt.points_obtenus, points_max: dt.points_max, commentaire: dt.commentaire })),
-        forts: cp.points_forts || [], faibles: cp.points_a_travailler || [] }));
+      d.copies = (v1.copies || []).map(cp => ({ id: cp.id, devoirId: cp.devoirId, eleveId: null, eleveNom: cp.eleve, date: cp.date, note: cp.note, note_max: cp.note_max, appreciation: cp.appreciation_globale || '', evaluations: (cp.details || []).map(dt => ({ critereId: null, intitule: dt.critere, competence: '', points_obtenus: dt.points_obtenus, points_max: dt.points_max, commentaire: dt.commentaire })), forts: cp.points_forts || [], faibles: cp.points_a_travailler || [], observations: [] }));
       return d;
     }
-  } catch (e) { console.warn('DB load failed', e); }
+  } catch (e) { console.warn(e); }
   return freshDB();
 }
 const classeById = id => db.classes.find(c => c.id === id);
 const devoirById = id => db.devoirs.find(d => d.id === id);
 const eleveById = (classe, id) => classe ? (classe.eleves || []).find(e => e.id === id) : null;
-function grilleCriteres(grille) { // liste plate des critères avec ref partie
-  const out = [];
-  (grille?.parties || []).forEach(p => (p.criteres || []).forEach(c => out.push({ ...c, partie: p.titre })));
-  return out;
-}
-function grilleNoteMax(grille) { return grilleCriteres(grille).reduce((s, c) => s + (parseFloat(c.points) || 0), 0); }
+function grilleCriteres(g) { const out = []; (g?.parties || []).forEach(p => (p.criteres || []).forEach(c => out.push({ ...c, partie: p.titre }))); return out; }
+function critMax(c) { return (c.niveaux && c.niveaux.length) ? Math.max(...c.niveaux.map(n => parseFloat(n.points) || 0)) : (parseFloat(c.points) || 0); }
+function grilleNoteMax(g) { return grilleCriteres(g).reduce((s, c) => s + critMax(c), 0); }
 
-// ════════════════════════════════════════════════════════════════
-// Clé API
-// ════════════════════════════════════════════════════════════════
-(function initKey() {
-  const stored = localStorage.getItem(KEY_STORE);
-  if (stored) { API_KEY = stored; $('overlay').classList.add('off'); }
-})();
+// clé
+(function () { const s = localStorage.getItem(KEY_STORE); if (s) { API_KEY = s; $('overlay').classList.add('off'); } })();
 function tryKey() {
-  const v = $('keyinput').value.trim();
-  const err = $('keyerr');
+  const v = $('keyinput').value.trim(), err = $('keyerr');
   if (!v.startsWith('sk-ant-')) { err.textContent = '❌ La clé doit commencer par "sk-ant-".'; err.classList.add('on'); return; }
   API_KEY = v; err.classList.remove('on');
   if ($('keyremember').checked) localStorage.setItem(KEY_STORE, v);
@@ -503,208 +500,115 @@ $('keybtn').onclick = tryKey;
 $('keyinput').addEventListener('keydown', e => { if (e.key === 'Enter') tryKey(); });
 $('forgetKeyBtn').onclick = () => { API_KEY = ''; localStorage.removeItem(KEY_STORE); $('keyinput').value = ''; $('overlay').classList.remove('off'); };
 
-// ════════════════════════════════════════════════════════════════
-// Onglets
-// ════════════════════════════════════════════════════════════════
 document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + name));
-  ({ correction: renderCorrection, devoirs: renderDevoirs, dashboard: renderDashboard,
-     eleves: renderEleves, remediation: renderRemediation, settings: renderSettings }[name] || (()=>{}))();
+  ({ correction: renderCorrection, devoirs: renderDevoirs, dashboard: renderDashboard, eleves: renderEleves, remediation: renderRemediation, settings: renderSettings }[name] || (()=>{}))();
 }
 
-// ════════════════════════════════════════════════════════════════
-// Appels API Claude
-// ════════════════════════════════════════════════════════════════
+// ── API ──
 async function callClaude({ system, userContent, tool, maxTokens }) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': API_KEY,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    },
-    body: JSON.stringify({
-      model: db.model || 'claude-sonnet-5',
-      max_tokens: maxTokens || 8192,
-      system,
-      messages: [{ role: 'user', content: userContent }],
-      tools: [tool],
-      tool_choice: { type: 'tool', name: tool.name }
-    })
+    headers: { 'content-type': 'application/json', 'x-api-key': API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: db.model || 'claude-sonnet-5', max_tokens: maxTokens || 8192, system, messages: [{ role: 'user', content: userContent }], tools: [tool], tool_choice: { type: 'tool', name: tool.name } })
   });
-  if (!res.ok) {
-    const t = await res.text().catch(() => '');
-    throw new Error(`Erreur API (${res.status}) : ${t.slice(0, 300) || res.statusText}`);
-  }
+  if (!res.ok) { const t = await res.text().catch(() => ''); throw new Error(`Erreur API (${res.status}) : ${t.slice(0, 300) || res.statusText}`); }
   const data = await res.json();
-  const toolUse = (data.content || []).find(b => b.type === 'tool_use');
-  if (!toolUse) throw new Error("Réponse structurée manquante — réessayez.");
-  return toolUse.input;
+  const tu = (data.content || []).find(b => b.type === 'tool_use');
+  if (!tu) throw new Error('Réponse structurée manquante — réessayez.');
+  return tu.input;
 }
-
 function profileDirectives() {
   const p = db.profile || {};
   const ton = { bienveillant: 'un ton chaleureux et encourageant', neutre: 'un ton neutre et professionnel', exigeant: 'un ton exigeant et direct, sans complaisance' }[p.ton || 'neutre'];
-  const enonc = p.enonc === 'vouvoiement' ? 'Vouvoie l\'élève dans les commentaires.' : 'Tutoie l\'élève dans les commentaires.';
-  const lg = { courte: 'Commentaires très courts (une phrase max par critère).', standard: 'Commentaires d\'une à deux phrases par critère.', detaillee: 'Commentaires détaillés (2 à 4 phrases par critère, en citant des éléments précis de la copie).' }[p.longueur || 'standard'];
+  const enonc = p.enonc === 'vouvoiement' ? "Vouvoie l'élève." : "Tutoie l'élève.";
+  const lg = { courte: 'Commentaires très courts.', standard: "Commentaires d'une à deux phrases.", detaillee: 'Commentaires détaillés (2 à 4 phrases, en citant des éléments précis de la copie).' }[p.longueur || 'standard'];
   return `Adopte ${ton}. ${enonc} ${lg}`;
 }
 
 const STRUCT_TOOL = {
   name: 'structurer_grille',
   description: 'Enregistre la grille de correction structurée.',
-  input_schema: {
-    type: 'object',
-    properties: {
-      remarque: { type: 'string', description: "Remarque courte sur la structuration (incohérences de points détectées, choix faits). Vide si rien à signaler." },
-      parties: {
-        type: 'array',
-        description: 'Les grandes parties du devoir, dans l\'ordre',
-        items: {
-          type: 'object',
-          properties: {
-            titre: { type: 'string' },
-            criteres: {
-              type: 'array',
-              description: 'Critères évaluables de cette partie (questions, attendus)',
-              items: {
-                type: 'object',
-                properties: {
-                  intitule: { type: 'string', description: 'Intitulé court du critère (ex : "Q1. Définition de la mitose")' },
-                  points: { type: 'number', description: 'Points max de ce critère' },
-                  attendus: { type: 'string', description: 'Éléments de correction attendus pour ce critère' },
-                  competence: { type: 'string', description: 'Compétence travaillée, formulée courte et réutilisable entre devoirs (ex : "Restituer des connaissances", "Exploiter des documents", "Raisonner / argumenter", "Communiquer (schéma, rédaction)")' }
-                },
-                required: ['intitule', 'points', 'attendus', 'competence']
-              }
-            }
-          },
-          required: ['titre', 'criteres']
-        }
-      }
-    },
-    required: ['parties', 'remarque']
-  }
+  input_schema: { type: 'object', properties: {
+    remarque: { type: 'string', description: "Remarque courte (incohérences de points, choix faits). Vide si rien." },
+    parties: { type: 'array', description: 'Grandes parties du devoir, dans l\'ordre', items: { type: 'object', properties: {
+      titre: { type: 'string' },
+      criteres: { type: 'array', description: 'Critères évaluables', items: { type: 'object', properties: {
+        intitule: { type: 'string', description: 'Intitulé court du critère' },
+        points: { type: 'number', description: 'Points max de ce critère' },
+        attendus: { type: 'string', description: 'Éléments de correction attendus' },
+        competence: { type: 'string', description: 'Compétence courte réutilisable (ex : "Sélectionner des informations", "Restituer / mobiliser ses connaissances", "Raisonner / argumenter", "Exploiter et mettre en relation", "Communiquer / rédiger")' },
+        niveaux: { type: 'array', description: "Si le barème utilise une échelle/curseur (ex 4/3/2/1/0 avec descripteurs), liste les niveaux ; sinon laisse vide.", items: { type: 'object', properties: { points: { type: 'number' }, descripteur: { type: 'string' } }, required: ['points', 'descripteur'] } }
+      }, required: ['intitule', 'points', 'attendus', 'competence', 'niveaux'] } }
+    }, required: ['titre', 'criteres'] } }
+  }, required: ['parties', 'remarque'] }
 };
 
 function buildCorrectionTool(grille) {
   const ids = grilleCriteres(grille).map(c => c.id);
-  return {
-    name: 'remplir_grille',
-    description: 'Enregistre l\'évaluation de la copie, critère par critère, selon la grille fournie.',
-    input_schema: {
-      type: 'object',
-      properties: {
-        evaluations: {
-          type: 'array',
-          description: 'Une évaluation pour CHAQUE critère de la grille (aucun oubli).',
-          items: {
-            type: 'object',
-            properties: {
-              critere_id: { type: 'string', enum: ids },
-              points_obtenus: { type: 'number', description: 'Points attribués (demi-points et quarts autorisés), entre 0 et le max du critère' },
-              commentaire: { type: 'string', description: 'Justification adressée à l\'élève : ce qui est réussi, ce qui manque' }
-            },
-            required: ['critere_id', 'points_obtenus', 'commentaire']
-          }
-        },
-        appreciation_globale: { type: 'string', description: 'Appréciation générale de la copie (structure : appréciation, forces, faiblesses), 2-4 phrases' },
-        points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 points forts courts' },
-        points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 axes de progrès courts, formulés comme des compétences' }
-      },
-      required: ['evaluations', 'appreciation_globale', 'points_forts', 'points_a_travailler']
-    }
-  };
+  return { name: 'remplir_grille', description: 'Enregistre l\'évaluation de la copie selon la grille.', input_schema: { type: 'object', properties: {
+    evaluations: { type: 'array', description: 'Une évaluation pour CHAQUE critère (aucun oubli).', items: { type: 'object', properties: {
+      critere_id: { type: 'string', enum: ids },
+      points_obtenus: { type: 'number', description: 'Points attribués (demi/quart de point autorisés), entre 0 et le max du critère' },
+      commentaire: { type: 'string', description: "Justification adressée à l'élève" }
+    }, required: ['critere_id', 'points_obtenus', 'commentaire'] } },
+    observations: { type: 'array', description: "6 à 15 observations précises : chacune cite VERBATIM un extrait de la copie de l'élève, puis le commente. Mélange réussites et erreurs.", items: { type: 'object', properties: {
+      citation: { type: 'string', description: "Extrait exact recopié de la copie (transcris fidèlement si copie manuscrite)" },
+      categorie: { type: 'string', description: "Connaissances | Raisonnement scientifique | Interprétation de documents | Méthodologie | Rédaction / expression" },
+      type: { type: 'string', enum: ['reussite', 'erreur'] },
+      commentaire: { type: 'string', description: "Ce qui est réussi, ou l'erreur et comment la corriger" }
+    }, required: ['citation', 'categorie', 'type', 'commentaire'] } },
+    appreciation_globale: { type: 'string', description: 'Appréciation générale, 1-3 phrases' },
+    points_forts: { type: 'array', items: { type: 'string' }, description: '2-4 réussites, phrases courtes' },
+    points_a_travailler: { type: 'array', items: { type: 'string' }, description: '2-4 axes de progrès prioritaires, phrases courtes actionnables' }
+  }, required: ['evaluations', 'observations', 'appreciation_globale', 'points_forts', 'points_a_travailler'] } };
 }
 
-const REMEDIATION_TOOL = {
-  name: 'generer_activite',
-  description: "Enregistre l'activité de remédiation générée.",
-  input_schema: {
-    type: 'object',
-    properties: {
-      titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' },
-      exercices: { type: 'array', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } },
-      competences_ciblees: { type: 'array', items: { type: 'string' } }
-    },
-    required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees']
-  }
-};
+const REMEDIATION_TOOL = { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: {
+  titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' },
+  exercices: { type: 'array', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } },
+  competences_ciblees: { type: 'array', items: { type: 'string' } }
+}, required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees'] } };
 
-// ════════════════════════════════════════════════════════════════
-// Fichiers : lecture, docx
-// ════════════════════════════════════════════════════════════════
+// ── Fichiers ──
 let mammothPromise = null;
 function loadMammoth() {
   if (window.mammoth) return Promise.resolve();
-  if (!mammothPromise) {
-    mammothPromise = new Promise((ok, ko) => {
-      const s = document.createElement('script');
-      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js';
-      s.onload = ok; s.onerror = () => ko(new Error('Impossible de charger le module Word (connexion ?)'));
-      document.head.appendChild(s);
-    });
-  }
+  if (!mammothPromise) mammothPromise = new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js'; s.onload = ok; s.onerror = () => ko(new Error('Module Word non chargé (connexion ?)')); document.head.appendChild(s); });
   return mammothPromise;
 }
-async function docxToText(file) {
-  await loadMammoth();
-  const buf = await file.arrayBuffer();
-  const r = await window.mammoth.extractRawText({ arrayBuffer: buf });
-  return r.value || '';
-}
-function fileToB64(file) {
-  return new Promise((ok, ko) => {
-    const r = new FileReader();
-    r.onload = () => ok(r.result.split(',')[1]);
-    r.onerror = ko;
-    r.readAsDataURL(file);
-  });
-}
-async function ingestFiles(fileList, targetArr, renderFn) {
-  for (const file of fileList) {
-    const name = file.name || 'fichier';
-    if (/\.docx$/i.test(name)) {
-      try { const txt = await docxToText(file); targetArr.push({ name, isDoc: true, text: txt }); }
-      catch (e) { alert('Lecture du .docx impossible : ' + e.message); }
-    } else if (file.type === 'application/pdf') {
-      targetArr.push({ name, mediaType: 'application/pdf', base64: await fileToB64(file), isPdf: true });
-    } else if (file.type.startsWith('image/')) {
-      targetArr.push({ name, mediaType: file.type, base64: await fileToB64(file) });
-    }
+async function docxToText(file) { await loadMammoth(); const buf = await file.arrayBuffer(); const r = await window.mammoth.extractRawText({ arrayBuffer: buf }); return r.value || ''; }
+function fileToB64(file) { return new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(r.result.split(',')[1]); r.onerror = ko; r.readAsDataURL(file); }); }
+async function ingestFiles(list, arr, render) {
+  for (const f of list) {
+    const name = f.name || 'fichier';
+    if (/\.docx$/i.test(name)) { try { arr.push({ name, isDoc: true, text: await docxToText(f) }); } catch (e) { alert('.docx illisible : ' + e.message); } }
+    else if (f.type === 'application/pdf') arr.push({ name, mediaType: 'application/pdf', base64: await fileToB64(f), isPdf: true });
+    else if (f.type.startsWith('image/')) arr.push({ name, mediaType: f.type, base64: await fileToB64(f) });
   }
-  renderFn();
+  render();
 }
 
-// ════════════════════════════════════════════════════════════════
-// Sélecteurs communs
-// ════════════════════════════════════════════════════════════════
+// ── sélecteurs ──
 function fillClasseSelect(sel, selected) {
-  sel.innerHTML = db.classes.length === 0 ? '<option value="">— créez une classe (Réglages) —</option>'
-    : db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
+  sel.innerHTML = db.classes.length === 0 ? '<option value="">— créez une classe (Réglages) —</option>' : db.classes.map(c => `<option value="${c.id}">${esc(c.nom)}</option>`).join('');
   if (selected && db.classes.some(c => c.id === selected)) sel.value = selected;
 }
 function fillDevoirSelect(sel, classeId, selected, includeAll) {
   const list = db.devoirs.filter(d => d.classeId === classeId);
-  sel.innerHTML = (includeAll ? '<option value="">— tous les devoirs —</option>' : '<option value="">— choisir —</option>') +
-    list.map(d => `<option value="${d.id}">${esc(d.nom)}</option>`).join('');
+  sel.innerHTML = (includeAll ? '<option value="">— tous les devoirs —</option>' : '<option value="">— choisir —</option>') + list.map(d => `<option value="${d.id}">${esc(d.nom)}</option>`).join('');
   if (selected && list.some(d => d.id === selected)) sel.value = selected;
   else if (!includeAll && list.length === 1) sel.value = list[0].id;
 }
 function fillEleveSelect(sel, classeId, selected) {
-  const c = classeById(classeId);
-  const list = c ? (c.eleves || []) : [];
-  sel.innerHTML = list.length === 0 ? '<option value="">— ajoutez des élèves (Réglages) —</option>'
-    : list.map(e => `<option value="${e.id}">${esc(e.nom)}</option>`).join('');
+  const c = classeById(classeId), list = c ? (c.eleves || []) : [];
+  sel.innerHTML = list.length === 0 ? '<option value="">— ajoutez des élèves (Réglages) —</option>' : list.map(e => `<option value="${e.id}">${esc(e.nom)}</option>`).join('');
   if (selected) sel.value = selected;
 }
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET DEVOIRS & GRILLES
-// ════════════════════════════════════════════════════════════════
+// ════════ DEVOIRS ════════
 function renderDevoirs() {
   fillClasseSelect($('d2-classe'), $('d2-classe').value);
   fillDevoirSelect($('d2-devoir'), $('d2-classe').value, $('d2-devoir').value, false);
@@ -712,85 +616,52 @@ function renderDevoirs() {
 }
 $('d2-classe').addEventListener('change', () => { fillDevoirSelect($('d2-devoir'), $('d2-classe').value, null, false); renderDevoirEditor(); });
 $('d2-devoir').addEventListener('change', renderDevoirEditor);
-
 $('d2-new').onclick = () => {
   const classeId = $('d2-classe').value;
   if (!classeId) { alert('Créez d\'abord une classe dans Réglages.'); return; }
-  const nom = prompt('Nom du devoir (ex : DS n°2 – Génétique) :');
-  if (!nom) return;
+  const nom = prompt('Nom du devoir (ex : DS n°2 – Génétique) :'); if (!nom) return;
   const matiere = prompt('Matière (optionnel) :') || '';
   const d = { id: uid(), classeId, nom: nom.trim(), matiere: matiere.trim(), date: new Date().toISOString(), sujet: '', grilleBrute: '', grille: null };
   db.devoirs.push(d); saveDB();
-  fillDevoirSelect($('d2-devoir'), classeId, d.id, false);
-  renderDevoirEditor();
+  fillDevoirSelect($('d2-devoir'), classeId, d.id, false); renderDevoirEditor();
 };
 $('d2-del').onclick = () => {
-  const d = devoirById($('d2-devoir').value);
-  if (!d) return;
-  if (!confirm(`Supprimer « ${d.nom} » et toutes ses copies corrigées ?`)) return;
-  db.copies = db.copies.filter(c => c.devoirId !== d.id);
-  db.devoirs = db.devoirs.filter(x => x.id !== d.id);
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  if (!confirm(`Supprimer « ${d.nom} » et toutes ses copies ?`)) return;
+  db.copies = db.copies.filter(c => c.devoirId !== d.id); db.devoirs = db.devoirs.filter(x => x.id !== d.id);
   saveDB(); renderDevoirs();
 };
-
 function renderDevoirEditor() {
   const d = devoirById($('d2-devoir').value);
-  $('d2-editor').style.display = d ? 'flex' : 'none';
-  if (!d) return;
-  $('d2-sujet').value = d.sujet || '';
-  $('d2-brute').value = d.grilleBrute || '';
+  $('d2-editor').style.display = d ? 'flex' : 'none'; if (!d) return;
+  $('d2-sujet').value = d.sujet || ''; $('d2-brute').value = d.grilleBrute || '';
   renderGrilleEditor(d);
 }
 $('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
 $('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
 $('d2-sujet-import').onclick = () => $('d2-sujet-file').click();
-$('d2-sujet-file').addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  try { const t = await docxToText(f); $('d2-sujet').value = t; $('d2-sujet').dispatchEvent(new Event('input')); }
-  catch (err) { alert(err.message); }
-  e.target.value = '';
-});
+$('d2-sujet-file').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { $('d2-sujet').value = await docxToText(f); $('d2-sujet').dispatchEvent(new Event('input')); } catch (err) { alert(err.message); } e.target.value = ''; });
 $('d2-brute-import').onclick = () => $('d2-brute-file').click();
-$('d2-brute-file').addEventListener('change', async e => {
-  const f = e.target.files[0]; if (!f) return;
-  try { const t = await docxToText(f); $('d2-brute').value = t; $('d2-brute').dispatchEvent(new Event('input')); }
-  catch (err) { alert(err.message); }
-  e.target.value = '';
-});
+$('d2-brute-file').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { $('d2-brute').value = await docxToText(f); $('d2-brute').dispatchEvent(new Event('input')); } catch (err) { alert(err.message); } e.target.value = ''; });
 
 $('d2-structurer').onclick = async () => {
-  const d = devoirById($('d2-devoir').value);
-  const errBox = $('d2-structerr'); errBox.innerHTML = '';
+  const d = devoirById($('d2-devoir').value), errBox = $('d2-structerr'); errBox.innerHTML = '';
   if (!d) return;
   if (!API_KEY) { $('overlay').classList.remove('off'); return; }
   if (!(d.grilleBrute || '').trim()) { errBox.innerHTML = '<div class="err-msg">Collez d\'abord votre barème.</div>'; return; }
-  if (d.grille && !confirm('Une grille structurée existe déjà — la remplacer ? (les copies déjà corrigées gardent leurs résultats)')) return;
+  if (d.grille && !confirm('Une grille existe déjà — la remplacer ? (les copies corrigées gardent leurs résultats)')) return;
   $('d2-structloading').style.display = 'flex'; $('d2-structurer').disabled = true;
   try {
-    const content = [{ type: 'text', text:
-      `Transforme ce barème de correction en grille structurée (parties → critères notés).\n` +
-      `Conserve fidèlement les points indiqués par l'enseignant. Si les points sont incohérents ou manquants, répartis au mieux et signale-le dans "remarque".\n` +
-      (d.sujet ? `\nSujet du devoir (contexte) :\n${d.sujet}\n` : '') +
-      `\nBarème fourni par l'enseignant :\n${d.grilleBrute}` }];
     const out = await callClaude({
-      system: 'Tu structures des barèmes de correction pour des enseignants. Utilise l\'outil structurer_grille. Chaque critère doit être individuellement évaluable et porter une compétence courte réutilisable.',
-      userContent: content, tool: STRUCT_TOOL
+      system: "Tu structures des barèmes de correction. Utilise structurer_grille. Chaque critère porte une compétence courte réutilisable. Si le barème donne des niveaux/curseurs avec descripteurs (ex 4/3/2/1/0), remplis niveaux ; sinon laisse niveaux vide.",
+      userContent: [{ type: 'text', text: `Transforme ce barème en grille structurée. Conserve fidèlement les points. Signale toute incohérence dans "remarque".\n` + (d.sujet ? `\nSujet (contexte) :\n${d.sujet}\n` : '') + `\nBarème :\n${d.grilleBrute}` }],
+      tool: STRUCT_TOOL
     });
     let n = 0;
-    d.grille = {
-      remarque: out.remarque || '',
-      parties: (out.parties || []).map(p => ({
-        titre: p.titre,
-        criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence }))
-      }))
-    };
-    saveDB();
-    renderGrilleEditor(d);
-  } catch (e) {
-    errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
-  } finally {
-    $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false;
-  }
+    d.grille = { remarque: out.remarque || '', parties: (out.parties || []).map(p => ({ titre: p.titre, criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence, niveaux: (c.niveaux || []).map(nv => ({ points: nv.points, descripteur: nv.descripteur })) })) })) };
+    saveDB(); renderGrilleEditor(d);
+  } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
+  finally { $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false; }
 };
 
 function renderGrilleEditor(d) {
@@ -803,7 +674,7 @@ function renderGrilleEditor(d) {
     <div class="gpartie">
       <div class="gpartie-head">
         <input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}">
-        <span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + (parseFloat(c.points) || 0), 0))} pts</span>
+        <span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + critMax(c), 0))} pts</span>
       </div>
       ${p.criteres.map((c, ci) => `
         <div class="gcrit">
@@ -811,100 +682,70 @@ function renderGrilleEditor(d) {
             <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}">
             <div class="cattendus">${esc(c.attendus)}</div>
             <span class="ccomp">${esc(c.competence)}</span>
+            ${(c.niveaux && c.niveaux.length) ? `<div class="cechelle">${c.niveaux.map(nv => `<div class="cniv"><b>${fmtPts(nv.points)}</b> — ${esc(nv.descripteur)}</div>`).join('')}</div>` : ''}
           </div>
-          <input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${c.points}">
+          <input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${critMax(c)}" ${(c.niveaux && c.niveaux.length) ? 'readonly title="Défini par les niveaux"' : ''}>
         </div>`).join('')}
     </div>`).join('');
-  $('d2-grille').querySelectorAll('input.ptitre').forEach(inp => inp.addEventListener('input', () => {
-    d.grille.parties[+inp.dataset.pi].titre = inp.value; saveDB();
-  }));
-  $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => {
-    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB();
-  }));
-  $('d2-grille').querySelectorAll('input.cpts').forEach(inp => inp.addEventListener('input', () => {
-    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0;
-    saveDB();
+  $('d2-grille').querySelectorAll('input.ptitre').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].titre = inp.value; saveDB(); }));
+  $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
+  $('d2-grille').querySelectorAll('input.cpts:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
+    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0; saveDB();
     $('d2-notemax').textContent = fmtPts(grilleNoteMax(d.grille));
-    inp.closest('.gpartie').querySelector('.ppts').textContent =
-      fmtPts(d.grille.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + (parseFloat(c.points) || 0), 0)) + ' pts';
+    inp.closest('.gpartie').querySelector('.ppts').textContent = fmtPts(d.grille.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + critMax(c), 0)) + ' pts';
   }));
 }
-function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET CORRECTION
-// ════════════════════════════════════════════════════════════════
+// ════════ CORRECTION ════════
 function renderCorrection() {
   fillClasseSelect($('c-classe'), $('c-classe').value);
   fillDevoirSelect($('c-devoir'), $('c-classe').value, $('c-devoir').value, false);
   fillEleveSelect($('c-eleve'), $('c-classe').value, $('c-eleve').value);
   updateGrilleState(); renderQueue(); renderHistory();
 }
-$('c-classe').addEventListener('change', () => {
-  fillDevoirSelect($('c-devoir'), $('c-classe').value, null, false);
-  fillEleveSelect($('c-eleve'), $('c-classe').value, null);
-  updateGrilleState(); renderHistory();
-});
+$('c-classe').addEventListener('change', () => { fillDevoirSelect($('c-devoir'), $('c-classe').value, null, false); fillEleveSelect($('c-eleve'), $('c-classe').value, null); updateGrilleState(); renderHistory(); });
 $('c-devoir').addEventListener('change', () => { updateGrilleState(); renderHistory(); });
-
 function updateGrilleState() {
-  const d = devoirById($('c-devoir').value);
-  const box = $('c-grillestate');
+  const d = devoirById($('c-devoir').value), box = $('c-grillestate');
   if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Devoirs & grilles »).</div>'; return; }
-  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas encore de grille structurée — allez dans « Devoirs & grilles » pour la créer.</div>'; return; }
+  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas de grille structurée — allez dans « Devoirs & grilles ».</div>'; return; }
   const nc = grilleCriteres(d.grille).length;
   box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
 }
-
-// Source des copies
-document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => {
-  chip.addEventListener('click', () => {
-    sourceMode = chip.dataset.src;
-    document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(c => c.classList.toggle('on', c === chip));
-    $('c-texte').style.display = sourceMode === 'texte' ? '' : 'none';
-    $('c-filearea').style.display = sourceMode === 'fichiers' ? '' : 'none';
-  });
-});
+document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => chip.addEventListener('click', () => {
+  sourceMode = chip.dataset.src;
+  document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(c => c.classList.toggle('on', c === chip));
+  $('c-texte').style.display = sourceMode === 'texte' ? '' : 'none';
+  $('c-filearea').style.display = sourceMode === 'fichiers' ? '' : 'none';
+}));
 $('c-dropzone').addEventListener('click', () => $('c-fileinput').click());
 $('c-dropzone').addEventListener('dragover', e => { e.preventDefault(); $('c-dropzone').classList.add('drag'); });
 $('c-dropzone').addEventListener('dragleave', () => $('c-dropzone').classList.remove('drag'));
 $('c-dropzone').addEventListener('drop', e => { e.preventDefault(); $('c-dropzone').classList.remove('drag'); ingestFiles(e.dataTransfer.files, pendingFiles, renderPendingFiles); });
 $('c-fileinput').addEventListener('change', e => { ingestFiles(e.target.files, pendingFiles, renderPendingFiles); e.target.value = ''; });
 function renderPendingFiles() {
-  $('c-filelist').innerHTML = pendingFiles.map((f, i) =>
-    `<span class="fileitem">${f.mediaType && f.mediaType.startsWith('image/') ? `<img src="data:${f.mediaType};base64,${f.base64}">` : (f.isPdf ? '📕' : '📄')} ${esc(f.name)}<button class="rm" data-i="${i}">✕</button></span>`).join('');
+  $('c-filelist').innerHTML = pendingFiles.map((f, i) => `<span class="fileitem">${f.mediaType && f.mediaType.startsWith('image/') ? `<img src="data:${f.mediaType};base64,${f.base64}">` : (f.isPdf ? '📕' : '📄')} ${esc(f.name)}<button class="rm" data-i="${i}">✕</button></span>`).join('');
   $('c-filelist').querySelectorAll('.rm').forEach(b => b.addEventListener('click', () => { pendingFiles.splice(+b.dataset.i, 1); renderPendingFiles(); }));
 }
-
 $('c-addqueue').onclick = () => {
   const errBox = $('c-adderr'); errBox.innerHTML = '';
   const d = devoirById($('c-devoir').value);
   if (!d || !d.grille) { errBox.innerHTML = '<div class="err-msg">Choisissez un devoir avec une grille structurée.</div>'; return; }
-  const classe = classeById($('c-classe').value);
-  const el = eleveById(classe, $('c-eleve').value);
-  if (!el) { errBox.innerHTML = '<div class="err-msg">Choisissez un élève (ajoutez le roster de la classe dans Réglages).</div>'; return; }
-  if (queue.some(q => q.eleveId === el.id && q.status !== 'err')) {
-    if (!confirm(`${el.nom} est déjà dans la file — ajouter quand même ?`)) return;
-  }
+  const classe = classeById($('c-classe').value), el = eleveById(classe, $('c-eleve').value);
+  if (!el) { errBox.innerHTML = '<div class="err-msg">Choisissez un élève (roster dans Réglages).</div>'; return; }
+  if (queue.some(q => q.eleveId === el.id && q.status !== 'err') && !confirm(`${el.nom} est déjà dans la file — ajouter quand même ?`)) return;
   let item;
   if (sourceMode === 'texte') {
-    const t = $('c-texte').value.trim();
-    if (!t) { errBox.innerHTML = '<div class="err-msg">Collez le texte de la copie.</div>'; return; }
-    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'texte', texte: t, files: [], status: 'wait' };
-    $('c-texte').value = '';
+    const t = $('c-texte').value.trim(); if (!t) { errBox.innerHTML = '<div class="err-msg">Collez le texte de la copie.</div>'; return; }
+    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'texte', texte: t, files: [], status: 'wait' }; $('c-texte').value = '';
   } else {
     if (pendingFiles.length === 0) { errBox.innerHTML = '<div class="err-msg">Ajoutez au moins un fichier.</div>'; return; }
-    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'fichiers', texte: '', files: pendingFiles.slice(), status: 'wait' };
-    pendingFiles = []; renderPendingFiles();
+    item = { id: uid(), eleveId: el.id, eleveNom: el.nom, kind: 'fichiers', texte: '', files: pendingFiles.slice(), status: 'wait' }; pendingFiles = []; renderPendingFiles();
   }
-  item.devoirId = d.id; item.classeId = classe.id;
-  queue.push(item);
-  renderQueue();
+  item.devoirId = d.id; item.classeId = classe.id; queue.push(item); renderQueue();
 };
-
 function renderQueue() {
-  const box = $('q-list');
-  $('q-count').textContent = queue.length ? `(${queue.length})` : '';
+  const box = $('q-list'); $('q-count').textContent = queue.length ? `(${queue.length})` : '';
   if (queue.length === 0) { box.innerHTML = '<div class="empty">Aucune copie en attente.</div>'; return; }
   const labels = { wait: 'En attente', run: 'Correction…', done: 'À relire', err: 'Erreur' };
   box.innerHTML = queue.map(q => `
@@ -920,160 +761,166 @@ function renderQueue() {
   box.querySelectorAll('[data-retry]').forEach(b => b.addEventListener('click', () => { const q = queue.find(x => x.id === b.dataset.retry); if (q) { q.status = 'wait'; renderQueue(); } }));
   box.querySelectorAll('[data-review]').forEach(b => b.addEventListener('click', () => openReviewQueue(b.dataset.review)));
 }
-
 let running = false;
 $('q-run').onclick = async () => {
   if (running) return;
   if (!API_KEY) { $('overlay').classList.remove('off'); return; }
-  const pendings = queue.filter(q => q.status === 'wait');
-  if (pendings.length === 0) { $('q-progress').textContent = 'Rien à corriger.'; return; }
-  running = true; $('q-run').disabled = true;
-  let done = 0;
-  for (const q of pendings) {
-    q.status = 'run'; renderQueue();
-    $('q-progress').textContent = `Correction ${done + 1}/${pendings.length} — ${q.eleveNom}…`;
-    try {
-      q.result = await corrigerCopie(q);
-      q.status = 'done';
-    } catch (e) {
-      q.status = 'err'; q.error = e.message;
-    }
+  const pend = queue.filter(q => q.status === 'wait');
+  if (pend.length === 0) { $('q-progress').textContent = 'Rien à corriger.'; return; }
+  running = true; $('q-run').disabled = true; let done = 0;
+  for (const q of pend) {
+    q.status = 'run'; renderQueue(); $('q-progress').textContent = `Correction ${done + 1}/${pend.length} — ${q.eleveNom}…`;
+    try { q.result = await corrigerCopie(q); q.status = 'done'; } catch (e) { q.status = 'err'; q.error = e.message; }
     done++; renderQueue();
   }
   $('q-progress').textContent = `Terminé : ${queue.filter(q => q.status === 'done').length} copie(s) à relire.`;
   running = false; $('q-run').disabled = false;
 };
-
 async function corrigerCopie(q) {
-  const d = devoirById(q.devoirId);
-  const criteres = grilleCriteres(d.grille);
-  const grilleTxt = d.grille.parties.map(p =>
-    `## ${p.titre}\n` + p.criteres.map(c =>
-      `- [${c.id}] ${c.intitule} (${c.points} pts) — attendus : ${c.attendus} — compétence : ${c.competence}`).join('\n')
-  ).join('\n');
+  const d = devoirById(q.devoirId), criteres = grilleCriteres(d.grille);
+  const grilleTxt = d.grille.parties.map(p => `## ${p.titre}\n` + p.criteres.map(c => {
+    let s = `- [${c.id}] ${c.intitule} (max ${fmtPts(critMax(c))} pts) — attendus : ${c.attendus} — compétence : ${c.competence}`;
+    if (c.niveaux && c.niveaux.length) s += `\n    Niveaux : ` + c.niveaux.map(nv => `${fmtPts(nv.points)}="${nv.descripteur}"`).join(' ; ');
+    return s;
+  }).join('\n')).join('\n');
   const content = [{ type: 'text', text:
-    `Corrige la copie de l'élève « ${q.eleveNom} » pour le devoir « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\n` +
-    (d.sujet ? `SUJET DONNÉ AUX ÉLÈVES :\n${d.sujet}\n\n` : '') +
-    `GRILLE DE CORRECTION (évalue chaque critère par son id) :\n${grilleTxt}\n\n` +
-    (q.kind === 'texte' ? 'COPIE DE L\'ÉLÈVE (texte) :\n' + q.texte : 'COPIE DE L\'ÉLÈVE (documents joints, dans l\'ordre) :') }];
-  if (q.kind === 'fichiers') {
-    for (const f of q.files) {
-      if (f.isDoc) content.push({ type: 'text', text: `--- Contenu du fichier ${f.name} ---\n${f.text}` });
-      else if (f.isPdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.base64 } });
-      else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
-    }
+    `Corrige la copie de « ${q.eleveNom} » pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\n` +
+    (d.sujet ? `SUJET :\n${d.sujet}\n\n` : '') +
+    `GRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis le nombre de points correspondant au niveau atteint, demi-niveaux autorisés) :\n${grilleTxt}\n\n` +
+    (q.kind === 'texte' ? 'COPIE (texte) :\n' + q.texte : 'COPIE (documents joints, dans l\'ordre) :') }];
+  if (q.kind === 'fichiers') for (const f of q.files) {
+    if (f.isDoc) content.push({ type: 'text', text: `--- ${f.name} ---\n${f.text}` });
+    else if (f.isPdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: f.base64 } });
+    else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
   }
   const out = await callClaude({
-    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille fournie, critère par critère (chaque critère, même non traité par l'élève : 0 avec explication). Ne note que ce qui est présent dans la copie ; en cas de doute (écriture illisible, page manquante), signale-le dans le commentaire du critère. ${profileDirectives()} Utilise l'outil remplir_grille.`,
+    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille, critère par critère (chaque critère, même non traité : 0 avec explication). Ne note que ce qui est présent ; signale toute illisibilité/page manquante dans le commentaire concerné. Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs). ${profileDirectives()} Utilise remplir_grille.`,
     userContent: content, tool: buildCorrectionTool(d.grille)
   });
-  // Reconstitution : chaque critère de la grille reçoit son évaluation
   const byId = {}; (out.evaluations || []).forEach(ev => { byId[ev.critere_id] = ev; });
   const evaluations = criteres.map(c => {
-    const ev = byId[c.id];
-    const max = parseFloat(c.points) || 0;
-    let pts = ev ? parseFloat(ev.points_obtenus) : 0;
-    if (isNaN(pts)) pts = 0;
-    pts = Math.max(0, Math.min(max, pts));
-    return { critereId: c.id, partie: c.partie, intitule: c.intitule, competence: c.competence,
-      points_obtenus: pts, points_max: max, commentaire: ev ? ev.commentaire : 'Non évalué par l\'IA — à vérifier.' };
+    const ev = byId[c.id], max = critMax(c); let pts = ev ? parseFloat(ev.points_obtenus) : 0;
+    if (isNaN(pts)) pts = 0; pts = Math.max(0, Math.min(max, pts));
+    return { critereId: c.id, partie: c.partie, intitule: c.intitule, competence: c.competence, niveaux: c.niveaux || [], points_obtenus: pts, points_max: max, commentaire: ev ? ev.commentaire : 'Non évalué par l\'IA — à vérifier.' };
   });
   const note = evaluations.reduce((s, e) => s + e.points_obtenus, 0);
-  return {
-    note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille),
-    appreciation: out.appreciation_globale || '',
-    forts: out.points_forts || [], faibles: out.points_a_travailler || [],
-    evaluations
-  };
+  return { note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille), appreciation: out.appreciation_globale || '', forts: out.points_forts || [], faibles: out.points_a_travailler || [], observations: out.observations || [], evaluations };
 }
 
 // ── Relecture ──
-function openReviewQueue(qid) {
-  const q = queue.find(x => x.id === qid);
-  if (!q || !q.result) return;
-  reviewTarget = { type: 'queue', id: qid };
-  showReview(q.result, q.eleveNom);
+function openReviewQueue(qid) { const q = queue.find(x => x.id === qid); if (!q || !q.result) return; reviewTarget = { type: 'queue', id: qid }; reviewData = q.result; showReview(q.result, q.eleveNom); }
+function nivAtteint(ev) {
+  if (!ev.niveaux || !ev.niveaux.length) return '';
+  const sorted = [...ev.niveaux].sort((a, b) => b.points - a.points);
+  const at = sorted.find(nv => ev.points_obtenus >= nv.points) || sorted[sorted.length - 1];
+  return at ? at.descripteur : '';
 }
 function showReview(r, eleveNom) {
   $('review-card').style.display = '';
+  $('rv-title').textContent = 'Relecture — ' + eleveNom;
   $('rv-eleve').textContent = eleveNom;
-  $('rv-note').textContent = fmtPts(r.note);
-  $('rv-notemax').textContent = fmtPts(r.note_max);
+  $('rv-note').textContent = fmtPts(r.note); $('rv-notemax').textContent = fmtPts(r.note_max);
   $('rv-appreciation').value = r.appreciation;
-  let lastPartie = null; let html = '';
+  $('rv-forts').innerHTML = (r.forts || []).map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
+  $('rv-faibles').innerHTML = (r.faibles || []).map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
+  let last = null, html = '';
   r.evaluations.forEach((ev, i) => {
-    if (ev.partie !== lastPartie) { html += `<div class="rpartie-label">${esc(ev.partie || '')}</div>`; lastPartie = ev.partie; }
-    html += `<div class="rcrit">
-      <div class="rhead">
-        <span class="rname">${esc(ev.intitule)} <span class="ccomp" style="margin-left:6px">${esc(ev.competence || '')}</span></span>
-        <input class="rpts" type="number" step="0.25" min="0" max="${ev.points_max}" data-i="${i}" value="${ev.points_obtenus}">
-        <span class="rmax">/ ${fmtPts(ev.points_max)}</span>
-      </div>
-      <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea>
-    </div>`;
+    if (ev.partie !== last) { html += `<div class="rpartie-label">${esc(ev.partie || '')}</div>`; last = ev.partie; }
+    html += `<div class="rcrit"><div class="rhead">
+      <span class="rname">${esc(ev.intitule)} <span class="ccomp" style="margin-left:6px">${esc(ev.competence || '')}</span></span>
+      <input class="rpts" type="number" step="0.25" min="0" max="${ev.points_max}" data-i="${i}" value="${ev.points_obtenus}">
+      <span class="rmax">/ ${fmtPts(ev.points_max)}</span></div>
+      ${ev.niveaux && ev.niveaux.length ? `<div class="rniv" data-niv="${i}">Niveau : ${esc(nivAtteint(ev))}</div>` : ''}
+      <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea></div>`;
   });
   $('rv-grid').innerHTML = html;
-  $('rv-forts').innerHTML = r.forts.map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
-  $('rv-faibles').innerHTML = r.faibles.map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
   $('rv-grid').querySelectorAll('.rpts').forEach(inp => inp.addEventListener('input', () => {
-    const ev = r.evaluations[+inp.dataset.i];
-    let v = parseFloat(inp.value); if (isNaN(v)) v = 0;
+    const ev = r.evaluations[+inp.dataset.i]; let v = parseFloat(inp.value); if (isNaN(v)) v = 0;
     ev.points_obtenus = Math.max(0, Math.min(ev.points_max, v));
     r.note = Math.round(r.evaluations.reduce((s, e) => s + e.points_obtenus, 0) * 100) / 100;
     $('rv-note').textContent = fmtPts(r.note);
+    const nv = $('rv-grid').querySelector(`.rniv[data-niv="${inp.dataset.i}"]`); if (nv) nv.textContent = 'Niveau : ' + nivAtteint(ev);
   }));
-  $('rv-grid').querySelectorAll('.rcom').forEach(ta => ta.addEventListener('input', () => {
-    r.evaluations[+ta.dataset.i].commentaire = ta.value;
-  }));
+  $('rv-grid').querySelectorAll('.rcom').forEach(ta => ta.addEventListener('input', () => { r.evaluations[+ta.dataset.i].commentaire = ta.value; }));
   $('rv-appreciation').oninput = () => { r.appreciation = $('rv-appreciation').value; };
+  renderObs(r);
   $('review-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
-$('rv-close').onclick = () => { $('review-card').style.display = 'none'; reviewTarget = null; };
-$('rv-print').onclick = () => window.print();
+function renderObs(r) {
+  const box = $('rv-obs'), obs = r.observations || [];
+  if (obs.length === 0) { box.innerHTML = '<div class="empty">Aucune observation.</div>'; return; }
+  box.innerHTML = obs.map((o, i) => `
+    <div class="obs ${o.type === 'reussite' ? 'reussite' : 'erreur'}">
+      <button class="odel" data-oi="${i}" title="Retirer">✕</button>
+      <div class="otag">${o.type === 'reussite' ? '✓' : '✕'} ${esc(o.categorie)}</div>
+      <div class="ocite">« ${esc(o.citation)} »</div>
+      <div class="ocom">${esc(o.commentaire)}</div>
+    </div>`).join('');
+  box.querySelectorAll('.odel').forEach(b => b.addEventListener('click', () => { r.observations.splice(+b.dataset.oi, 1); renderObs(r); }));
+}
+$('rv-close').onclick = () => { $('review-card').style.display = 'none'; reviewTarget = null; reviewData = null; };
+$('rv-print').onclick = () => { if (reviewData) printCopie(reviewData, $('rv-eleve').textContent); };
 $('rv-save').onclick = () => {
   if (!reviewTarget) return;
   if (reviewTarget.type === 'queue') {
-    const q = queue.find(x => x.id === reviewTarget.id);
-    if (!q) return;
-    db.copies.push({
-      id: uid(), devoirId: q.devoirId, classeId: q.classeId, eleveId: q.eleveId, eleveNom: q.eleveNom,
-      date: new Date().toISOString(), ...q.result
-    });
-    saveDB();
-    queue = queue.filter(x => x.id !== q.id);
-  }
-  $('review-card').style.display = 'none'; reviewTarget = null;
+    const q = queue.find(x => x.id === reviewTarget.id); if (!q) return;
+    db.copies.push({ id: uid(), devoirId: q.devoirId, classeId: q.classeId, eleveId: q.eleveId, eleveNom: q.eleveNom, date: new Date().toISOString(), ...q.result });
+    saveDB(); queue = queue.filter(x => x.id !== q.id);
+  } else { saveDB(); } // édition d'une copie existante : déjà référencée
+  $('review-card').style.display = 'none'; reviewTarget = null; reviewData = null;
   renderQueue(); renderHistory();
 };
-
 function renderHistory() {
-  const devoirId = $('c-devoir').value;
-  const box = $('c-history');
+  const devoirId = $('c-devoir').value, box = $('c-history');
   const list = db.copies.filter(c => c.devoirId === devoirId).sort((a, b) => b.date.localeCompare(a.date));
   if (!devoirId) { box.innerHTML = '<div class="empty">Choisissez un devoir.</div>'; return; }
   if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie enregistrée pour ce devoir.</div>'; return; }
   box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>À travailler</th><th></th></tr></thead><tbody>` +
-    list.map(c => `<tr>
-      <td>${esc(c.eleveNom)}</td>
-      <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td>
-      <td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
-      <td class="noprint"><button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td>
-    </tr>`).join('') + `</tbody></table>`;
-  box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => {
-    if (!confirm('Supprimer cette copie ?')) return;
-    db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory();
-  }));
-  box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => {
-    const c = db.copies.find(x => x.id === b.dataset.view);
-    if (!c) return;
-    reviewTarget = { type: 'copie', id: c.id };
-    showReview(c, c.eleveNom); // édite directement l'objet copie ; rv-save referme simplement
-  }));
+    list.map(c => `<tr><td>${esc(c.eleveNom)}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td><td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
+    <td class="noprint"><button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
+  box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette copie ?')) return; db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory(); }));
+  box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.view); if (!c) return; reviewTarget = { type: 'copie', id: c.id }; reviewData = c; showReview(c, c.eleveNom); }));
+  box.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.print); if (c) printCopie(c, c.eleveNom); }));
 }
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET TABLEAU DE BORD
-// ════════════════════════════════════════════════════════════════
+// ── Impression copie corrigée (façon bulletin) ──
+function pdots(taux) {
+  const n = taux >= .875 ? 4 : taux >= .625 ? 3 : taux >= .375 ? 2 : taux >= .125 ? 1 : 0;
+  const col = n >= 3 ? '#2a9d6a' : '#e08a2a';
+  let s = ''; for (let i = 0; i < 4; i++) s += `<span class="pr-pdot" style="${i < n ? `background:${col};border-color:${col}` : ''}"></span>`;
+  return s;
+}
+function printCopie(r, eleveNom) {
+  const dv = devoirById(reviewTarget && reviewTarget.type === 'copie' ? (db.copies.find(c => c.id === reviewTarget.id) || {}).devoirId : (r.devoirId)) || {};
+  const titre = dv.nom || 'Devoir';
+  // compétences agrégées sur cette copie
+  const agg = {};
+  (r.evaluations || []).forEach(ev => { const k = ev.competence || 'Autre'; if (!agg[k]) agg[k] = { o: 0, m: 0 }; agg[k].o += ev.points_obtenus; agg[k].m += ev.points_max; });
+  const comps = Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.m ? v.o / v.m : 0 }));
+  let last = null, detail = '';
+  (r.evaluations || []).forEach(ev => {
+    if (ev.partie !== last) { detail += `<div class="pr-sec">${esc(ev.partie || '')}</div>`; last = ev.partie; }
+    detail += `<div class="pr-crit"><div class="pc-h"><span>${esc(ev.intitule)}</span><span>${fmtPts(ev.points_obtenus)} / ${fmtPts(ev.points_max)}</span></div><div class="pc-b">${esc(ev.commentaire)}</div></div>`;
+  });
+  const obs = (r.observations || []).map(o => `<div class="pr-obs ${o.type === 'reussite' ? 'reussite' : 'erreur'}"><div class="po-t">${o.type === 'reussite' ? '✓' : '✕'} ${esc(o.categorie)}</div><div class="po-c">« ${esc(o.citation)} »</div><div class="po-x">${esc(o.commentaire)}</div></div>`).join('');
+  $('printroot').innerHTML = `
+    <div class="pr-head"><div class="pr-title">${esc(titre)}</div><div class="pr-meta">${esc(eleveNom)} · ${new Date(r.date || Date.now()).toLocaleDateString('fr-FR')}</div></div>
+    <div class="pr-flex">
+      <div class="pr-notebox"><div class="pn">${fmtPts(r.note)}</div><div class="pns">/ ${fmtPts(r.note_max)}</div></div>
+      <div class="pr-comment" style="flex:1">
+        <div class="pr-sec">Commentaire</div>
+        <div>${esc(r.appreciation || '')}</div>
+        ${(r.forts || []).length ? `<div class="pr-sec">Réussites</div><ul>${r.forts.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+        ${(r.faibles || []).length ? `<div class="pr-sec">À améliorer en priorité</div><ul>${r.faibles.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      </div>
+    </div>
+    ${comps.length ? `<div class="pr-sec">Tableau de compétences</div><div class="pr-compgrid">${comps.map(c => `<div class="pr-comprow"><span>${esc(c.nom)}</span><span>${pdots(c.taux)}</span></div>`).join('')}</div>` : ''}
+    <div class="pr-sec">Résultats détaillés</div>${detail}
+    ${obs ? `<div class="pr-sec">Observations</div>${obs}` : ''}`;
+  window.print();
+}
+
+// ════════ DASHBOARD ════════
 function renderDashboard() {
   fillClasseSelect($('db-classe'), $('db-classe').value);
   fillDevoirSelect($('db-devoir'), $('db-classe').value, $('db-devoir').value, true);
@@ -1081,332 +928,159 @@ function renderDashboard() {
 }
 $('db-classe').addEventListener('change', () => { fillDevoirSelect($('db-devoir'), $('db-classe').value, null, true); drawDashboard(); });
 $('db-devoir').addEventListener('change', drawDashboard);
-
-function quantile(sorted, p) {
-  if (sorted.length === 0) return 0;
-  const idx = (sorted.length - 1) * p, lo = Math.floor(idx), hi = Math.ceil(idx);
-  return sorted[lo] + (sorted[hi] - sorted[lo]) * (idx - lo);
-}
-function copiesFor(classeId, devoirId) {
-  const devoirIds = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id);
-  return db.copies.filter(c => devoirIds.includes(c.devoirId));
-}
+function quantile(s, p) { if (!s.length) return 0; const i = (s.length - 1) * p, lo = Math.floor(i), hi = Math.ceil(i); return s[lo] + (s[hi] - s[lo]) * (i - lo); }
+function copiesFor(classeId, devoirId) { const ids = devoirId ? [devoirId] : db.devoirs.filter(d => d.classeId === classeId).map(d => d.id); return db.copies.filter(c => ids.includes(c.devoirId)); }
 function competenceAgg(copies) {
   const agg = {};
-  copies.forEach(c => (c.evaluations || []).forEach(ev => {
-    const k = ev.competence || 'Autre';
-    if (!agg[k]) agg[k] = { obtenu: 0, max: 0, n: 0 };
-    agg[k].obtenu += ev.points_obtenus; agg[k].max += ev.points_max; agg[k].n++;
-  }));
-  return Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0, n: v.n })).sort((a, b) => a.taux - b.taux);
+  copies.forEach(c => (c.evaluations || []).forEach(ev => { const k = ev.competence || 'Autre'; if (!agg[k]) agg[k] = { o: 0, m: 0, n: 0 }; agg[k].o += ev.points_obtenus; agg[k].m += ev.points_max; agg[k].n++; }));
+  return Object.entries(agg).map(([nom, v]) => ({ nom, taux: v.m ? v.o / v.m : 0, n: v.n })).sort((a, b) => a.taux - b.taux);
 }
-
+function dotsHTML(taux) {
+  const n = taux >= .875 ? 4 : taux >= .625 ? 3 : taux >= .375 ? 2 : taux >= .125 ? 1 : 0;
+  const col = n >= 3 ? 'var(--green)' : 'var(--amber)';
+  let s = ''; for (let i = 0; i < 4; i++) s += `<span class="pdot" style="${i < n ? `background:${col};border-color:${col}` : ''}"></span>`;
+  return `<span class="dots">${s}</span>`;
+}
 function drawDashboard() {
-  const classeId = $('db-classe').value, devoirId = $('db-devoir').value;
-  const content = $('db-content');
-  if (!classeId) { content.innerHTML = '<div class="card empty">Créez une classe dans Réglages pour commencer.</div>'; return; }
+  const classeId = $('db-classe').value, devoirId = $('db-devoir').value, content = $('db-content');
+  if (!classeId) { content.innerHTML = '<div class="card empty">Créez une classe dans Réglages.</div>'; return; }
   const copies = copiesFor(classeId, devoirId);
   if (copies.length === 0) { content.innerHTML = '<div class="card empty">Aucune copie corrigée pour cette sélection.</div>'; return; }
-
   const sur20 = copies.map(c => c.note_max ? (c.note / c.note_max) * 20 : 0).sort((a, b) => a - b);
-  const moyenne = sur20.reduce((a, b) => a + b, 0) / sur20.length;
-  const med = quantile(sur20, .5), q1 = quantile(sur20, .25), q3 = quantile(sur20, .75);
-
-  // Histogramme par note entière /20
-  const bins = Array.from({ length: 21 }, () => 0);
-  sur20.forEach(n => bins[Math.max(0, Math.min(20, Math.round(n)))]++);
+  const moy = sur20.reduce((a, b) => a + b, 0) / sur20.length, med = quantile(sur20, .5), q1 = quantile(sur20, .25), q3 = quantile(sur20, .75);
+  const bins = Array.from({ length: 21 }, () => 0); sur20.forEach(n => bins[Math.max(0, Math.min(20, Math.round(n)))]++);
   const maxBin = Math.max(...bins, 1);
-
   const comps = competenceAgg(copies);
   const critAgg = {};
-  if (devoirId) {
-    copies.forEach(c => (c.evaluations || []).forEach(ev => {
-      const k = ev.intitule;
-      if (!critAgg[k]) critAgg[k] = { obtenu: 0, max: 0 };
-      critAgg[k].obtenu += ev.points_obtenus; critAgg[k].max += ev.points_max;
-    }));
-  }
-  const critList = Object.entries(critAgg).map(([nom, v]) => ({ nom, taux: v.max ? v.obtenu / v.max : 0 })).sort((a, b) => a.taux - b.taux);
-
-  const faiblesFreq = {};
-  copies.forEach(c => (c.faibles || []).forEach(p => { faiblesFreq[p] = (faiblesFreq[p] || 0) + 1; }));
-  const faiblesTop = Object.entries(faiblesFreq).sort((a, b) => b[1] - a[1]).slice(0, 8);
-
-  const barColor = t => t < 0.5 ? 'var(--red)' : t < 0.7 ? 'var(--amber)' : 'var(--green)';
-
+  if (devoirId) copies.forEach(c => (c.evaluations || []).forEach(ev => { const k = ev.intitule; if (!critAgg[k]) critAgg[k] = { o: 0, m: 0 }; critAgg[k].o += ev.points_obtenus; critAgg[k].m += ev.points_max; }));
+  const critList = Object.entries(critAgg).map(([nom, v]) => ({ nom, taux: v.m ? v.o / v.m : 0 })).sort((a, b) => a.taux - b.taux);
+  const ff = {}; copies.forEach(c => (c.faibles || []).forEach(p => { ff[p] = (ff[p] || 0) + 1; }));
+  const faiblesTop = Object.entries(ff).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const bc = t => t < .5 ? 'var(--red)' : t < .7 ? 'var(--amber)' : 'var(--green)';
   content.innerHTML = `
-    <div class="card">
-      <h3>Résultats ${devoirId ? 'du devoir' : 'de la classe (tous devoirs)'}</h3>
+    <div class="card"><h3>Résultats ${devoirId ? 'du devoir' : 'de la classe (tous devoirs)'}</h3>
       <div class="statgrid">
-        <div class="stat"><div class="v" style="color:var(--green)">${moyenne.toFixed(1)}<span style="font-size:.7em;color:var(--muted)">/20</span></div><div class="l">Moyenne</div></div>
+        <div class="stat"><div class="v" style="color:var(--green)">${moy.toFixed(1)}<span style="font-size:.7em;color:var(--muted)">/20</span></div><div class="l">Moyenne</div></div>
         <div class="stat"><div class="v">${med.toFixed(1)}</div><div class="l">Médiane</div></div>
-        <div class="stat"><div class="v">${q1.toFixed(1)} · ${q3.toFixed(1)}</div><div class="l">Quartiles Q1 · Q3</div></div>
+        <div class="stat"><div class="v">${q1.toFixed(1)} · ${q3.toFixed(1)}</div><div class="l">Q1 · Q3</div></div>
         <div class="stat"><div class="v">${sur20[0].toFixed(1)} – ${sur20[sur20.length-1].toFixed(1)}</div><div class="l">Min – Max</div></div>
-        <div class="stat"><div class="v">${copies.length}</div><div class="l">Copies corrigées</div></div>
+        <div class="stat"><div class="v">${copies.length}</div><div class="l">Copies</div></div>
       </div>
-      <div class="histo">
-        ${bins.map((b, i) => `<div class="hb"><span class="hc">${b || ''}</span><div class="hbar" style="height:${(b / maxBin * 100)}%"></div><span class="hl">${i}</span></div>`).join('')}
-      </div>
+      <div class="histo">${bins.map((b, i) => `<div class="hb"><span class="hc">${b || ''}</span><div class="hbar" style="height:${b / maxBin * 100}%"></div><span class="hl">${i}</span></div>`).join('')}</div>
     </div>
-    <div class="card">
-      <h3>Analyse des apprentissages — compétences</h3>
-      <div class="sub">Taux de réussite moyen par compétence sur la sélection.</div>
-      ${comps.length === 0 ? '<div class="empty">Pas de données par compétence (grilles structurées requises).</div>' :
-        comps.map(c => `
-          <div class="row" style="gap:10px; margin-bottom:8px">
-            <div style="width:250px; font-size:0.8rem">${esc(c.nom)}</div>
-            <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
-            <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
-          </div>`).join('')}
-    </div>
-    ${devoirId && critList.length ? `<div class="card">
-      <h3>Réussite par critère du devoir</h3>
-      ${critList.map(c => `
-        <div class="row" style="gap:10px; margin-bottom:8px">
-          <div style="width:250px; font-size:0.78rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
-          <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
-          <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
+    <div class="card"><h3>Analyse des apprentissages — compétences</h3><div class="sub">Taux de réussite moyen par compétence.</div>
+      ${comps.length === 0 ? '<div class="empty">Pas de données par compétence.</div>' : comps.map(c => `
+        <div class="row" style="gap:10px; margin-bottom:9px">
+          <div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>
+          ${dotsHTML(c.taux)}
+          <div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div>
+          <div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
         </div>`).join('')}
-    </div>` : ''}
-    <div class="card">
-      <h3>Axes de progrès les plus fréquents</h3>
-      <div class="taglist">${faiblesTop.length === 0 ? '<div class="empty">—</div>' : faiblesTop.map(([p, n]) => `<span class="tag warn">${esc(p)} × ${n}</span>`).join('')}</div>
     </div>
-    <div class="card">
-      <h3>Copies</h3>
-      <table><thead><tr><th>Élève</th><th>Devoir</th><th>Note</th><th>/20</th></tr></thead><tbody>
-        ${copies.slice().sort((a, b) => b.date.localeCompare(a.date)).map(c => `<tr>
-          <td>${esc(c.eleveNom)}</td><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td>
-          <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td>
-          <td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td></tr>`).join('')}
-      </tbody></table>
-    </div>`;
+    ${devoirId && critList.length ? `<div class="card"><h3>Réussite par critère du devoir</h3>${critList.map(c => `
+      <div class="row" style="gap:10px; margin-bottom:8px"><div style="width:250px; font-size:0.78rem" title="${esc(c.nom)}">${esc(c.nom)}</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div>
+      <div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div></div>`).join('')}</div>` : ''}
+    <div class="card"><h3>Axes de progrès les plus fréquents</h3><div class="taglist">${faiblesTop.length === 0 ? '<div class="empty">—</div>' : faiblesTop.map(([p, n]) => `<span class="tag warn">${esc(p)} × ${n}</span>`).join('')}</div></div>
+    <div class="card"><h3>Copies</h3><table><thead><tr><th>Élève</th><th>Devoir</th><th>Note</th><th>/20</th></tr></thead><tbody>
+      ${copies.slice().sort((a, b) => b.date.localeCompare(a.date)).map(c => `<tr><td>${esc(c.eleveNom)}</td><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td><td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td></tr>`).join('')}
+    </tbody></table></div>`;
 }
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET ÉLÈVES (suivi)
-// ════════════════════════════════════════════════════════════════
+// ════════ ÉLÈVES ════════
 let eleveDetailId = null;
-function renderEleves() {
-  fillClasseSelect($('e-classe'), $('e-classe').value);
-  drawEleves();
-}
+function renderEleves() { fillClasseSelect($('e-classe'), $('e-classe').value); drawEleves(); }
 $('e-classe').addEventListener('change', () => { eleveDetailId = null; drawEleves(); });
-
 function drawEleves() {
-  const classe = classeById($('e-classe').value);
-  const list = $('e-list'), detail = $('e-detail');
-  detail.innerHTML = '';
+  const classe = classeById($('e-classe').value), list = $('e-list'), detail = $('e-detail'); detail.innerHTML = '';
   if (!classe) { list.innerHTML = '<div class="card empty">Créez une classe dans Réglages.</div>'; return; }
   const eleves = classe.eleves || [];
-  if (eleves.length === 0) { list.innerHTML = '<div class="card empty">Ajoutez les élèves de cette classe dans Réglages.</div>'; return; }
-  const rows = eleves.map(el => {
-    const copies = db.copies.filter(c => c.eleveId === el.id);
-    const sur20 = copies.filter(c => c.note_max).map(c => (c.note / c.note_max) * 20);
-    const moy = sur20.length ? sur20.reduce((a, b) => a + b, 0) / sur20.length : null;
-    const comps = competenceAgg(copies);
-    const fragile = comps.length ? comps[0] : null;
-    return { el, n: copies.length, moy, fragile };
-  });
+  if (eleves.length === 0) { list.innerHTML = '<div class="card empty">Ajoutez les élèves dans Réglages.</div>'; return; }
+  const rows = eleves.map(el => { const cs = db.copies.filter(c => c.eleveId === el.id); const s = cs.filter(c => c.note_max).map(c => (c.note / c.note_max) * 20); const moy = s.length ? s.reduce((a, b) => a + b, 0) / s.length : null; const comps = competenceAgg(cs); return { el, n: cs.length, moy, fragile: comps.length ? comps[0] : null }; });
   list.innerHTML = `<div class="card"><h3>Suivi de la classe ${esc(classe.nom)}</h3>
     <table><thead><tr><th>Élève</th><th>Copies</th><th>Moyenne /20</th><th>Compétence la plus fragile</th></tr></thead><tbody>
-    ${rows.map(r => `<tr class="clickable" data-el="${r.el.id}">
-      <td>${esc(r.el.nom)}</td><td>${r.n}</td>
-      <td style="font-family:'DM Mono',monospace">${r.moy === null ? '—' : r.moy.toFixed(1)}</td>
-      <td>${r.fragile ? `${esc(r.fragile.nom)} <span style="color:var(--muted);font-family:'DM Mono',monospace">(${(r.fragile.taux * 100).toFixed(0)}%)</span>` : '—'}</td>
-    </tr>`).join('')}</tbody></table></div>`;
+    ${rows.map(r => `<tr class="clickable" data-el="${r.el.id}"><td>${esc(r.el.nom)}</td><td>${r.n}</td><td style="font-family:'DM Mono',monospace">${r.moy === null ? '—' : r.moy.toFixed(1)}</td><td>${r.fragile ? `${esc(r.fragile.nom)} <span style="color:var(--muted);font-family:'DM Mono',monospace">(${(r.fragile.taux * 100).toFixed(0)}%)</span>` : '—'}</td></tr>`).join('')}</tbody></table></div>`;
   list.querySelectorAll('[data-el]').forEach(tr => tr.addEventListener('click', () => { eleveDetailId = tr.dataset.el; drawEleveDetail(); }));
   if (eleveDetailId) drawEleveDetail();
 }
-
 function drawEleveDetail() {
-  const classe = classeById($('e-classe').value);
-  const el = eleveById(classe, eleveDetailId);
-  const box = $('e-detail');
+  const classe = classeById($('e-classe').value), el = eleveById(classe, eleveDetailId), box = $('e-detail');
   if (!el) { box.innerHTML = ''; return; }
   const copies = db.copies.filter(c => c.eleveId === el.id).sort((a, b) => a.date.localeCompare(b.date));
-  const comps = competenceAgg(copies);
-  const barColor = t => t < 0.5 ? 'var(--red)' : t < 0.7 ? 'var(--amber)' : 'var(--green)';
+  const comps = competenceAgg(copies), bc = t => t < .5 ? 'var(--red)' : t < .7 ? 'var(--amber)' : 'var(--green)';
   const faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 6);
-  box.innerHTML = `<div class="card">
-    <div class="row" style="justify-content:space-between">
-      <h3>👤 ${esc(el.nom)}</h3>
-      <button class="btn purple small" id="e-remed">✨ Remédiation individuelle</button>
-    </div>
-    ${copies.length === 0 ? '<div class="empty">Aucune copie corrigée pour cet élève.</div>' : `
-    <table style="margin-top:8px"><thead><tr><th>Devoir</th><th>Date</th><th>Note</th><th>/20</th></tr></thead><tbody>
-      ${copies.map(c => `<tr><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td>
-        <td>${new Date(c.date).toLocaleDateString('fr-FR')}</td>
-        <td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td>
-        <td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td></tr>`).join('')}
+  box.innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><h3>👤 ${esc(el.nom)}</h3><button class="btn purple small" id="e-remed">✨ Remédiation individuelle</button></div>
+    ${copies.length === 0 ? '<div class="empty">Aucune copie corrigée.</div>' : `
+    <table style="margin-top:8px"><thead><tr><th>Devoir</th><th>Date</th><th>Note</th><th>/20</th><th></th></tr></thead><tbody>
+      ${copies.map(c => `<tr><td>${esc((devoirById(c.devoirId) || {}).nom || '')}</td><td>${new Date(c.date).toLocaleDateString('fr-FR')}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)}/${fmtPts(c.note_max)}</td><td style="font-family:'DM Mono',monospace">${c.note_max ? ((c.note / c.note_max) * 20).toFixed(1) : '—'}</td><td class="noprint"><button class="btn small" data-eprint="${c.id}">🖨️</button></td></tr>`).join('')}
     </tbody></table>
     <div style="margin-top:14px"><label>Compétences (taux de réussite)</label>
-      ${comps.map(c => `
-        <div class="row" style="gap:10px; margin-top:8px">
-          <div style="width:250px; font-size:0.8rem">${esc(c.nom)}</div>
-          <div class="bar-wrap"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${barColor(c.taux)}"></div></div>
-          <div style="width:44px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div>
-        </div>`).join('')}
+      ${comps.map(c => `<div class="row" style="gap:10px; margin-top:8px"><div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>${dotsHTML(c.taux)}<div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div><div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div></div>`).join('')}
     </div>
-    ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}
-  </div>`;
+    ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}</div>`;
   const btn = $('e-remed');
-  if (btn) btn.addEventListener('click', () => {
-    switchTab('remediation');
-    $('m-mode').value = 'eleve'; $('m-mode').dispatchEvent(new Event('change'));
-    fillClasseSelect($('m-classe'), classe.id);
-    fillEleveSelect($('m-eleve'), classe.id, el.id);
-    prefillCible();
-  });
+  if (btn) btn.addEventListener('click', () => { switchTab('remediation'); $('m-mode').value = 'eleve'; $('m-mode').dispatchEvent(new Event('change')); fillClasseSelect($('m-classe'), classe.id); fillEleveSelect($('m-eleve'), classe.id, el.id); prefillCible(); });
+  box.querySelectorAll('[data-eprint]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.eprint); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
 }
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET REMÉDIATION
-// ════════════════════════════════════════════════════════════════
-function renderRemediation() {
-  fillClasseSelect($('m-classe'), $('m-classe').value);
-  fillEleveSelect($('m-eleve'), $('m-classe').value, $('m-eleve').value);
-  prefillCible();
-}
+// ════════ REMÉDIATION ════════
+function renderRemediation() { fillClasseSelect($('m-classe'), $('m-classe').value); fillEleveSelect($('m-eleve'), $('m-classe').value, $('m-eleve').value); prefillCible(); }
 $('m-mode').addEventListener('change', () => { $('m-elevecol').style.display = $('m-mode').value === 'eleve' ? '' : 'none'; prefillCible(); });
 $('m-classe').addEventListener('change', () => { fillEleveSelect($('m-eleve'), $('m-classe').value, null); prefillCible(); });
 $('m-eleve').addEventListener('change', prefillCible);
-
-function weakCompetences(copies) {
-  return competenceAgg(copies).filter(c => c.taux < 0.7).slice(0, 5).map(c => `${c.nom} (réussite ${(c.taux * 100).toFixed(0)}%)`);
-}
+function weakCompetences(copies) { return competenceAgg(copies).filter(c => c.taux < .7).slice(0, 5).map(c => `${c.nom} (réussite ${(c.taux * 100).toFixed(0)}%)`); }
 function prefillCible() {
-  const classeId = $('m-classe').value;
-  let copies;
-  if ($('m-mode').value === 'eleve') copies = db.copies.filter(c => c.eleveId === $('m-eleve').value);
-  else copies = copiesFor(classeId, '');
-  const weak = weakCompetences(copies);
-  const faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 4);
+  let copies; if ($('m-mode').value === 'eleve') copies = db.copies.filter(c => c.eleveId === $('m-eleve').value); else copies = copiesFor($('m-classe').value, '');
+  const weak = weakCompetences(copies), faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 4);
   $('m-cible').value = [...weak, ...faibles.filter(f => !weak.some(w => w.includes(f)))].join('\n');
 }
-
 $('m-generer').onclick = async () => {
   const errBox = $('m-error'); errBox.innerHTML = '';
   if (!API_KEY) { $('overlay').classList.remove('off'); return; }
-  const cible = $('m-cible').value.trim();
-  if (!cible) { errBox.innerHTML = '<div class="err-msg">Indiquez au moins une compétence/notion à cibler.</div>'; return; }
-  const isEleve = $('m-mode').value === 'eleve';
-  const classe = classeById($('m-classe').value);
-  const el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
-  const devoirsClasse = db.devoirs.filter(d => d.classeId === $('m-classe').value);
-  const contexteMatiere = devoirsClasse.map(d => d.matiere).filter(Boolean)[0] || '';
+  const cible = $('m-cible').value.trim(); if (!cible) { errBox.innerHTML = '<div class="err-msg">Indiquez au moins une compétence à cibler.</div>'; return; }
+  const isEleve = $('m-mode').value === 'eleve', classe = classeById($('m-classe').value), el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
+  const matiere = db.devoirs.filter(d => d.classeId === $('m-classe').value).map(d => d.matiere).filter(Boolean)[0] || '';
   $('m-generer').disabled = true; $('m-loading').style.display = 'flex'; $('m-result').style.display = 'none';
   try {
     const result = await callClaude({
-      system: `Tu conçois des activités de remédiation courtes, concrètes et progressives, avec corrigés détaillés, pour aider des élèves à progresser sur des compétences précises. ${profileDirectives()} Utilise l'outil generer_activite.`,
-      userContent: [{ type: 'text', text:
-        `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour l'élève ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${contexteMatiere ? ` en ${contexteMatiere}` : ''}.\n` +
-        `Compétences/notions à travailler (issues des corrections) :\n${cible}\n\n` +
-        `Propose 2 à 4 exercices courts et progressifs avec corrigé détaillé, directement utilisables en classe ou à la maison.` }],
+      system: `Tu conçois des activités de remédiation courtes, concrètes et progressives, avec corrigés détaillés. ${profileDirectives()} Utilise generer_activite.`,
+      userContent: [{ type: 'text', text: `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${matiere ? ` en ${matiere}` : ''}.\nCompétences/notions à travailler :\n${cible}\n\nPropose 2 à 4 exercices courts et progressifs avec corrigé détaillé.` }],
       tool: REMEDIATION_TOOL
     });
-    $('m-titre').textContent = result.titre;
-    $('m-objectif').textContent = result.objectif;
-    $('m-consignes').textContent = result.consignes;
-    $('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `
-      <div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>`).join('');
-    $('m-result').style.display = '';
-    $('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  } catch (e) {
-    errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`;
-  } finally {
-    $('m-generer').disabled = false; $('m-loading').style.display = 'none';
-  }
+    $('m-titre').textContent = result.titre; $('m-objectif').textContent = result.objectif; $('m-consignes').textContent = result.consignes;
+    $('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `<div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>`).join('');
+    $('m-result').style.display = ''; $('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
+  finally { $('m-generer').disabled = false; $('m-loading').style.display = 'none'; }
 };
 $('m-print').onclick = () => window.print();
 
-// ════════════════════════════════════════════════════════════════
-// ONGLET RÉGLAGES
-// ════════════════════════════════════════════════════════════════
+// ════════ RÉGLAGES ════════
 function renderSettings() {
   $('s-ton').value = db.profile.ton; $('s-enonc').value = db.profile.enonc; $('s-longueur').value = db.profile.longueur;
   $('s-model').value = db.model || 'claude-sonnet-5';
-  fillClasseSelect($('s-classesel'), $('s-classesel').value);
-  renderElevesAdmin();
+  fillClasseSelect($('s-classesel'), $('s-classesel').value); renderElevesAdmin();
 }
 $('s-ton').addEventListener('change', e => { db.profile.ton = e.target.value; saveDB(); });
 $('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value; saveDB(); });
 $('s-longueur').addEventListener('change', e => { db.profile.longueur = e.target.value; saveDB(); });
 $('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
 $('s-classesel').addEventListener('change', renderElevesAdmin);
-
-$('s-addclasse').onclick = () => {
-  const nom = $('s-newclasse').value.trim();
-  if (!nom) return;
-  const c = { id: uid(), nom, eleves: [] };
-  db.classes.push(c); saveDB();
-  $('s-newclasse').value = '';
-  fillClasseSelect($('s-classesel'), c.id);
-  renderElevesAdmin();
-};
+$('s-addclasse').onclick = () => { const nom = $('s-newclasse').value.trim(); if (!nom) return; const c = { id: uid(), nom, eleves: [] }; db.classes.push(c); saveDB(); $('s-newclasse').value = ''; fillClasseSelect($('s-classesel'), c.id); renderElevesAdmin(); };
 function renderElevesAdmin() {
-  const c = classeById($('s-classesel').value);
-  const box = $('s-eleves');
+  const c = classeById($('s-classesel').value), box = $('s-eleves');
   if (!c) { box.innerHTML = '<div class="empty">Aucune classe sélectionnée.</div>'; return; }
   const els = c.eleves || [];
-  box.innerHTML = els.length === 0 ? '<div class="empty">Aucun élève dans cette classe.</div>' :
-    els.map(e => `<div class="elrow"><span class="eln">${esc(e.nom)}</span><button class="btn danger small" data-elid="${e.id}">✕</button></div>`).join('');
-  box.querySelectorAll('[data-elid]').forEach(b => b.addEventListener('click', () => {
-    if (!confirm('Retirer cet élève ? (ses copies déjà corrigées sont conservées)')) return;
-    c.eleves = c.eleves.filter(e => e.id !== b.dataset.elid); saveDB(); renderElevesAdmin();
-  }));
+  box.innerHTML = els.length === 0 ? '<div class="empty">Aucun élève.</div>' : els.map(e => `<div class="elrow"><span class="eln">${esc(e.nom)}</span><button class="btn danger small" data-elid="${e.id}">✕</button></div>`).join('');
+  box.querySelectorAll('[data-elid]').forEach(b => b.addEventListener('click', () => { if (!confirm('Retirer cet élève ? (copies conservées)')) return; c.eleves = c.eleves.filter(e => e.id !== b.dataset.elid); saveDB(); renderElevesAdmin(); }));
 }
-$('s-addeleves').onclick = () => {
-  const c = classeById($('s-classesel').value);
-  if (!c) { alert('Créez/choisissez une classe.'); return; }
-  const noms = $('s-neweleves').value.split('\n').map(s => s.trim()).filter(Boolean);
-  if (noms.length === 0) return;
-  c.eleves = c.eleves || [];
-  noms.forEach(n => c.eleves.push({ id: uid(), nom: n }));
-  saveDB(); $('s-neweleves').value = ''; renderElevesAdmin();
-};
-$('s-delclasse').onclick = () => {
-  const c = classeById($('s-classesel').value);
-  if (!c) return;
-  if (!confirm(`Supprimer la classe « ${c.nom} », ses devoirs et toutes ses copies ?`)) return;
-  const devoirIds = db.devoirs.filter(d => d.classeId === c.id).map(d => d.id);
-  db.copies = db.copies.filter(cp => !devoirIds.includes(cp.devoirId));
-  db.devoirs = db.devoirs.filter(d => d.classeId !== c.id);
-  db.classes = db.classes.filter(x => x.id !== c.id);
-  saveDB(); renderSettings();
-};
-
-$('s-export').onclick = () => {
-  const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `correction-ia-export-${new Date().toISOString().slice(0, 10)}.json`;
-  a.click();
-};
+$('s-addeleves').onclick = () => { const c = classeById($('s-classesel').value); if (!c) { alert('Choisissez une classe.'); return; } const noms = $('s-neweleves').value.split('\n').map(s => s.trim()).filter(Boolean); if (!noms.length) return; c.eleves = c.eleves || []; noms.forEach(n => c.eleves.push({ id: uid(), nom: n })); saveDB(); $('s-neweleves').value = ''; renderElevesAdmin(); };
+$('s-delclasse').onclick = () => { const c = classeById($('s-classesel').value); if (!c) return; if (!confirm(`Supprimer la classe « ${c.nom} », ses devoirs et copies ?`)) return; const ids = db.devoirs.filter(d => d.classeId === c.id).map(d => d.id); db.copies = db.copies.filter(cp => !ids.includes(cp.devoirId)); db.devoirs = db.devoirs.filter(d => d.classeId !== c.id); db.classes = db.classes.filter(x => x.id !== c.id); saveDB(); renderSettings(); };
+$('s-export').onclick = () => { const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `correction-ia-export-${new Date().toISOString().slice(0, 10)}.json`; a.click(); };
 $('s-import').onclick = () => $('s-importfile').click();
-$('s-importfile').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const r = new FileReader();
-  r.onload = () => {
-    try {
-      const imported = JSON.parse(r.result);
-      if (!confirm('Importer remplacera toutes les données actuelles. Continuer ?')) return;
-      db = imported; saveDB(); renderSettings(); renderCorrection();
-    } catch (err) { alert('Fichier invalide : ' + err.message); }
-  };
-  r.readAsText(file);
-  e.target.value = '';
-});
-$('s-wipe').onclick = () => {
-  if (!confirm('Effacer TOUTES les données (classes, élèves, devoirs, copies) ? Irréversible.')) return;
-  const model = db.model, profile = db.profile;
-  db = freshDB(); db.model = model; db.profile = profile;
-  saveDB(); renderSettings(); renderCorrection();
-};
+$('s-importfile').addEventListener('change', e => { const f = e.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { try { const imp = JSON.parse(r.result); if (!confirm('Importer remplacera toutes les données actuelles. Continuer ?')) return; db = imp; saveDB(); renderSettings(); renderCorrection(); } catch (err) { alert('Fichier invalide : ' + err.message); } }; r.readAsText(f); e.target.value = ''; });
+$('s-wipe').onclick = () => { if (!confirm('Effacer TOUTES les données ? Irréversible.')) return; const m = db.model, p = db.profile; db = freshDB(); db.model = m; db.profile = p; saveDB(); renderSettings(); renderCorrection(); };
 
-// ════════════════════════════════════════════════════════════════
-// Init
-// ════════════════════════════════════════════════════════════════
 renderCorrection();
 </script>
 </body>
