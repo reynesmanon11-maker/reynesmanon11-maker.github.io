@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v6 — exigence adaptée au niveau (bac/brevet), nettoyage des textes, PDF fiabilisé -->
+<!-- Correction·IA v7 — grille manuelle (points conservés), remédiation ciblée par type d'activité, calibrage anti-surnotation -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -176,6 +176,34 @@
   .elrow { display: flex; align-items: center; gap: 8px; padding: 7px 11px; background: var(--surface2); border-radius: 9px; margin-bottom: 6px; font-size: 0.8rem; }
   .elrow .eln { flex: 1; }
 
+  /* Éditeur de grille manuel */
+  .iconbtn { background: none; border: none; color: var(--muted); font-size: 0.85rem; padding: 2px 5px; border-radius: 6px; }
+  .iconbtn:hover { color: var(--red); background: #fdeef1; }
+  .gcadd { padding: 8px 14px; border-top: 1px solid var(--border); }
+  .gcrit input.cattx, .gcrit input.ccompx { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--muted2); font-size: 0.72rem; padding: 5px 8px; outline: none; margin-top: 4px; }
+  .gcrit input.ccompx { color: var(--purple); font-weight: 600; }
+  .cnivs { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+  .cnivrow { display: flex; gap: 6px; align-items: center; }
+  .cnivrow input.cnivpts { width: 52px; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--blue); font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 4px 5px; text-align: center; outline: none; }
+  .cnivrow input.cnivdesc { flex: 1; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--muted2); font-size: 0.72rem; padding: 4px 8px; outline: none; }
+
+  /* Panneau de types d'activité (remédiation) */
+  .acttypes { display: grid; grid-template-columns: repeat(auto-fit,minmax(200px,1fr)); gap: 10px; margin-top: 6px; }
+  .acttype { display: flex; gap: 11px; align-items: flex-start; padding: 12px 14px; border: 1.5px solid var(--border2); border-radius: 13px; cursor: pointer; background: var(--surface); transition: all .15s; }
+  .acttype:hover { border-color: var(--purple); }
+  .acttype.on { border-color: var(--purple); background: var(--purple-soft); }
+  .acttype .at-ic { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; }
+  .acttype b { font-size: 0.82rem; display: block; }
+  .acttype span { font-size: 0.71rem; color: var(--muted2); line-height: 1.4; display: block; margin-top: 2px; }
+
+  /* QCM & cours */
+  .qcard { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .qcard .qq { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
+  .qopt { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--border2); border-radius: 8px; margin-bottom: 5px; font-size: 0.8rem; }
+  .qopt.good { border-color: #b8e6d1; background: #f2fbf7; color: var(--green); font-weight: 600; }
+  .qexpl { font-size: 0.76rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; margin-top: 6px; line-height: 1.5; }
+  .coursbox { font-size: 0.85rem; line-height: 1.65; white-space: pre-wrap; }
+
   #printroot { display: none; }
   @media print {
     #overlay, #topbar, #modetabs, #main { display: none !important; }
@@ -272,24 +300,28 @@
           </div>
           <div class="col" style="min-width:260px">
             <label>Grille de correction / barème</label>
-            <div class="dropzone" id="d2-grille-dz"><span class="dz-ic">📝</span>Déposer la grille (PDF)</div>
-            <input type="file" id="d2-grille-file" accept="application/pdf,.docx" style="display:none">
-            <div id="d2-grille-badge"></div>
-            <details style="margin-top:8px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le barème en texte</summary>
-              <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="Parties, questions, points OU niveaux/curseurs avec descripteurs…"></textarea></details>
+            <div class="sub" style="margin:4px 0 8px">Construisez votre grille ci-dessous : <b>vos points sont conservés à l'identique</b>, l'IA ne les modifie pas.</div>
+            <input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="Total de votre barème (ex : 20)" style="max-width:260px">
+            <details style="margin-top:10px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">✨ (optionnel) Pré-remplir la grille depuis un PDF / texte — à vérifier ensuite</summary>
+              <div style="margin-top:8px">
+                <div class="dropzone" id="d2-grille-dz"><span class="dz-ic">📝</span>Déposer la grille (PDF)</div>
+                <input type="file" id="d2-grille-file" accept="application/pdf,.docx" style="display:none">
+                <div id="d2-grille-badge"></div>
+                <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="…ou collez le barème en texte (parties, critères, points, niveaux)"></textarea>
+                <button class="btn secondary small" id="d2-structurer" style="margin-top:8px">✨ Pré-remplir avec l'IA</button>
+                <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Lecture en cours…</div>
+                <div id="d2-structerr"></div>
+              </div>
+            </details>
           </div>
         </div>
-        <div class="row" style="margin-top:14px; align-items:flex-end">
-          <div class="col" style="max-width:230px"><label>Total exact de votre barème</label><input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="ex : 9"></div>
-          <button class="btn purple" id="d2-structurer">✨ Structurer la grille avec l'IA</button>
+        <div class="row" style="margin-top:14px">
+          <button class="btn purple" id="d2-buildgrille">✏️ Construire / éditer ma grille</button>
         </div>
-        <div class="sub" style="margin-top:6px">💡 Indiquez le total exact de votre barème : l'IA conservera ce total <b>sans le modifier</b> et reprendra vos critères tels quels.</div>
-        <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Structuration en cours…</div>
-        <div id="d2-structerr"></div>
       </div>
       <div class="card" id="d2-grillecard" style="display:none">
         <div class="row" style="justify-content:space-between; margin-bottom:8px">
-          <h3 style="margin:0">Grille structurée <span style="color:var(--muted2);font-weight:400">(modifiable)</span></h3>
+          <h3 style="margin:0">Ma grille de correction <span style="color:var(--muted2);font-weight:400">(modifiable)</span></h3>
           <div class="notemax-badge">/ <span id="d2-notemax">0</span></div>
         </div>
         <div class="sub" id="d2-grillenote"></div>
@@ -391,10 +423,17 @@
         <div class="col" id="m-elevecol" style="display:none"><label>Élève</label><select id="m-eleve"></select></div>
       </div>
       <div class="col" style="margin-top:10px">
-        <label>Compétences / notions à cibler (pré-rempli automatiquement)</label>
+        <label>Compétences / notions à cibler (pré-remplies depuis la correction — modifiable)</label>
         <textarea class="field" id="m-cible" style="min-height:56px"></textarea>
       </div>
-      <div class="row" style="margin-top:12px"><button class="btn" id="m-generer">✨ Générer l'activité →</button></div>
+      <label style="margin-top:14px; display:block">Type d'activité</label>
+      <div class="acttypes" id="m-types">
+        <div class="acttype on" data-type="corriger"><div class="at-ic" style="background:#e08a2a">🔍</div><div><b>Corriger ses erreurs</b><span>Retravailler les erreurs types repérées dans la copie.</span></div></div>
+        <div class="acttype" data-type="qcm"><div class="at-ic" style="background:#e0576b">☑️</div><div><b>Réviser avec un QCM</b><span>Questions à choix pour vérifier rapidement les acquis.</span></div></div>
+        <div class="acttype" data-type="cours"><div class="at-ic" style="background:#6c5ce7">📄</div><div><b>Revoir son cours</b><span>Un résumé clair des notions fragiles.</span></div></div>
+        <div class="acttype" data-type="entrainer"><div class="at-ic" style="background:#4f7cf0">✍️</div><div><b>S'entraîner</b><span>Des exercices d'application progressifs.</span></div></div>
+      </div>
+      <div class="row" style="margin-top:14px"><button class="btn" id="m-generer">✨ Générer l'activité →</button></div>
       <div id="m-loading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Génération en cours…</div>
       <div id="m-error"></div>
     </div>
@@ -402,6 +441,8 @@
       <h3 id="m-titre"></h3>
       <div class="sub" id="m-objectif"></div>
       <p id="m-consignes" style="font-size:0.85rem; line-height:1.6; margin-bottom:14px"></p>
+      <div class="coursbox" id="m-cours" style="display:none"></div>
+      <div id="m-qcm" style="display:none"></div>
       <div class="exlist" id="m-exercices"></div>
       <div class="row noprint" style="margin-top:16px"><button class="btn secondary" id="m-print">🖨️ Imprimer</button></div>
     </div>
@@ -416,7 +457,9 @@
         <div class="col"><label>Ton</label><select id="s-ton"><option value="bienveillant">😊 Bienveillant</option><option value="neutre" selected>😐 Neutre</option><option value="exigeant">🎯 Exigeant</option></select></div>
         <div class="col"><label>Énonciation</label><select id="s-enonc"><option value="tutoiement" selected>🤝 Tutoiement</option><option value="vouvoiement">🎩 Vouvoiement</option></select></div>
         <div class="col"><label>Longueur des commentaires</label><select id="s-longueur"><option value="courte">Courte</option><option value="standard" selected>⚖️ Standard</option><option value="detaillee">Détaillée</option></select></div>
+        <div class="col"><label>Sévérité de notation</label><select id="s-severite"><option value="standard">Standard</option><option value="examen" selected>🎓 Niveau examen</option><option value="tresstrict">🔒 Très strict</option></select></div>
       </div>
+      <div class="sub" style="margin-top:8px">« Niveau examen » calibre la note comme un correcteur de bac/brevet (recommandé). « Très strict » réduit encore la tendance à surnoter.</div>
     </div>
     <div class="card">
       <h3>Modèle IA</h3>
@@ -478,7 +521,7 @@ function uid() { return Date.now().toString(36) + Math.random().toString(36).sli
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
 function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage du navigateur saturé (souvent à cause des PDF de sujets stockés).\nExportez vos données puis supprimez d'anciens devoirs, ou retirez le PDF du sujet une fois la grille structurée."); } }
-function freshDB() { return { version: 4, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard' }, classes: [], devoirs: [], copies: [] }; }
+function freshDB() { return { version: 4, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard', severite: 'examen' }, classes: [], devoirs: [], copies: [] }; }
 function loadDB() {
   try {
     const raw = localStorage.getItem(DB_KEY);
@@ -576,6 +619,16 @@ function profileDirectives() {
   const lg = { courte: 'Commentaires très courts.', standard: "Commentaires d'une à deux phrases.", detaillee: 'Commentaires détaillés (2 à 4 phrases, en citant des éléments précis de la copie).' }[p.longueur || 'standard'];
   return `Adopte ${ton}. ${enonc} ${lg}`;
 }
+function severiteDirectives() {
+  const s = (db.profile && db.profile.severite) || 'examen';
+  const map = {
+    standard: "SÉVÉRITÉ : standard — notation juste, sans excès de générosité ni de sévérité.",
+    examen: "SÉVÉRITÉ : niveau examen — calibre la note comme un correcteur officiel (bac/brevet). N'accorde le maximum d'un critère que si l'attendu est PLEINEMENT et rigoureusement satisfait. Une copie « correcte mais incomplète » (bonnes bases mais confusions, imprécisions ou raisonnement non abouti) se situe autour de 60-75% du barème, pas au-dessus. Ne surnote pas.",
+    tresstrict: "SÉVÉRITÉ : très stricte — chaque point doit être mérité sans ambiguïté ; la moindre imprécision, confusion ou étape manquante est sanctionnée. En cas de doute, attribue le niveau inférieur."
+  };
+  return map[s] || map.examen;
+}
+function newCritere() { return { id: 'c' + uid(), intitule: '', points: 1, attendus: '', competence: '', niveaux: [] }; }
 
 const STRUCT_TOOL = {
   name: 'structurer_grille', description: 'Enregistre la grille de correction structurée.',
@@ -605,11 +658,33 @@ function buildCorrectionTool(grille) {
     points_a_travailler: { type: 'array', items: { type: 'string' } }
   }, required: ['evaluations', 'observations', 'appreciation_globale', 'points_forts', 'points_a_travailler'] } };
 }
-const REMEDIATION_TOOL = { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: {
-  titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' },
-  exercices: { type: 'array', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } },
-  competences_ciblees: { type: 'array', items: { type: 'string' } }
-}, required: ['titre', 'objectif', 'consignes', 'exercices', 'competences_ciblees'] } };
+function buildRemediationTool(type) {
+  const base = { titre: { type: 'string' }, objectif: { type: 'string' }, consignes: { type: 'string' }, competences_ciblees: { type: 'array', items: { type: 'string' } } };
+  const req = ['titre', 'objectif', 'consignes', 'competences_ciblees'];
+  const props = { ...base };
+  if (type === 'qcm') {
+    props.qcm = { type: 'array', description: '6 à 10 questions à choix.', items: { type: 'object', properties: {
+      question: { type: 'string' },
+      propositions: { type: 'array', items: { type: 'string' }, description: '3 à 4 propositions.' },
+      bonnes_reponses: { type: 'array', items: { type: 'number' }, description: 'Index (0-based) de la ou des bonnes propositions.' },
+      explication: { type: 'string' }
+    }, required: ['question', 'propositions', 'bonnes_reponses', 'explication'] } };
+    req.push('qcm');
+  } else if (type === 'cours') {
+    props.resume = { type: 'string', description: "Résumé de cours clair et structuré des notions à revoir (titres, points clés, définitions, exemples). Sauts de ligne autorisés." };
+    req.push('resume');
+  } else { // corriger / entrainer
+    props.exercices = { type: 'array', description: '2 à 4 exercices courts et progressifs.', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } };
+    req.push('exercices');
+  }
+  return { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: props, required: req } };
+}
+const ACT_PROMPTS = {
+  corriger: "Type : « Corriger ses erreurs ». Propose 2 à 4 courts exercices présentant des affirmations/raisonnements ERRONÉS typiques (inspirés des erreurs à travailler). Pour chacun, l'élève doit repérer l'erreur, la corriger et l'expliquer. Le champ correction donne l'erreur, la correction attendue et l'explication.",
+  qcm: "Type : « Réviser avec un QCM ». Propose 6 à 10 questions à choix multiples ciblant les notions à travailler, avec 3-4 propositions chacune, la ou les bonnes réponses (index), et une courte explication. Vise à créer des automatismes (vocabulaire, définitions, applications).",
+  cours: "Type : « Revoir son cours ». Rédige un résumé de cours clair et structuré (titres, définitions, points clés, un ou deux exemples) sur les notions à revoir. Pas d'exercices : c'est une fiche de révision.",
+  entrainer: "Type : « S'entraîner ». Propose 2 à 4 exercices d'application progressifs sur les savoir-faire à retravailler, avec corrigé détaillé pour chacun."
+};
 
 let mammothPromise = null;
 function loadMammoth() {
@@ -757,29 +832,58 @@ function updateGrilleNote(d) {
   $('d2-grillenote').innerHTML = note;
   $('d2-notemax').textContent = fmtPts(total);
 }
+$('d2-buildgrille').onclick = () => {
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  if (!d.grille || !(d.grille.parties || []).length) { d.grille = { remarque: '', parties: [{ titre: 'Partie 1', criteres: [newCritere()] }] }; saveDB(); }
+  renderDevoirEditor();
+  $('d2-grillecard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
 function renderGrilleEditor(d) {
   const card = $('d2-grillecard');
   if (!d.grille) { card.style.display = 'none'; return; }
   card.style.display = '';
   updateGrilleNote(d);
-  $('d2-grille').innerHTML = d.grille.parties.map((p, pi) => `
-    <div class="gpartie">
-      <div class="gpartie-head"><input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}"><span class="ppts">${fmtPts(p.criteres.reduce((s, c) => s + critMax(c), 0))} pts</span></div>
-      ${p.criteres.map((c, ci) => `
-        <div class="gcrit"><div class="cmain">
-          <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}">
-          <div class="cattendus">${esc(c.attendus)}</div>
-          <span class="ccomp">${esc(c.competence)}</span>
-          ${(c.niveaux && c.niveaux.length) ? `<div class="cechelle">${c.niveaux.map(nv => `<div class="cniv"><b>${fmtPts(nv.points)}</b> — ${esc(nv.descripteur)}</div>`).join('')}</div>` : ''}
-        </div><input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${critMax(c)}" ${(c.niveaux && c.niveaux.length) ? 'readonly title="Défini par les niveaux"' : ''}></div>`).join('')}
-    </div>`).join('');
-  $('d2-grille').querySelectorAll('input.ptitre').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].titre = inp.value; saveDB(); }));
-  $('d2-grille').querySelectorAll('input.cint').forEach(inp => inp.addEventListener('input', () => { d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
-  $('d2-grille').querySelectorAll('input.cpts:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
-    d.grille.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0; saveDB();
+  const g = d.grille, box = $('d2-grille');
+  box.innerHTML = g.parties.map((p, pi) => {
+    const pPts = p.criteres.reduce((s, c) => s + critMax(c), 0);
+    return `<div class="gpartie">
+      <div class="gpartie-head"><input class="ptitre" data-pi="${pi}" value="${esc(p.titre)}" placeholder="Nom de la partie / exercice"><span class="ppts">${fmtPts(pPts)} pts</span><button class="iconbtn gp-del" data-pi="${pi}" title="Supprimer la partie">🗑️</button></div>
+      ${p.criteres.map((c, ci) => {
+        const hasNiv = c.niveaux && c.niveaux.length;
+        return `<div class="gcrit"><div class="cmain">
+          <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}" placeholder="Intitulé du critère">
+          <input class="cattx" data-pi="${pi}" data-ci="${ci}" value="${esc(c.attendus || '')}" placeholder="Attendus (facultatif)">
+          <input class="ccompx" data-pi="${pi}" data-ci="${ci}" value="${esc(c.competence || '')}" placeholder="Compétence (ex : Raisonner / argumenter)">
+          <div class="cnivs">
+            ${(c.niveaux || []).map((nv, ni) => `<div class="cnivrow"><input class="cnivpts" type="number" step="0.25" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" value="${nv.points}"><input class="cnivdesc" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" value="${esc(nv.descripteur)}" placeholder="Descripteur du niveau"><button class="iconbtn cniv-del" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" title="Retirer ce niveau">✕</button></div>`).join('')}
+            <button class="btn ghost small cniv-add" data-pi="${pi}" data-ci="${ci}">+ niveau</button>
+          </div>
+        </div><input class="cpts" type="number" step="0.25" min="0" data-pi="${pi}" data-ci="${ci}" value="${critMax(c)}" ${hasNiv ? 'readonly title="Défini par les niveaux"' : ''}><button class="iconbtn gc-del" data-pi="${pi}" data-ci="${ci}" title="Supprimer le critère">✕</button></div>`;
+      }).join('')}
+      <div class="gcadd"><button class="btn secondary small gc-add" data-pi="${pi}">+ Ajouter un critère</button></div>
+    </div>`;
+  }).join('') + `<div style="margin-top:10px"><button class="btn purple small gp-add">+ Ajouter une partie</button></div>`;
+
+  const rerender = () => { saveDB(); renderGrilleEditor(d); };
+  const q = sel => box.querySelectorAll(sel);
+  q('.ptitre').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].titre = inp.value; saveDB(); }));
+  q('.cint').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
+  q('.cattx').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].attendus = inp.value; saveDB(); }));
+  q('.ccompx').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].competence = inp.value; saveDB(); }));
+  q('.cpts:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
+    g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0; saveDB();
     updateGrilleNote(d);
-    inp.closest('.gpartie').querySelector('.ppts').textContent = fmtPts(d.grille.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + critMax(c), 0)) + ' pts';
+    inp.closest('.gpartie').querySelector('.ppts').textContent = fmtPts(g.parties[+inp.dataset.pi].criteres.reduce((s, c) => s + critMax(c), 0)) + ' pts';
   }));
+  q('.cnivpts').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].niveaux[+inp.dataset.ni].points = parseFloat(inp.value) || 0; saveDB(); updateGrilleNote(d); }));
+  q('.cnivpts').forEach(inp => inp.addEventListener('change', () => renderGrilleEditor(d)));
+  q('.cnivdesc').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].niveaux[+inp.dataset.ni].descripteur = inp.value; saveDB(); }));
+  q('.cniv-add').forEach(b => b.addEventListener('click', () => { const c = g.parties[+b.dataset.pi].criteres[+b.dataset.ci]; c.niveaux = c.niveaux || []; c.niveaux.push({ points: 0, descripteur: '' }); rerender(); }));
+  q('.cniv-del').forEach(b => b.addEventListener('click', () => { g.parties[+b.dataset.pi].criteres[+b.dataset.ci].niveaux.splice(+b.dataset.ni, 1); rerender(); }));
+  q('.gc-add').forEach(b => b.addEventListener('click', () => { g.parties[+b.dataset.pi].criteres.push(newCritere()); rerender(); }));
+  q('.gc-del').forEach(b => b.addEventListener('click', () => { if (g.parties[+b.dataset.pi].criteres.length <= 1) { alert('Une partie doit garder au moins un critère (supprimez la partie entière si besoin).'); return; } g.parties[+b.dataset.pi].criteres.splice(+b.dataset.ci, 1); rerender(); }));
+  q('.gp-del').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette partie et ses critères ?')) return; g.parties.splice(+b.dataset.pi, 1); if (!g.parties.length) g.parties.push({ titre: 'Partie 1', criteres: [newCritere()] }); rerender(); }));
+  box.querySelector('.gp-add').addEventListener('click', () => { g.parties.push({ titre: 'Partie ' + (g.parties.length + 1), criteres: [newCritere()] }); rerender(); });
 }
 
 // ════════ CORRECTION ════════
@@ -794,7 +898,7 @@ $('c-devoir').addEventListener('change', () => { updateGrilleState(); renderHist
 function updateGrilleState() {
   const d = devoirById($('c-devoir').value), box = $('c-grillestate');
   if (!d) { box.innerHTML = '<div class="err-msg">Choisissez un devoir (ou créez-le dans « Évaluations »).</div>'; return; }
-  if (!d.grille) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas de grille structurée — allez dans « Évaluations ».</div>'; return; }
+  if (!d.grille || !grilleCriteres(d.grille).length) { box.innerHTML = '<div class="err-msg">Ce devoir n\'a pas encore de grille — allez dans « Évaluations » pour la construire.</div>'; return; }
   const nc = grilleCriteres(d.grille).length;
   const cls = classeById(d.classeId) || {};
   const niveau = (d.niveau ?? '') !== '' ? d.niveau : (cls.niveau || '');
@@ -896,6 +1000,10 @@ Dans "observations", cite VERBATIM des extraits de la copie et commente-les (ré
 
 ${niveauDirectives(niveau)}
 
+${severiteDirectives()}
+
+CALIBRAGE ANTI-SURNOTATION : réserve les points hauts aux performances réellement complètes ET rigoureuses. Le maximum d'un critère ne se donne QUE si l'attendu est pleinement satisfait, sans confusion ni imprécision. Une confusion de notions, un raisonnement incomplet ou une conclusion non démontrée fait perdre des points, même si le reste est bon.
+
 ${profileDirectives()}
 
 IMPORTANT : renseigne UNIQUEMENT les champs prévus par l'outil (texte simple, sans balise ni code). Utilise remplir_grille.`,
@@ -975,8 +1083,9 @@ function renderHistory() {
   if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie enregistrée pour ce devoir.</div>'; return; }
   box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>À travailler</th><th></th></tr></thead><tbody>` +
     list.map(c => `<tr><td>${esc(c.eleveNom)}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td><td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
-    <td class="noprint"><button class="btn secondary small" data-pdf="${c.id}">⬇️ PDF</button> <button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
+    <td class="noprint"><button class="btn purple small" data-remed="${c.id}" title="Générer une remédiation ciblée">✨ Remédiation</button> <button class="btn secondary small" data-pdf="${c.id}">⬇️ PDF</button> <button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
   box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette copie ?')) return; db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory(); }));
+  box.querySelectorAll('[data-remed]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.remed); if (c) launchRemediation(c.classeId, c.eleveId); }));
   box.querySelectorAll('[data-view]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.view); if (!c) return; reviewTarget = { type: 'copie', id: c.id }; reviewData = c; showReview(c, c.eleveNom); }));
   box.querySelectorAll('[data-print]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.print); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
   box.querySelectorAll('[data-pdf]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.pdf); if (c) { reviewTarget = { type: 'copie', id: c.id }; pdfCopie(c, c.eleveNom, b); } }));
@@ -1146,13 +1255,27 @@ function drawEleveDetail() {
     </div>
     ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}</div>`;
   const btn = $('e-remed');
-  if (btn) btn.addEventListener('click', () => { switchTab('remediation'); $('m-mode').value = 'eleve'; $('m-mode').dispatchEvent(new Event('change')); fillClasseSelect($('m-classe'), classe.id); fillEleveSelect($('m-eleve'), classe.id, el.id); prefillCible(); });
+  if (btn) btn.addEventListener('click', () => launchRemediation(classe.id, el.id));
   box.querySelectorAll('[data-eprint]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.eprint); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
   box.querySelectorAll('[data-epdf]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.epdf); if (c) { reviewTarget = { type: 'copie', id: c.id }; pdfCopie(c, c.eleveNom, b); } }));
 }
 
 // ════════ REMÉDIATION ════════
+let actType = 'corriger';
 function renderRemediation() { fillClasseSelect($('m-classe'), $('m-classe').value); fillEleveSelect($('m-eleve'), $('m-classe').value, $('m-eleve').value); prefillCible(); }
+document.querySelectorAll('#m-types .acttype').forEach(card => card.addEventListener('click', () => {
+  actType = card.dataset.type;
+  document.querySelectorAll('#m-types .acttype').forEach(c => c.classList.toggle('on', c === card));
+}));
+function launchRemediation(classeId, eleveId) {
+  switchTab('remediation');
+  $('m-mode').value = eleveId ? 'eleve' : 'classe';
+  $('m-elevecol').style.display = eleveId ? '' : 'none';
+  fillClasseSelect($('m-classe'), classeId);
+  fillEleveSelect($('m-eleve'), classeId, eleveId);
+  prefillCible();
+  $('m-result').style.display = 'none';
+}
 $('m-mode').addEventListener('change', () => { $('m-elevecol').style.display = $('m-mode').value === 'eleve' ? '' : 'none'; prefillCible(); });
 $('m-classe').addEventListener('change', () => { fillEleveSelect($('m-eleve'), $('m-classe').value, null); prefillCible(); });
 $('m-eleve').addEventListener('change', prefillCible);
@@ -1168,30 +1291,60 @@ $('m-generer').onclick = async () => {
   const cible = $('m-cible').value.trim(); if (!cible) { errBox.innerHTML = '<div class="err-msg">Indiquez au moins une compétence à cibler.</div>'; return; }
   const isEleve = $('m-mode').value === 'eleve', classe = classeById($('m-classe').value), el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
   const matiere = db.devoirs.filter(d => d.classeId === $('m-classe').value).map(d => d.matiere).filter(Boolean)[0] || '';
+  const cls = classeById($('m-classe').value) || {};
+  const niveau = cls.niveau || '';
   $('m-generer').disabled = true; $('m-loading').style.display = 'flex'; $('m-result').style.display = 'none';
   try {
     const result = await callClaude({
-      system: `Tu conçois des activités de remédiation courtes, concrètes et progressives, avec corrigés détaillés. ${profileDirectives()} Utilise generer_activite.`,
-      userContent: [{ type: 'text', text: `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${matiere ? ` en ${matiere}` : ''}.\nCompétences/notions à travailler :\n${cible}\n\nPropose 2 à 4 exercices courts et progressifs avec corrigé détaillé.` }],
-      tool: REMEDIATION_TOOL
+      system: `Tu conçois des activités de remédiation pédagogiques, ciblées et adaptées au niveau des élèves. ${ACT_PROMPTS[actType]} ${niveau ? niveauDirectives(niveau) : ''} ${profileDirectives()} Renseigne uniquement les champs de l'outil (texte simple). Utilise generer_activite.`,
+      userContent: [{ type: 'text', text: `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${matiere ? ` en ${matiere}` : ''}${niveau ? ` (niveau ${niveauLabel(niveau)})` : ''}.\n\nCompétences / notions fragiles à retravailler (issues de la correction) :\n${cible}` }],
+      tool: buildRemediationTool(actType)
     });
-    $('m-titre').textContent = result.titre; $('m-objectif').textContent = result.objectif; $('m-consignes').textContent = result.consignes;
-    $('m-exercices').innerHTML = (result.exercices || []).map((ex, i) => `<div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(ex.enonce)}</div><div class="cor"><b>Corrigé :</b> ${esc(ex.correction)}</div></div>`).join('');
+    renderActivite(result);
     $('m-result').style.display = ''; $('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
   finally { $('m-generer').disabled = false; $('m-loading').style.display = 'none'; }
 };
-$('m-print').onclick = () => window.print();
+function renderActivite(result) {
+  $('m-titre').textContent = cleanText(result.titre);
+  $('m-objectif').textContent = cleanText(result.objectif);
+  $('m-consignes').textContent = cleanText(result.consignes);
+  const cours = $('m-cours'), qcm = $('m-qcm'), ex = $('m-exercices');
+  cours.style.display = 'none'; qcm.style.display = 'none'; ex.innerHTML = '';
+  if (result.resume) {
+    cours.style.display = ''; cours.textContent = cleanText(result.resume);
+  } else if (result.qcm && result.qcm.length) {
+    qcm.style.display = '';
+    qcm.innerHTML = result.qcm.map((question, qi) => {
+      const bonnes = new Set((question.bonnes_reponses || []).map(Number));
+      const opts = (question.propositions || []).map((p, i) => `<div class="qopt${bonnes.has(i) ? ' good' : ''}">${bonnes.has(i) ? '✅' : '◯'} ${esc(cleanText(p))}</div>`).join('');
+      return `<div class="qcard"><div class="qq">${qi + 1}. ${esc(cleanText(question.question))}</div>${opts}${question.explication ? `<div class="qexpl">${esc(cleanText(question.explication))}</div>` : ''}</div>`;
+    }).join('');
+  } else {
+    ex.innerHTML = (result.exercices || []).map((e, i) => `<div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(cleanText(e.enonce))}</div><div class="cor"><b>Corrigé :</b> ${esc(cleanText(e.correction))}</div></div>`).join('');
+  }
+}
+$('m-print').onclick = () => {
+  const root = $('printroot');
+  root.innerHTML = `<div style="padding:8px 24px;font-family:'Sora',sans-serif;color:#1a1a2e">
+    <h2 style="color:#5a4bd8;font-size:16pt">${esc($('m-titre').textContent)}</h2>
+    <p style="color:#666;font-size:10pt;margin:4px 0 10px">${esc($('m-objectif').textContent)}</p>
+    <p style="font-size:10pt;line-height:1.6;margin-bottom:12px">${esc($('m-consignes').textContent)}</p>
+    ${$('m-cours').outerHTML}${$('m-qcm').outerHTML}${$('m-exercices').outerHTML}</div>`;
+  window.print();
+};
 
 // ════════ RÉGLAGES ════════
 function renderSettings() {
   $('s-ton').value = db.profile.ton; $('s-enonc').value = db.profile.enonc; $('s-longueur').value = db.profile.longueur;
+  $('s-severite').value = db.profile.severite || 'examen';
   $('s-model').value = db.model || 'claude-sonnet-5';
   fillClasseSelect($('s-classesel'), $('s-classesel').value); renderElevesAdmin();
 }
 $('s-ton').addEventListener('change', e => { db.profile.ton = e.target.value; saveDB(); });
 $('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value; saveDB(); });
 $('s-longueur').addEventListener('change', e => { db.profile.longueur = e.target.value; saveDB(); });
+$('s-severite').addEventListener('change', e => { db.profile.severite = e.target.value; saveDB(); });
 $('s-model').addEventListener('change', e => { db.model = e.target.value; saveDB(); });
 $('s-classesel').addEventListener('change', renderElevesAdmin);
 $('s-niveau').addEventListener('change', e => { const c = classeById($('s-classesel').value); if (c) { c.niveau = e.target.value; saveDB(); } });
