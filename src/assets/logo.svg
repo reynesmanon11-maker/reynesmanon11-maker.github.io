@@ -1,0 +1,15 @@
+<svg width="113" height="27" viewBox="0 0 113 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g stroke="#fff" stroke-width="1.6" stroke-linecap="round">
+    <circle cx="13.5" cy="13.5" r="11.6" stroke-opacity="0.9" fill="none"/>
+    <line x1="13.5" y1="4.4" x2="13.5" y2="9.1"/>
+    <line x1="13.5" y1="17.9" x2="13.5" y2="22.6"/>
+    <line x1="4.4" y1="13.5" x2="9.1" y2="13.5"/>
+    <line x1="17.9" y1="13.5" x2="22.6" y2="13.5"/>
+    <line x1="7.1" y1="7.1" x2="10.4" y2="10.4"/>
+    <line x1="16.6" y1="16.6" x2="19.9" y2="19.9"/>
+    <line x1="19.9" y1="7.1" x2="16.6" y2="10.4"/>
+    <line x1="10.4" y1="16.6" x2="7.1" y2="19.9"/>
+  </g>
+  <circle cx="13.5" cy="13.5" r="2.4" fill="#fff"/>
+  <text x="31" y="19.5" fill="#fff" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif" font-size="16.5" font-weight="800" letter-spacing="2.2">VALMAX</text>
+</svg>
