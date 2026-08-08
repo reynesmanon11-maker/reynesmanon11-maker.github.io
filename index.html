@@ -1,0 +1,1008 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manon Reynes — Professeure de SVT</title>
+<meta name="description" content="Sciences de la Vie et de la Terre. Enseignement, terrain, jeux sérieux et ressources numériques pour les élèves du lycée.">
+<meta property="og:title" content="Manon Reynes — Professeure de SVT">
+<meta property="og:description" content="Sciences de la Vie et de la Terre. Enseignement, terrain et ressources numériques.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   PALETTE ET TOKENS
+   Pour changer l'ambiance du site, modifiez uniquement ces variables.
+   ========================================================================= */
+:root{
+  --bg:        oklch(0.13 0.004 240);   /* fond général          */
+  --matte:     oklch(0.16 0.004 240);   /* fond des sections     */
+  --lime:      oklch(0.92 0.23 124);    /* accent (vert vif)     */
+  --txt:       #ffffff;
+  --txt-soft:  rgba(255,255,255,.55);
+  --txt-dim:   rgba(255,255,255,.40);
+  --line:      rgba(255,255,255,.10);
+  --ease:      cubic-bezier(.22,1,.36,1);
+  --display:   'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font-family:'Poppins', system-ui, sans-serif;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--lime); color:oklch(0.06 0 0)}
+a{color:inherit}
+.display{font-family:var(--display); letter-spacing:-.02em}
+.lime{color:var(--lime)}
+.wrap{max-width:1200px; margin:0 auto}
+canvas{display:block}
+
+/* ---- animations d'apparition au défilement ---- */
+.reveal{opacity:0; transform:translateY(28px); filter:blur(12px)}
+.reveal.in{
+  opacity:1; transform:none; filter:none;
+  transition:opacity 1.1s var(--ease), transform 1.1s var(--ease), filter 1.1s var(--ease);
+}
+.reveal.d1.in{transition-delay:.10s}
+.reveal.d2.in{transition-delay:.20s}
+.reveal.d3.in{transition-delay:.30s}
+
+/* =========================================================================
+   BARRE DU HAUT
+   ========================================================================= */
+header{
+  position:fixed; inset:0 0 auto 0; z-index:50;
+  padding:24px 24px 0; opacity:0; animation:fadeIn .5s var(--ease) 2.7s forwards;
+}
+@keyframes fadeIn{to{opacity:1}}
+.bar{display:flex; align-items:center; justify-content:space-between; gap:16px}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand-mark{
+  width:26px; height:26px; border-radius:50%; flex:none;
+  background:
+    radial-gradient(circle at 32% 30%, #7fc4a0 0 22%, transparent 23%),
+    radial-gradient(circle at 68% 62%, #6ba3d6 0 26%, transparent 27%),
+    linear-gradient(150deg, #2e6f5e, #1d3b57);
+  box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 0 14px rgba(140,220,180,.30);
+}
+.brand-txt{font-family:var(--display); font-weight:800; font-size:14px; letter-spacing:.14em}
+.menu-btn{
+  display:flex; align-items:center; gap:12px; cursor:pointer;
+  border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.04);
+  color:var(--txt-soft); border-radius:999px; padding:9px 16px;
+  font:inherit; font-size:13px; backdrop-filter:blur(10px);
+  transition:background .3s, color .3s;
+}
+.menu-btn:hover{background:rgba(255,255,255,.09); color:#fff}
+.menu-btn .bars{display:inline-flex; flex-direction:column; gap:3px}
+.menu-btn .bars i{display:block; width:15px; height:1.5px; background:currentColor}
+.nav-wrap{position:relative}
+.panel{
+  position:absolute; right:0; top:calc(100% + 12px); width:270px;
+  background:rgba(0,0,0,.72); border:1px solid var(--line); border-radius:16px;
+  padding:8px; backdrop-filter:blur(18px);
+  opacity:0; transform:translateY(-8px); pointer-events:none;
+  transition:opacity .35s var(--ease), transform .35s var(--ease);
+}
+.panel.open{opacity:1; transform:none; pointer-events:auto}
+.panel a{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 16px; border-radius:12px; font-size:14px;
+  color:var(--txt-soft); text-decoration:none; transition:.25s;
+}
+.panel a:hover{background:rgba(255,255,255,.06); color:#fff}
+.panel a span{opacity:.4; transition:.25s}
+.panel a:hover span{opacity:1; transform:translate(2px,-2px)}
+.panel .foot{
+  margin-top:8px; padding:12px 16px; border-top:1px solid var(--line);
+  display:flex; justify-content:space-between; font-size:12px; color:rgba(255,255,255,.5);
+}
+.panel .foot a{padding:0; color:inherit}
+
+/* =========================================================================
+   SÉQUENCE D'INTRODUCTION
+   ========================================================================= */
+#intro{position:fixed; inset:0; z-index:100; pointer-events:none}
+#intro .backdrop{
+  position:absolute; inset:0; background:var(--matte);
+  animation:introBack 3.6s var(--ease) forwards;
+}
+@keyframes introBack{0%,80%{opacity:1} 100%{opacity:0}}
+#intro .ring{
+  position:absolute; top:50%; left:50%; border:1px solid rgba(255,255,255,.11);
+  border-radius:50%; transform:translate(-50%,-50%) scale(.15); opacity:0;
+  animation:introRing 2.4s var(--ease) forwards;
+}
+@keyframes introRing{
+  0%{opacity:0; transform:translate(-50%,-50%) scale(.15)}
+  50%{opacity:.55; transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0; transform:translate(-50%,-50%) scale(1.4)}
+}
+#intro .core{
+  position:absolute; top:50%; left:50%; width:8px; height:8px; border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 34% 32%, #a8e6c4, #2e6f5e 60%, #14293e);
+  box-shadow:0 0 30px 6px rgba(150,230,190,.45);
+  animation:introCore 3.6s var(--ease) forwards;
+}
+@keyframes introCore{
+  0%{width:8px; height:8px; opacity:1}
+  18%{width:14px; height:14px}
+  42%{width:96px; height:96px; opacity:1}
+  70%{width:96px; height:96px; opacity:.35}
+  100%{width:120px; height:120px; opacity:0}
+}
+#intro .word{
+  position:absolute; top:calc(50% + 82px); left:50%; transform:translateX(-50%);
+  font-family:var(--display); font-weight:800; font-size:34px; letter-spacing:.22em;
+  white-space:nowrap; overflow:hidden; width:0;
+  animation:introWord 3.6s var(--ease) forwards;
+}
+@keyframes introWord{
+  0%,28%{width:0; opacity:0}
+  40%{opacity:1}
+  72%{width:340px; opacity:1}
+  88%{width:340px; opacity:1}
+  100%{width:340px; opacity:0}
+}
+#intro .rays{position:absolute; inset:0; width:100%; height:100%}
+#intro .rays line{
+  stroke:#fff; stroke-width:.12; stroke-linecap:round; stroke-opacity:.45;
+  stroke-dasharray:60; stroke-dashoffset:60; opacity:0;
+  animation:introRay 2s var(--ease) forwards;
+}
+@keyframes introRay{
+  0%{stroke-dashoffset:60; opacity:0}
+  70%{stroke-dashoffset:0; opacity:.65}
+  100%{stroke-dashoffset:0; opacity:0}
+}
+
+/* =========================================================================
+   SECTIONS
+   ========================================================================= */
+section{position:relative; background:var(--matte); overflow:hidden}
+.noise{
+  position:absolute; inset:0; pointer-events:none; z-index:1; opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+.stars{position:absolute; inset:0; z-index:0; pointer-events:none}
+.lines{position:absolute; inset:0; z-index:0; pointer-events:none; width:100%; height:100%}
+.lines line{stroke:#fff; stroke-width:.08; stroke-opacity:.10}
+.inner{position:relative; z-index:2}
+
+/* ---- HERO ---- */
+#accueil{min-height:100vh; display:grid; place-items:center; padding:104px 24px 56px}
+.hero{display:grid; place-items:center; text-align:center; width:100%}
+.kicker{
+  font-size:11px; letter-spacing:.34em; text-transform:uppercase;
+  color:var(--txt-dim); margin-bottom:8px;
+}
+/* Le canvas est plus large que la planète : la marge accueille les étiquettes. */
+#earth-wrap{position:relative; width:min(440px, 80vw); aspect-ratio:1; margin:0 auto}
+#earth{width:100%; height:100%}
+.hero h1{
+  font-family:var(--display); font-weight:900; margin:4px 0 0;
+  font-size:clamp(40px, 7.4vw, 78px); line-height:.94; letter-spacing:-.03em;
+}
+.hero .role{
+  margin-top:14px; font-size:13px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--lime);
+}
+.hero p.lead{
+  margin:18px auto 0; max-width:500px; color:var(--txt-soft);
+  font-size:14.5px; line-height:1.7;
+}
+.scroll-hint{
+  margin-top:30px; font-size:11px; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--txt-dim); display:inline-flex; align-items:center; gap:10px;
+}
+.scroll-hint i{
+  width:1px; height:26px; background:linear-gradient(var(--txt-dim), transparent);
+  display:block; animation:pulse 2.4s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{opacity:.3} 50%{opacity:1}}
+
+/* ---- titres de section ---- */
+.sec{padding:120px 24px}
+.sec-head{margin-bottom:56px}
+.sec-num{
+  font-size:11px; letter-spacing:.3em; color:var(--lime);
+  text-transform:uppercase; margin-bottom:14px;
+}
+.sec-head h2{
+  font-family:var(--display); font-weight:800; text-transform:uppercase;
+  font-size:clamp(30px, 5.4vw, 58px); line-height:1; letter-spacing:-.02em; margin:0;
+}
+
+/* ---- PARCOURS ---- */
+.two{display:grid; grid-template-columns:1fr; gap:48px}
+@media(min-width:900px){.two{grid-template-columns:1fr 1fr; gap:72px}}
+.prose p{color:var(--txt-soft); font-size:15px; line-height:1.8; margin:0 0 18px}
+.facts{display:flex; flex-direction:column; gap:2px}
+.fact{
+  display:grid; grid-template-columns:120px 1fr; gap:20px; align-items:baseline;
+  padding:18px 0; border-top:1px solid var(--line); font-size:14px;
+}
+.fact b{
+  font-weight:500; color:var(--txt-dim); font-size:11px;
+  letter-spacing:.18em; text-transform:uppercase;
+}
+.fact span{color:var(--txt-soft); line-height:1.6}
+
+/* ---- APPROCHE (cartes) ---- */
+.cards{display:grid; grid-template-columns:1fr; gap:24px}
+@media(min-width:760px){.cards{grid-template-columns:repeat(3,1fr)}}
+.card{
+  border:1px solid var(--line); border-radius:2px; padding:32px 26px 34px;
+  background:rgba(255,255,255,.015); transition:background .5s, border-color .5s, transform .5s var(--ease);
+}
+.card:hover{background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.2); transform:translateY(-4px)}
+.card .ico{width:30px; height:30px; margin-bottom:22px; color:var(--lime)}
+.card h3{
+  font-family:var(--display); font-weight:700; text-transform:uppercase;
+  font-size:14px; letter-spacing:.08em; margin:0 0 12px;
+}
+.card p{margin:0; color:var(--txt-soft); font-size:14px; line-height:1.75}
+
+/* ---- RESSOURCES ---- */
+.res{display:grid; grid-template-columns:1fr; gap:20px}
+@media(min-width:680px){.res{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1040px){.res{grid-template-columns:repeat(3,1fr)}}
+.res a{
+  display:flex; flex-direction:column; justify-content:space-between; gap:34px;
+  text-decoration:none; padding:28px 26px; min-height:190px;
+  border:1px solid var(--line); background:rgba(255,255,255,.015);
+  transition:background .45s, border-color .45s, transform .45s var(--ease);
+}
+.res a:hover{background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.24); transform:translateY(-4px)}
+.res .tag{
+  font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--lime);
+}
+.res h3{
+  font-family:var(--display); font-weight:700; font-size:19px; margin:10px 0 8px;
+  line-height:1.25;
+}
+.res p{margin:0; color:var(--txt-soft); font-size:13.5px; line-height:1.7}
+.res .go{
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--txt-dim);
+}
+.res a:hover .go{color:#fff}
+.res .go em{
+  font-style:normal; width:26px; height:26px; border:1px solid rgba(255,255,255,.22);
+  border-radius:50%; display:grid; place-items:center; transition:.4s;
+}
+.res a:hover .go em{background:var(--lime); color:#0b0b0b; border-color:var(--lime)}
+
+/* ---- CONTACT ---- */
+#contact{text-align:center}
+#contact h2{
+  font-family:var(--display); font-weight:900; text-transform:uppercase;
+  font-size:clamp(32px, 6.6vw, 74px); line-height:1.02; letter-spacing:-.03em; margin:0;
+}
+.btn{
+  display:inline-flex; align-items:center; gap:12px; margin-top:40px;
+  background:#fff; color:#000; border-radius:999px; padding:14px 30px;
+  font-size:13px; font-weight:500; letter-spacing:.1em; text-transform:uppercase;
+  text-decoration:none; transition:.35s;
+}
+.btn:hover{background:var(--lime)}
+
+footer{
+  position:relative; background:var(--bg); border-top:1px solid var(--line);
+  padding:26px 24px; display:flex; flex-wrap:wrap; gap:12px;
+  align-items:center; justify-content:space-between;
+  font-size:12px; color:var(--txt-dim);
+}
+footer a{text-decoration:none; transition:.3s}
+footer a:hover{color:#fff}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important; transition-duration:.01ms !important}
+  .reveal{opacity:1; transform:none; filter:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ======================= INTRODUCTION ======================= -->
+<div id="intro" aria-hidden="true">
+  <div class="backdrop"></div>
+  <div class="ring" style="width:260px;height:260px;animation-delay:1.22s"></div>
+  <div class="ring" style="width:520px;height:520px;animation-delay:1.34s"></div>
+  <div class="ring" style="width:780px;height:780px;animation-delay:1.46s"></div>
+  <svg class="rays" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice"></svg>
+  <div class="core"></div>
+  <div class="word display">MANON REYNES</div>
+</div>
+
+<!-- ======================= BARRE DU HAUT ======================= -->
+<header>
+  <div class="bar">
+    <a class="brand" href="#accueil">
+      <span class="brand-mark"></span>
+      <span class="brand-txt">MANON REYNES</span>
+    </a>
+    <div class="nav-wrap">
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="panel">
+        <span id="clock">--:--</span>
+        <span style="width:1px;height:12px;background:rgba(255,255,255,.18)"></span>
+        <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
+      <nav class="panel" id="panel">
+        <a href="#accueil">Accueil <span>↗</span></a>
+        <a href="#parcours">Parcours <span>↗</span></a>
+        <a href="#approche">Approche pédagogique <span>↗</span></a>
+        <a href="#ressources">Ressources élèves <span>↗</span></a>
+        <a href="#contact">Contact <span>↗</span></a>
+        <div class="foot">
+          <span>Écrire</span>
+          <!-- ✏️ À PERSONNALISER : votre adresse de contact -->
+          <a href="mailto:reynesmanon11@gmail.com">Email</a>
+        </div>
+      </nav>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ======================= ACCUEIL ======================= -->
+<section id="accueil">
+  <canvas class="stars"></canvas>
+  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="0" y1="0" x2="22" y2="100"/><line x1="50" y1="0" x2="82" y2="100"/>
+    <line x1="100" y1="0" x2="58" y2="100"/><line x1="0" y1="35" x2="100" y2="80"/>
+    <line x1="100" y1="10" x2="0" y2="70"/>
+  </svg>
+  <div class="noise"></div>
+
+  <div class="inner hero wrap">
+    <p class="kicker reveal">Sciences de la Vie et de la Terre</p>
+
+    <div id="earth-wrap" class="reveal d1">
+      <canvas id="earth"></canvas>
+    </div>
+
+    <h1 class="display reveal d1">MANON<br>REYNES</h1>
+    <p class="role reveal d2">Professeure de SVT</p>
+    <p class="lead reveal d2">
+      Comprendre le vivant et la Terre en les regardant de près : sur le terrain,
+      au microscope, et à travers des outils numériques conçus pour la classe.
+    </p>
+
+    <span class="scroll-hint reveal d3">Découvrir <i></i></span>
+  </div>
+</section>
+
+<!-- ======================= PARCOURS ======================= -->
+<section id="parcours" class="sec">
+  <canvas class="stars"></canvas>
+  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="22" y1="0" x2="14" y2="100"/><line x1="58" y1="0" x2="48" y2="100"/>
+    <line x1="0" y1="20" x2="100" y2="90"/>
+  </svg>
+  <div class="noise"></div>
+
+  <div class="inner wrap">
+    <div class="sec-head reveal">
+      <p class="sec-num">01 — Parcours</p>
+      <h2 class="display">Enseigner les<br>sciences du vivant</h2>
+    </div>
+
+    <div class="two">
+      <div class="prose reveal d1">
+        <!-- ✏️ À PERSONNALISER : remplacez ces deux paragraphes par votre texte -->
+        <p>
+          Professeure de Sciences de la Vie et de la Terre, j'enseigne la biologie
+          et la géologie au lycée, de la seconde à la terminale. Mon travail consiste
+          autant à transmettre des connaissances qu'à donner aux élèves les outils
+          d'une démarche scientifique : observer, formuler une hypothèse, la mettre
+          à l'épreuve, accepter de la réviser.
+        </p>
+        <p>
+          Les SVT ont ceci de particulier qu'elles se vérifient dehors. Une coupe
+          géologique, un affleurement, une parcelle de vigne ou une boîte de Petri
+          en disent souvent davantage qu'un schéma projeté. C'est autour de cette
+          conviction que je construis mes séquences.
+        </p>
+      </div>
+
+      <div class="facts reveal d2">
+        <!-- ✏️ À PERSONNALISER : adaptez chaque ligne à votre situation -->
+        <div class="fact"><b>Discipline</b><span>Sciences de la Vie et de la Terre</span></div>
+        <div class="fact"><b>Niveaux</b><span>Seconde, Première, Terminale — spécialité et enseignement scientifique</span></div>
+        <div class="fact"><b>Établissement</b><span>Lycée — à compléter</span></div>
+        <div class="fact"><b>Terrain</b><span>Sorties géologiques, écologie viticole, littoral et garrigue</span></div>
+        <div class="fact"><b>Numérique</b><span>Cartes interactives, jeux sérieux, outils d'aide à la révision</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= APPROCHE ======================= -->
+<section id="approche" class="sec">
+  <canvas class="stars"></canvas>
+  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="14" y1="0" x2="28" y2="100"/><line x1="86" y1="0" x2="92" y2="100"/>
+    <line x1="100" y1="5" x2="0" y2="90"/>
+  </svg>
+  <div class="noise"></div>
+
+  <div class="inner wrap">
+    <div class="sec-head reveal">
+      <p class="sec-num">02 — Approche</p>
+      <h2 class="display">Trois manières<br>d'entrer dans le réel</h2>
+    </div>
+
+    <div class="cards">
+      <article class="card reveal d1">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <path d="M3 19l6-14 6 9 3-5 3 10z" stroke-linejoin="round"/>
+        </svg>
+        <h3>Le terrain d'abord</h3>
+        <p>
+          Une strate se comprend mieux le nez dessus. Les sorties géologiques et
+          écologiques ancrent les notions dans un paysage que les élèves connaissent,
+          et transforment une leçon abstraite en observation vérifiable.
+        </p>
+      </article>
+
+      <article class="card reveal d2">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="3" y="8" width="18" height="12" rx="2"/>
+          <path d="M8 8V6a4 4 0 018 0v2M8 14h.01M12 14h.01M16 14h.01" stroke-linecap="round"/>
+        </svg>
+        <h3>Le jeu comme levier</h3>
+        <p>
+          Jeux de plateau, énigmes coopératives, défis photo : le jeu sérieux crée
+          l'envie de manipuler le vocabulaire scientifique. On révise sans s'en
+          apercevoir, et surtout on argumente entre pairs.
+        </p>
+      </article>
+
+      <article class="card reveal d3">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" stroke-linecap="round"/>
+        </svg>
+        <h3>Le numérique au service du concret</h3>
+        <p>
+          Cartes géologiques interactives, modèles 3D, assistants de révision :
+          des outils construits sur mesure pour la séquence en cours, jamais pour
+          la technologie elle-même.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= RESSOURCES ======================= -->
+<section id="ressources" class="sec">
+  <canvas class="stars" data-ring="1"></canvas>
+  <div class="noise"></div>
+
+  <div class="inner wrap">
+    <div class="sec-head reveal">
+      <p class="sec-num">03 — Ressources</p>
+      <h2 class="display">Pour les élèves</h2>
+    </div>
+
+    <!-- ✏️ À PERSONNALISER : ajoutez / retirez des cartes.
+         Le lien "href" pointe vers un fichier déposé dans ce même dossier. -->
+    <div class="res">
+
+      <a href="carte_geol_aude_v5.html">
+        <div>
+          <p class="tag">Géologie</p>
+          <h3>Carte géologique de l'Aude</h3>
+          <p>Explorer les formations du département, du calcaire des Corbières aux terrains viticoles.</p>
+        </div>
+        <div class="go"><span>Ouvrir</span><em>↗</em></div>
+      </a>
+
+      <a href="chatbot_svt_TERM_test.html">
+        <div>
+          <p class="tag">Terminale</p>
+          <h3>Assistant de révision</h3>
+          <p>Poser ses questions sur le programme de terminale et vérifier ses acquis avant l'évaluation.</p>
+        </div>
+        <div class="go"><span>Ouvrir</span><em>↗</em></div>
+      </a>
+
+      <a href="defi3_photo_ferroul_finalV2.html">
+        <div>
+          <p class="tag">Défi</p>
+          <h3>Défi photo</h3>
+          <p>Retrouver et photographier des éléments du paysage proche : lecture géologique grandeur nature.</p>
+        </div>
+        <div class="go"><span>Ouvrir</span><em>↗</em></div>
+      </a>
+
+      <a href="#ressources">
+        <div>
+          <p class="tag">À venir</p>
+          <h3>Jeux sérieux</h3>
+          <p>Emplacement libre — déposez le fichier dans ce dossier et remplacez le lien.</p>
+        </div>
+        <div class="go"><span>Bientôt</span><em>↗</em></div>
+      </a>
+
+      <a href="#ressources">
+        <div>
+          <p class="tag">À venir</p>
+          <h3>Sorties de terrain</h3>
+          <p>Emplacement libre — livrets de sortie, itinéraires et clés de détermination.</p>
+        </div>
+        <div class="go"><span>Bientôt</span><em>↗</em></div>
+      </a>
+
+      <a href="#ressources">
+        <div>
+          <p class="tag">À venir</p>
+          <h3>Fiches de révision</h3>
+          <p>Emplacement libre — bilans de chapitre et schémas de synthèse.</p>
+        </div>
+        <div class="go"><span>Bientôt</span><em>↗</em></div>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ======================= CONTACT ======================= -->
+<section id="contact" class="sec">
+  <canvas class="stars"></canvas>
+  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none">
+    <line x1="10" y1="30" x2="45" y2="35" stroke-opacity=".22"/>
+    <line x1="55" y1="28" x2="92" y2="32" stroke-opacity=".22"/>
+    <line x1="20" y1="78" x2="80" y2="82" stroke-opacity=".22"/>
+  </svg>
+  <div class="noise"></div>
+
+  <div class="inner wrap">
+    <h2 class="display reveal">
+      Une question,<br>
+      <span class="lime">un projet commun ?</span>
+    </h2>
+    <!-- ✏️ À PERSONNALISER : votre adresse de contact -->
+    <a class="btn reveal d1" href="mailto:reynesmanon11@gmail.com">Me contacter →</a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span>Manon Reynes — Sciences de la Vie et de la Terre</span>
+  <span>© <span id="year">2026</span></span>
+</footer>
+
+<script>
+/* =========================================================================
+   1. CHAMP D'ÉTOILES
+   Un canvas par section. L'attribut data-ring ajoute un anneau de
+   constellation au centre (utilisé dans la section Ressources).
+   ========================================================================= */
+function starField(canvas){
+  const ctx = canvas.getContext('2d');
+  const ring = canvas.dataset.ring === '1';
+  let stars = [], ringStars = [], w = 0, h = 0, ringR = 0;
+  const BAND = 50;
+
+  function gauss(sd){                       // Box-Muller
+    let u = 0, v = 0;
+    while(!u) u = Math.random();
+    while(!v) v = Math.random();
+    return sd * Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
+  }
+
+  function build(){
+    const p = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+    w = p.clientWidth; h = p.clientHeight;
+    if(!w || !h) return;
+    canvas.width = w*dpr; canvas.height = h*dpr;
+    canvas.style.width = w+'px'; canvas.style.height = h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+
+    const n = Math.round(Math.min(700, (w*h)/1700));
+    stars = Array.from({length:n}, () => {
+      const r = Math.random();
+      return {
+        x: Math.random()*w, y: Math.random()*h,
+        r: r < .65 ? .25+Math.random()*.25 : r < .92 ? .5+Math.random()*.3 : .8+Math.random()*.5,
+        o: .2+Math.random()*.75,
+        s: .4+Math.random()*1.2,
+        p: Math.random()*Math.PI*2
+      };
+    });
+
+    ringStars = [];
+    if(ring){
+      ringR = Math.min(w,h)*.37;
+      for(let i=0;i<420;i++){
+        const a = Math.random()*Math.PI*2, off = gauss(BAND*.325);
+        const d = ringR + off, rr = Math.random();
+        ringStars.push({
+          x: w/2 + Math.cos(a)*d, y: h/2 + Math.sin(a)*d,
+          r: rr < .7 ? .15+Math.random()*.15 : rr < .93 ? .3+Math.random()*.2 : .5+Math.random()*.2,
+          o: .25+Math.random()*.55, s: .3+Math.random(), p: Math.random()*Math.PI*2, off
+        });
+      }
+    }
+  }
+
+  function frame(time){
+    const t = time/1000;
+    ctx.clearRect(0,0,w,h);
+
+    if(ring && ringStars.length){
+      const g = ctx.createRadialGradient(w/2,h/2,Math.max(0,ringR-BAND*4),w/2,h/2,ringR+BAND*4);
+      g.addColorStop(0,'rgba(255,255,255,0)');
+      g.addColorStop(.42,'rgba(255,255,255,.022)');
+      g.addColorStop(.5,'rgba(255,255,255,.038)');
+      g.addColorStop(.58,'rgba(255,255,255,.022)');
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
+    }
+
+    for(const s of stars){
+      const tw = .55 + .45*(Math.sin(t*s.s + s.p)*.5 + .5);
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,'+(s.o*tw)+')';
+      ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+      ctx.fill();
+    }
+    for(const s of ringStars){
+      const tw = .55 + .45*(Math.sin(t*s.s + s.p)*.5 + .5);
+      const fall = Math.max(.15, 1 - Math.abs(s.off)/(BAND*.65));
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,'+(s.o*tw*fall)+')';
+      ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+      ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  build();
+  new ResizeObserver(build).observe(canvas.parentElement);
+  requestAnimationFrame(frame);
+}
+document.querySelectorAll('canvas.stars').forEach(starField);
+
+/* =========================================================================
+   2. LA TERRE
+   Sphère vivante à droite (océans, continents, nuit) et coupe géologique
+   à gauche laissant voir croûte, manteau, noyau externe et graine.
+   Autour : orbite portant une cellule, une feuille, un brin d'ADN et un
+   cristal — le vivant et le minéral tournant autour de la même planète.
+   ========================================================================= */
+(function(){
+  const cv = document.getElementById('earth');
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  let W = 0, H = 0;
+
+  // Continents approximatifs : longitude (deg), latitude (deg), rayon relatif
+  const LAND = [
+    [ -60,   5, .26], [ -68, -12, .24], [ -55, -30, .20],   // Amérique du Sud
+    [ -72, -45, .13], [ -78,  8, .14],
+    [ -98,  38, .26], [ -92,  54, .24], [-115,  32, .18],   // Amérique du Nord
+    [-135,  60, .20], [ -75,  45, .18], [ -88,  18, .13],
+    [ -45,  70, .16],                                       // Groenland
+    [  18,   4, .26], [  26, -18, .24], [   8,  22, .24],   // Afrique
+    [  34,  12, .20], [  46, -20, .12],
+    [  12,  46, .19], [  32,  52, .22], [  62,  56, .26],   // Eurasie
+    [  90,  58, .26], [ 118,  50, .22], [  80,  26, .22],
+    [ 104,  20, .18], [ 136,  38, .15],
+    [ 134, -24, .24], [ 146, -33, .14],                     // Australie
+    [ 172, -42, .11],                                       // Nouvelle-Zélande
+  ];
+
+  const LAYERS = [                                          // du centre vers l'extérieur
+    {r:.19, c:'#ffe6b0', n:'Graine'},
+    {r:.55, c:'#ff9d3d', n:'Noyau externe'},
+    {r:.80, c:'#cf6a3c', n:'Manteau inf.'},
+    {r:.96, c:'#8f4c34', n:'Manteau sup.'},
+    {r:1.0, c:'#4b3a2f', n:'Croûte'}
+  ];
+
+  const A0 = -100 * Math.PI/180;     // bords de la coupe
+  const A1 =   -8 * Math.PI/180;
+
+  function size(){
+    const p = cv.parentElement, dpr = window.devicePixelRatio || 1;
+    W = p.clientWidth; H = p.clientHeight;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  function draw(time){
+    const t = time/1000;
+    // La planète est décalée à gauche pour laisser la place aux étiquettes ;
+    // sur petit écran le décalage augmente et le texte rétrécit.
+    const small = W < 400;
+    const R = Math.min(W,H)*(small ? .28 : .30);
+    const cx = W/2 - R*(small ? .30 : .16), cy = H/2;
+    ctx.clearRect(0,0,W,H);
+    if(!R){ requestAnimationFrame(draw); return; }
+
+    /* --- halo atmosphérique --- */
+    const halo = ctx.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.55);
+    halo.addColorStop(0,'rgba(120,200,255,.16)');
+    halo.addColorStop(.45,'rgba(90,170,230,.06)');
+    halo.addColorStop(1,'rgba(90,170,230,0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(cx,cy,R*1.55,0,6.2832); ctx.fill();
+
+    /* --- orbite --- */
+    const orx = R*1.52, ory = R*.44, tilt = -.32;
+    ctx.save();
+    ctx.translate(cx,cy); ctx.rotate(tilt);
+    ctx.beginPath(); ctx.ellipse(0,0,orx,ory,0,0,6.2832);
+    ctx.strokeStyle = 'rgba(255,255,255,.13)'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.restore();
+
+    /* --- glyphes en orbite : positions --- */
+    const glyphs = [drawCell, drawLeaf, drawDNA, drawCrystal].map((fn,i) => {
+      const a = t*.28 + i*Math.PI/2;
+      const x = Math.cos(a)*orx, y = Math.sin(a)*ory;
+      return {
+        fn,
+        x: cx + x*Math.cos(tilt) - y*Math.sin(tilt),
+        y: cy + x*Math.sin(tilt) + y*Math.cos(tilt),
+        behind: Math.sin(a) < 0                    // moitié haute de l'ellipse = derrière
+      };
+    });
+    glyphs.filter(g => g.behind).forEach(g => g.fn(ctx, g.x, g.y, t));
+
+    /* --- océans --- */
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832); ctx.clip();
+    const sea = ctx.createLinearGradient(cx-R,cy-R,cx+R,cy+R);
+    sea.addColorStop(0,'#2b7fa5'); sea.addColorStop(.55,'#1d5f7e'); sea.addColorStop(1,'#123c53');
+    ctx.fillStyle = sea; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+
+    /* --- continents (projection sphérique simplifiée) --- */
+    // Rotation lente ; l'offset place l'Europe et l'Afrique face à nous au chargement.
+    const rot = -20 + t*4.5;
+    // Toutes les taches sont réunies en UN seul tracé puis remplies en une fois :
+    // sinon chaque recouvrement laisse voir un bord et la côte ressemble à des bulles.
+    ctx.globalAlpha = .95;
+    ctx.fillStyle = '#5cae74';
+    ctx.beginPath();
+    LAND.forEach(([lon,lat,rel], i) => {
+      const l = ((lon + rot + 180) % 360 + 360) % 360 - 180; // ramené dans [-180,180]
+      if(Math.abs(l) > 90) return;                           // face cachée
+      const rad = l*Math.PI/180, la = lat*Math.PI/180;
+      const squash = Math.cos(rad);                          // raccourci près du limbe
+      if(squash < .05) return;
+      const x = cx + R*Math.sin(rad)*Math.cos(la);
+      const y = cy - R*Math.sin(la);
+      const rx = R*rel*squash*1.34;
+      const ry = R*rel*(.86 + (i%5)*.09);                    // formes irrégulières
+      const ang = ((i*47) % 180) * Math.PI/180;
+      ctx.moveTo(x + rx*Math.cos(ang), y + rx*Math.sin(ang));
+      ctx.ellipse(x, y, rx, ry, ang, 0, 6.2832);
+    });
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    /* --- relief et ombre de la nuit --- */
+    const night = ctx.createRadialGradient(cx-R*.35,cy-R*.4,R*.1,cx,cy,R*1.25);
+    night.addColorStop(0,'rgba(255,255,255,.18)');
+    night.addColorStop(.55,'rgba(0,0,0,0)');
+    night.addColorStop(1,'rgba(0,0,0,.55)');
+    ctx.fillStyle = night; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+    ctx.restore();
+
+    /* --- coupe géologique --- */
+    for(let i = LAYERS.length-1; i >= 0; i--){
+      const L = LAYERS[i];
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R*L.r,A0,A1);
+      ctx.closePath();
+      ctx.fillStyle = L.c;
+      ctx.fill();
+    }
+    // pulsation chaude du noyau
+    const glow = ctx.createRadialGradient(cx,cy,0,cx,cy,R*.6);
+    const pulse = .18 + .10*Math.sin(t*1.1);
+    glow.addColorStop(0,'rgba(255,190,90,'+pulse+')');
+    glow.addColorStop(1,'rgba(255,140,40,0)');
+    ctx.save();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,R,A0,A1); ctx.closePath(); ctx.clip();
+    ctx.fillStyle = glow; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+    ctx.restore();
+
+    // arêtes de la coupe
+    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
+    [A0,A1].forEach(a => {
+      ctx.beginPath(); ctx.moveTo(cx,cy);
+      ctx.lineTo(cx+Math.cos(a)*R, cy+Math.sin(a)*R); ctx.stroke();
+    });
+
+    /* --- limbe --- */
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832);
+    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; ctx.stroke();
+
+    /* --- étiquettes des couches --- */
+    ctx.font = '500 ' + (small ? 8 : 9.5) + 'px ui-monospace, Menlo, Consolas, monospace';
+    ctx.textBaseline = 'middle';
+    const mid = (A0+A1)/2;
+    let prev = 0;
+    LAYERS.forEach((L,i) => {
+      const rr = R*((prev + L.r)/2); prev = L.r;
+      const px = cx + Math.cos(mid)*rr, py = cy + Math.sin(mid)*rr;
+      const lx = cx + R*1.10, ly = cy - R*.95 + i*(small ? 13 : 15);
+      ctx.beginPath();
+      ctx.moveTo(px,py); ctx.lineTo(lx-8,ly);
+      ctx.strokeStyle = 'rgba(255,255,255,.20)'; ctx.lineWidth = .7; ctx.stroke();
+      ctx.beginPath(); ctx.arc(px,py,1.5,0,6.2832);
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.62)';
+      ctx.fillText(L.n, lx, ly);
+    });
+
+    glyphs.filter(g => !g.behind).forEach(g => g.fn(ctx, g.x, g.y, t));
+    requestAnimationFrame(draw);
+  }
+
+  /* ---- glyphes : le vivant et le minéral ---- */
+  function base(ctx,x,y){
+    ctx.save(); ctx.translate(x,y);
+    ctx.strokeStyle = 'rgba(255,255,255,.75)';
+    ctx.fillStyle   = 'rgba(255,255,255,.10)';
+    ctx.lineWidth = 1.1;
+  }
+  function drawCell(ctx,x,y){
+    base(ctx,x,y);
+    ctx.beginPath(); ctx.ellipse(0,0,11,8.5,0,0,6.2832); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(2,-1,3.2,0,6.2832);
+    ctx.fillStyle = 'rgba(160,240,190,.85)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(-5,3,1.3,0,6.2832); ctx.fill();
+    ctx.restore();
+  }
+  function drawLeaf(ctx,x,y){
+    base(ctx,x,y);
+    ctx.beginPath();
+    ctx.moveTo(0,-11); ctx.bezierCurveTo(9,-6, 9,6, 0,11);
+    ctx.bezierCurveTo(-9,6, -9,-6, 0,-11);
+    ctx.fillStyle = 'rgba(160,240,190,.18)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-9); ctx.lineTo(0,9); ctx.stroke();
+    ctx.restore();
+  }
+  function drawDNA(ctx,x,y,t){
+    base(ctx,x,y);
+    for(const dir of [1,-1]){
+      ctx.beginPath();
+      for(let i=0;i<=20;i++){
+        const p = i/20, yy = -11 + p*22;
+        const xx = dir*Math.sin(p*Math.PI*2 + t*.6)*5.5;
+        i ? ctx.lineTo(xx,yy) : ctx.moveTo(xx,yy);
+      }
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(160,240,190,.6)';
+    for(let i=1;i<5;i++){
+      const p = i/5, yy = -11 + p*22;
+      const xx = Math.sin(p*Math.PI*2 + t*.6)*5.5;
+      ctx.beginPath(); ctx.moveTo(-xx,yy); ctx.lineTo(xx,yy); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  function drawCrystal(ctx,x,y){
+    base(ctx,x,y);
+    ctx.beginPath();
+    for(let i=0;i<6;i++){
+      const a = i*Math.PI/3 - Math.PI/2;
+      const xx = Math.cos(a)*10, yy = Math.sin(a)*10;
+      i ? ctx.lineTo(xx,yy) : ctx.moveTo(xx,yy);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,210,140,.16)'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(0,10); ctx.stroke();
+    ctx.restore();
+  }
+
+  size();
+  new ResizeObserver(size).observe(cv.parentElement);
+  requestAnimationFrame(draw);
+})();
+
+/* =========================================================================
+   3. RAYONS DE L'INTRODUCTION
+   ========================================================================= */
+(function(){
+  const svg = document.querySelector('#intro .rays');
+  if(!svg) return;
+  [0,30,60,120,150,210,240,300,330].forEach((deg,i) => {
+    const a = deg*Math.PI/180;
+    const l = document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',50); l.setAttribute('y1',50);
+    l.setAttribute('x2',50+Math.cos(a)*60); l.setAttribute('y2',50+Math.sin(a)*60);
+    l.style.animationDelay = (1.2 + i*.05)+'s';
+    svg.appendChild(l);
+  });
+  setTimeout(() => document.getElementById('intro')?.remove(), 3700);
+})();
+
+/* =========================================================================
+   4. APPARITIONS AU DÉFILEMENT
+   ========================================================================= */
+(function(){
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.15, rootMargin:'-40px'});
+
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // Le hero ne doit apparaître qu'une fois l'introduction terminée.
+  const intro = document.getElementById('intro');
+  const delay = intro ? 2900 : 0;
+  setTimeout(() => {
+    document.querySelectorAll('#accueil .reveal').forEach(el => el.classList.add('in'));
+  }, delay);
+
+  // Les traits des sections se dessinent à l'entrée dans l'écran.
+  document.querySelectorAll('.lines line').forEach(l => {
+    const len = 160;
+    l.style.strokeDasharray = len; l.style.strokeDashoffset = len;
+    l.style.transition = 'stroke-dashoffset 1.6s var(--ease)';
+  });
+  new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.querySelectorAll('line').forEach((l,i) => {
+          setTimeout(() => l.style.strokeDashoffset = 0, i*140);
+        });
+      }
+    });
+  }, {threshold:.1}).observe(document.body);
+  document.querySelectorAll('.lines').forEach(svg => {
+    new IntersectionObserver((entries, obs) => {
+      entries.forEach(e => {
+        if(e.isIntersecting){
+          e.target.querySelectorAll('line').forEach((l,i) => {
+            setTimeout(() => l.style.strokeDashoffset = 0, i*140);
+          });
+          obs.unobserve(e.target);
+        }
+      });
+    }, {threshold:.1}).observe(svg);
+  });
+})();
+
+/* =========================================================================
+   5. MENU ET DIVERS
+   ========================================================================= */
+(function(){
+  const btn = document.getElementById('menuBtn'), panel = document.getElementById('panel');
+  btn.addEventListener('click', () => {
+    const open = panel.classList.toggle('open');
+    btn.setAttribute('aria-expanded', open);
+  });
+  panel.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+    panel.classList.remove('open'); btn.setAttribute('aria-expanded','false');
+  }));
+  document.addEventListener('click', (e) => {
+    if(!panel.contains(e.target) && !btn.contains(e.target)){
+      panel.classList.remove('open'); btn.setAttribute('aria-expanded','false');
+    }
+  });
+
+  const clock = document.getElementById('clock');
+  const tick = () => clock.textContent =
+    new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+  tick(); setInterval(tick, 30000);
+
+  document.getElementById('year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
