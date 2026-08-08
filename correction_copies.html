@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v7 — grille manuelle (points conservés), remédiation ciblée par type d'activité, calibrage anti-surnotation -->
+<!-- Correction·IA v8 — synchronisation cloud hybride optionnelle (Supabase) : local par défaut + connexion facultative -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -489,8 +489,37 @@
       </div>
     </div>
     <div class="card">
+      <h3>☁️ Synchronisation cloud <span style="color:var(--muted2);font-weight:400">(optionnel)</span></h3>
+      <div class="sub">Sans connexion, tout reste en local sur cet ordinateur (comme aujourd'hui). Avec un compte, vos données sont aussi sauvegardées dans le cloud et vous les retrouvez sur n'importe quel ordinateur.</div>
+      <div id="cloud-status" class="info-msg" style="display:none"></div>
+      <details id="cloud-config-details" style="margin-top:4px">
+        <summary style="font-size:0.76rem;color:var(--muted2);cursor:pointer">⚙️ Configurer le cloud (une seule fois) — Supabase</summary>
+        <div style="margin-top:10px">
+          <div class="sub">Créez un projet gratuit sur <a href="https://supabase.com" target="_blank" rel="noopener">supabase.com</a>, puis collez ci-dessous l'URL du projet et la clé publique « anon » (Réglages → API dans Supabase).</div>
+          <div class="col" style="margin-top:8px"><label>URL du projet Supabase</label><input class="field" id="cloud-url" placeholder="https://xxxx.supabase.co"></div>
+          <div class="col" style="margin-top:8px"><label>Clé publique « anon »</label><input class="field" id="cloud-key" placeholder="eyJ..." style="font-family:'DM Mono',monospace;font-size:0.72rem"></div>
+          <div class="row" style="margin-top:10px"><button class="btn small" id="cloud-saveconfig">Enregistrer la configuration</button>
+          <button class="btn secondary small" id="cloud-clearconfig">Retirer le cloud</button></div>
+        </div>
+      </details>
+      <div id="cloud-auth" style="display:none; margin-top:12px">
+        <div class="row" style="align-items:flex-end">
+          <div class="col" style="max-width:240px"><label>Email</label><input class="field" id="cloud-email" type="email" placeholder="vous@exemple.fr"></div>
+          <div class="col" style="max-width:200px"><label>Mot de passe</label><input class="field" id="cloud-pass" type="password" placeholder="••••••••"></div>
+        </div>
+        <div class="row" style="margin-top:10px"><button class="btn" id="cloud-signin">Se connecter</button>
+        <button class="btn secondary" id="cloud-signup">Créer un compte</button></div>
+      </div>
+      <div id="cloud-account" style="display:none; margin-top:12px">
+        <div class="ok-msg" id="cloud-accinfo"></div>
+        <div class="row" style="margin-top:10px"><button class="btn small" id="cloud-syncnow">🔄 Synchroniser maintenant</button>
+        <button class="btn secondary small" id="cloud-signout">Se déconnecter</button></div>
+      </div>
+      <div id="cloud-msg"></div>
+    </div>
+    <div class="card">
       <h3>Données</h3>
-      <div class="sub">Tout est stocké uniquement dans ce navigateur (localStorage). Exportez régulièrement pour sauvegarder / transférer.</div>
+      <div class="sub">Tout est stocké dans ce navigateur (localStorage), et dans le cloud si vous êtes connectée. Exportez régulièrement pour sauvegarder / transférer.</div>
       <div class="row">
         <button class="btn secondary" id="s-export">⬇️ Exporter (JSON)</button>
         <button class="btn secondary" id="s-import">⬆️ Importer</button>
@@ -520,7 +549,7 @@ function $(id) { return document.getElementById(id); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
-function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage du navigateur saturé (souvent à cause des PDF de sujets stockés).\nExportez vos données puis supprimez d'anciens devoirs, ou retirez le PDF du sujet une fois la grille structurée."); } }
+function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage du navigateur saturé (souvent à cause des PDF de sujets stockés).\nExportez vos données puis supprimez d'anciens devoirs, ou retirez le PDF du sujet une fois la grille structurée."); } if (typeof scheduleCloudPush === 'function') scheduleCloudPush(); }
 function freshDB() { return { version: 4, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard', severite: 'examen' }, classes: [], devoirs: [], copies: [] }; }
 function loadDB() {
   try {
@@ -1334,12 +1363,112 @@ $('m-print').onclick = () => {
   window.print();
 };
 
+// ════════ SYNCHRONISATION CLOUD (Supabase, optionnel) ════════
+const SUPA_KEY = 'corrIA_supa';
+let supaCfg = (() => { try { return JSON.parse(localStorage.getItem(SUPA_KEY)) || null; } catch (e) { return null; } })();
+let supaClient = null, supaUser = null, supaPushTimer = null, supaLibPromise = null;
+function cloudReady() { return !!(supaClient && supaUser); }
+function loadSupabaseLib() {
+  if (window.supabase && window.supabase.createClient) return Promise.resolve();
+  if (!supaLibPromise) supaLibPromise = new Promise((ok, ko) => { const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'; s.onload = ok; s.onerror = () => ko(new Error('Module cloud non chargé (connexion ?)')); document.head.appendChild(s); });
+  return supaLibPromise;
+}
+async function initCloud() {
+  if (!supaCfg || !supaCfg.url || !supaCfg.key) { renderCloudUI(); return; }
+  try {
+    await loadSupabaseLib();
+    supaClient = window.supabase.createClient(supaCfg.url, supaCfg.key);
+    const { data } = await supaClient.auth.getSession();
+    supaUser = data && data.session ? data.session.user : null;
+  } catch (e) { supaClient = null; supaUser = null; }
+  renderCloudUI();
+}
+function renderCloudUI() {
+  const configured = !!(supaCfg && supaCfg.url && supaCfg.key);
+  $('cloud-config-details').open = !configured;
+  if (supaCfg) { $('cloud-url').value = supaCfg.url || ''; $('cloud-key').value = supaCfg.key || ''; }
+  $('cloud-auth').style.display = (configured && !supaUser) ? '' : 'none';
+  $('cloud-account').style.display = (configured && supaUser) ? '' : 'none';
+  const st = $('cloud-status');
+  if (!configured) { st.style.display = 'none'; }
+  else if (!supaUser) { st.style.display = ''; st.textContent = '🔧 Cloud configuré — connectez-vous pour synchroniser.'; }
+  else { st.style.display = 'none'; }
+  if (supaUser) $('cloud-accinfo').innerHTML = '✅ Connectée : <b>' + esc(supaUser.email || '') + '</b>' + (supaLastSync ? ' · dernière synchro ' + supaLastSync : '');
+}
+let supaLastSync = '';
+function cloudMsg(html, kind) { $('cloud-msg').innerHTML = html ? `<div class="${kind || 'info'}-msg" style="margin-top:8px">${html}</div>` : ''; }
+$('cloud-saveconfig').onclick = async () => {
+  const url = $('cloud-url').value.trim().replace(/\/+$/, ''), key = $('cloud-key').value.trim();
+  if (!/^https:\/\/.+\.supabase\.co$/.test(url)) { cloudMsg('❌ URL Supabase invalide (elle ressemble à https://xxxx.supabase.co).', 'err'); return; }
+  if (key.length < 20) { cloudMsg('❌ Clé « anon » invalide.', 'err'); return; }
+  supaCfg = { url, key }; localStorage.setItem(SUPA_KEY, JSON.stringify(supaCfg));
+  supaClient = null; supaUser = null; cloudMsg('Configuration enregistrée. Créez un compte ou connectez-vous.', 'ok');
+  await initCloud();
+};
+$('cloud-clearconfig').onclick = () => {
+  if (!confirm('Retirer la configuration cloud ? (vos données locales restent intactes)')) return;
+  localStorage.removeItem(SUPA_KEY); supaCfg = null; supaClient = null; supaUser = null; cloudMsg(''); renderCloudUI();
+};
+async function cloudAuth(mode) {
+  const email = $('cloud-email').value.trim(), pass = $('cloud-pass').value;
+  if (!email || !pass) { cloudMsg('❌ Renseignez email et mot de passe.', 'err'); return; }
+  try {
+    await loadSupabaseLib();
+    if (!supaClient) supaClient = window.supabase.createClient(supaCfg.url, supaCfg.key);
+    cloudMsg('Connexion…', 'info');
+    const fn = mode === 'signup' ? supaClient.auth.signUp({ email, password: pass }) : supaClient.auth.signInWithPassword({ email, password: pass });
+    const { data, error } = await fn;
+    if (error) { cloudMsg('❌ ' + esc(error.message), 'err'); return; }
+    if (mode === 'signup' && (!data.session)) { cloudMsg('📧 Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous (ou désactivez la confirmation email dans Supabase).', 'ok'); return; }
+    supaUser = data.user || (data.session && data.session.user);
+    $('cloud-pass').value = '';
+    await cloudAfterLogin();
+  } catch (e) { cloudMsg('❌ ' + esc(e.message), 'err'); }
+}
+$('cloud-signin').onclick = () => cloudAuth('signin');
+$('cloud-signup').onclick = () => cloudAuth('signup');
+$('cloud-signout').onclick = async () => { try { await supaClient.auth.signOut(); } catch (e) {} supaUser = null; supaLastSync = ''; cloudMsg('Déconnectée. Vos données locales restent sur cet ordinateur.', 'info'); renderCloudUI(); };
+async function cloudFetch() {
+  const { data, error } = await supaClient.from('corria_store').select('data, updated_at').eq('user_id', supaUser.id).maybeSingle();
+  if (error) throw new Error(error.message + ' (avez-vous créé la table ? voir le guide)');
+  return data;
+}
+async function cloudPushNow() {
+  if (!cloudReady()) return;
+  const { error } = await supaClient.from('corria_store').upsert({ user_id: supaUser.id, data: db, updated_at: new Date().toISOString() });
+  if (error) { cloudMsg('❌ Sauvegarde cloud : ' + esc(error.message), 'err'); return; }
+  supaLastSync = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); renderCloudUI();
+}
+function scheduleCloudPush() { if (!cloudReady()) return; clearTimeout(supaPushTimer); supaPushTimer = setTimeout(cloudPushNow, 2500); }
+async function cloudAfterLogin() {
+  cloudMsg('Vérification du cloud…', 'info');
+  let remote; try { remote = await cloudFetch(); } catch (e) { cloudMsg('❌ ' + esc(e.message), 'err'); renderCloudUI(); return; }
+  const localHasData = (db.classes || []).length || (db.copies || []).length;
+  if (remote && remote.data) {
+    const remoteHasData = (remote.data.classes || []).length || (remote.data.copies || []).length;
+    if (remoteHasData && localHasData) {
+      const useCloud = confirm('Des données existent dans le cloud ET sur cet ordinateur.\n\nOK = charger le cloud (une sauvegarde de vos données locales sera téléchargée avant).\nAnnuler = garder cet ordinateur et écraser le cloud.');
+      if (useCloud) { exportBackup('avant-cloud'); db = remote.data; saveLocalOnly(); renderAll(); cloudMsg('☁️ Données du cloud chargées.', 'ok'); }
+      else { await cloudPushNow(); cloudMsg('⬆️ Données de cet ordinateur envoyées au cloud.', 'ok'); }
+    } else if (remoteHasData) { db = remote.data; saveLocalOnly(); renderAll(); cloudMsg('☁️ Données du cloud chargées.', 'ok'); }
+    else { await cloudPushNow(); cloudMsg('⬆️ Données envoyées au cloud.', 'ok'); }
+  } else {
+    await cloudPushNow(); cloudMsg('⬆️ Première sauvegarde envoyée au cloud.', 'ok');
+  }
+  renderCloudUI();
+}
+function saveLocalOnly() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) {} }
+function renderAll() { renderSettings(); renderDevoirs(); }
+function exportBackup(tag) { try { const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `correction-ia-sauvegarde-${tag}-${new Date().toISOString().slice(0, 10)}.json`; a.click(); } catch (e) {} }
+$('cloud-syncnow').onclick = async () => { cloudMsg('Synchronisation…', 'info'); await cloudPushNow(); cloudMsg('✅ Synchronisé.', 'ok'); };
+
 // ════════ RÉGLAGES ════════
 function renderSettings() {
   $('s-ton').value = db.profile.ton; $('s-enonc').value = db.profile.enonc; $('s-longueur').value = db.profile.longueur;
   $('s-severite').value = db.profile.severite || 'examen';
   $('s-model').value = db.model || 'claude-sonnet-5';
   fillClasseSelect($('s-classesel'), $('s-classesel').value); renderElevesAdmin();
+  renderCloudUI();
 }
 $('s-ton').addEventListener('change', e => { db.profile.ton = e.target.value; saveDB(); });
 $('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value; saveDB(); });
@@ -1368,6 +1497,7 @@ $('s-importfile').addEventListener('change', e => { const f = e.target.files[0];
 $('s-wipe').onclick = () => { if (!confirm('Effacer TOUTES les données ? Irréversible.')) return; const m = db.model, p = db.profile; db = freshDB(); db.model = m; db.profile = p; saveDB(); renderSettings(); renderDevoirs(); };
 
 renderDevoirs();
+initCloud();
 </script>
 </body>
 </html>
