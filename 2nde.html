@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seconde — SVT · Manon Reynes</title>
+<meta name="description" content="Programme de SVT en classe de Seconde : cours, TP, fiches de révision et exercices, thème par thème.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   Mêmes réglages que la page d'accueil : si vous changez une couleur ici,
+   changez-la aussi dans index.html.
+   ========================================================================= */
+:root{
+  --bg:oklch(0.13 0.004 240); --matte:oklch(0.16 0.004 240);
+  --lime:oklch(0.92 0.23 124);
+  --txt:#fff; --txt-soft:rgba(255,255,255,.55); --txt-dim:rgba(255,255,255,.40);
+  --line:rgba(255,255,255,.10);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --display:'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font-family:'Poppins', system-ui, sans-serif; -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--lime); color:oklch(0.06 0 0)}
+a{color:inherit}
+.display{font-family:var(--display); letter-spacing:-.02em}
+.wrap{max-width:1120px; margin:0 auto; padding:0 24px}
+canvas{display:block}
+
+.reveal{opacity:0; transform:translateY(24px); filter:blur(10px)}
+.reveal.in{
+  opacity:1; transform:none; filter:none;
+  transition:opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease);
+}
+
+/* ---------- barre du haut ---------- */
+/* Le dégradé évite que le texte des cartes passe derrière la barre en défilant. */
+header{
+  position:fixed; inset:0 0 auto 0; z-index:50; padding:20px 24px 22px;
+  background:linear-gradient(oklch(0.16 0.004 240) 45%, transparent);
+}
+.bar{display:flex; align-items:center; justify-content:space-between; gap:16px}
+.brand{display:flex; align-items:center; gap:10px; text-decoration:none}
+.brand-mark{
+  width:24px; height:24px; border-radius:50%; flex:none;
+  background:
+    radial-gradient(circle at 32% 30%, #7fc4a0 0 22%, transparent 23%),
+    radial-gradient(circle at 68% 62%, #6ba3d6 0 26%, transparent 27%),
+    linear-gradient(150deg,#2e6f5e,#1d3b57);
+  box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 0 12px rgba(140,220,180,.28);
+}
+.brand-txt{font-family:var(--display); font-weight:800; font-size:13px; letter-spacing:.14em}
+.back{
+  display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+  border:1px solid rgba(255,255,255,.15); background:rgba(255,255,255,.04);
+  color:var(--txt-soft); border-radius:999px; padding:8px 16px;
+  font-size:12.5px; backdrop-filter:blur(10px); transition:.3s;
+}
+.back:hover{background:rgba(255,255,255,.09); color:#fff}
+
+/* ---------- en-tête de page ---------- */
+.top{position:relative; overflow:hidden; padding:150px 0 70px; background:var(--matte)}
+.stars{position:absolute; inset:0; z-index:0; pointer-events:none}
+.inner{position:relative; z-index:2}
+.level{
+  font-size:11px; letter-spacing:.32em; text-transform:uppercase; color:var(--lime);
+  margin:0 0 16px;
+}
+.top h1{
+  font-family:var(--display); font-weight:900; margin:0;
+  font-size:clamp(46px, 11vw, 104px); line-height:.9; letter-spacing:-.035em;
+}
+.top .sub{
+  margin:20px 0 0; max-width:600px; color:var(--txt-soft);
+  font-size:15px; line-height:1.75;
+}
+.legend{
+  margin-top:34px; display:flex; flex-wrap:wrap; gap:22px;
+  font-size:11.5px; color:var(--txt-dim);
+}
+.legend b{font-weight:500; color:var(--lime)}
+
+/* ---------- thèmes ---------- */
+.theme{position:relative; overflow:hidden; padding:76px 0; background:var(--matte)}
+.theme + .theme{border-top:1px solid var(--line)}
+.theme-head{display:flex; align-items:baseline; gap:18px; flex-wrap:wrap; margin-bottom:38px}
+.theme-num{
+  font-family:var(--display); font-weight:900; font-size:52px; line-height:1;
+  color:rgba(255,255,255,.10); letter-spacing:-.04em;
+}
+.theme-head h2{
+  font-family:var(--display); font-weight:800; text-transform:uppercase; margin:0;
+  font-size:clamp(21px, 3.4vw, 33px); line-height:1.1; letter-spacing:-.02em; max-width:760px;
+}
+
+/* ---------- chapitres ---------- */
+.chaps{display:grid; grid-template-columns:1fr; gap:16px}
+@media(min-width:820px){.chaps{grid-template-columns:1fr 1fr}}
+.chap{
+  border:1px solid var(--line); background:rgba(255,255,255,.018);
+  padding:24px 24px 20px; transition:background .45s, border-color .45s, transform .45s var(--ease);
+}
+.chap:hover{background:rgba(255,255,255,.045); border-color:rgba(255,255,255,.22); transform:translateY(-3px)}
+.chap .n{
+  font-family:var(--display); font-weight:700; font-size:11px; letter-spacing:.2em;
+  color:var(--lime); display:block; margin-bottom:10px;
+}
+.chap h3{
+  font-family:var(--display); font-weight:700; font-size:18px; line-height:1.3;
+  margin:0 0 10px; letter-spacing:-.01em;
+}
+.chap p{margin:0 0 18px; color:var(--txt-soft); font-size:13.5px; line-height:1.7}
+.links{display:flex; flex-wrap:wrap; gap:8px; padding-top:16px; border-top:1px solid var(--line)}
+.links a, .links span{
+  display:inline-flex; align-items:center; gap:6px; text-decoration:none;
+  border:1px solid rgba(255,255,255,.16); border-radius:999px; padding:6px 13px;
+  font-size:11.5px; letter-spacing:.05em; color:var(--txt-soft); transition:.3s;
+}
+.links a:hover{background:var(--lime); color:#0b0b0b; border-color:var(--lime)}
+.links span{opacity:.35; border-style:dashed}   /* ressource pas encore déposée */
+
+/* ---------- bas de page ---------- */
+.end{position:relative; overflow:hidden; padding:80px 0; background:var(--matte); border-top:1px solid var(--line)}
+.end h2{
+  font-family:var(--display); font-weight:900; text-transform:uppercase; margin:0 0 14px;
+  font-size:clamp(26px, 5vw, 46px); line-height:1.05; letter-spacing:-.03em;
+}
+.end p{margin:0 0 28px; color:var(--txt-soft); font-size:14.5px; max-width:520px}
+.btn{
+  display:inline-flex; align-items:center; gap:10px; background:#fff; color:#000;
+  border-radius:999px; padding:13px 28px; font-size:13px; font-weight:500;
+  letter-spacing:.08em; text-transform:uppercase; text-decoration:none; transition:.35s;
+}
+.btn:hover{background:var(--lime)}
+footer{
+  background:var(--bg); border-top:1px solid var(--line); padding:24px;
+  display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+  font-size:12px; color:var(--txt-dim);
+}
+footer a{text-decoration:none; transition:.3s}
+footer a:hover{color:#fff}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important; transition-duration:.01ms !important}
+  .reveal{opacity:1; transform:none; filter:none}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <a class="brand" href="index.html">
+      <span class="brand-mark"></span>
+      <span class="brand-txt">MANON REYNES</span>
+    </a>
+    <a class="back" href="index.html">← Accueil</a>
+  </div>
+</header>
+
+<!-- ======================= EN-TÊTE ======================= -->
+<section class="top">
+  <canvas class="stars"></canvas>
+  <div class="inner wrap">
+    <p class="level reveal">Classe de Seconde générale</p>
+    <h1 class="display reveal">SECONDE</h1>
+    <p class="sub reveal">
+      Le programme de Sciences de la Vie et de la Terre en trois thèmes.
+      Pour chaque chapitre : le cours, les activités et travaux pratiques,
+      la fiche de révision et de quoi s'entraîner.
+    </p>
+    <div class="legend reveal">
+      <span><b>Cours</b> — la trace écrite</span>
+      <span><b>TP</b> — l'activité pratique</span>
+      <span><b>Fiche</b> — le bilan à réviser</span>
+      <span><b>Exos</b> — pour s'entraîner</span>
+    </div>
+  </div>
+</section>
+
+<!--
+  ✏️ COMMENT AJOUTER UNE RESSOURCE
+  Chaque chapitre se termine par un bloc <div class="links">.
+   • <span>Cours</span>  = ressource pas encore disponible (affichée en grisé)
+   • <a href="mon-fichier.pdf">Cours</a>  = ressource en ligne
+  Déposez le fichier (PDF, HTML…) dans ce même dossier et remplacez le
+  <span> par un <a href="…">. Rien d'autre à changer.
+
+  ✏️ La numérotation ci-dessous suit les trois thèmes officiels. Si votre
+  progression est différente, changez librement l'ordre et les numéros.
+-->
+
+<!-- ======================= THÈME 1 ======================= -->
+<section class="theme">
+  <canvas class="stars"></canvas>
+  <div class="inner wrap">
+    <div class="theme-head reveal">
+      <span class="theme-num display">01</span>
+      <h2 class="display">La Terre, la vie et l'organisation du vivant</h2>
+    </div>
+
+    <div class="chaps">
+      <article class="chap reveal">
+        <span class="n">Chapitre 1</span>
+        <h3>L'organisation fonctionnelle du vivant</h3>
+        <p>La cellule, unité structurale du vivant. Des échelles d'observation emboîtées, du microscope à l'organisme.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 2</span>
+        <h3>Le métabolisme des cellules</h3>
+        <p>Photosynthèse et respiration : comment une cellule produit et utilise sa matière et son énergie.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 3</span>
+        <h3>L'ADN, support de l'information génétique</h3>
+        <p>Structure universelle de la molécule, gènes et allèles, mutations et diversité des individus.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 4</span>
+        <h3>Biodiversité, résultat et étape de l'évolution</h3>
+        <p>Les trois échelles de la biodiversité, sa mesure sur le terrain, et les mécanismes qui la font varier.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= THÈME 2 ======================= -->
+<section class="theme">
+  <canvas class="stars"></canvas>
+  <div class="inner wrap">
+    <div class="theme-head reveal">
+      <span class="theme-num display">02</span>
+      <h2 class="display">Les enjeux contemporains de la planète</h2>
+    </div>
+
+    <div class="chaps">
+      <article class="chap reveal">
+        <span class="n">Chapitre 5</span>
+        <h3>Géosciences et dynamique des paysages</h3>
+        <p>Érosion, transport et sédimentation : lire un paysage et retrouver l'histoire qui l'a façonné.</p>
+        <div class="links">
+          <!-- Exemple de ressource déjà en ligne dans ce dossier -->
+          <span>Cours</span>
+          <a href="carte_geol_aude_v5.html">Carte interactive</a>
+          <span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 6</span>
+        <h3>L'exploitation des ressources naturelles</h3>
+        <p>Ressources géologiques et énergétiques : formation, exploitation, épuisement et conséquences.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 7</span>
+        <h3>Agrosystèmes et développement durable</h3>
+        <p>Nourrir l'humanité : rendement, intrants, sols et pratiques agricoles plus durables.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Sortie</span>
+        <h3>Travail de terrain</h3>
+        <p>Sortie géologique et écologique : observer, prélever, relever — et confronter le cours au réel.</p>
+        <div class="links">
+          <a href="defi3_photo_ferroul_finalV2.html">Défi photo</a>
+          <span>Livret</span><span>Itinéraire</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= THÈME 3 ======================= -->
+<section class="theme">
+  <canvas class="stars"></canvas>
+  <div class="inner wrap">
+    <div class="theme-head reveal">
+      <span class="theme-num display">03</span>
+      <h2 class="display">Corps humain et santé</h2>
+    </div>
+
+    <div class="chaps">
+      <article class="chap reveal">
+        <span class="n">Chapitre 8</span>
+        <h3>Procréation et sexualité humaine</h3>
+        <p>Contrôle hormonal, contraception et prévention : comprendre pour décider en connaissance de cause.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+
+      <article class="chap reveal">
+        <span class="n">Chapitre 9</span>
+        <h3>Micro-organismes et santé</h3>
+        <p>Microbiote, agents infectieux et transmission : ce qui nous rend malade, ce qui nous protège.</p>
+        <div class="links">
+          <span>Cours</span><span>TP</span><span>Fiche</span><span>Exos</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ======================= FIN ======================= -->
+<section class="end">
+  <canvas class="stars"></canvas>
+  <div class="inner wrap">
+    <h2 class="display reveal">Une notion qui résiste ?</h2>
+    <p class="reveal">
+      Reprenez la fiche du chapitre, puis les exercices. Si ça bloque encore,
+      venez me voir en classe ou écrivez-moi — c'est fait pour.
+    </p>
+    <!-- ✏️ À PERSONNALISER : votre adresse -->
+    <a class="btn reveal" href="mailto:reynesmanon11@gmail.com">Poser une question →</a>
+  </div>
+</section>
+
+<footer>
+  <span>Manon Reynes — SVT · Seconde</span>
+  <a href="index.html">Retour à l'accueil</a>
+</footer>
+
+<script>
+/* Champ d'étoiles : un canvas par section (même code que la page d'accueil). */
+function starField(canvas){
+  const ctx = canvas.getContext('2d');
+  let stars = [], w = 0, h = 0;
+
+  function build(){
+    const p = canvas.parentElement, dpr = window.devicePixelRatio || 1;
+    w = p.clientWidth; h = p.clientHeight;
+    if(!w || !h) return;
+    canvas.width = w*dpr; canvas.height = h*dpr;
+    canvas.style.width = w+'px'; canvas.style.height = h+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    const n = Math.round(Math.min(600, (w*h)/1900));
+    stars = Array.from({length:n}, () => {
+      const r = Math.random();
+      return {
+        x:Math.random()*w, y:Math.random()*h,
+        r: r < .65 ? .25+Math.random()*.25 : r < .92 ? .5+Math.random()*.3 : .8+Math.random()*.5,
+        o: .2+Math.random()*.72, s: .4+Math.random()*1.2, p: Math.random()*Math.PI*2
+      };
+    });
+  }
+  function frame(time){
+    const t = time/1000;
+    ctx.clearRect(0,0,w,h);
+    for(const s of stars){
+      const tw = .55 + .45*(Math.sin(t*s.s + s.p)*.5 + .5);
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255,255,255,'+(s.o*tw)+')';
+      ctx.arc(s.x, s.y, s.r, 0, 6.2832);
+      ctx.fill();
+    }
+    requestAnimationFrame(frame);
+  }
+  build();
+  new ResizeObserver(build).observe(canvas.parentElement);
+  requestAnimationFrame(frame);
+}
+document.querySelectorAll('canvas.stars').forEach(starField);
+
+/* Apparition au défilement */
+(function(){
+  const io = new IntersectionObserver((es) => {
+    es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  }, {threshold:.12, rootMargin:'-30px'});
+  document.querySelectorAll('.reveal').forEach((el,i) => {
+    el.style.transitionDelay = Math.min(i%4, 3)*0.07 + 's';
+    io.observe(el);
+  });
+})();
+</script>
+</body>
+</html>
