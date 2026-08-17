@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Le cycle des roches – 2nde SVT</title>
+<style>
+:root {
+  --magma:        #d94f1e;
+  --magmatique:   #9a5b3f;
+  --erosion:      #c9a227;
+  --sedimentaire: #4f8a6a;
+  --metamorphique:#6e5fa8;
+  --fond:         #f4f1ec;
+  --encre:        #24211d;
+  --gris:         #8a8577;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--fond);
+  color: var(--encre);
+  min-height: 100vh;
+}
+
+/* ---- EN-TÊTE ---- */
+header {
+  background: white;
+  border-bottom: 1px solid #e6e1d8;
+  padding: 12px 22px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.h-titre { font-size: 15px; font-weight: 700; }
+.h-sous { font-size: 10.5px; color: #aaa; margin-top: 2px; }
+.h-spacer { flex: 1; }
+
+.progres { display: flex; align-items: center; gap: 10px; }
+.progres-pips { display: flex; gap: 5px; }
+.pip {
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #e2ded5;
+  transition: background 0.3s, transform 0.3s;
+}
+.pip.ok { transform: scale(1.15); }
+.progres-txt { font-size: 10.5px; color: #aaa; white-space: nowrap; }
+
+.btn-reset {
+  font: inherit;
+  font-size: 10.5px;
+  color: #999;
+  background: #f4f1ec;
+  border: 1px solid #e6e1d8;
+  border-radius: 20px;
+  padding: 5px 13px;
+  cursor: pointer;
+}
+.btn-reset:hover { background: #ebe7de; color: #666; }
+
+/* ---- SCÈNE ---- */
+.scene {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-height: calc(100vh - 58px);
+}
+.zone-schema {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  min-width: 0;
+}
+svg.cycle { width: 100%; max-width: 900px; height: auto; }
+
+/* --- éléments du schéma --- */
+.flow { fill: none; stroke: #cfc9bc; stroke-width: 2.5; stroke-linecap: round; }
+.flab {
+  font-size: 12px;
+  fill: #9c9587;
+  text-anchor: middle;
+  font-weight: 600;
+  pointer-events: none;
+}
+.flab tspan.l2 { font-weight: 500; }
+
+.coeur-1 { font-size: 21px; font-weight: 800; fill: #d8d2c6; text-anchor: middle; letter-spacing: 2px; }
+.coeur-2 { font-size: 11px; fill: #cdc6b8; text-anchor: middle; }
+
+.node { cursor: pointer; outline: none; }
+.node rect.boite {
+  fill: white;
+  stroke-width: 2.5;
+  transition: transform 0.18s;
+}
+.node:hover rect.boite, .node:focus-visible rect.boite { filter: brightness(0.985); }
+.node:hover .lift, .node:focus-visible .lift { transform: translateY(-3px); }
+.node .lift { transition: transform 0.18s; }
+.node:focus-visible rect.boite { stroke-dasharray: 6 4; }
+.node.actif rect.boite { fill: #fffdf8; }
+.node .n-titre { font-size: 14.5px; font-weight: 700; text-anchor: middle; }
+.node .n-ex { font-size: 10.5px; fill: #a8a294; text-anchor: middle; }
+.node .n-num {
+  font-size: 10px; font-weight: 700; fill: white; text-anchor: middle;
+}
+.badge-ok { opacity: 0; transition: opacity 0.3s; }
+.node.fait .badge-ok { opacity: 1; }
+
+/* ---- PANNEAU ---- */
+.panneau {
+  width: 420px;
+  flex-shrink: 0;
+  background: white;
+  border-left: 1px solid #e6e1d8;
+  padding: 0 0 30px;
+  overflow-y: auto;
+  max-height: calc(100vh - 58px);
+  position: sticky;
+  top: 58px;
+}
+.panneau.vide { display: flex; align-items: center; justify-content: center; padding: 30px; }
+.vide-txt { text-align: center; color: #bbb; font-size: 12.5px; line-height: 1.7; }
+.vide-txt strong { display: block; font-size: 14px; color: #999; margin-bottom: 6px; }
+
+.p-bande { height: 6px; }
+.p-corps { padding: 18px 22px 0; }
+.p-fermer {
+  display: none;
+  position: absolute; top: 12px; right: 14px;
+  width: 30px; height: 30px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,0.06); color: #555;
+  font-size: 17px; cursor: pointer; line-height: 1;
+}
+.p-etape {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; margin-bottom: 5px;
+}
+.p-titre { font-size: 19px; font-weight: 700; line-height: 1.2; }
+.p-accroche { font-size: 11.5px; color: #a8a294; margin-top: 4px; font-style: italic; }
+
+.bloc { margin-top: 14px; }
+.bloc-t {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: #c2bcae; margin-bottom: 4px;
+}
+.bloc-c { font-size: 12.5px; line-height: 1.65; color: #3d3931; }
+.bloc-c b { color: var(--encre); }
+
+.local {
+  margin-top: 14px;
+  background: #fffbf0;
+  border-left: 3px solid #e8a838;
+  border-radius: 0 9px 9px 0;
+  padding: 9px 12px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: #5b5445;
+}
+.local::before { content: '📍 Dans l\'Aude — '; font-weight: 700; color: #a5762a; }
+
+/* ---- QCM ---- */
+.qcm {
+  margin-top: 20px;
+  border-top: 1px solid #f0ece3;
+  padding-top: 16px;
+}
+.qcm-tag {
+  font-size: 9.5px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.8px; color: #c2bcae; margin-bottom: 6px;
+}
+.qcm-q { font-size: 13px; font-weight: 600; line-height: 1.5; margin-bottom: 11px; }
+
+.opt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.45;
+  background: #faf8f4;
+  border: 1.5px solid #ebe6dc;
+  border-radius: 10px;
+  padding: 10px 13px;
+  margin-bottom: 7px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  padding-left: 38px;
+}
+.opt::before {
+  content: attr(data-lettre);
+  position: absolute; left: 11px; top: 50%;
+  transform: translateY(-50%);
+  width: 19px; height: 19px;
+  border-radius: 50%;
+  background: #ebe6dc;
+  color: #99927f;
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.opt:hover:not(:disabled) { border-color: #d3ccbd; background: #f5f2eb; }
+.opt:disabled { cursor: default; }
+
+.opt.faux {
+  border-color: #eab5a8; background: #fdeeea; color: #8b3a22;
+}
+.opt.faux::before { content: '✕'; background: #d9694a; color: white; }
+.opt.juste {
+  border-color: #8fc7a2; background: #edf7f0; color: #1c5c33;
+}
+.opt.juste::before { content: '✓'; background: #3f9159; color: white; }
+.opt.grise { opacity: 0.45; }
+
+.pourquoi {
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: #8b3a22;
+  background: #fdeeea;
+  border-radius: 8px;
+  padding: 8px 11px;
+  margin: -3px 0 9px;
+}
+.expl {
+  margin-top: 10px;
+  background: #edf7f0;
+  border-left: 3px solid #3f9159;
+  border-radius: 0 9px 9px 0;
+  padding: 10px 13px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #1f4d30;
+}
+.expl b { font-weight: 700; }
+
+.suivant {
+  margin-top: 14px;
+  font: inherit; font-size: 12px; font-weight: 600;
+  color: white; background: var(--encre);
+  border: none; border-radius: 22px;
+  padding: 9px 20px; cursor: pointer;
+}
+.suivant:hover { background: #3d3931; }
+
+/* ---- FIN ---- */
+.fini {
+  margin-top: 16px;
+  background: #f2f7f3;
+  border: 1.5px solid #cfe4d6;
+  border-radius: 12px;
+  padding: 14px 16px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: #235c38;
+}
+.fini strong { display: block; font-size: 14px; margin-bottom: 5px; }
+.fini a { color: #1f6e3a; }
+
+.hint-scroll {
+  display: none;
+  text-align: center;
+  font-size: 10.5px;
+  color: #bdb7a9;
+  padding: 2px 0 6px;
+}
+footer {
+  text-align: center;
+  font-size: 10px;
+  color: #c2bcae;
+  padding: 14px;
+}
+footer a { color: #a8a294; }
+
+/* ---- MOBILE ---- */
+@media (max-width: 900px) {
+  .scene { flex-direction: column; min-height: auto; }
+  .zone-schema {
+    overflow-x: auto;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 12px 0 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  svg.cycle { min-width: 640px; }
+  .hint-scroll { display: block; }
+  .panneau {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    max-height: 100vh;
+    z-index: 200;
+    transform: translateY(100%);
+    transition: transform 0.28s ease;
+    border-left: none;
+  }
+  .panneau.ouvert { transform: translateY(0); }
+  .panneau.vide { display: none; }
+  .p-fermer { display: block; }
+  .p-corps { padding-top: 22px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="h-titre">🪨 Le cycle des roches</div>
+    <div class="h-sous">2nde SVT — Lycée Ernest Ferroul, Lézignan-Corbières</div>
+  </div>
+  <div class="h-spacer"></div>
+  <div class="progres">
+    <div class="progres-pips" id="pips"></div>
+    <div class="progres-txt" id="progres-txt">0 / 5 étape validée</div>
+  </div>
+  <button class="btn-reset" onclick="recommencer()">Recommencer</button>
+</header>
+
+<div class="scene">
+
+  <div class="zone-schema">
+    <svg class="cycle" viewBox="0 0 940 700" role="img" aria-label="Schéma interactif du cycle des roches">
+      <defs>
+        <marker id="fleche" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#cfc9bc"/>
+        </marker>
+      </defs>
+
+      <!-- flux (sens horaire) -->
+      <path class="flow" d="M273.0 186.1 A 250 250 0 0 1 384.5 105.1" marker-end="url(#fleche)"/>
+      <path class="flow" d="M555.5 105.1 A 250 250 0 0 1 667.0 186.1" marker-end="url(#fleche)"/>
+      <path class="flow" d="M719.8 348.7 A 250 250 0 0 1 677.3 479.8" marker-end="url(#fleche)"/>
+      <path class="flow" d="M538.9 580.3 A 250 250 0 0 1 401.1 580.3" marker-end="url(#fleche)"/>
+      <path class="flow" d="M262.7 479.8 A 250 250 0 0 1 220.2 348.7" marker-end="url(#fleche)"/>
+
+      <!-- libellés des processus -->
+      <text class="flab" x="290.7" y="88"><tspan x="290.7">Refroidissement</tspan><tspan class="l2" x="290.7" dy="15">&amp; cristallisation</tspan></text>
+      <text class="flab" x="649.3" y="88"><tspan x="649.3">Altération, érosion,</tspan><tspan class="l2" x="649.3" dy="15">transport</tspan></text>
+      <text class="flab" x="760.1" y="429"><tspan x="760.1">Sédimentation</tspan><tspan class="l2" x="760.1" dy="15">&amp; diagenèse</tspan></text>
+      <text class="flab" x="470" y="640"><tspan x="470">Enfouissement : P et T ↑</tspan><tspan class="l2" x="470" dy="15">métamorphisme</tspan></text>
+      <text class="flab" x="179.9" y="429"><tspan x="179.9">Fusion partielle</tspan><tspan class="l2" x="179.9" dy="15">(anatexie)</tspan></text>
+
+      <!-- cœur -->
+      <text class="coeur-1" x="470" y="326">LE CYCLE DES ROCHES</text>
+      <text class="coeur-2" x="470" y="348">clique sur une étape</text>
+
+      <!-- étapes -->
+      <g class="node" id="n-magma" data-id="magma" tabindex="0" role="button" aria-label="Étape 1 : le magma">
+        <g class="lift">
+          <rect class="boite" x="174.8" y="244.2" width="210" height="68" rx="16" stroke="var(--magma)"/>
+          <circle cx="174.8" cy="278.2" r="12" fill="var(--magma)"/>
+          <text class="n-num" x="174.8" y="281.8">1</text>
+          <text class="n-titre" x="279.8" y="274" fill="var(--magma)">Magma</text>
+          <text class="n-ex" x="279.8" y="292">roche fondue, 700–1300 °C</text>
+          <circle class="badge-ok" cx="380.8" cy="248.2" r="10" fill="#3f9159"/>
+          <text class="badge-ok n-num" x="380.8" y="251.8">✓</text>
+        </g>
+      </g>
+
+      <g class="node" id="n-magmatique" data-id="magmatique" tabindex="0" role="button" aria-label="Étape 2 : les roches magmatiques">
+        <g class="lift">
+          <rect class="boite" x="365" y="106" width="210" height="68" rx="16" stroke="var(--magmatique)"/>
+          <circle cx="365" cy="140" r="12" fill="var(--magmatique)"/>
+          <text class="n-num" x="365" y="143.6">2</text>
+          <text class="n-titre" x="470" y="135.8" fill="var(--magmatique)">Roches magmatiques</text>
+          <text class="n-ex" x="470" y="153.8">granite · basalte</text>
+          <circle class="badge-ok" cx="571" cy="110" r="10" fill="#3f9159"/>
+          <text class="badge-ok n-num" x="571" y="113.6">✓</text>
+        </g>
+      </g>
+
+      <g class="node" id="n-erosion" data-id="erosion" tabindex="0" role="button" aria-label="Étape 3 : érosion et sédiments">
+        <g class="lift">
+          <rect class="boite" x="555.2" y="244.2" width="210" height="68" rx="16" stroke="var(--erosion)"/>
+          <circle cx="555.2" cy="278.2" r="12" fill="var(--erosion)"/>
+          <text class="n-num" x="555.2" y="281.8">3</text>
+          <text class="n-titre" x="660.2" y="274" fill="#a8871c">Érosion &amp; sédiments</text>
+          <text class="n-ex" x="660.2" y="292">galets · sables · argiles</text>
+          <circle class="badge-ok" cx="761.2" cy="248.2" r="10" fill="#3f9159"/>
+          <text class="badge-ok n-num" x="761.2" y="251.8">✓</text>
+        </g>
+      </g>
+
+      <g class="node" id="n-sedimentaire" data-id="sedimentaire" tabindex="0" role="button" aria-label="Étape 4 : les roches sédimentaires">
+        <g class="lift">
+          <rect class="boite" x="482.6" y="467.8" width="210" height="68" rx="16" stroke="var(--sedimentaire)"/>
+          <circle cx="482.6" cy="501.8" r="12" fill="var(--sedimentaire)"/>
+          <text class="n-num" x="482.6" y="505.4">4</text>
+          <text class="n-titre" x="587.6" y="497.6" fill="var(--sedimentaire)">Roches sédimentaires</text>
+          <text class="n-ex" x="587.6" y="515.6">calcaire · grès · gypse</text>
+          <circle class="badge-ok" cx="688.6" cy="471.8" r="10" fill="#3f9159"/>
+          <text class="badge-ok n-num" x="688.6" y="475.4">✓</text>
+        </g>
+      </g>
+
+      <g class="node" id="n-metamorphique" data-id="metamorphique" tabindex="0" role="button" aria-label="Étape 5 : les roches métamorphiques">
+        <g class="lift">
+          <rect class="boite" x="247.4" y="467.8" width="210" height="68" rx="16" stroke="var(--metamorphique)"/>
+          <circle cx="247.4" cy="501.8" r="12" fill="var(--metamorphique)"/>
+          <text class="n-num" x="247.4" y="505.4">5</text>
+          <text class="n-titre" x="352.4" y="497.6" fill="var(--metamorphique)">Roches métamorphiques</text>
+          <text class="n-ex" x="352.4" y="515.6">marbre · schiste · gneiss</text>
+          <circle class="badge-ok" cx="453.4" cy="471.8" r="10" fill="#3f9159"/>
+          <text class="badge-ok n-num" x="453.4" y="475.4">✓</text>
+        </g>
+      </g>
+    </svg>
+  </div>
+
+  <div class="hint-scroll">↔ fais glisser le schéma pour tout voir</div>
+
+  <aside class="panneau vide" id="panneau">
+    <div class="vide-txt">
+      <strong>5 étapes à explorer</strong>
+      Clique sur une étape du schéma :<br>tu obtiens une fiche courte,<br>puis une question pour vérifier.
+    </div>
+  </aside>
+
+</div>
+
+<footer>
+  Ressource pédagogique — 2nde SVT ·
+  <a href="carte_geol_aude_v5.html">Voir la carte des carrières de l'Aude</a>
+</footer>
+
+<script>
+const ETAPES = {
+  magma: {
+    n: 1, couleur: 'var(--magma)', hexa: '#d94f1e',
+    titre: '🌋 Le magma',
+    accroche: "Le point de départ — et d'arrivée — du cycle.",
+    blocs: [
+      { t: "Qu'est-ce que c'est ?",
+        c: "Un <b>liquide silicaté à haute température</b> (700 à 1300 °C), contenant des cristaux déjà formés et des gaz dissous. Il se trouve en profondeur, dans le manteau supérieur ou la croûte." },
+      { t: "Comment se forme-t-il ?",
+        c: "Par <b>fusion partielle</b> — jamais totale : seuls les minéraux qui fondent le plus facilement passent à l'état liquide. Trois déclencheurs possibles : une <b>baisse de pression</b> (sous les dorsales océaniques), un <b>apport d'eau</b> (zones de subduction), ou une <b>hausse de température</b>." },
+      { t: "Et ensuite ?",
+        c: "En remontant, le magma refroidit et cristallise : il devient une <b>roche magmatique</b> (étape 2)." }
+    ],
+    local: "Les filons d'or de <b>Salsigne</b> se sont mis en place il y a environ 300 Ma, dans les schistes de la Montagne Noire, à partir de fluides chauds circulant autour d'intrusions magmatiques.",
+    qcm: {
+      q: "Sous une dorsale océanique, les roches du manteau fondent partiellement. Quelle en est la cause principale ?",
+      options: [
+        { t: "Une forte augmentation de la température", ok: false, f: "La température du manteau qui remonte reste à peu près constante : ce n'est pas elle qui change." },
+        { t: "Une diminution de la pression", ok: true },
+        { t: "Un refroidissement brutal", ok: false, f: "Un refroidissement ferait l'inverse : il solidifie un magma, il n'en crée pas." },
+        { t: "Le contact avec l'eau de mer froide", ok: false, f: "L'eau de mer refroidit la lave en surface. C'est bien de l'eau qui déclenche la fusion en subduction, mais pas ici, et pas par le froid." }
+      ],
+      expl: "Sous la dorsale, le manteau remonte. La pression qui pèse sur lui <b>chute</b> alors que sa température reste quasi inchangée : c'est la <b>décompression</b> qui fait passer la roche au-dessus de sa température de fusion. On parle de fusion partielle par décompression adiabatique."
+    }
+  },
+
+  magmatique: {
+    n: 2, couleur: 'var(--magmatique)', hexa: '#9a5b3f',
+    titre: '⛰️ Les roches magmatiques',
+    accroche: "Du magma figé — la vitesse de refroidissement laisse sa signature.",
+    blocs: [
+      { t: "Formation",
+        c: "<b>Cristallisation du magma</b> lors de son refroidissement. Les minéraux se forment les uns après les autres, du plus réfractaire au plus fusible." },
+      { t: "Deux familles",
+        c: "<b>Plutoniques</b> : refroidissement <b>lent</b>, en profondeur → tous les cristaux sont visibles à l'œil nu (texture <i>grenue</i>). Ex. granite, gabbro.<br><b>Volcaniques</b> : refroidissement <b>rapide</b>, en surface → petits cristaux noyés dans du verre (texture <i>microlitique</i>). Ex. basalte, andésite." },
+      { t: "La règle à retenir",
+        c: "<b>Plus le refroidissement est lent, plus les cristaux sont gros.</b> La taille des cristaux raconte donc l'histoire du refroidissement de la roche." }
+    ],
+    local: "Les <b>granites et schistes de la Montagne Noire</b> datent de l'orogenèse hercynienne (−300 Ma). Ils forment le socle sur lequel reposent les calcaires des Corbières.",
+    qcm: {
+      q: "Tu observes une roche dont tous les cristaux sont visibles à l'œil nu, sans verre entre eux. Que peux-tu conclure ?",
+      options: [
+        { t: "Elle a refroidi lentement, en profondeur", ok: true },
+        { t: "Elle a refroidi très vite, à l'air libre", ok: false, f: "Un refroidissement rapide ne laisse pas le temps aux cristaux de grossir : on obtiendrait de petits cristaux et du verre." },
+        { t: "C'est une roche sédimentaire", ok: false, f: "Une roche sédimentaire montrerait des grains collés par un ciment, souvent en strates — pas des cristaux imbriqués." },
+        { t: "Elle a été déposée par une rivière", ok: false, f: "Un dépôt de rivière donne des grains usés et triés par la taille, pas des cristaux qui s'emboîtent." }
+      ],
+      expl: "Des <b>gros cristaux, tous visibles et imbriqués</b> = texture grenue = <b>roche plutonique</b>, refroidie lentement en profondeur. Le granite en est l'exemple type. À l'inverse, le basalte refroidit en quelques heures en surface : ses cristaux n'ont pas le temps de grossir."
+    }
+  },
+
+  erosion: {
+    n: 3, couleur: 'var(--erosion)', hexa: '#c9a227',
+    titre: '🏞️ Érosion, transport, sédiments',
+    accroche: "Toute roche exposée à l'air finit par être démantelée.",
+    blocs: [
+      { t: "Trois étapes qui s'enchaînent",
+        c: "<b>1. Altération</b> — la roche se fragilise sur place (gel/dégel, dissolution du calcaire par l'eau acide, action des racines).<br><b>2. Érosion</b> — les morceaux sont arrachés.<br><b>3. Transport</b> — par l'eau, le vent, la glace ou la gravité, jusqu'au dépôt." },
+      { t: "Le transport laisse une trace",
+        c: "Pendant le trajet, les fragments s'entrechoquent : ils <b>s'usent</b> et <b>s'arrondissent</b>. Le courant les <b>trie</b> aussi par taille. Donc : plus un grain a voyagé loin, plus il est <b>petit et arrondi</b>." },
+      { t: "Le vocabulaire",
+        c: "Les fragments transportés s'appellent des <b>sédiments</b> : blocs, galets, graviers, sables, silts, argiles — du plus grossier au plus fin." }
+    ],
+    local: "Le <b>« sable de Bram »</b> et les sablières de <b>Berriac</b> ou de <b>Couffoulens</b> exploitent les alluvions de l'Aude : des grains arrondis nés de l'érosion des Pyrénées et transportés sur des centaines de kilomètres.",
+    qcm: {
+      q: "Sur une plage, tu ramasses un galet petit et parfaitement arrondi. Qu'indique-t-il ?",
+      options: [
+        { t: "Il s'est formé sur place, sans transport", ok: false, f: "Sans transport, un fragment reste anguleux : ce sont les chocs du trajet qui l'usent." },
+        { t: "Il a subi un long transport", ok: true },
+        { t: "Il est forcément d'origine volcanique", ok: false, f: "La forme dépend du transport, pas de la nature de la roche : un galet peut être calcaire, granitique, basaltique…" },
+        { t: "Il a subi un métamorphisme intense", ok: false, f: "Le métamorphisme transforme les minéraux à l'intérieur de la roche ; il n'arrondit pas les blocs." }
+      ],
+      expl: "L'<b>usure par les chocs</b> pendant le transport arrondit et réduit les fragments. Un galet bien émoussé et de petite taille signe donc un <b>trajet long</b>. À l'inverse, un éboulis au pied d'une falaise est fait de blocs anguleux : ils n'ont presque pas voyagé."
+    }
+  },
+
+  sedimentaire: {
+    n: 4, couleur: 'var(--sedimentaire)', hexa: '#4f8a6a',
+    titre: '🧱 Les roches sédimentaires',
+    accroche: "Des sédiments meubles transformés en roche solide.",
+    blocs: [
+      { t: "Formation : la diagenèse",
+        c: "Les sédiments s'accumulent en couches (<b>strates</b>). Sous le poids de ce qui se dépose au-dessus, ils sont <b>compactés</b> (l'eau est chassée), puis <b>cimentés</b> (des minéraux précipitent et collent les grains). C'est la <b>diagenèse</b>." },
+      { t: "Trois grandes familles",
+        c: "<b>Détritiques</b> — des débris d'autres roches : grès, argilite, conglomérat.<br><b>Biogènes</b> — des restes d'êtres vivants : calcaire à fossiles, charbon.<br><b>Chimiques (évaporites)</b> — précipitation dans l'eau : gypse, sel." },
+      { t: "Comment les reconnaître",
+        c: "Présence de <b>strates</b>, de <b>fossiles</b>, de grains liés par un ciment. Ce sont les seules roches à contenir des fossiles : elles racontent les milieux du passé." }
+    ],
+    local: "Les <b>calcaires des Corbières</b> (Jurassique–Crétacé) se sont déposés au fond d'une mer chaude. Le <b>gypse triasique de Quillan</b> (−225 Ma) vient, lui, de l'évaporation d'une mer peu profonde sous climat aride : c'est aujourd'hui la matière première du plâtre.",
+    qcm: {
+      q: "Le gypse exploité près de Quillan s'est formé par :",
+      options: [
+        { t: "Le refroidissement d'une coulée de lave", ok: false, f: "Ce mécanisme donne des roches volcaniques comme le basalte, pas une évaporite." },
+        { t: "L'évaporation de l'eau d'une mer peu profonde", ok: true },
+        { t: "La fusion partielle du manteau", ok: false, f: "La fusion partielle produit du magma, à plus de 700 °C — l'exact opposé d'un dépôt de surface." },
+        { t: "La transformation d'un calcaire par la chaleur", ok: false, f: "Ce mécanisme-là existe bien, mais il donne du marbre : c'est du métamorphisme (étape 5)." }
+      ],
+      expl: "Le gypse (CaSO₄·2H₂O) est une <b>évaporite</b> : quand l'eau de mer s'évapore sous un climat chaud et sec, les sels dissous se concentrent puis <b>précipitent</b>. Le gypse des Corbières témoigne donc d'une mer tropicale peu profonde au Trias, il y a environ 225 millions d'années."
+    }
+  },
+
+  metamorphique: {
+    n: 5, couleur: 'var(--metamorphique)', hexa: '#6e5fa8',
+    titre: '💎 Les roches métamorphiques',
+    accroche: "Une roche transformée en profondeur — sans jamais fondre.",
+    blocs: [
+      { t: "Formation",
+        c: "Une roche déjà existante (sédimentaire, magmatique, ou même métamorphique) est enfouie ou prise dans une collision. Elle subit une forte <b>pression</b> et une forte <b>température</b>, et se transforme <b>à l'état solide</b>." },
+      { t: "Le point clé",
+        c: "<b>Il n'y a pas de fusion.</b> Dès que la roche fond, on repasse au magma (étape 1). Le métamorphisme s'arrête donc juste avant. De nouveaux minéraux apparaissent et la roche acquiert souvent une <b>foliation</b> ou une <b>schistosité</b> : des feuillets orientés perpendiculairement à la pression." },
+      { t: "Les couples à connaître",
+        c: "calcaire → <b>marbre</b> · argile → schiste → <b>gneiss</b> · granite → <b>gneiss</b> · grès → quartzite" }
+    ],
+    local: "Le <b>marbre rouge de Caunes-Minervois</b> est un ancien calcaire dévonien (−385 Ma), recuit lors de la formation de la chaîne hercynienne. On le retrouve au Grand Trianon de Versailles et à l'Opéra Garnier.",
+    qcm: {
+      q: "Le marbre de Caunes-Minervois provient de la transformation :",
+      options: [
+        { t: "D'un granite", ok: false, f: "Un granite métamorphisé donne un gneiss, reconnaissable à ses lits clairs et sombres." },
+        { t: "D'un basalte", ok: false, f: "Le basalte est une roche volcanique ; son métamorphisme donne des roches vertes (schiste vert, éclogite), pas du marbre." },
+        { t: "D'un calcaire", ok: true },
+        { t: "D'un sable qui a fondu", ok: false, f: "Deux erreurs : la roche de départ est un calcaire, et surtout le métamorphisme se fait <b>sans fusion</b>." }
+      ],
+      expl: "Le marbre est un <b>calcaire métamorphisé</b> : sous l'effet de la pression et de la chaleur, les cristaux de calcite se ressoudent et grossissent, effaçant les fossiles. Le calcaire dévonien de Caunes est ainsi devenu, à l'état solide, le marbre rouge exploité depuis l'Antiquité."
+    }
+  }
+};
+
+const ORDRE = ['magma', 'magmatique', 'erosion', 'sedimentaire', 'metamorphique'];
+let valides = new Set();
+let courant = null;
+
+/* ---------- progression ---------- */
+const pipsEl = document.getElementById('pips');
+ORDRE.forEach(id => {
+  const d = document.createElement('div');
+  d.className = 'pip';
+  d.id = 'pip-' + id;
+  d.title = ETAPES[id].titre;
+  pipsEl.appendChild(d);
+});
+
+function majProgression() {
+  ORDRE.forEach(id => {
+    const p = document.getElementById('pip-' + id);
+    p.classList.toggle('ok', valides.has(id));
+    p.style.background = valides.has(id) ? ETAPES[id].hexa : '#e2ded5';
+  });
+  const n = valides.size;
+  document.getElementById('progres-txt').textContent =
+    n + ' / 5 étape' + (n > 1 ? 's' : '') + ' validée' + (n > 1 ? 's' : '');
+}
+
+/* ---------- panneau ---------- */
+const panneau = document.getElementById('panneau');
+
+function ouvrir(id) {
+  const e = ETAPES[id];
+  courant = id;
+
+  document.querySelectorAll('.node').forEach(n => n.classList.toggle('actif', n.dataset.id === id));
+
+  const blocs = e.blocs.map(b =>
+    `<div class="bloc"><div class="bloc-t">${b.t}</div><div class="bloc-c">${b.c}</div></div>`
+  ).join('');
+
+  const opts = e.qcm.options.map((o, i) =>
+    `<button class="opt" data-lettre="${'ABCD'[i]}" onclick="repondre(${i}, this)">${o.t}</button>
+     <div class="pourquoi" id="pq-${i}" style="display:none"></div>`
+  ).join('');
+
+  panneau.classList.remove('vide');
+  panneau.classList.add('ouvert');
+  panneau.innerHTML = `
+    <div class="p-bande" style="background:${e.hexa}"></div>
+    <button class="p-fermer" onclick="fermer()" aria-label="Fermer">×</button>
+    <div class="p-corps">
+      <div class="p-etape" style="color:${e.hexa}">Étape ${e.n} sur 5</div>
+      <div class="p-titre">${e.titre}</div>
+      <div class="p-accroche">${e.accroche}</div>
+      ${blocs}
+      <div class="local">${e.local}</div>
+      <div class="qcm">
+        <div class="qcm-tag">À toi de jouer</div>
+        <div class="qcm-q">${e.qcm.q}</div>
+        ${opts}
+        <div id="zone-expl"></div>
+      </div>
+    </div>`;
+  panneau.scrollTop = 0;
+}
+
+function fermer() {
+  panneau.classList.remove('ouvert');
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('actif'));
+}
+
+function repondre(i, btn) {
+  const e = ETAPES[courant];
+  const o = e.qcm.options[i];
+
+  if (o.ok) {
+    btn.classList.add('juste');
+    document.querySelectorAll('.opt').forEach(b => {
+      b.disabled = true;
+      if (b !== btn && !b.classList.contains('faux')) b.classList.add('grise');
+    });
+    document.getElementById('zone-expl').innerHTML =
+      `<div class="expl">${e.qcm.expl}</div>` + boutonSuivant();
+
+    valides.add(courant);
+    document.getElementById('n-' + courant).classList.add('fait');
+    majProgression();
+
+    if (valides.size === 5) {
+      document.getElementById('zone-expl').innerHTML += `
+        <div class="fini">
+          <strong>🎉 Cycle bouclé !</strong>
+          Tu as parcouru les 5 étapes. Retiens l'essentiel : <b>aucune roche n'est définitive</b>.
+          Le marbre de Caunes était un calcaire, ce calcaire était un dépôt marin, ce dépôt venait
+          de l'érosion de roches plus anciennes… et il pourra un jour refondre.
+          <br><br>Pour continuer : <a href="carte_geol_aude_v5.html">la carte des carrières de l'Aude</a>.
+        </div>`;
+    }
+  } else {
+    btn.classList.add('faux');
+    btn.disabled = true;
+    const pq = document.getElementById('pq-' + i);
+    pq.innerHTML = o.f;
+    pq.style.display = 'block';
+  }
+}
+
+function boutonSuivant() {
+  const restantes = ORDRE.filter(id => !valides.has(id) && id !== courant);
+  if (!restantes.length) return '';
+  const suiv = restantes[0];
+  return `<button class="suivant" onclick="ouvrir('${suiv}')">Étape suivante : ${ETAPES[suiv].titre} →</button>`;
+}
+
+function recommencer() {
+  valides.clear();
+  courant = null;
+  document.querySelectorAll('.node').forEach(n => n.classList.remove('fait', 'actif'));
+  majProgression();
+  panneau.classList.add('vide');
+  panneau.classList.remove('ouvert');
+  panneau.innerHTML = `
+    <div class="vide-txt">
+      <strong>5 étapes à explorer</strong>
+      Clique sur une étape du schéma :<br>tu obtiens une fiche courte,<br>puis une question pour vérifier.
+    </div>`;
+}
+
+/* ---------- interactions ---------- */
+document.querySelectorAll('.node').forEach(n => {
+  n.addEventListener('click', () => ouvrir(n.dataset.id));
+  n.addEventListener('keydown', ev => {
+    if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); ouvrir(n.dataset.id); }
+  });
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') fermer(); });
+
+majProgression();
+</script>
+</body>
+</html>
