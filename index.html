@@ -698,6 +698,16 @@ document.querySelectorAll('canvas.stars').forEach(starField);
     if(i >= TEXTURES.length) return;           // aucune image : on garde le dessin
     const im = new Image();
     im.onload = () => {
+      // Une carte équirectangulaire est deux fois plus large que haute.
+      // Une Terre déjà rendue en boule est carrée : la projeter donnerait
+      // une bouillie, mieux vaut garder le globe dessiné.
+      const ratio = im.naturalWidth / im.naturalHeight;
+      if(ratio < 1.7 || ratio > 2.3){
+        console.warn('[globe] "' + TEXTURES[i] + '" fait ' + im.naturalWidth + '×' +
+          im.naturalHeight + ' (rapport ' + ratio.toFixed(2) + '). Il faut un ' +
+          'planisphère deux fois plus large que haut, pas un globe déjà rendu.');
+        return loadTexture(i+1);
+      }
       try{
         const c = document.createElement('canvas');
         c.width = TEX_W; c.height = TEX_H;
