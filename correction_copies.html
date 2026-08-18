@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v8 — synchronisation cloud hybride optionnelle (Supabase) : local par défaut + connexion facultative -->
+<!-- Correction·IA v9 — barèmes ultra-détaillés (règle de notation appliquée à la lettre), cache API du barème/sujet, bouton Valider ma grille -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -180,8 +180,9 @@
   .iconbtn { background: none; border: none; color: var(--muted); font-size: 0.85rem; padding: 2px 5px; border-radius: 6px; }
   .iconbtn:hover { color: var(--red); background: #fdeef1; }
   .gcadd { padding: 8px 14px; border-top: 1px solid var(--border); }
-  .gcrit input.cattx, .gcrit input.ccompx { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--muted2); font-size: 0.72rem; padding: 5px 8px; outline: none; margin-top: 4px; }
+  .gcrit input.cattx, .gcrit input.ccompx, .gcrit textarea.creglex { width: 100%; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--muted2); font-size: 0.72rem; padding: 5px 8px; outline: none; margin-top: 4px; font-family: inherit; }
   .gcrit input.ccompx { color: var(--purple); font-weight: 600; }
+  .gcrit textarea.creglex { resize: vertical; line-height: 1.35; border-color: var(--green, #2f9e6b); }
   .cnivs { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
   .cnivrow { display: flex; gap: 6px; align-items: center; }
   .cnivrow input.cnivpts { width: 52px; background: var(--surface); border: 1px solid var(--border2); border-radius: 7px; color: var(--blue); font-family: 'DM Mono', monospace; font-size: 0.72rem; padding: 4px 5px; text-align: center; outline: none; }
@@ -326,6 +327,10 @@
         </div>
         <div class="sub" id="d2-grillenote"></div>
         <div id="d2-grille"></div>
+        <div class="row" style="justify-content:flex-end; margin-top:14px; gap:10px; align-items:center">
+          <span id="d2-validmsg" class="sub" style="margin:0"></span>
+          <button class="btn primary" id="d2-valider">✅ Valider ma grille</button>
+        </div>
       </div>
     </div>
   </div>
@@ -657,7 +662,7 @@ function severiteDirectives() {
   };
   return map[s] || map.examen;
 }
-function newCritere() { return { id: 'c' + uid(), intitule: '', points: 1, attendus: '', competence: '', niveaux: [] }; }
+function newCritere() { return { id: 'c' + uid(), intitule: '', points: 1, attendus: '', competence: '', regle: '', niveaux: [] }; }
 
 const STRUCT_TOOL = {
   name: 'structurer_grille', description: 'Enregistre la grille de correction structurée.',
@@ -668,8 +673,9 @@ const STRUCT_TOOL = {
       criteres: { type: 'array', items: { type: 'object', properties: {
         intitule: { type: 'string' }, points: { type: 'number' }, attendus: { type: 'string' },
         competence: { type: 'string', description: 'Compétence courte réutilisable (ex : "Sélectionner des informations", "Restituer / mobiliser ses connaissances", "Raisonner / argumenter", "Exploiter et mettre en relation", "Communiquer / rédiger")' },
-        niveaux: { type: 'array', description: "Si le barème utilise une échelle/curseur (ex 4/3/2/1/0), liste les niveaux ; sinon vide.", items: { type: 'object', properties: { points: { type: 'number' }, descripteur: { type: 'string' } }, required: ['points', 'descripteur'] } }
-      }, required: ['intitule', 'points', 'attendus', 'competence', 'niveaux'] } }
+        regle: { type: 'string', description: "RÈGLE DE NOTATION détaillée, reprise FIDÈLEMENT du barème : comment attribuer les points partiels. Ex : \"1 pt si au moins 2 des 3 niveaux cités AVEC un exemple pour chacun ; −0,25 par exemple manquant ; −0,5 si les niveaux sont donnés sans aucun exemple ; 0 sinon\". Si le barème ne précise rien, laisse vide." },
+        niveaux: { type: 'array', description: "Utilise SEULEMENT si le barème donne explicitement une échelle/curseur (ex 4/3/2/1/0). Sinon, laisse vide et mets la règle de points partiels dans 'regle'.", items: { type: 'object', properties: { points: { type: 'number' }, descripteur: { type: 'string' } }, required: ['points', 'descripteur'] } }
+      }, required: ['intitule', 'points', 'attendus', 'competence', 'regle', 'niveaux'] } }
     }, required: ['titre', 'criteres'] } }
   }, required: ['parties', 'remarque'] }
 };
@@ -834,16 +840,16 @@ $('d2-structurer').onclick = async () => {
     const consigneTotal = totalDecl != null
       ? `\n\n⚠️ RÈGLE ABSOLUE : le total de la grille structurée DOIT être STRICTEMENT ÉGAL à ${fmtPts(totalDecl)} points (le total de mon barème). Ne change JAMAIS ce total.`
       : `\n\n⚠️ RÈGLE ABSOLUE : conserve EXACTEMENT le total de points de mon barème. Ne le change pas.`;
-    const content = [{ type: 'text', text: `Recopie fidèlement la grille/barème ci-dessous en grille structurée, SANS RIEN CHANGER aux points.\n\nRÈGLES :\n1. Reprends CHAQUE critère du barème tel quel, avec EXACTEMENT le nombre de points indiqué.\n2. Ne DÉCOUPE PAS un critère en sous-critères. Ne FUSIONNE PAS deux critères. N'AJOUTE aucun critère. Un critère du barème = un critère de la grille.\n3. N'invente aucun point. Si un critère vaut 2 points dans mon barème, il vaut 2 points dans la grille.\n4. Si le barème utilise une échelle/curseur (ex 4/3/2/1/0), remplis "niveaux" : le maximum des niveaux = les points du critère.\n5. Ajoute seulement une "competence" courte réutilisable par critère.${consigneTotal}\n\nDans "remarque", indique le total que tu obtiens et confirme qu'il est identique à mon barème (ou signale l'écart si tu n'as pas pu faire autrement).` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '') }];
+    const content = [{ type: 'text', text: `Recopie fidèlement la grille/barème ci-dessous en grille structurée, SANS RIEN CHANGER aux points.\n\nRÈGLES :\n1. Reprends CHAQUE critère du barème tel quel, avec EXACTEMENT le nombre de points indiqué.\n2. Ne DÉCOUPE PAS un critère en sous-critères. Ne FUSIONNE PAS deux critères. N'AJOUTE aucun critère. Un critère du barème = un critère de la grille.\n3. N'invente aucun point. Si un critère vaut 1 point dans mon barème, il vaut 1 point dans la grille.\n4. TRÈS IMPORTANT — mes barèmes sont TRÈS détaillés : ils précisent souvent comment donner les points partiels (ex : « 1 pt si au moins 2 des 3 niveaux cités avec un exemple pour chacun ; −0,25 par exemple manquant ; −0,5 si niveaux donnés sans exemple »). Reprends cette règle FIDÈLEMENT et intégralement dans le champ "regle" de chaque critère. NE me demande PAS de recalibrer : c'est à TOI de déduire la règle de points partiels à partir de mon barème détaillé.\n5. N'utilise "niveaux" que si le barème présente explicitement une échelle/curseur (4/3/2/1/0). Sinon laisse "niveaux" vide et mets tout dans "regle".\n6. Ajoute une "competence" courte réutilisable par critère.\n7. Si (et seulement si) une question est ambiguë ou que le barème ne précise rien pour elle, propose une règle raisonnable dans "regle" ET signale-le dans "remarque".${consigneTotal}\n\nDans "remarque", indique le total obtenu et confirme qu'il est identique à mon barème (ou signale l'écart et les propositions faites).` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '') }];
     if (d.grillePdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.grillePdf.base64 } });
     else content.push({ type: 'text', text: '\nBarème :\n' + d.grilleBrute });
     if (d.sujetPdf) { content.push({ type: 'text', text: 'Sujet distribué (PDF, pour contexte) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
     const out = await callClaude({
-      system: "Tu structures des barèmes de correction SANS jamais modifier le total des points. Utilise structurer_grille. Reprends chaque critère tel quel, un pour un, avec ses points exacts — interdiction de découper, fusionner, ajouter ou rééchelonner les critères. Chaque critère porte une compétence courte réutilisable. Remplis niveaux uniquement si le barème est déjà à échelles/curseurs.",
+      system: "Tu structures des barèmes de correction TRÈS détaillés SANS jamais modifier le total des points. Utilise structurer_grille. Reprends chaque critère tel quel, un pour un, avec ses points exacts — interdiction de découper, fusionner, ajouter ou rééchelonner les critères. Capture FIDÈLEMENT la règle de points partiels de chaque critère dans 'regle' (c'est toi qui la déduis du barème, tu ne demandes jamais à l'utilisateur de recalibrer). Chaque critère porte une compétence courte réutilisable. Remplis 'niveaux' uniquement si le barème est déjà à échelles/curseurs.",
       userContent: content, tool: STRUCT_TOOL
     });
     let n = 0;
-    d.grille = { remarque: out.remarque || '', parties: (out.parties || []).map(p => ({ titre: p.titre, criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence, niveaux: (c.niveaux || []).map(nv => ({ points: nv.points, descripteur: nv.descripteur })) })) })) };
+    d.grille = { remarque: out.remarque || '', parties: (out.parties || []).map(p => ({ titre: p.titre, criteres: (p.criteres || []).map(c => ({ id: 'c' + (n++), intitule: c.intitule, points: c.points, attendus: c.attendus, competence: c.competence, regle: cleanText(c.regle), niveaux: (c.niveaux || []).map(nv => ({ points: nv.points, descripteur: nv.descripteur })) })) })) };
     d.grillePdf = null; // libère l'espace : la grille structurée suffit désormais
     saveDB(); renderDevoirEditor();
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
@@ -867,6 +873,21 @@ $('d2-buildgrille').onclick = () => {
   renderDevoirEditor();
   $('d2-grillecard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
+$('d2-valider').onclick = () => {
+  const d = devoirById($('d2-devoir').value); if (!d || !d.grille) return;
+  const crit = grilleCriteres(d.grille);
+  const vides = crit.filter(c => !(c.intitule || '').trim());
+  const msg = $('d2-validmsg');
+  if (!crit.length) { msg.innerHTML = '<span class="err-msg" style="display:inline">Ajoutez au moins un critère.</span>'; return; }
+  if (vides.length) { msg.innerHTML = `<span class="err-msg" style="display:inline">${vides.length} critère(s) sans intitulé — complétez-les.</span>`; return; }
+  const total = grilleNoteMax(d.grille), decl = (d.noteMaxDecl ?? '') === '' ? null : d.noteMaxDecl;
+  if (decl != null && Math.abs(total - decl) > 0.01) { msg.innerHTML = `<span class="err-msg" style="display:inline">Total ${fmtPts(total)} ≠ barème ${fmtPts(decl)} — ajustez avant de valider.</span>`; return; }
+  d.grilleValidee = true; saveDB();
+  const avecRegle = crit.filter(c => (c.regle || '').trim()).length;
+  msg.innerHTML = `<span class="ok-msg" style="display:inline">✅ Grille validée : ${crit.length} critères sur ${fmtPts(total)} pts${avecRegle ? `, dont ${avecRegle} avec règle détaillée` : ''}. Direction « Correction ».</span>`;
+  updateGrilleState();
+  setTimeout(() => { document.querySelector('[data-tab="correction"]').click(); }, 900);
+};
 function renderGrilleEditor(d) {
   const card = $('d2-grillecard');
   if (!d.grille) { card.style.display = 'none'; return; }
@@ -883,6 +904,7 @@ function renderGrilleEditor(d) {
           <input class="cint" data-pi="${pi}" data-ci="${ci}" value="${esc(c.intitule)}" placeholder="Intitulé du critère">
           <input class="cattx" data-pi="${pi}" data-ci="${ci}" value="${esc(c.attendus || '')}" placeholder="Attendus (facultatif)">
           <input class="ccompx" data-pi="${pi}" data-ci="${ci}" value="${esc(c.competence || '')}" placeholder="Compétence (ex : Raisonner / argumenter)">
+          <textarea class="creglex" data-pi="${pi}" data-ci="${ci}" rows="2" placeholder="Règle de notation détaillée — l'IA l'applique telle quelle (ex : 1 pt si ≥2 niveaux cités AVEC un exemple chacun ; −0,25 par exemple manquant ; −0,5 si niveaux sans exemple)">${esc(c.regle || '')}</textarea>
           <div class="cnivs">
             ${(c.niveaux || []).map((nv, ni) => `<div class="cnivrow"><input class="cnivpts" type="number" step="0.25" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" value="${nv.points}"><input class="cnivdesc" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" value="${esc(nv.descripteur)}" placeholder="Descripteur du niveau"><button class="iconbtn cniv-del" data-pi="${pi}" data-ci="${ci}" data-ni="${ni}" title="Retirer ce niveau">✕</button></div>`).join('')}
             <button class="btn ghost small cniv-add" data-pi="${pi}" data-ci="${ci}">+ niveau</button>
@@ -899,6 +921,7 @@ function renderGrilleEditor(d) {
   q('.cint').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].intitule = inp.value; saveDB(); }));
   q('.cattx').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].attendus = inp.value; saveDB(); }));
   q('.ccompx').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].competence = inp.value; saveDB(); }));
+  q('.creglex').forEach(inp => inp.addEventListener('input', () => { g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].regle = inp.value; saveDB(); }));
   q('.cpts:not([readonly])').forEach(inp => inp.addEventListener('input', () => {
     g.parties[+inp.dataset.pi].criteres[+inp.dataset.ci].points = parseFloat(inp.value) || 0; saveDB();
     updateGrilleNote(d);
@@ -1004,12 +1027,18 @@ async function corrigerCopie(q) {
   const niveau = (d.niveau ?? '') !== '' ? d.niveau : (cls.niveau || '');
   const grilleTxt = d.grille.parties.map(p => `## ${p.titre}\n` + p.criteres.map(c => {
     let s = `- [${c.id}] ${c.intitule} (max ${fmtPts(critMax(c))} pts) — attendus : ${c.attendus} — compétence : ${c.competence}`;
+    if ((c.regle || '').trim()) s += `\n    RÈGLE DE NOTATION (à appliquer À LA LETTRE) : ${c.regle.trim()}`;
     if (c.niveaux && c.niveaux.length) s += `\n    Niveaux : ` + c.niveaux.map(nv => `${fmtPts(nv.points)}="${nv.descripteur}"`).join(' ; ');
     return s;
   }).join('\n')).join('\n');
-  const content = [{ type: 'text', text: `Corrige la copie de « ${q.eleveNom} » pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés) :\n${grilleTxt}` }];
+  // ── Préfixe STABLE (identique pour toutes les copies de ce devoir) : mis en cache API pour économiser ──
+  const content = [{ type: 'text', text: `Corrige la copie pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés ; si un critère porte une RÈGLE DE NOTATION, applique EXACTEMENT ce barème de points partiels, sans le réinterpréter) :\n${grilleTxt}` }];
   if (d.sujetPdf) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
   else if (d.sujet) content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
+  // marque la fin du préfixe stable pour le cache API (tools + system + grille + sujet)
+  content[content.length - 1] = { ...content[content.length - 1], cache_control: { type: 'ephemeral' } };
+  // ── Partie VARIABLE : identité de l'élève + sa copie (jamais mise en cache) ──
+  content.push({ type: 'text', text: `\nCette copie est celle de l'élève « ${q.eleveNom} ». Corrige-la ci-dessous.` });
   content.push({ type: 'text', text: q.kind === 'texte' ? '\nCOPIE DE L\'ÉLÈVE (texte) :\n' + q.texte : '\nCOPIE DE L\'ÉLÈVE (documents joints, dans l\'ordre) :' });
   if (q.kind === 'fichiers') for (const f of q.files) {
     if (f.isDoc) content.push({ type: 'text', text: `--- ${f.name} ---\n${f.text}` });
@@ -1021,8 +1050,9 @@ async function corrigerCopie(q) {
 
 MÉTHODE DE NOTATION REPRODUCTIBLE (pour qu'une même copie reçoive toujours la même note) :
 - Traite les critères dans l'ordre, indépendamment les uns des autres. Ne compense pas un critère par un autre.
+- PRIORITÉ ABSOLUE — Pour un critère qui porte une « RÈGLE DE NOTATION » : applique cette règle À LA LETTRE, exactement comme le professeur l'a écrite (points partiels, décotes du type « −0,25 par exemple manquant », seuils, conditions). Ne la réinterprète pas, ne la simplifies pas, ne demande jamais de recalibrer : le professeur a déjà tout calibré, ton rôle est de constater sur la copie ce qui est présent/absent et d'en déduire les points selon la règle. Dans le commentaire, explique brièvement le décompte (ce qui a fait perdre les points).
 - Pour un critère À NIVEAUX : identifie le descripteur qui correspond le mieux à la copie, puis attribue EXACTEMENT les points de ce niveau. N'utilise un demi-niveau que si la copie est réellement à cheval entre deux descripteurs voisins. Dans le commentaire, nomme le niveau retenu.
-- Pour un critère SANS niveaux : barème binaire ou proportionnel à ce qui est explicitement attendu (attendus). Ne donne un point que si l'élément attendu est présent. Pas de point « au feeling », pas de bonus hors barème.
+- Pour un critère SANS règle ni niveaux : barème binaire ou proportionnel à ce qui est explicitement attendu (attendus). Ne donne un point que si l'élément attendu est présent. Pas de point « au feeling », pas de bonus hors barème.
 - N'attribue jamais plus que le maximum du critère. En cas d'hésitation entre deux valeurs, choisis la plus basse et justifie-la : sois strict et constant plutôt que généreux et variable.
 
 Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs).
