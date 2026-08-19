@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel Claude Code — de zéro à un site en ligne</title>
+<meta name="description" content="Tutoriel pas à pas de Claude Code, à partir d'un cas réel : un site de cours de SVT publié sur GitHub Pages.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:oklch(0.13 0.004 240);
+  --matte:oklch(0.16 0.004 240);
+  --card:oklch(0.185 0.004 240);
+  --lime:oklch(0.92 0.23 124);
+  --txt:#fff;
+  --txt-soft:rgba(255,255,255,.68);
+  --txt-dim:rgba(255,255,255,.45);
+  --line:rgba(255,255,255,.10);
+  --ease:cubic-bezier(.22,1,.36,1);
+  --display:'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--txt);
+  font-family:'Poppins', system-ui, sans-serif; -webkit-font-smoothing:antialiased;
+  line-height:1.65; overflow-x:hidden;
+}
+::selection{background:var(--lime); color:#0b0b0b}
+a{color:var(--lime)}
+.wrap{max-width:1180px; margin:0 auto; padding:0 24px}
+
+/* ---------- En-tête ---------- */
+.hero{padding:72px 0 46px; border-bottom:1px solid var(--line); background:
+  radial-gradient(900px 380px at 15% -10%, rgba(163,230,53,.13), transparent 60%), var(--matte);}
+.kicker{display:inline-block; font-size:12px; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--lime); border:1px solid rgba(163,230,53,.35); border-radius:999px; padding:6px 14px}
+h1{font-family:var(--display); font-size:clamp(30px,5.2vw,54px); line-height:1.05; letter-spacing:-.02em; margin:20px 0 14px}
+.lead{color:var(--txt-soft); max-width:70ch; font-size:17px}
+.meta{display:flex; flex-wrap:wrap; gap:10px; margin-top:26px}
+.meta span{font-size:13px; color:var(--txt-soft); background:rgba(255,255,255,.05);
+  border:1px solid var(--line); border-radius:999px; padding:7px 14px}
+
+/* ---------- Mise en page ---------- */
+.layout{display:grid; grid-template-columns:1fr; gap:40px; padding:44px 0 90px}
+@media(min-width:1000px){.layout{grid-template-columns:250px 1fr; gap:56px}}
+nav.toc{align-self:start; font-size:14px}
+@media(min-width:1000px){nav.toc{position:sticky; top:24px; max-height:calc(100vh - 48px); overflow:auto}}
+nav.toc b{display:block; font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-dim); margin-bottom:12px}
+nav.toc a{display:block; text-decoration:none; color:var(--txt-soft); padding:7px 12px; border-left:2px solid var(--line); transition:.25s}
+nav.toc a:hover{color:#fff; border-left-color:var(--lime); background:rgba(255,255,255,.04)}
+
+section{scroll-margin-top:24px; margin-bottom:62px}
+h2{font-family:var(--display); font-size:clamp(22px,3vw,30px); letter-spacing:-.01em; margin:0 0 6px; display:flex; gap:12px; align-items:baseline}
+h2 .num{color:var(--lime); font-size:15px; font-weight:700}
+h3{font-size:17px; margin:30px 0 8px}
+p{color:var(--txt-soft); max-width:78ch}
+ul,ol{color:var(--txt-soft); max-width:78ch; padding-left:22px}
+li{margin:6px 0}
+strong{color:#fff; font-weight:600}
+.sub{color:var(--txt-dim); font-size:14px; margin:0 0 18px}
+
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.9em;
+  background:rgba(255,255,255,.08); border:1px solid var(--line); border-radius:6px; padding:2px 6px; color:#fff}
+pre{background:#0c0f12; border:1px solid var(--line); border-radius:14px; padding:18px 20px;
+  overflow-x:auto; font-size:13.5px; line-height:1.6}
+pre code{background:none; border:none; padding:0; color:#d7e8c4}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px 24px; margin:18px 0}
+.card h4{margin:0 0 8px; font-size:15px; color:#fff}
+.grid{display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); margin:18px 0}
+.tip{border-left:3px solid var(--lime)}
+.warn{border-left:3px solid #f0a93b}
+.tip h4::before{content:"✓ "; color:var(--lime)}
+.warn h4::before{content:"⚠ "; color:#f0a93b}
+
+table{width:100%; border-collapse:collapse; margin:18px 0; font-size:14.5px}
+th,td{text-align:left; padding:11px 12px; border-bottom:1px solid var(--line); color:var(--txt-soft); vertical-align:top}
+th{color:#fff; font-weight:600; font-size:13px; letter-spacing:.04em; text-transform:uppercase}
+td code{white-space:nowrap}
+
+.steps{list-style:none; padding:0; counter-reset:s}
+.steps li{counter-increment:s; position:relative; padding-left:46px; margin:16px 0}
+.steps li::before{content:counter(s); position:absolute; left:0; top:0; width:30px; height:30px;
+  border-radius:50%; background:rgba(163,230,53,.14); color:var(--lime); border:1px solid rgba(163,230,53,.4);
+  display:grid; place-items:center; font-size:13px; font-weight:700}
+
+footer{border-top:1px solid var(--line); padding:34px 0 60px; color:var(--txt-dim); font-size:14px}
+.badge{display:inline-block; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--lime); border:1px solid rgba(163,230,53,.32); border-radius:999px; padding:3px 10px; margin-left:8px; vertical-align:middle}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="kicker">Formation interne · Claude Code</span>
+    <h1>Claude Code, de la première phrase<br>au site publié en ligne</h1>
+    <p class="lead">Ce tutoriel reprend, dans l'ordre, tout ce qui a servi à construire et publier
+      <a href="https://reynesmanon11-maker.github.io">reynesmanon11-maker.github.io</a> :
+      un site de cours de SVT, ses activités interactives, ses chatbots et son outil de correction de copies.
+      Chaque fonctionnalité est expliquée avec l'exemple réel qui l'a fait apparaître.</p>
+    <div class="meta">
+      <span>Public : débutant complet</span>
+      <span>Durée de l'atelier : ~1 h 30</span>
+      <span>Aucune installation obligatoire</span>
+      <span>Exemples 100 % tirés du dépôt</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap layout">
+
+  <nav class="toc">
+    <b>Sommaire</b>
+    <a href="#c1">1 · Ce qu'est Claude Code</a>
+    <a href="#c2">2 · Où l'utiliser</a>
+    <a href="#c3">3 · Première session</a>
+    <a href="#c4">4 · Bien formuler sa demande</a>
+    <a href="#c5">5 · Git : branches et commits</a>
+    <a href="#c6">6 · Pull request et fusion</a>
+    <a href="#c7">7 · Publier avec GitHub Pages</a>
+    <a href="#c8">8 · Itérer : v1 → v9</a>
+    <a href="#c9">9 · Les Skills</a>
+    <a href="#c10">10 · Les serveurs MCP</a>
+    <a href="#c11">11 · Clés API et secrets</a>
+    <a href="#c12">12 · Appeler l'API Claude</a>
+    <a href="#c13">13 · Commandes utiles</a>
+    <a href="#c14">14 · Modes de travail</a>
+    <a href="#c15">15 · Ce qui a été construit</a>
+    <a href="#c16">16 · Déroulé de l'atelier</a>
+    <a href="#c17">17 · Antisèche</a>
+  </nav>
+
+  <main>
+
+  <section id="c1">
+    <h2><span class="num">01</span> Ce qu'est Claude Code</h2>
+    <p class="sub">Le point de départ, à dire en une phrase.</p>
+    <p><strong>Claude Code, c'est Claude qui a accès à un dossier de fichiers.</strong> La différence avec le
+      chat classique tient en cela : au lieu de vous répondre du texte que vous copiez-collez ensuite,
+      Claude ouvre les fichiers, les modifie, en crée de nouveaux, lance des commandes, enregistre le travail
+      dans l'historique du projet (Git) et le met en ligne.</p>
+    <div class="grid">
+      <div class="card">
+        <h4>Le chat classique</h4>
+        <p>Vous demandez du code → Claude affiche du code → vous le copiez dans votre éditeur →
+          vous l'enregistrez → vous l'envoyez sur GitHub. Cinq étapes manuelles.</p>
+      </div>
+      <div class="card tip">
+        <h4>Claude Code</h4>
+        <p>Vous demandez une page → Claude crée le fichier, l'écrit, le teste, l'enregistre et le publie.
+          Vous relisez le résultat en ligne. Une étape.</p>
+      </div>
+    </div>
+    <p>Concrètement, dans ce projet, une phrase comme « <em>ajoute une activité interactive sur le cycle des roches
+      pour les 2ndes</em> » a produit le fichier <code>cycle_des_roches_2nde.html</code>, son enregistrement dans
+      l'historique et sa mise en ligne — sans qu'aucune ligne de code ne soit copiée à la main.</p>
+  </section>
+
+  <section id="c2">
+    <h2><span class="num">02</span> Où l'utiliser : quatre portes d'entrée</h2>
+    <p class="sub">La même chose, quatre façons d'y accéder. On choisit selon le confort, pas selon la puissance.</p>
+    <table>
+      <tr><th>Endroit</th><th>Pour qui</th><th>À retenir</th></tr>
+      <tr><td><strong>claude.ai/code</strong> (navigateur)</td><td>Débutant, tablette, téléphone</td>
+        <td>Rien à installer. Le projet est copié dans une machine distante temporaire, Claude y travaille et renvoie le résultat sur GitHub. C'est le mode utilisé ici.</td></tr>
+      <tr><td><strong>Application Mac / Windows</strong></td><td>Usage quotidien</td><td>Même outil, dans une fenêtre dédiée, sur vos fichiers locaux.</td></tr>
+      <tr><td><strong>Terminal</strong> (commande <code>claude</code>)</td><td>Profil technique</td><td>Le mode historique, le plus rapide quand on est déjà à l'aise.</td></tr>
+      <tr><td><strong>Extension VS Code / JetBrains</strong></td><td>Qui code déjà</td><td>Claude vit à côté de l'éditeur et voit le fichier ouvert.</td></tr>
+    </table>
+    <div class="card warn">
+      <h4>Particularité du mode navigateur</h4>
+      <p>La machine distante est <strong>éphémère</strong> : elle disparaît après la session. Tout ce qui n'a pas été
+        enregistré et envoyé sur GitHub est perdu. D'où l'importance de la partie Git (§ 5) : ce n'est pas une formalité
+        de développeur, c'est le seul endroit où le travail survit.</p>
+    </div>
+  </section>
+
+  <section id="c3">
+    <h2><span class="num">03</span> Sa première session, pas à pas</h2>
+    <p class="sub">À faire en direct devant la personne formée.</p>
+    <ol class="steps">
+      <li>Aller sur <strong>claude.ai/code</strong> et se connecter.</li>
+      <li>Choisir le <strong>dépôt GitHub</strong> sur lequel travailler (ici <code>reynesmanon11-maker.github.io</code>).
+        Un dépôt = un dossier de projet hébergé chez GitHub.</li>
+      <li>Choisir l'<strong>environnement</strong> : c'est la machine distante et sa configuration
+        (variables, accès réseau, script de démarrage). Le réglage par défaut suffit pour du HTML.</li>
+      <li>Écrire sa demande en français, normalement, comme à un collègue.</li>
+      <li>Regarder Claude travailler : il annonce ce qu'il lit, ce qu'il modifie, ce qu'il lance.
+        On peut l'interrompre à tout moment pour corriger la trajectoire.</li>
+      <li>Relire le résultat, demander les ajustements, puis lui demander d'enregistrer et de publier.</li>
+    </ol>
+    <div class="card tip">
+      <h4>Le réflexe à installer dès la première minute</h4>
+      <p>On <strong>ne valide pas au premier jet</strong>. On regarde la page, on dit ce qui ne va pas
+        (« le texte du bouton est illisible », « il manque la correction de l'exercice 3 »), et on relance.
+        Trois allers-retours valent mieux qu'une demande initiale de vingt lignes.</p>
+    </div>
+  </section>
+
+  <section id="c4">
+    <h2><span class="num">04</span> Bien formuler sa demande</h2>
+    <p class="sub">C'est 80 % du résultat. Rien de technique là-dedans.</p>
+    <p>Une bonne demande répond à quatre questions : <strong>quoi</strong>, <strong>pour qui</strong>,
+      <strong>où</strong>, <strong>avec quelles contraintes</strong>.</p>
+    <div class="grid">
+      <div class="card warn">
+        <h4>Demande trop vague</h4>
+        <p>« Fais-moi une page sur les roches. »</p>
+        <p style="color:var(--txt-dim)">Claude devine le niveau, le format, le style — et se trompe une fois sur deux.</p>
+      </div>
+      <div class="card tip">
+        <h4>Demande exploitable</h4>
+        <p>« Crée une page HTML autonome pour des élèves de 2nde sur le cycle des roches : un schéma cliquable,
+          trois définitions, un quiz de 5 questions avec correction immédiate. Même charte graphique que
+          <code>index.html</code>. Fichier <code>cycle_des_roches_2nde.html</code>. »</p>
+      </div>
+    </div>
+    <h3>Trois formulations qui font gagner du temps</h3>
+    <ul>
+      <li><strong>« Comme dans tel fichier »</strong> — Claude lit le fichier cité et en reprend la charte, la structure, le ton.</li>
+      <li><strong>« Explique-moi d'abord ce que tu comptes faire, ne code pas encore »</strong> — utile pour les gros chantiers ; on valide le plan avant l'exécution.</li>
+      <li><strong>« Ne touche à rien d'autre »</strong> — délimite le périmètre quand on veut une retouche chirurgicale.</li>
+    </ul>
+    <div class="card">
+      <h4>Fichiers joints</h4>
+      <p>On peut déposer une photo, un PDF, une capture d'écran. Dans ce projet, une photo de restaurant
+        (<code>le-vieux-logis-restaurant.jpg</code>) et des visuels (<code>terre.png</code>, <code>terre.jpg</code>)
+        ont servi de matière première à des pages. Une capture d'écran d'un affichage raté est souvent
+        la façon la plus rapide de signaler un bug.</p>
+    </div>
+  </section>
+
+  <section id="c5">
+    <h2><span class="num">05</span> Git : branches et commits, expliqués sans jargon</h2>
+    <p class="sub">La notion la plus rentable de tout le tutoriel.</p>
+    <p>Git est le carnet de bord du projet. Trois mots suffisent :</p>
+    <table>
+      <tr><th>Mot</th><th>Traduction</th><th>Dans la vraie vie</th></tr>
+      <tr><td><strong>commit</strong></td><td>Un point de sauvegarde daté et commenté</td>
+        <td><code>Correction IA v7 : grille manuelle, remédiation ciblée…</code></td></tr>
+      <tr><td><strong>branche</strong></td><td>Un brouillon parallèle, isolé de la version en ligne</td>
+        <td><code>claude/claude-code-tutorial-879tki</code></td></tr>
+      <tr><td><strong>push</strong></td><td>Envoyer les sauvegardes sur GitHub</td>
+        <td>Le moment où le travail devient durable</td></tr>
+    </table>
+    <p>Claude Code travaille systématiquement sur une <strong>branche dédiée</strong>, jamais directement sur
+      <code>main</code> (la version publiée). C'est ce qui rend l'outil sans danger : tant que la branche n'est pas
+      fusionnée, le site en ligne n'a pas bougé d'un pixel. Les noms de branche commencent par <code>claude/</code>,
+      suivis du sujet et d'un identifiant aléatoire.</p>
+    <pre><code>$ git log --oneline
+6bc4bd8  V9 : barèmes ultra-détaillés, cache API, bouton Valider ma grille
+589aa7a  Merge pull request #1 from .../claude/genially-autonomous-creation-sjdu7d
+800383c  Ajout d'une activité interactive : le cycle des roches (2nde SVT)
+96f122b  Correction IA v8 : synchronisation cloud hybride optionnelle</code></pre>
+    <p>Cet historique se lit comme un journal de bord : chaque ligne dit ce qui a changé et pourquoi.
+      On peut revenir à n'importe lequel de ces points — <strong>rien n'est jamais définitivement cassé</strong>.
+      C'est l'argument à donner en priorité à quelqu'un qui a peur de « tout casser ».</p>
+    <div class="card tip">
+      <h4>Phrases à dire à Claude</h4>
+      <ul>
+        <li>« Enregistre le travail avec un message clair et pousse la branche. »</li>
+        <li>« Montre-moi ce que tu as changé avant d'enregistrer. »</li>
+        <li>« Reviens à la version d'avant, cette modification ne me convient pas. »</li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="c6">
+    <h2><span class="num">06</span> Pull request : relire avant de publier</h2>
+    <p class="sub">L'étape qui transforme un brouillon en version officielle.</p>
+    <p>Une <strong>pull request</strong> (PR) est une demande de fusion : « voici ce que ma branche change par rapport
+      au site en ligne, est-ce qu'on l'accepte ? ». GitHub affiche alors le <strong>diff</strong> : les lignes ajoutées
+      en vert, supprimées en rouge.</p>
+    <ol class="steps">
+      <li>Claude pousse la branche puis ouvre la PR — <em>uniquement si on le lui demande</em>.</li>
+      <li>On relit le diff sur GitHub, ou plus simplement on regarde la page rendue.</li>
+      <li>On demande des corrections : Claude ajoute des commits sur la même branche, la PR se met à jour toute seule.</li>
+      <li>On clique sur <strong>Merge</strong> : les changements rejoignent <code>main</code>, le site se met à jour.</li>
+    </ol>
+    <p>C'est ce qui s'est passé avec la <strong>PR #1</strong> de ce dépôt : l'activité sur le cycle des roches a été
+      préparée sur une branche, relue, puis fusionnée dans <code>main</code>.</p>
+    <div class="card">
+      <h4>Bonus : Claude peut surveiller sa propre PR</h4>
+      <p>On peut lui demander de <strong>suivre une pull request</strong> : il reçoit les commentaires de relecture et
+        les résultats des tests automatiques, et corrige tout seul jusqu'à ce que tout soit au vert.</p>
+    </div>
+  </section>
+
+  <section id="c7">
+    <h2><span class="num">07</span> Publier avec GitHub Pages</h2>
+    <p class="sub">Pourquoi ce dépôt porte un nom aussi bizarre.</p>
+    <p>Un dépôt nommé <code>identifiant.github.io</code> est automatiquement publié par GitHub à l'adresse
+      <code>https://identifiant.github.io</code>. Hébergement gratuit, HTTPS inclus, aucune configuration.</p>
+    <table>
+      <tr><th>Fichier dans le dépôt</th><th>Adresse publique</th></tr>
+      <tr><td><code>index.html</code></td><td>reynesmanon11-maker.github.io</td></tr>
+      <tr><td><code>cycle_des_roches_2nde.html</code></td><td>…github.io/cycle_des_roches_2nde.html</td></tr>
+      <tr><td><code>correction_copies.html</code></td><td>…github.io/correction_copies.html</td></tr>
+    </table>
+    <p>D'où le choix technique fait sur tout ce projet : <strong>une activité = un seul fichier HTML autonome</strong>,
+      qui embarque son style et ses scripts. Pas de serveur, pas d'installation, pas de dépendance qui casse dans six mois.
+      Le lien se colle dans l'ENT, il fonctionne sur le téléphone des élèves.</p>
+    <div class="card tip">
+      <h4>Délai de mise en ligne</h4>
+      <p>Comptez une à deux minutes entre la fusion et l'affichage réel. Si la page semble inchangée,
+        c'est presque toujours le cache du navigateur : <code>Ctrl</code>+<code>F5</code>.</p>
+    </div>
+  </section>
+
+  <section id="c8">
+    <h2><span class="num">08</span> Itérer : l'histoire de l'outil de correction</h2>
+    <p class="sub">Le meilleur exemple pédagogique du dépôt — neuf versions en quatre jours.</p>
+    <p>L'outil <code>correction_copies.html</code> n'a pas été obtenu d'un coup. Il s'est construit par ajustements
+      successifs, chacun venant d'un usage réel :</p>
+    <table>
+      <tr><th>Version</th><th>Problème constaté</th><th>Réponse</th></tr>
+      <tr><td>v1</td><td>—</td><td>Première ébauche : coller une copie, obtenir une note</td></tr>
+      <tr><td>v3</td><td>Notes trop binaires</td><td>Grilles à niveaux, observations, copie imprimable</td></tr>
+      <tr><td>v4</td><td>Interface confuse</td><td>Refonte claire, trois zones, export PDF</td></tr>
+      <tr><td>v5</td><td>Deux corrections de la même copie donnaient deux notes</td><td>Notation reproductible, total du barème préservé</td></tr>
+      <tr><td>v6</td><td>Même exigence en 2nde et en Terminale</td><td>Exigence adaptée au niveau, PDF fiabilisé</td></tr>
+      <tr><td>v7</td><td>Surnotation systématique</td><td>Calibrage anti-surnotation, remédiation ciblée par type d'erreur</td></tr>
+      <tr><td>v8</td><td>Travail perdu en changeant d'ordinateur</td><td>Synchronisation cloud optionnelle</td></tr>
+      <tr><td>v9</td><td>Barème appliqué approximativement, coût des appels</td><td>Barèmes ultra-détaillés, cache des appels API, bouton « Valider ma grille »</td></tr>
+    </table>
+    <div class="card tip">
+      <h4>La leçon à transmettre</h4>
+      <p>On ne rédige pas le cahier des charges parfait au départ. On sort une v1 utilisable, on s'en sert
+        pour de vrai, et <strong>chaque agacement devient la demande suivante</strong>. Chaque version est un commit :
+        si la v7 était moins bonne que la v6, on revenait en arrière en une phrase.</p>
+    </div>
+  </section>
+
+  <section id="c9">
+    <h2><span class="num">09</span> Les Skills : apprendre un savoir-faire à Claude</h2>
+    <p class="sub">La fonctionnalité la plus mal connue, et la plus utile sur la durée.</p>
+    <p>Une <strong>Skill</strong> est un dossier de consignes que Claude charge automatiquement quand le sujet s'y prête.
+      C'est la mémoire méthodologique du projet : au lieu de réexpliquer vos exigences à chaque session,
+      vous les écrivez une fois.</p>
+    <pre><code>.claude/
+└── skills/
+    ├── design/
+    │   └── SKILL.md          ← les consignes, en markdown
+    ├── ui-ux-pro-max/
+    │   ├── SKILL.md
+    │   └── references/       ← documents consultés au besoin
+    └── slides/
+        └── SKILL.md</code></pre>
+    <p>Chaque <code>SKILL.md</code> commence par un en-tête qui dit son nom et — surtout — <strong>quand</strong> l'utiliser :</p>
+    <pre><code>---
+name: slides
+description: Créer des présentations HTML avec Chart.js, des tokens de
+  design, des mises en page responsives. Utiliser quand l'utilisateur
+  demande un diaporama ou une présentation.
+---
+
+# Consignes
+1. Toujours partir des tokens de couleur du projet…</code></pre>
+    <p>Les skills installées dans ce dépôt couvrent toutes le même besoin — obtenir des pages qui ne ressemblent pas
+      à du HTML brut :</p>
+    <div class="grid">
+      <div class="card"><h4>ui-ux-pro-max</h4><p>Base de styles, palettes et associations de polices. C'est elle qui évite le « site des années 2000 ».</p></div>
+      <div class="card"><h4>design / design-system</h4><p>Identité visuelle, jetons de couleur et d'espacement, cohérence d'une page à l'autre.</p></div>
+      <div class="card"><h4>slides</h4><p>Diaporamas HTML avec graphiques, utilisables en vidéoprojection.</p></div>
+      <div class="card"><h4>banner-design</h4><p>Bandeaux et visuels d'en-tête aux bons formats.</p></div>
+      <div class="card"><h4>brand</h4><p>Ton, vocabulaire, règles de charte à respecter partout.</p></div>
+      <div class="card"><h4>ui-styling</h4><p>Composants d'interface accessibles : boutons, formulaires, tableaux.</p></div>
+    </div>
+    <h3>Comment on s'en sert</h3>
+    <ul>
+      <li><strong>Automatiquement</strong> : Claude lit les descriptions et charge celle qui correspond à la demande.</li>
+      <li><strong>À la main</strong> : en tapant <code>/nom-de-la-skill</code> dans la conversation.</li>
+      <li><strong>En créer une</strong> : <code>/skill-creator</code>, puis décrire la méthode à formaliser.
+        Excellente idée pour un usage enseignant : une skill « fiche de révision maison » qui impose votre
+        structure, votre vocabulaire et votre mise en page à chaque nouvelle fiche.</li>
+    </ul>
+    <div class="card warn">
+      <h4>Piège rencontré sur ce dépôt</h4>
+      <p>Un commit s'appelle <code>Fix skill folder structure</code> : les skills avaient été déposées au mauvais endroit
+        et n'étaient donc jamais chargées. La structure exacte est impérative :
+        <code>.claude/skills/&lt;nom&gt;/SKILL.md</code>, avec un en-tête <code>name</code> + <code>description</code>.
+        Une skill mal rangée ne produit aucune erreur — elle est juste ignorée en silence.</p>
+    </div>
+  </section>
+
+  <section id="c10">
+    <h2><span class="num">10</span> Les serveurs MCP : brancher des outils extérieurs</h2>
+    <p class="sub">Ce qui fait passer Claude du « dossier de fichiers » au reste du monde.</p>
+    <p><strong>MCP</strong> (Model Context Protocol) est la prise standard qui permet à Claude de dialoguer avec un
+      service extérieur. Une fois branché, le service devient un ensemble d'actions que Claude peut déclencher lui-même.</p>
+    <p>Le branchement se déclare dans le fichier <code>.mcp.json</code>, à la racine du projet :</p>
+    <pre><code>{
+  "mcpServers": {
+    "21st": {
+      "url": "https://21st.dev/api/mcp",
+      "headers": { "x-api-key": "${TWENTY_FIRST_API_KEY}" }
+    }
+  }
+}</code></pre>
+    <p>Ici, le serveur <strong>21st.dev</strong> donne accès à une bibliothèque de composants d'interface prêts à l'emploi.
+      D'autres connecteurs s'activent côté compte, sans fichier à écrire :</p>
+    <table>
+      <tr><th>Connecteur</th><th>Ce que Claude peut alors faire</th></tr>
+      <tr><td><strong>GitHub</strong></td><td>Lire et créer des pull requests, commenter, consulter les tests automatiques</td></tr>
+      <tr><td><strong>Gmail</strong></td><td>Chercher un fil, préparer un brouillon de réponse</td></tr>
+      <tr><td><strong>Canva</strong></td><td>Créer ou exporter un visuel à partir d'un modèle</td></tr>
+    </table>
+    <div class="card warn">
+      <h4>Deux règles à énoncer</h4>
+      <p>1. Un connecteur donne un accès réel à un compte réel : on n'active que ce dont on a besoin.<br>
+         2. Le jeton d'accès ne s'écrit jamais en clair dans <code>.mcp.json</code> — d'où la notation
+         <code>${TWENTY_FIRST_API_KEY}</code>, expliquée juste en dessous.</p>
+    </div>
+  </section>
+
+  <section id="c11">
+    <h2><span class="num">11</span> Clés API et secrets : la partie à ne pas rater</h2>
+    <p class="sub">Le seul chapitre où une erreur coûte de l'argent.</p>
+    <p>Une clé API est un mot de passe qui facture. Publiée sur GitHub, elle est repérée par des robots en quelques
+      minutes et utilisée à vos frais. Le dispositif mis en place ici tient en trois fichiers :</p>
+    <table>
+      <tr><th>Fichier</th><th>Contenu</th><th>Publié ?</th></tr>
+      <tr><td><code>.env.example</code></td><td><code>TWENTY_FIRST_API_KEY=</code> — le <em>modèle</em>, sans valeur</td><td>Oui, c'est une documentation</td></tr>
+      <tr><td><code>.env</code></td><td>La vraie clé</td><td><strong>Non, jamais</strong></td></tr>
+      <tr><td><code>.gitignore</code></td><td>La ligne <code>.env</code></td><td>Oui — c'est elle qui interdit l'envoi du précédent</td></tr>
+    </table>
+    <p><code>.gitignore</code> est la liste des fichiers que Git doit ignorer. Tant que <code>.env</code> y figure,
+      il est <strong>impossible</strong> de le publier par mégarde.</p>
+    <div class="card tip">
+      <h4>La solution retenue pour les pages publiques</h4>
+      <p>Les outils du site qui appellent une IA (<code>correction_copies.html</code>, les chatbots) ne contiennent
+        <strong>aucune clé</strong>. Au premier lancement, la page affiche un encadré :
+        « Collez votre clé API Anthropic pour démarrer ». La clé reste dans le navigateur de la personne qui l'utilise.
+        Chacun paie sa consommation, et la page reste publiable sans risque.</p>
+    </div>
+    <div class="card warn">
+      <h4>Si une clé a fuité</h4>
+      <p>La supprimer du code ne suffit pas : elle reste dans l'historique Git. Il faut la
+        <strong>révoquer</strong> sur le site du fournisseur et en générer une nouvelle. Toujours dans cet ordre.</p>
+    </div>
+  </section>
+
+  <section id="c12">
+    <h2><span class="num">12</span> Faire appeler l'IA par vos propres pages</h2>
+    <p class="sub">La différence entre « Claude a écrit ma page » et « ma page utilise Claude ».</p>
+    <p>Deux choses distinctes, souvent confondues en formation :</p>
+    <div class="grid">
+      <div class="card"><h4>Claude Code</h4><p>L'assistant qui <em>fabrique</em> vos fichiers. Il n'est pas présent dans la page finale.</p></div>
+      <div class="card"><h4>L'API Claude</h4><p>Un service que <em>votre page</em> appelle pendant que l'élève s'en sert. C'est ce qui rend le chatbot capable de répondre.</p></div>
+    </div>
+    <p>Dans ce dépôt, trois pages appellent une IA en direct : <code>correction_copies.html</code>,
+      <code>rudy_ricciotti_chatbot.html</code> et <code>chatbot_svt_TERM_test.html</code>. Le choix du modèle
+      n'est pas anodin, et l'outil de correction laisse le correcteur décider :</p>
+    <table>
+      <tr><th>Modèle</th><th>Profil</th><th>Usage typique dans le projet</th></tr>
+      <tr><td><code>claude-haiku-4-5</code></td><td>Rapide et économique</td><td>Chatbot d'élève : beaucoup d'échanges courts</td></tr>
+      <tr><td><code>claude-sonnet-5</code></td><td>Équilibré</td><td>Correction courante d'un paquet de copies</td></tr>
+      <tr><td><code>claude-opus-5</code></td><td>Le plus fin</td><td>Copies délicates, barèmes très détaillés</td></tr>
+    </table>
+    <p>Deux optimisations visibles dans la v9 méritent d'être citées, parce qu'elles s'appliquent à n'importe quel projet :
+      le <strong>cache</strong> (ne pas repayer l'analyse d'un énoncé identique d'une copie à l'autre) et le
+      <strong>choix du modèle selon la tâche</strong> (inutile de sortir le modèle le plus cher pour reformuler une consigne).</p>
+    <div class="card tip">
+      <h4>À dire pendant l'atelier</h4>
+      <p>Vous n'avez pas besoin de comprendre le code de ces appels. Vous avez besoin de savoir qu'ils
+        <strong>coûtent</strong> quelques centimes par usage, et que Claude Code sait vous chiffrer et optimiser cela
+        si vous le lui demandez.</p>
+    </div>
+  </section>
+
+  <section id="c13">
+    <h2><span class="num">13</span> Les commandes utiles</h2>
+    <p class="sub">Tout commence par <code>/</code>. Il n'y en a que six à connaître pour démarrer.</p>
+    <table>
+      <tr><th>Commande</th><th>Effet</th><th>Quand s'en servir</th></tr>
+      <tr><td><code>/init</code></td><td>Analyse le projet et rédige un <code>CLAUDE.md</code> décrivant ses conventions</td><td>Une fois, au tout début d'un projet</td></tr>
+      <tr><td><code>/code-review</code></td><td>Relit les modifications en cours et signale bugs et maladresses</td><td>Avant de fusionner une pull request</td></tr>
+      <tr><td><code>/security-review</code></td><td>Cherche les failles : clé exposée, donnée personnelle, faille d'injection</td><td>Avant de publier une page qui manipule des données d'élèves</td></tr>
+      <tr><td><code>/config</code></td><td>Réglages : modèle, thème, permissions</td><td>Au besoin</td></tr>
+      <tr><td><code>/fast</code></td><td>Réponses plus rapides, même modèle</td><td>Retouches simples et répétitives</td></tr>
+      <tr><td><code>/loop</code></td><td>Relance une tâche à intervalle régulier</td><td>Surveiller un déploiement ou une PR</td></tr>
+    </table>
+    <p>À cela s'ajoute le fichier <strong><code>CLAUDE.md</code></strong> : posé à la racine, il est lu au début de chaque
+      session. C'est l'endroit où consigner les règles maison — « toutes les pages sont autonomes en un seul fichier »,
+      « le vouvoiement pour les élèves », « palette et polices définies dans <code>index.html</code> ».
+      Cela évite de répéter les mêmes consignes à chaque conversation.</p>
+  </section>
+
+  <section id="c14">
+    <h2><span class="num">14</span> Trois modes de travail à connaître</h2>
+    <p class="sub">Utiles quand la demande dépasse la simple retouche.</p>
+    <div class="grid">
+      <div class="card">
+        <h4>Le mode plan</h4>
+        <p>Claude analyse et propose une démarche <strong>sans modifier un seul fichier</strong>. On valide, on amende,
+          et l'exécution ne démarre qu'ensuite. Le bon réflexe pour un gros chantier — la refonte d'un outil, par exemple.</p>
+      </div>
+      <div class="card">
+        <h4>Les agents</h4>
+        <p>Pour une tâche large, Claude peut déléguer à des assistants spécialisés (exploration du code, revue,
+          planification) qui travaillent en parallèle et lui rendent une synthèse.</p>
+      </div>
+      <div class="card">
+        <h4>Les tâches planifiées</h4>
+        <p>On peut programmer un déclenchement automatique : « chaque lundi à 8 h, vérifie que tous les liens du site
+          répondent et corrige ceux qui sont cassés ».</p>
+      </div>
+    </div>
+    <h3>Les permissions</h3>
+    <p>Claude demande votre accord avant les actions sensibles : envoyer sur GitHub, exécuter une commande,
+      supprimer un fichier. On peut assouplir ces demandes pour des actions répétitives et sans risque
+      (relire un fichier, lancer les tests). <strong>En formation, on garde les demandes d'autorisation actives</strong> :
+      c'est justement ce qui rend visible ce que fait l'outil.</p>
+  </section>
+
+  <section id="c15">
+    <h2><span class="num">15</span> Ce qui a été construit avec tout cela</h2>
+    <p class="sub">Le catalogue réel, à montrer en fin de démonstration.</p>
+    <table>
+      <tr><th>Page</th><th>Ce que c'est</th><th>Fonctionnalités mobilisées</th></tr>
+      <tr><td><code>index.html</code></td><td>Page d'accueil du site de cours</td><td>Charte graphique, animations, skills de design</td></tr>
+      <tr><td><code>cycle_des_roches_2nde.html</code></td><td>Activité interactive de 2nde</td><td>Branche + pull request #1 + fusion</td></tr>
+      <tr><td><code>carte_geol_aude_v5.html</code></td><td>Carte géologique interactive de l'Aude</td><td>Itérations successives jusqu'à la v5</td></tr>
+      <tr><td><code>correction_copies.html</code></td><td>Correction de copies assistée par IA</td><td>9 versions, API Claude, cache, export PDF, sync cloud</td></tr>
+      <tr><td><code>rudy_ricciotti_chatbot.html</code>, <code>rudy_boost.html</code></td><td>Chatbot sur l'architecte du lycée</td><td>API Claude Haiku, clé saisie par l'utilisateur</td></tr>
+      <tr><td><code>chatbot_svt_TERM_test.html</code></td><td>Révisions de Terminale</td><td>Appel d'un autre fournisseur d'IA</td></tr>
+      <tr><td><code>defi3_photo_ferroul*.html</code></td><td>Défi photo sur les matériaux du lycée</td><td>Travail à partir d'images fournies</td></tr>
+    </table>
+  </section>
+
+  <section id="c16">
+    <h2><span class="num">16</span> Déroulé proposé pour l'atelier</h2>
+    <p class="sub">1 h 30, en construisant une vraie page — pas de diaporama.</p>
+    <table>
+      <tr><th>Temps</th><th>Séquence</th><th>Objectif</th></tr>
+      <tr><td>0–10 min</td><td>Montrer le site fini, puis ouvrir le dépôt GitHub</td><td>Relier le résultat visible aux fichiers</td></tr>
+      <tr><td>10–25 min</td><td>Première session : « crée une page de révision sur la photosynthèse pour des 2ndes, avec un quiz de 5 questions »</td><td>Vivre le cycle demande → fichier → page</td></tr>
+      <tr><td>25–40 min</td><td>Trois retouches demandées par la personne formée</td><td>Comprendre que l'itération est la méthode, pas un rattrapage</td></tr>
+      <tr><td>40–55 min</td><td>Enregistrer, pousser, ouvrir la PR, relire le diff, fusionner, voir la page en ligne</td><td>Démystifier Git ; montrer le filet de sécurité</td></tr>
+      <tr><td>55–70 min</td><td>Ouvrir un <code>SKILL.md</code>, en créer une ensemble</td><td>Passer de l'usage ponctuel à la méthode réutilisable</td></tr>
+      <tr><td>70–85 min</td><td><code>.env</code>, <code>.gitignore</code>, <code>/security-review</code></td><td>Installer les réflexes de sécurité</td></tr>
+      <tr><td>85–90 min</td><td>Choisir son premier projet perso</td><td>Repartir avec une intention concrète</td></tr>
+    </table>
+    <div class="card tip">
+      <h4>Le geste qui convainc</h4>
+      <p>Faire dicter la demande <strong>par la personne formée</strong>, sur son propre besoin de cours.
+        Une page qu'elle utilisera vraiment en classe la semaine suivante vaut tous les exemples génériques.</p>
+    </div>
+  </section>
+
+  <section id="c17">
+    <h2><span class="num">17</span> Antisèche à imprimer</h2>
+    <p class="sub">Une page, à garder à côté du clavier.</p>
+    <div class="grid">
+      <div class="card">
+        <h4>Vocabulaire</h4>
+        <ul>
+          <li><strong>Dépôt</strong> — le dossier du projet chez GitHub</li>
+          <li><strong>Commit</strong> — point de sauvegarde commenté</li>
+          <li><strong>Branche</strong> — brouillon isolé du site en ligne</li>
+          <li><strong>Push</strong> — envoyer sur GitHub</li>
+          <li><strong>Pull request</strong> — demande de fusion, relue avant publication</li>
+          <li><strong>Skill</strong> — méthode maison enseignée à Claude</li>
+          <li><strong>MCP</strong> — prise vers un service extérieur</li>
+          <li><strong>Clé API</strong> — mot de passe qui facture ; jamais dans le code</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Phrases qui marchent</h4>
+        <ul>
+          <li>« Explique-moi ton plan avant de coder. »</li>
+          <li>« Reprends la charte graphique de <code>index.html</code>. »</li>
+          <li>« Ne modifie rien d'autre que ce fichier. »</li>
+          <li>« Montre-moi ce que tu as changé. »</li>
+          <li>« Enregistre et pousse la branche. »</li>
+          <li>« Reviens à la version précédente. »</li>
+          <li>« Vérifie qu'aucune clé ne traîne dans le code. »</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>Les 5 réflexes</h4>
+        <ol>
+          <li>Une demande = un objectif précis</li>
+          <li>Itérer plutôt que tout prévoir</li>
+          <li>Enregistrer souvent, avec un message clair</li>
+          <li>Relire avant de fusionner</li>
+          <li>Aucune clé API dans un fichier publié</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<footer>
+  <div class="wrap">
+    Tutoriel rédigé à partir du dépôt <code>reynesmanon11-maker.github.io</code> — contenu, historique Git,
+    skills et configuration MCP réellement en place.
+    <span class="badge">Version 1</span>
+  </div>
+</footer>
+
+</body>
+</html>
