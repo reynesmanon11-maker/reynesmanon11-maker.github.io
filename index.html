@@ -1,913 +1,1173 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Manon Reynes — Cours de Sciences de la Vie et de la Terre</title>
-<meta name="description" content="Cours, fiches et TP de SVT au lycée : biologie, génétique, géologie, climat et santé.">
-<meta property="og:title" content="Manon Reynes — Cours de Sciences de la Vie et de la Terre">
-<meta property="og:description" content="Biologie et géologie expliquées simplement : cours, TP et ressources pour les élèves.">
-<meta property="og:type" content="website">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mme Reynes — Sciences de la Vie et de la Terre</title>
+<meta name="description" content="Cours, travaux pratiques et ressources de SVT au lycée — de la cellule aux plaques tectoniques." />
+<meta name="theme-color" content="#0a0a0a" />
+<meta property="og:title" content="Mme Reynes — Sciences de la Vie et de la Terre" />
+<meta property="og:description" content="Cours, TP et ressources de SVT au lycée." />
+<meta property="og:type" content="website" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* =========================================================================
-   RÉGLAGES — pour changer l'ambiance, ne touchez qu'à ce bloc.
-   ========================================================================= */
+/* ===================== reset / base ===================== */
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ font-size:16px; -webkit-font-smoothing:antialiased }
+body{ background:#ffffff; color:#111111; font-family:'Onest',sans-serif; overflow-x:hidden }
+a{ color:inherit; text-decoration:none }
+button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer }
+ul{ list-style:none }
+img{ display:block }
+.sr-only{ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0 }
+:focus-visible{ outline:2px solid #b15f2c; outline-offset:2px }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important } }
+
+/* ===================== adaptive rem grid ===================== */
+@media (max-width:1920px){ html{ font-size:0.833333vw } }
+@media (max-width:1440px){ html{ font-size:1.111111vw } }
+@media (max-width:1024px){ html{ font-size:1.5625vw } }
+@media (max-width:640px){ html{ font-size:4.444444vw } }
+
+/* ===================== tokens ===================== */
 :root{
-  --bg:oklch(0.13 0.004 240);       /* fond général          */
-  --matte:oklch(0.16 0.004 240);    /* fond des sections     */
-  --card:oklch(0.185 0.004 240);    /* fond des cartes       */
-  --lime:oklch(0.92 0.23 124);      /* accent vert           */
-  --txt:#fff;
-  --txt-soft:rgba(255,255,255,.58);
-  --txt-dim:rgba(255,255,255,.42);
-  --line:rgba(255,255,255,.10);
-  --ease:cubic-bezier(.22,1,.36,1);
-  --display:'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+  --background:#ffffff; --foreground:#111111;
+  --ink:#0a0a0a; --muted:#8d8d8d; --subtle:#b6b6b6;
+  --line:#e6e5e2; --surface:#f1f0ee; --surface-2:#e3e2df;
+  --accent:#b15f2c; --accent-from:#cf8047; --accent-to:#97501f;
+  --hero-from:#ecebe9; --hero-to:#c9c9c9;
+  --radius-pill:9999px; --radius-card:2rem; --radius-card-sm:1.25rem; --radius-control:0.875rem;
+  --text-watermark:13rem; --container-shell:88rem;
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{
-  margin:0; background:var(--bg); color:var(--txt);
-  font-family:'Poppins', system-ui, sans-serif; -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
-}
-::selection{background:var(--lime); color:oklch(0.06 0 0)}
-a{color:inherit}
-canvas{display:block}
-.display{font-family:var(--display); letter-spacing:-.02em}
-.lime{color:var(--lime)}
-.wrap{max-width:1280px; margin:0 auto; padding:0 24px}
+/* width:100% est nécessaire : dans un conteneur flex, une marge auto sur
+   l'axe transverse annule l'étirement et ramène l'élément à son contenu. */
+.shell{ width:100%; max-width:var(--container-shell); margin-inline:auto }
+svg.ic{ width:1em; height:1em; display:block; flex:none }
 
-.reveal{opacity:0; transform:translateY(26px); filter:blur(10px)}
-.reveal.in{
-  opacity:1; transform:none; filter:none;
-  transition:opacity 1s var(--ease), transform 1s var(--ease), filter 1s var(--ease);
+/* ===================== skip link ===================== */
+.skip{ position:absolute; left:-9999px }
+.skip:focus{ position:fixed; left:1rem; top:1rem; z-index:60; border-radius:.875rem; background:#0a0a0a; padding:.5rem 1rem; font-size:.875rem; color:#fff }
+
+/* ===================== reveal ===================== */
+[data-reveal]{ opacity:0; will-change:transform,opacity }
+[data-reveal="up"]{ transform:translateY(var(--ry,20px)) }
+[data-reveal="up"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="fade"].in{ opacity:1; transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="pop"]{ transform:translateY(16px) scale(.96) }
+[data-reveal="pop"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="panel"]{ transform:translateY(40px) scale(.99) }
+[data-reveal="panel"].in{ opacity:1; transform:none;
+  transition:opacity .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="wm"]{ transform:translateY(20px) }
+[data-reveal="wm"].in{ opacity:.4; transform:none;
+  transition:opacity 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+
+/* Le fond de casse (« è », « p », « g ») serait coupé par le masque :
+   on rend un peu de place puis on la reprend en marge négative. */
+.ln{ display:block; overflow:hidden; padding-bottom:.09em; margin-bottom:-.09em }
+.ln > i{ display:block; font-style:normal; transform:translateY(100%); opacity:0 }
+.lines.in .ln > i{ transform:none; opacity:1;
+  transition:transform .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms), opacity .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms) }
+.wd{ display:inline-block; transform:translateY(24px); opacity:0 }
+.words.in .wd{ transform:none; opacity:1;
+  transition:transform .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms), opacity .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms) }
+
+/* ===================== loader ===================== */
+#loader{ position:fixed; inset:0; z-index:120; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:2rem; background:#0a0a0a; color:#fff; border-radius:0 0 2rem 2rem; will-change:transform }
+#loader.out{ transform:translateY(-100%); transition:transform .7s cubic-bezier(.22,1,.36,1) }
+#loader .ldc{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center }
+#loader.out .ldc{ opacity:0; transform:translateY(-12px); transition:opacity .55s ease, transform .55s ease }
+#loader .ldbrand{ display:flex; align-items:center; gap:.5rem; font-weight:600; font-size:1.5rem }
+#loader .ldbrand .ic{ font-size:1.875rem; color:#cf8047 }
+#loader .ldtag{ max-width:24ch; font-size:.875rem; color:rgba(255,255,255,.55) }
+#loader .ldprog{ display:flex; flex-direction:column; gap:.75rem; width:min(22rem,72vw) }
+#loader .ldtrack{ height:1px; background:rgba(255,255,255,.15) }
+#loader .ldfill{ height:100%; background:#cf8047; width:0%; transition:width .1s ease-out }
+#loader .ldrow{ display:flex; justify-content:space-between; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.45) }
+#loader .ldnum{ font-variant-numeric:tabular-nums; color:rgba(255,255,255,.8) }
+@media (min-width:640px){ #loader .ldbrand{ font-size:1.875rem } }
+
+/* ===================== header ===================== */
+#hdr{ position:absolute; inset-inline:0; top:0; z-index:50; opacity:0; transform:translateY(-14px) }
+#hdr.in{ opacity:1; transform:none; transition:opacity .7s cubic-bezier(.22,1,.36,1) 150ms, transform .7s cubic-bezier(.22,1,.36,1) 150ms }
+#hdr .bar{ display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1.25rem }
+.brandbtn span{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600; letter-spacing:-.01em }
+.brandbtn .ic{ font-size:1.25rem; color:#b15f2c }
+#hdr nav.primary{ display:none }
+#hdr nav.primary ul{ display:flex; gap:2rem; font-size:.875rem; font-weight:500 }
+#hdr nav.primary button > span{ display:inline-flex; align-items:center; gap:.25rem; opacity:.8 }
+#hdr nav.primary .caret{ font-size:.75rem; opacity:.6 }
+.hdr-right{ display:flex; align-items:center; gap:.75rem }
+.clockchip{ display:none; align-items:center; gap:.75rem; border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4);
+  backdrop-filter:blur(4px); border-radius:.875rem; padding:.5rem .75rem; font-size:.75rem; color:rgba(17,17,17,.7) }
+.clockchip .lbl{ color:rgba(17,17,17,.45) }
+.clockchip .tm{ min-width:3.5rem; font-variant-numeric:tabular-nums; font-weight:500; color:#111 }
+.clockchip .sep{ color:rgba(17,17,17,.3) }
+.clockchip .dt{ font-weight:500 }
+.menubtn{ border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4); backdrop-filter:blur(4px); border-radius:.875rem }
+.menubtn:hover{ background:rgba(255,255,255,.7) }
+.menubtn > span{ display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em }
+.menubtn .ic{ font-size:.875rem }
+.menubtn .mlabel{ display:none }
+@media (min-width:640px){ #hdr .bar{ padding:1.5rem 2rem } .menubtn .mlabel{ display:inline } }
+@media (min-width:768px){ .clockchip{ display:flex } }
+@media (min-width:1024px){ #hdr nav.primary{ display:flex } }
+
+/* ===================== shared components ===================== */
+.pill{ display:inline-block }
+.pill > span{ display:inline-flex; align-items:center; gap:.75rem; border-radius:9999px; font-size:.875rem; font-weight:500 }
+.pill.arrow > span{ padding:.375rem .375rem .375rem 1.5rem }
+.pill.noarrow > span{ padding:.875rem 1.75rem }
+.pill.dark > span{ background:#0a0a0a; color:#fff }
+.pill.light > span{ background:#f1f0ee; color:#111 }
+.pill.outline > span{ border:1px solid #e6e5e2; background:transparent; color:#111 }
+.pill .badge{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:1rem; flex:none }
+.pill.dark .badge{ background:#fff; color:#0a0a0a }
+.pill.light .badge, .pill.outline .badge{ background:#0a0a0a; color:#fff }
+.eyebrow{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.eyebrow::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:rgba(17,17,17,.5) }
+.eyebrow.lighttone{ color:rgba(255,255,255,.7) }
+.eyebrow.lighttone::before{ background:rgba(255,255,255,.6) }
+.eyebrow.boxed{ border:1px solid #e6e5e2; border-radius:9999px; padding:.375rem 1rem }
+.chip{ display:inline-flex; border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:9999px; padding:.5rem 1rem; font-size:.875rem }
+.alink{ display:inline-flex }
+.alink > span{ display:inline-block; opacity:.65 }
+
+/* ===================== hero ===================== */
+#home{ position:relative; isolation:isolate; overflow:hidden; border-radius:0 0 2rem 2rem; background:#c9c9c9 }
+#home .bg{ position:absolute; inset:0; z-index:0 }
+#home .bg img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+#home .bg canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none }
+#home .vig{ position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(255,255,255,.35), transparent, rgba(255,255,255,.35)) }
+#home .wm{ pointer-events:none; position:absolute; inset-inline:0; bottom:7rem; z-index:1; text-align:center;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.4) }
+.hero-grid{ position:relative; z-index:20; display:flex; flex-direction:column; gap:2rem; padding:7rem 1.25rem 5rem }
+.hero-left{ display:flex; flex-direction:column; gap:1.75rem }
+.hero-left h1{ max-width:18ch; font-size:2.25rem; font-weight:600; line-height:.98; letter-spacing:-.02em }
+.rating{ display:flex; align-items:center; gap:.75rem }
+.rating .stars{ color:#b15f2c; display:inline-flex; gap:.125rem; font-size:1rem }
+.rating .rtxt{ font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.ctarow{ display:flex; flex-wrap:wrap; gap:.75rem }
+.hero-right{ display:flex; flex-direction:column; align-items:flex-start; gap:2rem }
+.herocard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7); padding:.5rem;
+  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px) }
+.herocard .row{ display:flex; gap:.5rem; cursor:pointer; border-radius:.875rem }
+.herocard .tile{ aspect-ratio:1; width:6rem; display:grid; place-items:center; border-radius:.875rem; background:#0a0a0a; font-size:1.875rem; color:#fff; flex:none }
+.herocard .tile .ic{ color:#cf8047 }
+.herocard .panel{ flex:1; border-radius:.875rem; background:rgba(241,240,238,.7); padding:.75rem; display:flex; flex-direction:column; justify-content:space-between }
+.herocard .slot{ position:relative; min-height:3.25rem }
+.herocard .item{ position:absolute; inset:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1) }
+.herocard .item.hide-up{ opacity:0; transform:translateY(-14px) }
+.herocard .item.hide-down{ opacity:0; transform:translateY(14px) }
+.herocard .cap{ font-size:.65rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.45) }
+.herocard .ttl{ max-width:8rem; font-size:.875rem; font-weight:500; line-height:1.35 }
+.herocard .btm{ display:flex; align-items:center; justify-content:space-between; margin-top:.5rem }
+.herocard .dots{ display:flex; align-items:center; gap:.25rem }
+.herocard .dots i{ height:.25rem; border-radius:9999px; width:.375rem; background:rgba(17,17,17,.2); transition:all .3s }
+.herocard .dots i.on{ width:1rem; background:rgba(17,17,17,.7) }
+.herocard .navb{ display:flex; gap:.25rem }
+.herocard .navb button{ width:1.75rem; height:1.75rem; display:grid; place-items:center; border-radius:9999px; background:#fff;
+  color:rgba(17,17,17,.7); box-shadow:0 0 0 1px #e6e5e2 }
+.herocard .navb button:hover{ color:#111 }
+.partners{ width:100%; max-width:24rem }
+.partners .plabel{ margin-bottom:.75rem; font-size:.75rem; font-weight:500; color:rgba(17,17,17,.45); text-align:left }
+.partners ul{ display:grid; grid-template-columns:repeat(4,1fr); column-gap:1rem; row-gap:.75rem }
+.partners li a{ display:block }
+.partners li span{ display:flex; align-items:center; gap:.375rem; font-size:.75rem; color:rgba(17,17,17,.7); opacity:.7 }
+.partners li .ic{ font-size:.875rem; color:rgba(17,17,17,.4) }
+.hero-status{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; border-top:1px solid rgba(17,17,17,.1);
+  padding:1.25rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.6) }
+.hero-status .mid{ display:none }
+.hero-status .right{ display:inline-flex; gap:.5rem }
+@media (min-width:640px){
+  .hero-grid{ padding-inline:2rem } .hero-status{ padding-inline:2rem } .hero-status .mid{ display:block }
+  .hero-left h1{ font-size:3rem }
+}
+@media (min-width:768px){ .hero-left h1{ font-size:3.75rem } }
+@media (min-width:1024px){
+  .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 7rem }
+  .hero-left{ grid-column:span 7 } .hero-right{ grid-column:span 5; align-items:flex-end }
+  .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
 }
 
-/* ---------------------------- BARRE DU HAUT ---------------------------- */
-/* Le dégradé empêche les titres de défiler visiblement derrière la barre. */
-header{
-  position:fixed; inset:0 0 auto 0; z-index:50; padding:18px 0 30px;
-  background:linear-gradient(oklch(0.16 0.004 240) 40%, transparent);
-}
-.bar{display:flex; align-items:center; justify-content:space-between; gap:16px}
-.brand{display:flex; align-items:center; gap:10px; text-decoration:none; flex:none}
-.brand .ico{
-  width:32px; height:32px; border-radius:50%; display:grid; place-items:center;
-  border:1px solid rgba(255,255,255,.25); color:var(--lime); flex:none;
-}
-.brand b{font-family:var(--display); font-weight:900; font-size:17px; letter-spacing:-.01em}
-.navpill{
-  display:none; align-items:center; gap:2px; padding:6px;
-  border:1px solid var(--line); border-radius:999px;
-  background:rgba(255,255,255,.03); backdrop-filter:blur(12px);
-}
-@media(min-width:940px){.navpill{display:flex}}
-.navpill a{
-  padding:8px 18px; border-radius:999px; font-size:14px; text-decoration:none;
-  color:var(--txt-soft); transition:background .3s, color .3s;
-}
-.navpill a:hover{background:rgba(255,255,255,.07); color:#fff}
-.cta{
-  display:inline-flex; align-items:center; gap:7px; flex:none;
-  background:var(--lime); color:#0b0b0b; text-decoration:none;
-  border-radius:999px; padding:11px 20px; font-size:14px; font-weight:600;
-  transition:transform .3s var(--ease);
-}
-.cta:hover{transform:scale(1.05)}
-
-/* ------------------------------- HÉROS -------------------------------- */
-section{position:relative; overflow:hidden; background:var(--matte)}
-.stars{position:absolute; inset:0; z-index:0; pointer-events:none}
-.lines{position:absolute; inset:0; z-index:0; pointer-events:none; width:100%; height:100%}
-.lines line{stroke:#fff; stroke-width:.08; stroke-opacity:.10}
-.inner{position:relative; z-index:2}
-
-#accueil{padding:128px 0 96px}
-.badge{
-  display:inline-block; border:1px solid var(--line); border-radius:999px;
-  padding:8px 20px; font-size:11.5px; letter-spacing:.2em; text-transform:uppercase;
-  color:var(--txt-soft);
-}
-.hero-txt{max-width:780px; margin:0 auto; text-align:center}
-.hero-txt h1{
-  font-family:var(--display); font-weight:900; margin:26px 0 0;
-  font-size:clamp(44px, 8vw, 88px); line-height:.98; letter-spacing:-.035em;
-}
-.hero-txt h1 .l2{display:block; color:var(--lime)}
-.hero-txt p{
-  margin:24px auto 0; max-width:620px; color:var(--txt-soft);
-  font-size:16px; line-height:1.65;
+/* ===================== about ===================== */
+#about{ background:#fff }
+#about .grid{ display:grid; grid-template-columns:1fr; align-items:center; gap:3rem; padding:5rem 1.25rem }
+#about .globe-block{ position:relative; min-height:14rem }
+#about .globe-bg{ position:absolute; left:-1rem; top:50%; transform:translateY(-50%); font-size:12rem; color:rgba(17,17,17,.1) }
+#about .eyerel{ position:relative }
+#about .gnote{ display:flex; align-items:center; gap:.75rem; font-size:.875rem; color:rgba(17,17,17,.7); position:relative; margin-top:2rem }
+#about .gnote .ic{ font-size:1.5rem; color:#111 }
+#about .gnote span.t{ max-width:14rem }
+#about .stmt{ display:flex; flex-direction:column; gap:2.5rem }
+#about h2{ font-size:1.5rem; font-weight:500; line-height:1.35; letter-spacing:-.01em }
+#about h2 .mu{ color:#8d8d8d }
+#about .frow{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:1.5rem; border-top:1px solid #e6e5e2; padding-top:1.5rem }
+#about .flabel{ font-size:.875rem; color:rgba(17,17,17,.45); margin-bottom:.75rem }
+#about .socials{ display:flex; gap:.5rem }
+#about .soc{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:.875rem;
+  background:#f1f0ee; color:rgba(17,17,17,.7) }
+#about .soc.x{ background:#b15f2c; color:#fff }
+@media (min-width:640px){ #about .grid{ padding-inline:2rem } #about h2{ font-size:1.875rem } #about .globe-bg{ font-size:16rem } }
+@media (min-width:1024px){
+  #about .grid{ grid-template-columns:1fr 1fr; padding-block:7rem }
+  #about .globe-block{ min-height:20rem } #about .globe-bg{ left:-1.5rem; font-size:20rem }
 }
 
-/* grille : cartes | globe | cartes */
-.hero-grid{display:grid; grid-template-columns:1fr; gap:22px; margin-top:56px; align-items:center}
-@media(min-width:1000px){.hero-grid{grid-template-columns:1fr auto 1fr; gap:30px}}
-.col{display:flex; flex-direction:column; gap:16px}
-.feat{
-  border:1px solid var(--line); border-radius:18px; padding:20px 22px;
-  background:color-mix(in oklab, var(--card) 70%, transparent);
-  backdrop-filter:blur(8px);
-  transition:border-color .45s, background .45s, transform .45s var(--ease);
-}
-.feat:hover{border-color:rgba(255,255,255,.26); background:var(--card); transform:translateY(-3px)}
-.feat svg{width:22px; height:22px; color:var(--lime); display:block}
-.feat h3{font-family:var(--display); font-weight:700; font-size:17px; margin:14px 0 6px}
-.feat p{margin:0; color:var(--txt-soft); font-size:13.5px; line-height:1.6}
-
-/* En une seule colonne, le globe passe devant les cartes plutôt que de
-   se retrouver coincé entre les deux groupes. */
-.globe{position:relative; margin:0 auto 10px; text-align:center; order:-1}
-@media(min-width:1000px){.globe{order:0; margin-bottom:0}}
-.globe .halo{
-  position:absolute; inset:-14%; z-index:-1; border-radius:50%; filter:blur(38px);
-  background:radial-gradient(circle, rgba(120,200,255,.20), transparent 65%);
-}
-#earth{width:min(430px, 78vw); height:min(430px, 78vw)}
-.globe .cap{
-  margin:6px 0 0; font-size:10.5px; letter-spacing:.24em; text-transform:uppercase;
-  color:var(--txt-dim);
+/* ===================== create band ===================== */
+.createband{ background:#fff }
+.createband ul{ display:flex; flex-direction:column; gap:.75rem; padding:2.5rem 1.25rem }
+.createband li{ flex:1 }
+.createband .tile{ display:grid; place-items:center; height:6rem; border-radius:9999px; font-size:1.875rem; font-weight:500 }
+.createband .t-light{ background:#f1f0ee; color:#111 }
+.createband .t-accent{ background:linear-gradient(to bottom right,#cf8047,#97501f); color:#fff }
+.createband .t-dark{ background:#0a0a0a; color:#fff; font-size:2.25rem }
+.createband .t-ghost{ background:rgba(241,240,238,.6); color:rgba(17,17,17,.35) }
+@media (min-width:640px){
+  .createband ul{ flex-direction:row; gap:1rem; padding-inline:2rem }
+  .createband .tile{ height:10rem; font-size:2.25rem } .createband .t-dark{ font-size:3rem }
 }
 
-/* ------------------------------ THÈMES -------------------------------- */
-.sec{padding:96px 0}
-.sec-top{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:24px}
-.sec-top h2{
-  font-family:var(--display); font-weight:900; margin:0; max-width:620px;
-  font-size:clamp(30px, 5vw, 52px); line-height:1.05; letter-spacing:-.03em;
+/* ===================== portfolio ===================== */
+#works{ background:#fff }
+#works .inner{ padding:2.5rem 1.25rem 5rem }
+#works .head{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center; margin-bottom:3rem }
+#works h2{ font-size:2.25rem; font-weight:600; letter-spacing:-.02em; width:fit-content }
+#works ul{ display:grid; grid-template-columns:1fr; gap:1.5rem }
+#works article{ position:relative; min-height:22rem; overflow:hidden; border-radius:2rem; background:#0a0a0a; padding:1.5rem; color:#fff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05) }
+#works .meta{ display:flex; justify-content:space-between; align-items:flex-start; font-size:.75rem; text-transform:uppercase;
+  letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#works .pbadge{ width:2.75rem; height:2.75rem; display:grid; place-items:center; border-radius:9999px; background:rgba(255,255,255,.1);
+  color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.15); font-size:1rem }
+#works .cwm{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none }
+#works .cwm .ic{ font-size:4.5rem; color:rgba(255,255,255,.9) }
+#works .cwm sup{ font-size:.75rem; color:rgba(255,255,255,.6) }
+#works .btm{ position:absolute; inset-inline:1.5rem; bottom:1.5rem }
+#works h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#works .desc{ margin-top:.5rem; max-width:28rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+#works .tags{ margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:.5rem }
+@media (min-width:640px){
+  #works .inner{ padding-inline:2rem } #works h2{ font-size:3rem }
+  #works article{ min-height:26rem; padding:2rem } #works .btm{ inset-inline:2rem; bottom:2rem } #works h3{ font-size:1.875rem }
 }
-.sec-top p{margin:0; max-width:340px; color:var(--txt-soft); font-size:14px; line-height:1.65}
+@media (min-width:768px){ #works ul{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ #works .inner{ padding-bottom:7rem } }
 
-.grid2{display:grid; grid-template-columns:1fr; gap:24px; margin-top:48px}
-@media(min-width:760px){.grid2{grid-template-columns:1fr 1fr}}
-.tcard{
-  display:block; text-decoration:none; overflow:hidden;
-  border:1px solid var(--line); border-radius:24px; background:var(--card);
-  transition:border-color .45s, transform .45s var(--ease);
+/* ===================== services ===================== */
+#services{ background:#fff }
+#services .inner{ padding:5rem 1.25rem }
+#services h2{ margin:1.25rem 0 3rem; max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+#services li{ border-top:1px solid #e6e5e2 }
+#services li:first-child{ border-top:none }
+#services .row{ display:flex; align-items:center; gap:1rem; border-radius:1.25rem; padding:1.5rem; background:rgba(241,240,238,0) }
+#services .idx{ width:1.75rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.4); flex:none }
+#services h3{ flex:1; font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#services .sdesc{ display:none; max-width:20rem; font-size:.875rem; color:rgba(17,17,17,.55) }
+#services .sbadge{ width:2.5rem; height:2.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#fff; font-size:1rem; flex:none }
+@media (min-width:640px){
+  #services .inner{ padding-inline:2rem } #services h2{ margin-bottom:3.5rem; font-size:3rem }
+  #services .row{ gap:1.5rem; padding-block:2rem } #services .idx{ width:2.5rem } #services h3{ font-size:1.875rem }
+  #services .sbadge{ width:3rem; height:3rem }
 }
-.tcard:hover{border-color:rgba(255,255,255,.26); transform:translateY(-4px)}
-.tcard .art{height:220px; overflow:hidden}
-.tcard .art svg{width:100%; height:100%; display:block; transition:transform .8s var(--ease)}
-.tcard:hover .art svg{transform:scale(1.06)}
-.tcard .body{padding:26px}
-.tag{
-  display:inline-block; border:1px solid var(--line); border-radius:999px;
-  padding:5px 14px; font-size:10.5px; letter-spacing:.16em; text-transform:uppercase;
-  color:var(--txt-soft);
-}
-.tcard h3{font-family:var(--display); font-weight:700; font-size:23px; margin:16px 0 8px; letter-spacing:-.015em}
-.tcard .body > p{margin:0; color:var(--txt-soft); font-size:14px; line-height:1.65}
-.more{
-  display:inline-flex; align-items:center; gap:7px; margin-top:18px;
-  color:var(--lime); font-size:14px; font-weight:500;
-}
-.more svg{width:15px; height:15px; transition:transform .3s var(--ease)}
-.tcard:hover .more svg{transform:translate(2px,-2px)}
+@media (min-width:768px){ #services h3{ font-size:2.25rem } }
+@media (min-width:1024px){ #services .inner{ padding-block:7rem } #services .sdesc{ display:block } }
 
-/* ---------------------------- RESSOURCES ------------------------------ */
-.grid3{display:grid; grid-template-columns:1fr; gap:22px; margin-top:44px}
-@media(min-width:820px){.grid3{grid-template-columns:repeat(3,1fr)}}
-.rcard{
-  display:block; text-decoration:none;
-  border:1px solid var(--line); border-radius:24px; padding:30px;
-  background:color-mix(in oklab, var(--card) 78%, transparent); backdrop-filter:blur(8px);
-  transition:border-color .45s, background .45s, transform .45s var(--ease);
-}
-.rcard:hover{border-color:rgba(255,255,255,.26); background:var(--card); transform:translateY(-4px)}
-.rcard svg.i{width:26px; height:26px; color:var(--lime); display:block}
-.rcard h3{font-family:var(--display); font-weight:700; font-size:19px; margin:18px 0 8px}
-.rcard p{margin:0; color:var(--txt-soft); font-size:13.5px; line-height:1.65}
+/* ===================== stats ===================== */
+.statsec{ background:#fff }
+.statsec .inner{ padding:0 1.25rem 5rem }
+.statsec .panel{ border-radius:2rem; background:#0a0a0a; padding:3rem 1.5rem; color:#fff }
+.statsec h2{ margin-top:1rem; max-width:20ch; font-size:1.875rem; font-weight:500; letter-spacing:-.01em }
+.statsec ul{ margin-top:3.5rem; display:grid; grid-template-columns:repeat(2,1fr); column-gap:2rem; row-gap:3rem }
+.statsec .num{ font-size:3rem; font-weight:600; letter-spacing:-.02em }
+.statsec .slab{ margin-top:.75rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+@media (min-width:640px){ .statsec .inner{ padding-inline:2rem } .statsec .panel{ padding:4rem 2rem } .statsec .num{ font-size:3.75rem } }
+@media (min-width:768px){ .statsec .panel{ padding-inline:4rem } .statsec h2{ font-size:2.25rem } .statsec .num{ font-size:4.5rem } }
+@media (min-width:1024px){ .statsec .inner{ padding-bottom:7rem } .statsec ul{ grid-template-columns:repeat(4,1fr) } }
 
-/* ------------------------------ CONTACT ------------------------------- */
-#contact{text-align:center; padding:104px 0}
-#contact h2{
-  font-family:var(--display); font-weight:900; margin:0;
-  font-size:clamp(30px, 6vw, 62px); line-height:1.04; letter-spacing:-.03em;
-}
-#contact > .inner > p{margin:20px auto 0; max-width:560px; color:var(--txt-soft); font-size:15px; line-height:1.7}
-.btn-big{
-  display:inline-flex; align-items:center; gap:10px; margin-top:34px;
-  background:var(--lime); color:#0b0b0b; text-decoration:none;
-  border-radius:999px; padding:15px 30px; font-size:15px; font-weight:600;
-  transition:transform .3s var(--ease);
-}
-.btn-big:hover{transform:scale(1.05)}
-footer{
-  background:var(--bg); border-top:1px solid var(--line); padding:36px 0;
-}
-footer .row{
-  display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;
-  font-size:13.5px; color:var(--txt-soft);
-}
-footer b{font-family:var(--display); font-weight:900; color:#fff}
+/* ===================== footer ===================== */
+footer.site{ position:relative; overflow:hidden; border-radius:2rem 2rem 0 0; background:#0a0a0a; color:#fff }
+footer.site .inner{ position:relative; z-index:10; padding:5rem 1.25rem 2.5rem }
+footer.site .cta{ display:flex; flex-direction:column; gap:2rem; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:4rem }
+footer.site h2{ max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+footer.site .cols{ display:grid; grid-template-columns:1fr; gap:3rem; padding-block:4rem }
+footer.site .cbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+footer.site .cbrand .ic{ font-size:1.25rem }
+footer.site .ctag{ margin-top:1rem; max-width:20rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+footer.site .ctitle{ font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.4); margin-bottom:1rem }
+footer.site .clist{ display:flex; flex-direction:column; gap:.75rem; font-size:.875rem }
+footer.site .legal{ display:flex; flex-direction:column; align-items:center; justify-content:space-between; gap:1rem;
+  border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; font-size:.75rem; color:rgba(255,255,255,.45) }
+footer.site .legal .lks{ display:flex; gap:1.5rem }
+footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; text-align:center; pointer-events:none;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.05) }
+@media (min-width:640px){ footer.site .inner{ padding-inline:2rem } footer.site h2{ font-size:3rem }
+  footer.site .legal{ flex-direction:row } }
+@media (min-width:768px){ footer.site h2{ font-size:3.75rem } footer.site .cols{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ footer.site .inner{ padding-top:6rem }
+  footer.site .cta{ flex-direction:row; align-items:flex-end; justify-content:space-between }
+  footer.site .cols{ grid-template-columns:repeat(4,1fr) } }
 
-@media (prefers-reduced-motion:reduce){
-  *{animation-duration:.01ms !important; transition-duration:.01ms !important}
-  .reveal{opacity:1; transform:none; filter:none}
-}
+/* ===================== nav overlay ===================== */
+#navmenu{ position:fixed; inset:0; z-index:115; display:none; flex-direction:column; background:#0a0a0a; color:#fff; opacity:0;
+  transition:opacity .45s cubic-bezier(.22,1,.36,1) }
+#navmenu.show{ display:flex } #navmenu.vis{ opacity:1 }
+#navmenu .top{ display:flex; align-items:center; justify-content:space-between; padding:1.25rem }
+#navmenu .nbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+#navmenu .nbrand .ic{ font-size:1.25rem; color:#cf8047 }
+#navmenu .closeb{ display:inline-flex; align-items:center; gap:.5rem; border:1px solid rgba(255,255,255,.15); border-radius:.875rem;
+  padding:.5rem 1rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.7) }
+#navmenu .closeb:hover{ border-color:rgba(255,255,255,.4); color:#fff }
+#navmenu .closeb .ic{ font-size:.875rem }
+#navmenu nav{ flex:1; display:flex; flex-direction:column; justify-content:center }
+#navmenu nav ul{ display:flex; flex-direction:column; gap:.25rem }
+#navmenu nav button{ width:100%; display:flex; align-items:baseline; gap:1rem; padding-block:.5rem; text-align:left;
+  font-size:2.25rem; font-weight:600; letter-spacing:-.02em; transform:translateY(1rem); opacity:0; transition:all .5s ease-out }
+#navmenu.vis nav button{ transform:none; opacity:1 }
+#navmenu nav .n{ font-size:1rem; font-weight:400; color:rgba(255,255,255,.3); transition:color .3s }
+#navmenu nav .l{ color:rgba(255,255,255,.7); transition:color .3s }
+#navmenu nav button:hover .n{ color:#cf8047 } #navmenu nav button:hover .l{ color:#fff }
+#navmenu .btm{ display:flex; flex-direction:column; gap:.75rem; border-top:1px solid rgba(255,255,255,.1); padding:1.5rem 1.25rem;
+  font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#navmenu .btm button{ color:rgba(255,255,255,.7) } #navmenu .btm button:hover{ color:#fff; text-decoration:underline }
+@media (min-width:640px){ #navmenu .top{ padding:1.5rem 2rem } #navmenu nav button{ font-size:3.75rem }
+  #navmenu .btm{ flex-direction:row; align-items:center; justify-content:space-between; padding-inline:2rem } }
+
+/* ===================== modal ===================== */
+#modal{ position:fixed; inset:0; z-index:110; display:none; align-items:flex-end; justify-content:center; padding:1rem;
+  background:rgba(17,17,17,.3); backdrop-filter:blur(16px); opacity:0; transition:opacity .4s ease }
+#modal.show{ display:flex } #modal.vis{ opacity:1 }
+#modal .panel{ position:relative; width:100%; max-width:32rem; overflow:hidden; border-radius:2rem; background:#fff; padding:1.5rem;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,.25), 0 0 0 1px #e6e5e2; transform:translateY(28px);
+  transition:transform .55s cubic-bezier(.22,1,.36,1), opacity .4s ease; opacity:0 }
+#modal.vis .panel{ transform:none; opacity:1 }
+#modal .closeb{ position:absolute; right:1rem; top:1rem; width:2.25rem; height:2.25rem; display:grid; place-items:center;
+  border-radius:9999px; background:#f1f0ee; color:rgba(17,17,17,.6); font-size:.875rem }
+#modal .closeb:hover{ background:#e3e2df; color:#111 }
+#modal .mhead{ margin-bottom:1.5rem; display:flex; flex-direction:column; gap:.375rem }
+#modal .mkick{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.6) }
+#modal .mkick::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c }
+#modal h2{ font-size:1.5rem; font-weight:600; letter-spacing:-.01em }
+#modal form{ display:flex; flex-direction:column; gap:1rem }
+#modal label{ display:flex; flex-direction:column; gap:.5rem }
+#modal .cap{ font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.5) }
+#modal input, #modal textarea{ width:100%; border:1px solid #e6e5e2; background:rgba(241,240,238,.5); border-radius:.875rem;
+  padding:.75rem 1rem; font-size:.875rem; font-family:inherit; outline:none; transition:border-color .2s, background .2s }
+#modal textarea{ resize:none }
+#modal input:focus, #modal textarea:focus{ border-color:rgba(17,17,17,.3); background:#fff }
+#modal .brow{ margin-top:.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem }
+#modal .note{ font-size:.75rem; color:rgba(17,17,17,.45) }
+#modal .success{ display:none; flex-direction:column; align-items:center; text-align:center; padding-block:2rem; gap:1rem }
+#modal.done .success{ display:flex } #modal.done .mhead, #modal.done form{ display:none }
+#modal .sbadge{ width:3.5rem; height:3.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#cf8047; font-size:1.5rem }
+#modal .stext{ max-width:32ch; font-size:.875rem; color:rgba(17,17,17,.6) }
+@media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
 </style>
 </head>
 <body>
+<a class="skip" href="#main">Aller au contenu</a>
 
-<!-- ============================ BARRE DU HAUT ============================ -->
-<header>
-  <div class="bar wrap">
-    <a class="brand" href="#accueil">
-      <span class="ico">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
-          <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
-        </svg>
-      </span>
-      <b>Manon Reynes</b>
-    </a>
+<!-- ============ SVG defs ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 48 48"><path fill="currentColor" d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/></symbol>
+    <symbol id="i-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9.25"/><path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4 4 20"/></symbol>
+    <symbol id="i-dot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  </defs>
+</svg>
 
-    <nav class="navpill">
-      <a href="#accueil">Accueil</a>
-      <a href="#themes">Thèmes</a>
-      <a href="2nde.html">Seconde</a>
-      <a href="#ressources">Ressources</a>
-      <a href="#contact">Contact</a>
+<!-- ============ LOADER ============ -->
+<div id="loader" role="status" aria-live="polite">
+  <div class="ldc">
+    <div class="ldbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <p class="ldtag">Sciences de la Vie et de la Terre</p>
+  </div>
+  <div class="ldprog">
+    <div class="ldtrack"><div class="ldfill" id="ldfill"></div></div>
+    <div class="ldrow"><span>Chargement</span><span class="ldnum" id="ldnum">000</span></div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header id="hdr">
+  <div class="shell bar">
+    <button class="brandbtn" data-hs="scale:1.04" data-cfg="320/18" data-go="home">
+      <span><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</span>
+    </button>
+
+    <nav class="primary" aria-label="Primary">
+      <ul>
+        <li><button data-nav="home" aria-current="page"><span>Accueil</span></button></li>
+        <li><button data-nav="works"><span>Chapitres</span></button></li>
+        <li><button data-nav="services"><span>Niveaux</span></button></li>
+        <li><button data-nav="about"><span>La classe</span></button></li>
+        <li><button data-nav="works"><span>Ressources</span></button></li>
+        <li><button data-nav="contact"><span>Contact</span></button></li>
+      </ul>
     </nav>
 
-    <!-- ✏️ À PERSONNALISER : votre adresse de contact -->
-    <a class="cta" href="mailto:reynesmanon11@gmail.com">
-      Me contacter
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-    </a>
+    <div class="hdr-right">
+      <div class="clockchip">
+        <span class="lbl">Heure locale</span>
+        <span class="tm" id="clk-time">9:41</span>
+        <span class="sep">•</span>
+        <span class="dt" id="clk-date">12 mars 2025</span>
+      </div>
+      <button class="menubtn" id="openmenu" data-hs="scale:1.05" data-cfg="320/18" aria-label="Ouvrir le menu">
+        <span><svg class="ic"><use href="#i-grid"/></svg><em class="mlabel" style="font-style:normal">Menu</em></span>
+      </button>
+    </div>
   </div>
 </header>
 
-<!-- ================================ HÉROS ================================ -->
-<section id="accueil">
-  <canvas class="stars"></canvas>
-  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    <line x1="0" y1="0" x2="22" y2="100"/><line x1="50" y1="0" x2="82" y2="100"/>
-    <line x1="100" y1="0" x2="58" y2="100"/><line x1="0" y1="35" x2="100" y2="80"/>
-    <line x1="100" y1="10" x2="0" y2="70"/><line x1="30" y1="0" x2="100" y2="55"/>
-  </svg>
+<main id="main">
+<!-- ============ HERO ============ -->
+<section id="home">
+  <div class="bg" id="liquid">
+    <img id="heroimg" src="https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/after.jpg" alt="Photographie d'illustration" fetchpriority="high" />
+    <canvas aria-hidden="true"></canvas>
+  </div>
+  <div class="vig"></div>
+  <div class="wm" data-reveal="wm" data-gate="ready" style="--rd:300ms">SVT</div>
 
-  <div class="inner wrap">
-    <div class="hero-txt">
-      <span class="badge reveal">Sciences de la Vie et de la Terre</span>
-      <h1 class="reveal">
-        Comprendre le vivant
-        <span class="l2">et notre planète</span>
+  <div class="shell hero-grid">
+    <div class="hero-left">
+      <div data-reveal="up" data-gate="ready" style="--ry:10px;--rd:200ms">
+        <span class="eyebrow">Lycée — de la Seconde à la Terminale</span>
+      </div>
+
+      <h1 class="lines" data-lines data-gate="ready" data-stagger="120" data-delay="250">
+        <span class="ln"><i>Comprendre</i></span>
+        <span class="ln"><i>le vivant et</i></span>
+        <span class="ln"><i>notre planète</i></span>
       </h1>
-      <p class="reveal">
-        Cours, ressources et travaux pratiques de SVT au lycée —
-        de la cellule aux plaques tectoniques.
-      </p>
+
+      <div class="rating" data-reveal="up" data-gate="ready" style="--ry:10px;--rd:650ms">
+        <span class="stars"><svg class="ic"><use href="#i-globe"/></svg></span>
+        <span class="rtxt">Cours, TP et ressources en accès libre</span>
+      </div>
+
+      <div class="ctarow" data-reveal="up" data-gate="ready" style="--ry:10px;--rd:750ms">
+        <button class="pill dark arrow" data-modal><span>Me contacter<span class="badge"><svg class="ic"><use href="#i-arr"/></svg></span></span></button>
+        <button class="pill outline noarrow" data-go="works"><span>Voir les chapitres</span></button>
+      </div>
     </div>
 
-    <div class="hero-grid">
-      <!-- colonne de gauche : le vivant -->
-      <div class="col">
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" aria-hidden="true">
-            <path d="M2 15c6.667-6 13.333 0 20-6"/><path d="M9 22c1.8-2 2.5-4 2.8-6"/>
-            <path d="M15 2c-1.8 2-2.5 4-2.8 6"/><path d="m7 18 2.9 2.9"/><path d="m17 6-2.9-2.9"/>
-            <path d="m6.5 12.5 1 1"/><path d="m16.5 10.5 1 1"/>
-          </svg>
-          <h3>Génétique</h3>
-          <p>ADN, chromosomes, hérédité et variabilité du vivant.</p>
-        </article>
-
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 9.5V7a4 4 0 0 1 4-4h1.5a.5.5 0 0 1 .5.5V5a4 4 0 0 1-4 4 4 4 0 0 0-4 4c0 2 1 3 1 5a5 5 0 0 1-1 3"/>
-            <path d="M4 9a5 5 0 0 1 8 4 5 5 0 0 1-8-4"/><path d="M5 21h14"/>
-          </svg>
-          <h3>Le vivant</h3>
-          <p>Cellules, photosynthèse, reproduction et écosystèmes.</p>
-        </article>
-
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M14 2v6a2 2 0 0 0 .25.96l5.5 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.75-2.96l5.5-10.08A2 2 0 0 0 10 8V2"/>
-            <path d="M6.45 15h11.1"/><path d="M8.5 2h7"/>
-          </svg>
-          <h3>Travaux pratiques</h3>
-          <p>Microscopie, dissections, protocoles guidés.</p>
-        </article>
+    <div class="hero-right">
+      <div class="herocard" data-reveal="pop" data-gate="ready" style="--rd:400ms">
+        <div class="row" id="hc-row" role="button" tabindex="0" aria-label="Next highlight">
+          <div class="tile"><svg class="ic"><use href="#i-logo"/></svg></div>
+          <div class="panel">
+            <div class="slot" id="hc-slot"></div>
+            <div class="btm">
+              <div class="dots" id="hc-dots"><i class="on"></i><i></i><i></i></div>
+              <div class="navb">
+                <button id="hc-prev" aria-label="Previous"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arr"/></svg></button>
+                <button id="hc-next" aria-label="Next"><svg class="ic"><use href="#i-arr"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <!-- le globe -->
-      <div class="globe reveal">
-        <span class="halo" aria-hidden="true"></span>
-        <canvas id="earth" role="img" aria-label="Globe terrestre : surface vivante et coupe géologique"></canvas>
-        <p class="cap">Terre — rotation en temps réel</p>
+      <div class="partners" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:550ms">
+        <p class="plabel">Outils interactifs</p>
+        <ul id="partners"></ul>
       </div>
+    </div>
+  </div>
 
-      <!-- colonne de droite : la Terre -->
-      <div class="col">
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="m8 3 4 8 5-5 5 15H2L8 3z"/>
-          </svg>
-          <h3>Tectonique</h3>
-          <p>Plaques, séismes, volcans et reliefs terrestres.</p>
-        </article>
+  <div class="shell hero-status" data-reveal="fade" data-gate="ready" style="--rd:900ms">
+    <span>Sciences de la Vie et de la Terre</span>
+    <span class="mid">Cours · TP · Fiches · Terrain</span>
+    <span class="right">Faire défiler <em style="font-style:normal">↓</em></span>
+  </div>
+</section>
 
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
-            <path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
-            <path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>
-          </svg>
-          <h3>Climat</h3>
-          <p>Cycle du carbone, océans et changement climatique.</p>
-        </article>
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="shell grid">
+    <div class="globe-block">
+      <svg class="ic globe-bg" aria-hidden="true"><use href="#i-globe"/></svg>
+      <span class="eyebrow eyerel">La classe</span>
+      <div class="gnote" data-reveal="up" style="--ry:12px">
+        <svg class="ic"><use href="#i-globe"/></svg>
+        <span class="t">Les SVT se vérifient dehors : sur un affleurement, dans une parcelle, au microscope.</span>
+      </div>
+    </div>
 
-        <article class="feat reveal">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="1"/>
-            <path d="M20.2 20.2c2-2-.02-7.36-4.5-11.9C11.16 3.78 5.83 1.76 3.8 3.8c-2.04 2.03-.02 7.36 4.5 11.9 4.54 4.52 9.87 6.54 11.9 4.5Z"/>
-            <path d="M15.7 15.7c4.52-4.54 6.54-9.87 4.5-11.9-2.03-2.04-7.36-.02-11.9 4.5-4.52 4.54-6.54 9.87-4.5 11.9 2.03 2.04 7.36.02 11.9-4.5Z"/>
-          </svg>
-          <h3>Roches &amp; temps</h3>
-          <p>Strates, fossiles et datation du globe.</p>
-        </article>
+    <div class="stmt">
+      <h2 class="words" data-words>Observer, formuler une hypothèse, la mettre à l'épreuve <span class="mu">— et accepter de la réviser. C'est la démarche que nous construisons ensemble, chapitre après chapitre.</span></h2>
+      <div class="frow" data-reveal="up" style="--ry:12px;--rd:200ms">
+        <div>
+          <p class="flabel">En pratique</p>
+          <!-- ✏️ À PERSONNALISER : adaptez ces trois lignes -->
+          <div class="facts">
+            <span>Niveaux : Seconde, Première, Terminale</span>
+            <span>Sorties : géologie, écologie viticole, littoral</span>
+            <span>Numérique : cartes, jeux sérieux, entraînement</span>
+          </div>
+        </div>
+        <a class="pill outline arrow" href="#services"><span>Voir les niveaux<span class="badge"><svg class="ic"><use href="#i-arr"/></svg></span></span></a>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ================================ THÈMES =============================== -->
-<section id="themes" class="sec">
-  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    <line x1="14" y1="0" x2="28" y2="100"/><line x1="48" y1="0" x2="64" y2="100"/>
-    <line x1="86" y1="0" x2="92" y2="100"/><line x1="0" y1="30" x2="100" y2="75"/>
-  </svg>
+<!-- ============ CREATE BAND ============ -->
+<section class="createband">
+  <ul class="shell">
+    <li data-reveal="up" style="--ry:28px;--rd:0ms"><div class="tile t-light" data-hs="scale:1.03" data-cfg="300/18">Observer</div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:120ms"><div class="tile t-accent" data-hs="scale:1.03" data-cfg="300/18">Comprendre</div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:240ms"><div class="tile t-dark" data-hs="scale:1.03" data-cfg="300/18"><svg class="ic"><use href="#i-arr"/></svg></div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:360ms"><div class="tile t-ghost" data-hs="scale:1.03" data-cfg="300/18">Transmettre</div></li>
+  </ul>
+</section>
 
-  <div class="inner wrap">
-    <div class="sec-top reveal">
-      <h2 class="display">Les grands thèmes du programme</h2>
-      <p>Chaque thème regroupe une fiche de cours, un TP et de quoi s'auto-évaluer.</p>
+<!-- ============ PORTFOLIO ============ -->
+<section id="works">
+  <div class="shell inner">
+    <div class="head">
+      <span class="eyebrow boxed" data-reveal="up" style="--ry:12px">Programme</span>
+      <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Les grands thèmes</i></span></h2>
     </div>
-
-    <!-- ✏️ Le lien "href" mène pour l'instant à la page de Seconde.
-         Remplacez-le par la page ou le PDF de votre choix. -->
-    <div class="grid2">
-
-      <a class="tcard reveal" href="2nde.html">
-        <div class="art">
-          <!-- cellule vue au microscope -->
-          <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <defs>
-              <radialGradient id="gCell" cx="45%" cy="45%">
-                <stop offset="0%" stop-color="#1d5f3a"/><stop offset="100%" stop-color="#08130d"/>
-              </radialGradient>
-            </defs>
-            <rect width="400" height="220" fill="url(#gCell)"/>
-            <g stroke="#7fe0a0" fill="none" opacity=".85">
-              <ellipse cx="200" cy="110" rx="96" ry="76" stroke-width="2.5"/>
-              <ellipse cx="200" cy="110" rx="86" ry="67" stroke-width="1" opacity=".45"/>
-              <circle cx="182" cy="98" r="27" stroke-width="2" fill="#2f8f57" fill-opacity=".55"/>
-              <circle cx="182" cy="98" r="9" fill="#a8f0c4" stroke="none"/>
-              <ellipse cx="245" cy="140" rx="19" ry="11" stroke-width="1.6" transform="rotate(-24 245 140)"/>
-              <ellipse cx="146" cy="146" rx="15" ry="9" stroke-width="1.6" transform="rotate(18 146 146)"/>
-              <ellipse cx="243" cy="80" rx="13" ry="8" stroke-width="1.6" transform="rotate(32 243 80)"/>
-              <circle cx="160" cy="70" r="5" stroke-width="1.4"/><circle cx="215" cy="160" r="4" stroke-width="1.4"/>
-            </g>
-          </svg>
-        </div>
-        <div class="body">
-          <span class="tag">Biologie</span>
-          <h3>La cellule, unité du vivant</h3>
-          <p>Observation au microscope, membranes, échanges et métabolisme.</p>
-          <span class="more">Voir le chapitre
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a class="tcard reveal" href="2nde.html">
-        <div class="art">
-          <!-- double hélice d'ADN -->
-          <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <defs>
-              <linearGradient id="gDna" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#0b1a2c"/><stop offset="100%" stop-color="#061019"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="220" fill="url(#gDna)"/>
-            <!-- Deux brins sur trois tours : la carte recadre l'image, il faut
-                 assez de motif pour que l'hélice reste lisible une fois rognée. -->
-            <g stroke="#79c8f2" stroke-width="3" fill="none" stroke-linecap="round">
-              <path d="M156 -20c44 18 44 42 0 60s-44 42 0 60 44 42 0 60 44 42 0 60"/>
-              <path d="M244 -20c-44 18-44 42 0 60s44 42 0 60-44 42 0 60-44 42 0 60"/>
-            </g>
-            <g stroke="#ffd08a" stroke-width="2.4" stroke-linecap="round" opacity=".85">
-              <line x1="170" y1="4" x2="230" y2="4"/><line x1="186" y1="22" x2="214" y2="22"/>
-              <line x1="186" y1="58" x2="214" y2="58"/><line x1="170" y1="76" x2="230" y2="76"/>
-              <line x1="186" y1="94" x2="214" y2="94"/><line x1="186" y1="130" x2="214" y2="130"/>
-              <line x1="170" y1="148" x2="230" y2="148"/><line x1="186" y1="166" x2="214" y2="166"/>
-              <line x1="186" y1="202" x2="214" y2="202"/>
-            </g>
-            <g fill="#a8e0ff">
-              <circle cx="156" cy="40" r="4"/><circle cx="244" cy="40" r="4"/>
-              <circle cx="156" cy="112" r="4"/><circle cx="244" cy="112" r="4"/>
-              <circle cx="156" cy="184" r="4"/><circle cx="244" cy="184" r="4"/>
-            </g>
-          </svg>
-        </div>
-        <div class="body">
-          <span class="tag">Biologie</span>
-          <h3>ADN &amp; hérédité</h3>
-          <p>Du gène au caractère : structure, mutations et diversité génétique.</p>
-          <span class="more">Voir le chapitre
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a class="tcard reveal" href="2nde.html">
-        <div class="art">
-          <!-- volcan -->
-          <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <defs>
-              <linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#2a1108"/><stop offset="100%" stop-color="#0b0605"/>
-              </linearGradient>
-              <linearGradient id="gLava" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stop-color="#ffd66b"/><stop offset="100%" stop-color="#e0431a"/>
-              </linearGradient>
-            </defs>
-            <rect width="400" height="220" fill="url(#gSky)"/>
-            <!-- panache incandescent au-dessus du cratère -->
-            <ellipse cx="212" cy="52" rx="118" ry="44" fill="#ff6a2a" opacity=".20"/>
-            <ellipse cx="212" cy="66" rx="62" ry="26" fill="#ff8a3a" opacity=".22"/>
-            <!-- cône : le sommet est échancré par le cratère -->
-            <path d="M0 220 L104 118 L150 146 L196 74 L228 74 L400 220Z" fill="#1b1310"/>
-            <path d="M196 74 L212 88 L228 74Z" fill="url(#gLava)"/>
-            <!-- coulées descendant le flanc droit -->
-            <path d="M214 86c4 20 14 34 22 52 8 18 14 38 18 58" stroke="url(#gLava)" stroke-width="5.5" fill="none" stroke-linecap="round"/>
-            <path d="M210 88c-3 16-11 26-16 42" stroke="url(#gLava)" stroke-width="3" fill="none" stroke-linecap="round" opacity=".75"/>
-            <!-- projections -->
-            <g fill="#ffb15c" opacity=".9">
-              <circle cx="224" cy="46" r="3"/><circle cx="198" cy="34" r="2.4"/><circle cx="244" cy="58" r="2.2"/>
-              <circle cx="180" cy="56" r="2"/><circle cx="252" cy="34" r="1.8"/>
-            </g>
-          </svg>
-        </div>
-        <div class="body">
-          <span class="tag">Géologie</span>
-          <h3>Volcanisme &amp; séismes</h3>
-          <p>Dynamique interne, magmas, risques et prévention.</p>
-          <span class="more">Voir le chapitre
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-          </span>
-        </div>
-      </a>
-
-      <a class="tcard reveal" href="2nde.html">
-        <div class="art">
-          <!-- strates et fossile -->
-          <svg viewBox="0 0 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
-            <rect width="400" height="220" fill="#0d0b09"/>
-            <path d="M0 34c90-16 180 14 400-6v40C180 88 90 58 0 74Z" fill="#8d7a5e"/>
-            <path d="M0 74c90-16 180 14 400-6v34C180 122 90 92 0 108Z" fill="#6d5c45"/>
-            <path d="M0 108c90-16 180 14 400-6v36C180 158 90 128 0 144Z" fill="#4e4133"/>
-            <path d="M0 144c90-16 180 14 400-6v82H0Z" fill="#332b22"/>
-            <g stroke="rgba(255,255,255,.10)" stroke-width="1" fill="none">
-              <path d="M0 34c90-16 180 14 400-6"/><path d="M0 74c90-16 180 14 400-6"/>
-              <path d="M0 108c90-16 180 14 400-6"/><path d="M0 144c90-16 180 14 400-6"/>
-            </g>
-            <!-- ammonite -->
-            <g transform="translate(286 150)" stroke="#e8dcc4" fill="none" stroke-width="2.2" opacity=".9">
-              <path d="M0 0a17 17 0 1 0 6-13"/><path d="M0 0a11 11 0 1 1 9-4"/><path d="M0 0a5.5 5.5 0 1 0 5-3"/>
-            </g>
-          </svg>
-        </div>
-        <div class="body">
-          <span class="tag">Géologie</span>
-          <h3>Strates &amp; temps géologiques</h3>
-          <p>Lire l'histoire de la Terre dans l'empilement des roches.</p>
-          <span class="more">Voir le chapitre
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg>
-          </span>
-        </div>
-      </a>
-
-    </div>
+    <ul id="works-list"></ul>
   </div>
 </section>
 
-<!-- ============================== RESSOURCES ============================= -->
-<section id="ressources" class="sec">
-  <canvas class="stars" data-ring="1"></canvas>
-  <div class="inner wrap">
-    <div class="sec-top reveal">
-      <h2 class="display">Ressources élèves</h2>
-      <p>Tout ce qui sert en classe et à la maison, rassemblé au même endroit.</p>
-    </div>
-
-    <div class="grid3">
-      <a class="rcard reveal" href="2nde.html">
-        <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/>
-        </svg>
-        <h3>Cours de Seconde</h3>
-        <p>Les trois thèmes du programme, chapitre par chapitre : cours, TP, fiches et exercices.</p>
-      </a>
-
-      <a class="rcard reveal" href="carte_geol_aude_v5.html">
-        <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15"/><path d="M15 6v15"/>
-        </svg>
-        <h3>Carte géologique de l'Aude</h3>
-        <p>Explorer les formations du département, du calcaire des Corbières aux terrains viticoles.</p>
-      </a>
-
-      <a class="rcard reveal" href="chatbot_svt_TERM_test.html">
-        <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <h3>Assistant de révision</h3>
-        <p>Poser ses questions sur le programme de terminale et vérifier ses acquis.</p>
-      </a>
-    </div>
+<!-- ============ SERVICES ============ -->
+<section id="services">
+  <div class="shell inner">
+    <span class="eyebrow" data-reveal="up" style="--ry:12px">Niveaux</span>
+    <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Choisir sa classe</i></span></h2>
+    <ul id="services-list"></ul>
   </div>
 </section>
 
-<!-- =============================== CONTACT =============================== -->
-<section id="contact">
-  <svg class="lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    <line x1="28" y1="0" x2="18" y2="100"/><line x1="64" y1="0" x2="50" y2="100"/>
-    <line x1="0" y1="15" x2="100" y2="85"/>
-  </svg>
-  <div class="inner wrap">
-    <h2 class="display reveal">Une question sur un chapitre ?</h2>
-    <p class="reveal">
-      Élèves et parents : écrivez-moi pour un accompagnement, une remédiation
-      ou un projet de classe.
-    </p>
-    <!-- ✏️ À PERSONNALISER : votre adresse de contact -->
-    <a class="btn-big reveal" href="mailto:reynesmanon11@gmail.com">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m22 7-8.99 5.73a2 2 0 0 1-2.02 0L2 7"/><rect x="2" y="4" width="20" height="16" rx="2"/>
-      </svg>
-      reynesmanon11@gmail.com
-    </a>
+<!-- ============ STATS ============ -->
+<section class="statsec">
+  <div class="shell inner">
+    <div class="panel" data-reveal="panel">
+      <span class="eyebrow lighttone">En bref</span>
+      <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Un programme, trois thèmes, une méthode.</i></span></h2>
+      <ul id="stats-list"></ul>
+    </div>
   </div>
 </section>
+</main>
 
-<footer>
-  <div class="row wrap">
-    <b>Manon Reynes</b>
-    <span>© <span id="year">2026</span> — Cours de Sciences de la Vie et de la Terre</span>
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="shell inner">
+    <div class="cta">
+      <h2 class="lines" data-lines data-stagger="100">
+        <span class="ln"><i>Une notion qui résiste ?</i></span>
+        <span class="ln"><i>Écrivez-moi.</i></span>
+      </h2>
+      <button class="pill light arrow" data-modal><span>Poser une question<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="cbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+        <p class="ctag">Cours, travaux pratiques et ressources de Sciences de la Vie et de la Terre au lycée.</p>
+      </div>
+      <div>
+        <p class="ctitle">Niveaux</p>
+        <ul class="clist">
+          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
+          <li><a class="alink" href="#services"><span>Première</span></a></li>
+          <li><a class="alink" href="#services"><span>Terminale</span></a></li>
+          <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Ressources</p>
+        <ul class="clist">
+          <li><a class="alink" href="carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
+          <li><a class="alink" href="cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
+          <li><a class="alink" href="chatbot_svt_TERM_test.html"><span>Assistant de révision</span></a></li>
+          <li><a class="alink" href="defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Contact</p>
+        <ul class="clist">
+          <!-- ✏️ À PERSONNALISER : votre adresse -->
+          <li><a class="alink" href="mailto:reynesmanon11@gmail.com"><span>Écrire un message</span></a></li>
+          <li><a class="alink" href="#about"><span>La classe</span></a></li>
+          <li><a class="alink" href="#works"><span>Les thèmes</span></a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="legal">
+      <span>© <span id="year">2026</span> Mme Reynes — Sciences de la Vie et de la Terre</span>
+      <div class="lks"><span>Photographie d'illustration — à remplacer</span></div>
+    </div>
   </div>
+  <div class="fwm">SVT</div>
 </footer>
 
-<script>
-/* =========================================================================
-   1. CHAMP D'ÉTOILES — un canvas par section (data-ring ajoute l'anneau).
-   ========================================================================= */
-function starField(canvas){
-  const ctx = canvas.getContext('2d');
-  const ring = canvas.dataset.ring === '1';
-  const BAND = 50;
-  let stars = [], ringStars = [], w = 0, h = 0, ringR = 0;
+<!-- ============ NAV OVERLAY ============ -->
+<div id="navmenu" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="shell top">
+    <div class="nbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <button class="closeb" id="closemenu"><svg class="ic"><use href="#i-x"/></svg> Fermer</button>
+  </div>
+  <nav class="shell" aria-label="Overlay"><ul id="navlist"></ul></nav>
+  <div class="shell btm">
+    <span id="nav-time">Heure locale</span>
+    <button id="nav-start">Poser une question →</button>
+  </div>
+</div>
 
-  const gauss = (sd) => {                       // Box-Muller
-    let u = 0, v = 0;
-    while(!u) u = Math.random();
-    while(!v) v = Math.random();
-    return sd * Math.sqrt(-2*Math.log(u)) * Math.cos(2*Math.PI*v);
-  };
+<!-- ============ REQUEST MODAL ============ -->
+<div id="modal" role="dialog" aria-modal="true" aria-label="Poser une question">
+  <div class="panel">
+    <button class="closeb" id="closemodal" aria-label="Fermer"><svg class="ic"><use href="#i-x"/></svg></button>
 
-  function build(){
-    const p = canvas.parentElement, dpr = window.devicePixelRatio || 1;
-    w = p.clientWidth; h = p.clientHeight;
-    if(!w || !h) return;
-    canvas.width = w*dpr; canvas.height = h*dpr;
-    canvas.style.width = w+'px'; canvas.style.height = h+'px';
-    ctx.setTransform(dpr,0,0,dpr,0,0);
+    <div class="mhead">
+      <span class="mkick">Contact</span>
+      <h2>Une question ? Écrivez-moi.</h2>
+    </div>
 
-    const n = Math.round(Math.min(700, (w*h)/1700));
-    stars = Array.from({length:n}, () => {
-      const r = Math.random();
-      return {
-        x:Math.random()*w, y:Math.random()*h,
-        r: r < .65 ? .25+Math.random()*.25 : r < .92 ? .5+Math.random()*.3 : .8+Math.random()*.5,
-        o: .2+Math.random()*.75, s: .4+Math.random()*1.2, p: Math.random()*Math.PI*2
-      };
-    });
+    <form id="reqform">
+      <label><span class="cap">Nom</span><input type="text" name="name" required placeholder="Votre nom" /></label>
+      <label><span class="cap">Classe ou email</span><input type="text" name="email" required placeholder="2nde 4 — ou votre adresse" /></label>
+      <label><span class="cap">Votre question</span><textarea name="project" rows="4" required placeholder="Le chapitre concerné et ce qui vous bloque."></textarea></label>
+      <div class="brow">
+        <span class="note">Réponse en classe ou par mail.</span>
+        <button class="pill dark arrow" type="submit"><span id="sendlbl">Envoyer<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+      </div>
+    </form>
 
-    ringStars = [];
-    if(ring){
-      ringR = Math.min(w,h)*.37;
-      for(let i=0;i<420;i++){
-        const a = Math.random()*Math.PI*2, off = gauss(BAND*.325), d = ringR + off, rr = Math.random();
-        ringStars.push({
-          x: w/2 + Math.cos(a)*d, y: h/2 + Math.sin(a)*d,
-          r: rr < .7 ? .15+Math.random()*.15 : rr < .93 ? .3+Math.random()*.2 : .5+Math.random()*.2,
-          o: .25+Math.random()*.55, s: .3+Math.random(), p: Math.random()*Math.PI*2, off
-        });
-      }
-    }
-  }
+    <div class="success">
+      <div class="sbadge"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <h2>Message noté</h2>
+      <p class="stext">Ce formulaire est une démonstration : il n'envoie rien pour l'instant. Écrivez-moi directement par mail.</p>
+      <button class="pill dark noarrow" id="successclose"><span>Fermer</span></button>
+    </div>
+  </div>
+</div>
 
-  function frame(time){
-    const t = time/1000;
-    ctx.clearRect(0,0,w,h);
+<script type="importmap">
+{ "imports": { "lenis": "https://unpkg.com/lenis@1.3.23/dist/lenis.mjs" } }
+</script>
+<script type="module">
+/* ============ Lenis (dégradation propre si le CDN est injoignable) ============ */
+window.scrollTo(0, 0);
+let lenis = null;
+/* Chargement non bloquant : un `await` de haut niveau suspendrait tout le
+   module — loader compris — jusqu'à la réponse du CDN. */
+import('lenis').then(({ default: Lenis }) => {
+  lenis = new Lenis({ smoothWheel: true });
+  const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+  requestAnimationFrame(raf);
+  if (!scrollEnabled) lenis.stop();
+}).catch(() => { /* scroll natif */ });
 
-    if(ring && ringStars.length){
-      const g = ctx.createRadialGradient(w/2,h/2,Math.max(0,ringR-BAND*4),w/2,h/2,ringR+BAND*4);
-      g.addColorStop(0,'rgba(255,255,255,0)');
-      g.addColorStop(.42,'rgba(255,255,255,.022)');
-      g.addColorStop(.5,'rgba(255,255,255,.038)');
-      g.addColorStop(.58,'rgba(255,255,255,.022)');
-      g.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.fillStyle = g; ctx.fillRect(0,0,w,h);
-    }
-    for(const s of stars){
-      const tw = .55 + .45*(Math.sin(t*s.s + s.p)*.5 + .5);
-      ctx.beginPath(); ctx.fillStyle = 'rgba(255,255,255,'+(s.o*tw)+')';
-      ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
-    }
-    for(const s of ringStars){
-      const tw = .55 + .45*(Math.sin(t*s.s + s.p)*.5 + .5);
-      const fall = Math.max(.15, 1 - Math.abs(s.off)/(BAND*.65));
-      ctx.beginPath(); ctx.fillStyle = 'rgba(255,255,255,'+(s.o*tw*fall)+')';
-      ctx.arc(s.x, s.y, s.r, 0, 6.2832); ctx.fill();
-    }
-    requestAnimationFrame(frame);
-  }
-
-  build();
-  new ResizeObserver(build).observe(canvas.parentElement);
-  requestAnimationFrame(frame);
+/* ============ verrou de défilement ============ */
+let scrollEnabled = true;
+function stopScroll(){
+  scrollEnabled = false;
+  lenis && lenis.stop();
+  const h = document.documentElement;
+  h.style.position = 'relative'; h.style.overflow = 'hidden'; h.style.height = '100%';
 }
-document.querySelectorAll('canvas.stars').forEach(starField);
+function startScroll(){
+  scrollEnabled = true;
+  lenis && lenis.start();
+  const h = document.documentElement;
+  h.style.removeProperty('position'); h.style.removeProperty('overflow'); h.style.removeProperty('height');
+}
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  scrollEnabled = false;
+  setTimeout(() => {
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset, behavior:'smooth' });
+  }, 50);
+  setTimeout(() => { scrollEnabled = true; }, 100);
+}
 
-/* =========================================================================
-   2. LE GLOBE
-   La texture (planisphère équirectangulaire, deux fois plus large que haut)
-   est projetée sur une sphère pixel par pixel. Une table de correspondance
-   est calculée une seule fois ; ensuite chaque image ne fait que décaler la
-   longitude, ce qui rend la rotation fluide sans bibliothèque 3D.
-   Si l'image est absente ou illisible, on retombe sur le globe dessiné.
-   ========================================================================= */
-(function(){
-  const cv = document.getElementById('earth');
-  if(!cv) return;
-  const ctx = cv.getContext('2d');
+/* ============ grille adaptative ============ */
+function applyAdaptiveGrid(){
+  const FONT_BASE = 16, baseWidth = 1920, coef = 0.6666;
+  const w = window.innerWidth;
+  const widthReduction = ((baseWidth - w) / baseWidth) * 100;
+  const size = FONT_BASE - (FONT_BASE * (widthReduction * coef)) / 100;
+  if (size > FONT_BASE) document.documentElement.style.fontSize = size + 'px';
+  else document.documentElement.style.removeProperty('font-size');
+}
+applyAdaptiveGrid();
+addEventListener('resize', applyAdaptiveGrid);
 
-  /* ---- ✏️ RÉGLAGES ------------------------------------------------------
-     TEXTURES : noms d'images essayés dans l'ordre. Renommez votre image de
-     la NASA en « terre.jpg », ou ajoutez son nom exact dans cette liste.
-     CUTAWAY  : true = un quartier ouvert montre l'intérieur de la Terre.
-     ---------------------------------------------------------------------- */
-  const TEXTURES = ['terre.jpg', 'terre.png', 'terre.jpeg'];
-  const CUTAWAY  = true;
+/* ============ ressort (remplace react-spring) ============ */
+const CAN_HOVER = matchMedia('(hover:hover) and (pointer:fine)').matches;
+function spring(cfg, onUpdate){
+  let x = 0, v = 0, target = 0, raf = 0;
+  const step = () => {
+    const dt = 1/60;
+    v += (cfg.tension * (target - x) - cfg.friction * v) * dt;
+    x += v * dt;
+    onUpdate(x);
+    if (Math.abs(target - x) < 0.001 && Math.abs(v) < 0.001){ x = target; v = 0; onUpdate(x); raf = 0; return; }
+    raf = requestAnimationFrame(step);
+  };
+  return { to(t){ target = t; if(!raf) raf = requestAnimationFrame(step); } };
+}
+/* data-hs="scale:1.04" | "y:-2" | "x:4" | "rot:45,scale:1.08" ; data-cfg="tension/friction"
+   data-hs-trigger="closest selector" pour être piloté par un parent */
+function initHover(el){
+  if(!CAN_HOVER) return;
+  const spec = el.dataset.hs.split(',').map(s => s.split(':'));
+  const [tension, friction] = (el.dataset.cfg || '320/18').split('/').map(Number);
+  const base = { scale:1, y:0, x:0, rot:0, opacity:null };
+  const to = { ...base };
+  spec.forEach(([k, v]) => { to[k] = Number(v); });
+  if (el.dataset.op){ const [f,t] = el.dataset.op.split('/').map(Number); base.opacity = f; to.opacity = t; }
+  const s = spring({ tension, friction }, (p) => {
+    const sc = base.scale + (to.scale - base.scale) * p;
+    const y  = base.y + (to.y - base.y) * p;
+    const x  = base.x + (to.x - base.x) * p;
+    const r  = base.rot + (to.rot - base.rot) * p;
+    el.style.transform = `translate3d(${x}px,${y}px,0) rotate(${r}deg) scale(${sc})`;
+    if (base.opacity !== null) el.style.opacity = base.opacity + (to.opacity - base.opacity) * p;
+  });
+  if (base.opacity !== null) el.style.opacity = base.opacity;
+  const trigger = el.dataset.hsTrigger ? el.closest(el.dataset.hsTrigger) : el;
+  trigger.addEventListener('mouseenter', () => s.to(1));
+  trigger.addEventListener('mouseleave', () => s.to(0));
+}
+const initAllHovers = (root=document) => root.querySelectorAll('[data-hs]').forEach(initHover);
 
-  const TEX_W = 1024, TEX_H = 512;     // texture ramenée à cette taille
-  const TILT  = 23.4 * Math.PI/180;    // inclinaison de l'axe
-  const SPIN  = 0.055;                 // tours par seconde
-
-  const LAYERS = [                     // du centre vers l'extérieur
-    {r:.19, c:'#ffe6b0'}, {r:.55, c:'#ff9d3d'}, {r:.80, c:'#cf6a3c'},
-    {r:.96, c:'#8f4c34'}, {r:1.0, c:'#4b3a2f'}
-  ];
-  const A0 = -100*Math.PI/180, A1 = -8*Math.PI/180;
-
-  // Continents de secours, utilisés tant que la texture n'est pas là
-  const LAND = [
-    [ -60,   5, .26], [ -68, -12, .24], [ -55, -30, .20], [ -72, -45, .13], [ -78,   8, .14],
-    [ -98,  38, .26], [ -92,  54, .24], [-115,  32, .18], [-135,  60, .20], [ -75,  45, .18],
-    [ -88,  18, .13], [ -45,  70, .16],
-    [  18,   4, .26], [  26, -18, .24], [   8,  22, .24], [  34,  12, .20], [  46, -20, .12],
-    [  12,  46, .19], [  32,  52, .22], [  62,  56, .26], [  90,  58, .26], [ 118,  50, .22],
-    [  80,  26, .22], [ 104,  20, .18], [ 136,  38, .15],
-    [ 134, -24, .24], [ 146, -33, .14], [ 172, -42, .11],
-  ];
-
-  let W = 0, H = 0;                            // taille affichée (px CSS)
-  let tex = null;                              // pixels de la texture
-  let S = 0;                                   // côté du rendu interne
-  let buf = null, bufCtx = null, img = null;   // tampon de la sphère
-  let lut = null;                              // pixel écran -> pixel texture
-
-  /* ---- chargement de la texture ---- */
-  function loadTexture(i){
-    if(i >= TEXTURES.length) return;           // aucune image : on garde le dessin
-    const im = new Image();
-    im.onload = () => {
-      // Une carte équirectangulaire est deux fois plus large que haute.
-      // Une Terre déjà rendue en boule est carrée : la projeter donnerait
-      // une bouillie, mieux vaut garder le globe dessiné.
-      const ratio = im.naturalWidth / im.naturalHeight;
-      if(ratio < 1.7 || ratio > 2.3){
-        console.warn('[globe] "' + TEXTURES[i] + '" fait ' + im.naturalWidth + '×' +
-          im.naturalHeight + ' (rapport ' + ratio.toFixed(2) + '). Il faut un ' +
-          'planisphère deux fois plus large que haut, pas un globe déjà rendu.');
-        return loadTexture(i+1);
-      }
-      try{
-        const c = document.createElement('canvas');
-        c.width = TEX_W; c.height = TEX_H;
-        const cc = c.getContext('2d', {willReadFrequently:true});
-        cc.drawImage(im, 0, 0, TEX_W, TEX_H);
-        tex = cc.getImageData(0, 0, TEX_W, TEX_H).data;
-        buildLut();
-      }catch(e){
-        // En local (file://), la lecture des pixels peut être bloquée.
-        tex = null;
-      }
-    };
-    im.onerror = () => loadTexture(i+1);
-    im.src = TEXTURES[i];
+/* ============ révélations ============ */
+let ready = false;
+const pending = new Set();
+function show(el){
+  el.classList.add('in');
+  if (el.hasAttribute('data-lines')){
+    const stag = Number(el.dataset.stagger || 0), base = Number(el.dataset.delay || 0);
+    el.querySelectorAll('.ln > i').forEach((n, i) => n.style.setProperty('--ld', (base + i * stag) + 'ms'));
   }
+}
+function maybeShow(el){
+  if (el.dataset.gate === 'ready' && !ready){ pending.add(el); return; }
+  show(el);
+}
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting){ maybeShow(e.target); io.unobserve(e.target); } });
+}, { threshold:0.15, rootMargin:'0px 0px -8% 0px' });
 
-  /* ---- table de correspondance : calculée une fois par taille ---- */
-  function buildLut(){
-    if(!tex || !S) return;
-    const discR = S/2 - 1;
-    const n = S*S;
-    const row = new Int32Array(n), col = new Int32Array(n), shade = new Float32Array(n);
-    const cosT = Math.cos(TILT), sinT = Math.sin(TILT);
-    const lx = -0.42, ly = -0.46, lz = 0.78;   // lumière : haut-gauche, en avant
-    const ln = Math.hypot(lx, ly, lz);
-
-    for(let y = 0; y < S; y++){
-      for(let x = 0; x < S; x++){
-        const idx = y*S + x;
-        const nx = (x - S/2 + .5)/discR;
-        const ny = (y - S/2 + .5)/discR;
-        const d2 = nx*nx + ny*ny;
-        if(d2 > 1){ row[idx] = -1; continue; }
-        const nz = Math.sqrt(1 - d2);
-
-        const py = ny*cosT - nz*sinT;          // inclinaison de l'axe
-        const pz = ny*sinT + nz*cosT;
-
-        const lat = Math.asin(Math.max(-1, Math.min(1, -py)));
-        const lon = Math.atan2(nx, pz);
-
-        row[idx] = Math.min(TEX_H-1, Math.max(0, ((0.5 - lat/Math.PI) * TEX_H) | 0));
-        col[idx] = (((lon/(2*Math.PI)) + 0.5) * TEX_W) | 0;
-
-        let s = (nx*lx + ny*ly + nz*lz)/ln;
-        s = 0.18 + 0.92*Math.max(0, s);        // ambiance + diffus
-        shade[idx] = Math.min(1.25, s) * (1 - Math.pow(d2, 6)*0.45);
-      }
-    }
-    lut = {row, col, shade};
-  }
-
-  function size(){
-    W = cv.clientWidth; H = cv.clientHeight;
-    if(!W || !H) return;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    cv.width = W*dpr; cv.height = H*dpr;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    S = Math.max(120, Math.round(Math.min(W, H) * 0.84));   // rendu interne
-    buf = document.createElement('canvas');
-    buf.width = S; buf.height = S;
-    bufCtx = buf.getContext('2d');
-    img = bufCtx.createImageData(S, S);
-    buildLut();
-  }
-
-  /* ---- sphère texturée ---- */
-  function drawTextured(cx, cy, R, t){
-    const shift = Math.round(((t*SPIN) % 1) * TEX_W);
-    const o = img.data, row = lut.row, col = lut.col, shade = lut.shade;
-    for(let i = 0, n = S*S; i < n; i++){
-      const r = row[i];
-      if(r < 0){ o[i*4+3] = 0; continue; }
-      let c = col[i] + shift;
-      if(c >= TEX_W) c -= TEX_W;
-      const s = shade[i];
-      const p = (r*TEX_W + c) << 2;
-      o[i*4]   = tex[p]   * s;
-      o[i*4+1] = tex[p+1] * s;
-      o[i*4+2] = tex[p+2] * s;
-      o[i*4+3] = 255;
-    }
-    bufCtx.putImageData(img, 0, 0);
-    ctx.drawImage(buf, cx - R, cy - R, R*2, R*2);
-  }
-
-  /* ---- globe dessiné : repli si pas de texture ---- */
-  function drawDrawn(cx, cy, R, t){
-    ctx.save();
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832); ctx.clip();
-    const sea = ctx.createLinearGradient(cx-R, cy-R, cx+R, cy+R);
-    sea.addColorStop(0,'#2b7fa5'); sea.addColorStop(.55,'#1d5f7e'); sea.addColorStop(1,'#123c53');
-    ctx.fillStyle = sea; ctx.fillRect(cx-R, cy-R, R*2, R*2);
-
-    const rot = -20 + t*4.5;
-    ctx.globalAlpha = .95; ctx.fillStyle = '#5cae74';
-    ctx.beginPath();
-    LAND.forEach(([lon,lat,rel], i) => {
-      const l = ((lon + rot + 180) % 360 + 360) % 360 - 180;
-      if(Math.abs(l) > 90) return;
-      const rad = l*Math.PI/180, la = lat*Math.PI/180, squash = Math.cos(rad);
-      if(squash < .05) return;
-      const x = cx + R*Math.sin(rad)*Math.cos(la), y = cy - R*Math.sin(la);
-      const rx = R*rel*squash*1.34, ry = R*rel*(.86 + (i%5)*.09);
-      const ang = ((i*47) % 180) * Math.PI/180;
-      ctx.moveTo(x + rx*Math.cos(ang), y + rx*Math.sin(ang));
-      ctx.ellipse(x, y, rx, ry, ang, 0, 6.2832);
-    });
-    ctx.fill(); ctx.globalAlpha = 1;
-
-    const night = ctx.createRadialGradient(cx-R*.35, cy-R*.4, R*.1, cx, cy, R*1.25);
-    night.addColorStop(0,'rgba(255,255,255,.18)');
-    night.addColorStop(.55,'rgba(0,0,0,0)');
-    night.addColorStop(1,'rgba(0,0,0,.55)');
-    ctx.fillStyle = night; ctx.fillRect(cx-R, cy-R, R*2, R*2);
-    ctx.restore();
-  }
-
-  /* ---- coupe géologique ---- */
-  function drawCutaway(cx, cy, R, t){
-    for(let i = LAYERS.length-1; i >= 0; i--){
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, R*LAYERS[i].r, A0, A1); ctx.closePath();
-      ctx.fillStyle = LAYERS[i].c; ctx.fill();
-    }
-    const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R*.6);
-    const pulse = .18 + .10*Math.sin(t*1.1);
-    glow.addColorStop(0,'rgba(255,190,90,'+pulse+')');
-    glow.addColorStop(1,'rgba(255,140,40,0)');
-    ctx.save();
-    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, A0, A1); ctx.closePath(); ctx.clip();
-    ctx.fillStyle = glow; ctx.fillRect(cx-R, cy-R, R*2, R*2);
-    ctx.restore();
-    ctx.strokeStyle = 'rgba(255,255,255,.28)'; ctx.lineWidth = 1;
-    [A0, A1].forEach(a => {
-      ctx.beginPath(); ctx.moveTo(cx, cy);
-      ctx.lineTo(cx + Math.cos(a)*R, cy + Math.sin(a)*R); ctx.stroke();
-    });
-  }
-
-  function draw(time){
-    const t = time/1000, cx = W/2, cy = H/2, R = Math.min(W, H)*.42;
-    ctx.clearRect(0, 0, W, H);
-    if(!R){ requestAnimationFrame(draw); return; }
-
-    const halo = ctx.createRadialGradient(cx, cy, R*.92, cx, cy, R*1.3);
-    halo.addColorStop(0,'rgba(120,200,255,.20)');
-    halo.addColorStop(1,'rgba(90,170,230,0)');
-    ctx.fillStyle = halo;
-    ctx.beginPath(); ctx.arc(cx, cy, R*1.3, 0, 6.2832); ctx.fill();
-
-    if(tex && lut) drawTextured(cx, cy, R, t);
-    else           drawDrawn(cx, cy, R, t);
-
-    if(CUTAWAY) drawCutaway(cx, cy, R, t);
-
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 6.2832);
-    ctx.strokeStyle = 'rgba(255,255,255,.22)'; ctx.lineWidth = 1; ctx.stroke();
-
-    requestAnimationFrame(draw);
-  }
-
-  size();
-  new ResizeObserver(size).observe(cv);
-  loadTexture(0);
-  requestAnimationFrame(draw);
-})();
-
-/* =========================================================================
-   3. TRAITS ET APPARITIONS AU DÉFILEMENT
-   ========================================================================= */
-(function(){
-  const io = new IntersectionObserver((es) => {
-    es.forEach(e => { if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-  }, {threshold:.12, rootMargin:'-30px'});
-  document.querySelectorAll('.reveal').forEach((el,i) => {
-    el.style.transitionDelay = Math.min(i%4, 3)*0.08 + 's';
+function observeReveals(root=document){
+  root.querySelectorAll('[data-reveal],[data-lines],[data-words]').forEach(el => {
+    if (el.hasAttribute('data-words')) splitWords(el);
     io.observe(el);
   });
-
-  document.querySelectorAll('.lines').forEach(svg => {
-    svg.querySelectorAll('line').forEach(l => {
-      l.style.strokeDasharray = 160; l.style.strokeDashoffset = 160;
-      l.style.transition = 'stroke-dashoffset 1.6s var(--ease)';
+}
+function splitWords(el){
+  const stag = 35;
+  let i = 0;
+  const walk = (node) => {
+    [...node.childNodes].forEach(n => {
+      if (n.nodeType === 3){
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(part => {
+          if (!part.trim()){ frag.appendChild(document.createTextNode(part)); return; }
+          const s = document.createElement('span');
+          s.className = 'wd'; s.textContent = part;
+          s.style.setProperty('--wd', (i++ * stag) + 'ms');
+          frag.appendChild(s);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1) walk(n);
     });
-    new IntersectionObserver((es, obs) => {
-      es.forEach(e => {
-        if(e.isIntersecting){
-          e.target.querySelectorAll('line').forEach((l,i) => {
-            setTimeout(() => l.style.strokeDashoffset = 0, i*140);
-          });
-          obs.unobserve(e.target);
-        }
-      });
-    }, {threshold:.1}).observe(svg);
-  });
+  };
+  walk(el);
+}
+function setReady(){
+  ready = true;
+  document.getElementById('hdr').classList.add('in');
+  pending.forEach(show); pending.clear();
+}
 
-  document.getElementById('year').textContent = new Date().getFullYear();
+/* ============ loader ============ */
+(function(){
+  const FILL_MS = 1300;
+  const loader = document.getElementById('loader');
+  const fill = document.getElementById('ldfill');
+  const num  = document.getElementById('ldnum');
+  stopScroll();
+  const ease = (t) => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+  const t0 = performance.now();
+  (function tick(now){
+    const t = Math.min((now - t0) / FILL_MS, 1);
+    const p = Math.round(ease(t) * 100);
+    fill.style.width = p + '%';
+    num.textContent = String(p).padStart(3, '0');
+    if (t < 1) return requestAnimationFrame(tick);
+    loader.classList.add('out');
+    setTimeout(() => { loader.remove(); startScroll(); setReady(); }, 700);
+  })(t0);
 })();
+
+/* ============ horloge ============ */
+function tickClock(){
+  const d = new Date();
+  const time = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  document.getElementById('clk-time').textContent = time;
+  document.getElementById('clk-date').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('nav-time').textContent = `Heure locale — ${time}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+/* ============ liquid reveal ============ */
+(function(){
+  const wrap = document.getElementById('liquid');
+  const canvas = wrap.querySelector('canvas');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { canvas.remove(); return; }
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const brushRadius = 143, decay = 0.016;
+  const radius = brushRadius * dpr, diam = Math.ceil(radius * 2);
+  const brush = document.createElement('canvas'); brush.width = brush.height = diam;
+  const bctx = brush.getContext('2d');
+  let cover = null, points = [], last = null, idle = 0, img = null;
+
+  const after = new Image();
+  after.crossOrigin = 'anonymous';
+  after.src = 'https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/before.jpg';
+  after.onload = () => { img = after; size(); };
+
+  function size(){
+    const r = wrap.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.round(r.width * dpr));
+    canvas.height = Math.max(1, Math.round(r.height * dpr));
+    if (!img) return;
+    cover = document.createElement('canvas');
+    cover.width = canvas.width; cover.height = canvas.height;
+    const c = cover.getContext('2d');
+    const ir = img.width / img.height, cr = canvas.width / canvas.height;
+    let dw, dh;
+    if (ir > cr){ dh = canvas.height; dw = dh * ir; } else { dw = canvas.width; dh = dw / ir; }
+    c.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+  }
+  new ResizeObserver(size).observe(wrap);
+
+  function stamp(x, y){
+    bctx.clearRect(0, 0, diam, diam);
+    bctx.globalCompositeOperation = 'source-over';
+    const g = bctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0.82)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, diam, diam);
+    bctx.globalCompositeOperation = 'source-in';
+    bctx.drawImage(cover, x - radius, y - radius, diam, diam, 0, 0, diam, diam);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(brush, x - radius, y - radius);
+  }
+
+  window.addEventListener('pointermove', (e) => {
+    if (!cover) return;
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * dpr, y = (e.clientY - r.top) * dpr;
+    if (x < -radius || y < -radius || x > canvas.width + radius || y > canvas.height + radius){ last = null; return; }
+    if (last){
+      const dx = x - last.x, dy = y - last.y, dist = Math.hypot(dx, dy);
+      const step = Math.max(radius * 0.3, 1);
+      const n = Math.min(Math.ceil(dist / step), 60);
+      for (let i = 1; i <= n; i++) points.push({ x:last.x + dx * i / n, y:last.y + dy * i / n });
+    } else points.push({ x, y });
+    last = { x, y };
+  }, { passive:true });
+
+  (function tick(){
+    requestAnimationFrame(tick);
+    if (!cover) return;
+    const drawing = points.length > 0;
+    if (drawing) idle = 0; else { idle++; if (idle > 120) return; }
+    const fade = drawing ? decay : Math.min(decay + idle * 0.004, 0.5);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = `rgba(0,0,0,${fade})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (drawing){ for (const p of points) stamp(p.x, p.y); points.length = 0; }
+    else if (idle === 120) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+})();
+
+/* ============ hero card carousel ============ */
+(function(){
+  const items = [
+    { caption:'Seconde',            title:'Trois thèmes, neuf chapitres.' },
+    { caption:'Travaux pratiques',  title:'Manipuler avant de conclure.' },
+    { caption:'Terrain',            title:'Lire le paysage sur place.' },
+  ];
+  const slot = document.getElementById('hc-slot');
+  const dots = [...document.getElementById('hc-dots').children];
+  let i = 0, cur = null;
+
+  function node(item){
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = `<p class="cap">${item.caption}</p><p class="ttl">${item.title}</p>`;
+    return d;
+  }
+  function render(step){
+    const next = node(items[i]);
+    next.classList.add(step > 0 ? 'hide-down' : 'hide-up');
+    slot.appendChild(next);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      next.classList.remove('hide-down', 'hide-up');
+      if (cur){
+        cur.classList.add(step > 0 ? 'hide-up' : 'hide-down');
+        const old = cur;
+        setTimeout(() => old.remove(), 400);
+      }
+      cur = next;
+    }));
+    dots.forEach((d, k) => d.classList.toggle('on', k === i));
+  }
+  function go(step){ i = (i + step + items.length) % items.length; render(step); }
+  render(1);
+  document.getElementById('hc-next').addEventListener('click', (e) => { e.stopPropagation(); go(1); });
+  document.getElementById('hc-prev').addEventListener('click', (e) => { e.stopPropagation(); go(-1); });
+  const row = document.getElementById('hc-row');
+  row.addEventListener('click', () => go(1));
+  row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(1); } });
+})();
+
+/* ============ partners ============ */
+(function(){
+  /* ✏️ Ajoutez vos pages ici : { n:'Nom affiché', href:'mon-fichier.html' } */
+  const tools = [
+    { n:'Carte géologique', href:'carte_geol_aude_v5.html' },
+    { n:'Cycle des roches', href:'cycle_des_roches_2nde.html' },
+    { n:'Révision',         href:'chatbot_svt_TERM_test.html' },
+    { n:'Défi photo',       href:'defi3_photo_ferroul_finalV2.html' },
+  ];
+  document.getElementById('partners').innerHTML = tools.map(t =>
+    `<li><a href="${t.href}"><span data-hs="y:-2" data-op="0.7/1" data-cfg="320/20"><svg class="ic"><use href="#i-dot"/></svg>${t.n}</span></a></li>`
+  ).join('');
+})();
+
+/* ============ portfolio ============ */
+(function(){
+  const items = [
+    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'2nde.html' },
+    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'2nde.html' },
+    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'2nde.html' },
+    { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'carte_geol_aude_v5.html' },
+  ];
+  document.getElementById('works-list').innerHTML = items.map((it, i) => `
+    <li data-reveal="up" style="--ry:48px;--rd:${i * 90}ms">
+      <a href="${it.href}">
+        <article data-hs="y:-8,scale:1.012" data-cfg="260/22">
+          <div class="meta">
+            <span>${it.cat} — ${it.year}</span>
+            <span class="pbadge"><svg class="ic" data-hs="rot:45,scale:1.08" data-cfg="280/18" data-hs-trigger="article"><use href="#i-arrup"/></svg></span>
+          </div>
+          <div class="cwm"><span><svg class="ic"><use href="#i-logo"/></svg><sup>®</sup></span></div>
+          <div class="btm">
+            <h3>${it.name}</h3>
+            <p class="desc">${it.desc}</p>
+            <div class="tags">${it.tags.map(t => `<span class="chip">${t}</span>`).join('')}</div>
+          </div>
+        </article>
+      </a>
+    </li>`).join('');
+})();
+
+/* ============ services ============ */
+(function(){
+  const rows = [
+    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'2nde.html' },
+    { n:'02', t:'Première',  d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
+  ];
+  const ul = document.getElementById('services-list');
+  ul.innerHTML = rows.map((r, i) => `
+    <li data-reveal="up" style="--ry:24px;--rd:${i * 80}ms">
+      <a href="${r.href}">
+        <div class="row">
+          <span class="idx">${r.n}</span>
+          <h3>${r.t}</h3>
+          <p class="sdesc">${r.d}</p>
+          <span class="sbadge"><svg class="ic" data-hs="x:5" data-cfg="300/18" data-hs-trigger=".row"><use href="#i-arrup"/></svg></span>
+        </div>
+      </a>
+    </li>`).join('');
+
+  if (CAN_HOVER) ul.querySelectorAll('.row').forEach(row => {
+    const s = spring({ tension:240, friction:26 }, (p) => {
+      row.style.background = `rgba(241,240,238,${Math.max(0, Math.min(1, p))})`;
+      row.style.paddingLeft  = (1.5 + 0.5 * p) + 'rem';
+      row.style.paddingRight = (1.5 - 0.25 * p) + 'rem';
+    });
+    row.addEventListener('mouseenter', () => s.to(1));
+    row.addEventListener('mouseleave', () => s.to(0));
+  });
+})();
+
+/* ============ stats + count-up ============ */
+(function(){
+  /* ✏️ Ces chiffres décrivent le programme — adaptez-les à votre progression. */
+  const stats = [
+    { v:3, suf:'', l:'thèmes au programme' },
+    { v:9, suf:'', l:'chapitres en Seconde' },
+    { v:4, suf:'', l:'outils interactifs' },
+    { v:1, suf:'', l:'sortie de terrain' },
+  ];
+  const ul = document.getElementById('stats-list');
+  ul.innerHTML = stats.map((s, i) => `
+    <li data-reveal="up" style="--ry:20px;--rd:${i * 90}ms">
+      <p class="num"><span data-count="${s.v}">0</span>${s.suf}</p>
+      <p class="slab">${s.l}</p>
+    </li>`).join('');
+
+  const nodes = [...ul.querySelectorAll('[data-count]')];
+  let last = 0;
+  function update(){
+    const now = performance.now();
+    if (now - last < 30) return;
+    last = now;
+    const vh = window.innerHeight;
+    nodes.forEach(n => {
+      const r = n.getBoundingClientRect();
+      const startY = vh;                       // top === viewport bottom  → 0
+      const endY   = vh / 2 - r.height / 2;    // center === viewport center → 1
+      const p = Math.max(0, Math.min(1, (startY - r.top) / (startY - endY)));
+      n.textContent = Math.round(p * Number(n.dataset.count));
+    });
+  }
+  addEventListener('scroll', update, { passive:true });
+  addEventListener('resize', update);
+  update();
+})();
+
+/* ============ nav overlay ============ */
+(function(){
+  const NAV = [
+    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Niveaux', id:'services' },
+    { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
+  ];
+  const menu = document.getElementById('navmenu');
+  document.getElementById('navlist').innerHTML = NAV.map((n, i) => `
+    <li><button data-nav="${n.id}" style="transition-delay:${i * 45 + 80}ms">
+      <span class="n">0${i + 1}</span><span class="l">${n.label}</span>
+    </button></li>`).join('');
+
+  function openMenu(){
+    menu.classList.add('show');
+    requestAnimationFrame(() => menu.classList.add('vis'));
+    stopScroll();
+    document.addEventListener('keydown', esc);
+  }
+  function closeMenu(){
+    menu.classList.remove('vis');
+    setTimeout(() => menu.classList.remove('show'), 450);
+    startScroll();
+    document.removeEventListener('keydown', esc);
+  }
+  function esc(e){ if (e.key === 'Escape') closeMenu(); }
+  document.getElementById('openmenu').addEventListener('click', openMenu);
+  document.getElementById('closemenu').addEventListener('click', closeMenu);
+  document.getElementById('nav-start').addEventListener('click', () => { closeMenu(); openModal(); });
+  window.__closeMenu = closeMenu;
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-nav]');
+    if (!b) return;
+    const id = b.dataset.nav;
+    if (menu.classList.contains('show')) closeMenu();
+    if (id === 'contact'){ openModal(); return; }
+    scrollTo(id);
+  });
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-go]');
+    if (g) scrollTo(g.dataset.go);
+  });
+})();
+
+/* ============ request modal ============ */
+const modal = document.getElementById('modal');
+function openModal(){
+  modal.classList.add('show');
+  requestAnimationFrame(() => modal.classList.add('vis'));
+  stopScroll();
+  document.addEventListener('keydown', escModal);
+}
+function closeModal(){
+  modal.classList.remove('vis');
+  setTimeout(() => {
+    modal.classList.remove('show');
+    modal.classList.remove('done');
+    document.getElementById('reqform').reset();
+    document.getElementById('sendlbl').firstChild.textContent = 'Envoyer';
+  }, 400);
+  startScroll();
+  document.removeEventListener('keydown', escModal);
+}
+function escModal(e){ if (e.key === 'Escape') closeModal(); }
+window.openModal = openModal;
+
+document.addEventListener('click', (e) => { if (e.target.closest('[data-modal]')) openModal(); });
+document.getElementById('closemodal').addEventListener('click', closeModal);
+document.getElementById('successclose').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+modal.querySelector('.panel').addEventListener('click', (e) => e.stopPropagation());
+document.getElementById('reqform').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const lbl = document.getElementById('sendlbl');
+  lbl.firstChild.textContent = 'Envoi…';
+  setTimeout(() => modal.classList.add('done'), 600);
+});
+
+/* ============ démarrage ============ */
+observeReveals();
+initAllHovers();
+document.querySelectorAll('.alink > span').forEach(s => {
+  s.parentElement.dataset.hs = '';
+  s.dataset.hs = s.parentElement.classList.contains('legal-l') ? 'x:3' : 'x:4';
+  s.dataset.op = s.parentElement.classList.contains('legal-l') ? '0.7/1' : '0.65/1';
+  s.dataset.cfg = '320/22';
+  s.dataset.hsTrigger = '.alink';
+  delete s.parentElement.dataset.hs;
+  initHover(s);
+});
+document.querySelectorAll('#hdr nav.primary button > span').forEach(s => {
+  s.dataset.hs = 'y:-2'; s.dataset.op = '0.8/1'; s.dataset.cfg = '320/22';
+  s.dataset.hsTrigger = 'button';
+  initHover(s);
+});
+document.querySelectorAll('.pill').forEach(p => {
+  const inner = p.querySelector(':scope > span');
+  inner.dataset.hs = 'scale:1.04'; inner.dataset.cfg = '320/18'; inner.dataset.hsTrigger = '.pill';
+  initHover(inner);
+  const icon = p.querySelector('.badge .ic');
+  if (icon){
+    const up = p.querySelector('.badge use').getAttribute('href') === '#i-arrup';
+    icon.dataset.hs = up ? 'x:2,y:-2' : 'x:3';
+    icon.dataset.cfg = '320/18'; icon.dataset.hsTrigger = '.pill';
+    initHover(icon);
+  }
+});
 </script>
 </body>
 </html>
