@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seconde — SVT · Mme Reynes</title>
+<meta name="description" content="Programme de SVT en classe de Seconde : cours, TP, fiches de révision et exercices, thème par thème." />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+/* ===================== reset / base ===================== */
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ font-size:16px; -webkit-font-smoothing:antialiased }
+body{ background:#ffffff; color:#111111; font-family:'Onest',sans-serif; overflow-x:hidden }
+a{ color:inherit; text-decoration:none }
+button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer }
+ul{ list-style:none }
+img{ display:block }
+.sr-only{ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0 }
+:focus-visible{ outline:2px solid #b15f2c; outline-offset:2px }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important } }
+
+/* ===================== adaptive rem grid ===================== */
+@media (max-width:1920px){ html{ font-size:0.833333vw } }
+@media (max-width:1440px){ html{ font-size:1.111111vw } }
+@media (max-width:1024px){ html{ font-size:1.5625vw } }
+@media (max-width:640px){ html{ font-size:4.444444vw } }
+
+/* ===================== tokens ===================== */
+:root{
+  --background:#ffffff; --foreground:#111111;
+  --ink:#0a0a0a; --muted:#8d8d8d; --subtle:#b6b6b6;
+  --line:#e6e5e2; --surface:#f1f0ee; --surface-2:#e3e2df;
+  --accent:#b15f2c; --accent-from:#cf8047; --accent-to:#97501f;
+  --hero-from:#ecebe9; --hero-to:#c9c9c9;
+  --radius-pill:9999px; --radius-card:2rem; --radius-card-sm:1.25rem; --radius-control:0.875rem;
+  --text-watermark:13rem; --container-shell:88rem;
+}
+/* width:100% est nécessaire : dans un conteneur flex, une marge auto sur
+   l'axe transverse annule l'étirement et ramène l'élément à son contenu. */
+.shell{ width:100%; max-width:var(--container-shell); margin-inline:auto }
+svg.ic{ width:1em; height:1em; display:block; flex:none }
+
+/* ===================== skip link ===================== */
+.skip{ position:absolute; left:-9999px }
+.skip:focus{ position:fixed; left:1rem; top:1rem; z-index:60; border-radius:.875rem; background:#0a0a0a; padding:.5rem 1rem; font-size:.875rem; color:#fff }
+
+/* ===================== reveal ===================== */
+[data-reveal]{ opacity:0; will-change:transform,opacity }
+[data-reveal="up"]{ transform:translateY(var(--ry,20px)) }
+[data-reveal="up"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="fade"].in{ opacity:1; transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="pop"]{ transform:translateY(16px) scale(.96) }
+[data-reveal="pop"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="panel"]{ transform:translateY(40px) scale(.99) }
+[data-reveal="panel"].in{ opacity:1; transform:none;
+  transition:opacity .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="wm"]{ transform:translateY(20px) }
+[data-reveal="wm"].in{ opacity:.4; transform:none;
+  transition:opacity 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+
+/* Le fond de casse (« è », « p », « g ») serait coupé par le masque :
+   on rend un peu de place puis on la reprend en marge négative. */
+.ln{ display:block; overflow:hidden; padding-bottom:.09em; margin-bottom:-.09em }
+.ln > i{ display:block; font-style:normal; transform:translateY(100%); opacity:0 }
+.lines.in .ln > i{ transform:none; opacity:1;
+  transition:transform .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms), opacity .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms) }
+.wd{ display:inline-block; transform:translateY(24px); opacity:0 }
+.words.in .wd{ transform:none; opacity:1;
+  transition:transform .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms), opacity .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms) }
+
+/* ===================== loader ===================== */
+#loader{ position:fixed; inset:0; z-index:120; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:2rem; background:#0a0a0a; color:#fff; border-radius:0 0 2rem 2rem; will-change:transform }
+#loader.out{ transform:translateY(-100%); transition:transform .7s cubic-bezier(.22,1,.36,1) }
+#loader .ldc{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center }
+#loader.out .ldc{ opacity:0; transform:translateY(-12px); transition:opacity .55s ease, transform .55s ease }
+#loader .ldbrand{ display:flex; align-items:center; gap:.5rem; font-weight:600; font-size:1.5rem }
+#loader .ldbrand .ic{ font-size:1.875rem; color:#cf8047 }
+#loader .ldtag{ max-width:24ch; font-size:.875rem; color:rgba(255,255,255,.55) }
+#loader .ldprog{ display:flex; flex-direction:column; gap:.75rem; width:min(22rem,72vw) }
+#loader .ldtrack{ height:1px; background:rgba(255,255,255,.15) }
+#loader .ldfill{ height:100%; background:#cf8047; width:0%; transition:width .1s ease-out }
+#loader .ldrow{ display:flex; justify-content:space-between; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.45) }
+#loader .ldnum{ font-variant-numeric:tabular-nums; color:rgba(255,255,255,.8) }
+@media (min-width:640px){ #loader .ldbrand{ font-size:1.875rem } }
+
+/* ===================== header ===================== */
+#hdr{ position:absolute; inset-inline:0; top:0; z-index:50; opacity:0; transform:translateY(-14px) }
+#hdr.in{ opacity:1; transform:none; transition:opacity .7s cubic-bezier(.22,1,.36,1) 150ms, transform .7s cubic-bezier(.22,1,.36,1) 150ms }
+#hdr .bar{ display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1.25rem }
+.brandbtn span{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600; letter-spacing:-.01em }
+.brandbtn .ic{ font-size:1.25rem; color:#b15f2c }
+#hdr nav.primary{ display:none }
+#hdr nav.primary ul{ display:flex; gap:2rem; font-size:.875rem; font-weight:500 }
+#hdr nav.primary button > span{ display:inline-flex; align-items:center; gap:.25rem; opacity:.8 }
+#hdr nav.primary .caret{ font-size:.75rem; opacity:.6 }
+.hdr-right{ display:flex; align-items:center; gap:.75rem }
+.clockchip{ display:none; align-items:center; gap:.75rem; border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4);
+  backdrop-filter:blur(4px); border-radius:.875rem; padding:.5rem .75rem; font-size:.75rem; color:rgba(17,17,17,.7) }
+.clockchip .lbl{ color:rgba(17,17,17,.45) }
+.clockchip .tm{ min-width:3.5rem; font-variant-numeric:tabular-nums; font-weight:500; color:#111 }
+.clockchip .sep{ color:rgba(17,17,17,.3) }
+.clockchip .dt{ font-weight:500 }
+.menubtn{ border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4); backdrop-filter:blur(4px); border-radius:.875rem }
+.menubtn:hover{ background:rgba(255,255,255,.7) }
+.menubtn > span{ display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em }
+.menubtn .ic{ font-size:.875rem }
+.menubtn .mlabel{ display:none }
+@media (min-width:640px){ #hdr .bar{ padding:1.5rem 2rem } .menubtn .mlabel{ display:inline } }
+@media (min-width:768px){ .clockchip{ display:flex } }
+@media (min-width:1024px){ #hdr nav.primary{ display:flex } }
+
+/* ===================== shared components ===================== */
+.pill{ display:inline-block }
+.pill > span{ display:inline-flex; align-items:center; gap:.75rem; border-radius:9999px; font-size:.875rem; font-weight:500 }
+.pill.arrow > span{ padding:.375rem .375rem .375rem 1.5rem }
+.pill.noarrow > span{ padding:.875rem 1.75rem }
+.pill.dark > span{ background:#0a0a0a; color:#fff }
+.pill.light > span{ background:#f1f0ee; color:#111 }
+.pill.outline > span{ border:1px solid #e6e5e2; background:transparent; color:#111 }
+.pill .badge{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:1rem; flex:none }
+.pill.dark .badge{ background:#fff; color:#0a0a0a }
+.pill.light .badge, .pill.outline .badge{ background:#0a0a0a; color:#fff }
+.eyebrow{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.eyebrow::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:rgba(17,17,17,.5) }
+.eyebrow.lighttone{ color:rgba(255,255,255,.7) }
+.eyebrow.lighttone::before{ background:rgba(255,255,255,.6) }
+.eyebrow.boxed{ border:1px solid #e6e5e2; border-radius:9999px; padding:.375rem 1rem }
+.chip{ display:inline-flex; border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:9999px; padding:.5rem 1rem; font-size:.875rem }
+.alink{ display:inline-flex }
+.alink > span{ display:inline-block; opacity:.65 }
+
+/* ===================== hero ===================== */
+#home{ position:relative; isolation:isolate; overflow:hidden; border-radius:0 0 2rem 2rem; background:#c9c9c9 }
+#home .bg{ position:absolute; inset:0; z-index:0 }
+#home .bg img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+#home .bg canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none }
+#home .vig{ position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(255,255,255,.35), transparent, rgba(255,255,255,.35)) }
+#home .wm{ pointer-events:none; position:absolute; inset-inline:0; bottom:7rem; z-index:1; text-align:center;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.4) }
+.hero-grid{ position:relative; z-index:20; display:flex; flex-direction:column; gap:2rem; padding:7rem 1.25rem 5rem }
+.hero-left{ display:flex; flex-direction:column; gap:1.75rem }
+.hero-left h1{ max-width:18ch; font-size:2.25rem; font-weight:600; line-height:.98; letter-spacing:-.02em }
+.rating{ display:flex; align-items:center; gap:.75rem }
+.rating .stars{ color:#b15f2c; display:inline-flex; gap:.125rem; font-size:1rem }
+.rating .rtxt{ font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.ctarow{ display:flex; flex-wrap:wrap; gap:.75rem }
+.hero-right{ display:flex; flex-direction:column; align-items:flex-start; gap:2rem }
+.herocard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7); padding:.5rem;
+  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px) }
+.herocard .row{ display:flex; gap:.5rem; cursor:pointer; border-radius:.875rem }
+.herocard .tile{ aspect-ratio:1; width:6rem; display:grid; place-items:center; border-radius:.875rem; background:#0a0a0a; font-size:1.875rem; color:#fff; flex:none }
+.herocard .tile .ic{ color:#cf8047 }
+.herocard .panel{ flex:1; border-radius:.875rem; background:rgba(241,240,238,.7); padding:.75rem; display:flex; flex-direction:column; justify-content:space-between }
+.herocard .slot{ position:relative; min-height:3.25rem }
+.herocard .item{ position:absolute; inset:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1) }
+.herocard .item.hide-up{ opacity:0; transform:translateY(-14px) }
+.herocard .item.hide-down{ opacity:0; transform:translateY(14px) }
+.herocard .cap{ font-size:.65rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.45) }
+.herocard .ttl{ max-width:8rem; font-size:.875rem; font-weight:500; line-height:1.35 }
+.herocard .btm{ display:flex; align-items:center; justify-content:space-between; margin-top:.5rem }
+.herocard .dots{ display:flex; align-items:center; gap:.25rem }
+.herocard .dots i{ height:.25rem; border-radius:9999px; width:.375rem; background:rgba(17,17,17,.2); transition:all .3s }
+.herocard .dots i.on{ width:1rem; background:rgba(17,17,17,.7) }
+.herocard .navb{ display:flex; gap:.25rem }
+.herocard .navb button{ width:1.75rem; height:1.75rem; display:grid; place-items:center; border-radius:9999px; background:#fff;
+  color:rgba(17,17,17,.7); box-shadow:0 0 0 1px #e6e5e2 }
+.herocard .navb button:hover{ color:#111 }
+.partners{ width:100%; max-width:24rem }
+.partners .plabel{ margin-bottom:.75rem; font-size:.75rem; font-weight:500; color:rgba(17,17,17,.45); text-align:left }
+.partners ul{ display:grid; grid-template-columns:repeat(4,1fr); column-gap:1rem; row-gap:.75rem }
+.partners li a{ display:block }
+.partners li span{ display:flex; align-items:center; gap:.375rem; font-size:.75rem; color:rgba(17,17,17,.7); opacity:.7 }
+.partners li .ic{ font-size:.875rem; color:rgba(17,17,17,.4) }
+.hero-status{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; border-top:1px solid rgba(17,17,17,.1);
+  padding:1.25rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.6) }
+.hero-status .mid{ display:none }
+.hero-status .right{ display:inline-flex; gap:.5rem }
+@media (min-width:640px){
+  .hero-grid{ padding-inline:2rem } .hero-status{ padding-inline:2rem } .hero-status .mid{ display:block }
+  .hero-left h1{ font-size:3rem }
+}
+@media (min-width:768px){ .hero-left h1{ font-size:3.75rem } }
+@media (min-width:1024px){
+  .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 7rem }
+  .hero-left{ grid-column:span 7 } .hero-right{ grid-column:span 5; align-items:flex-end }
+  .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
+}
+
+/* ===================== about ===================== */
+#about{ background:#fff }
+#about .grid{ display:grid; grid-template-columns:1fr; align-items:center; gap:3rem; padding:5rem 1.25rem }
+#about .globe-block{ position:relative; min-height:14rem }
+#about .globe-bg{ position:absolute; left:-1rem; top:50%; transform:translateY(-50%); font-size:12rem; color:rgba(17,17,17,.1) }
+#about .eyerel{ position:relative }
+#about .gnote{ display:flex; align-items:center; gap:.75rem; font-size:.875rem; color:rgba(17,17,17,.7); position:relative; margin-top:2rem }
+#about .gnote .ic{ font-size:1.5rem; color:#111 }
+#about .gnote span.t{ max-width:14rem }
+#about .stmt{ display:flex; flex-direction:column; gap:2.5rem }
+#about h2{ font-size:1.5rem; font-weight:500; line-height:1.35; letter-spacing:-.01em }
+#about h2 .mu{ color:#8d8d8d }
+#about .frow{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:1.5rem; border-top:1px solid #e6e5e2; padding-top:1.5rem }
+#about .flabel{ font-size:.875rem; color:rgba(17,17,17,.45); margin-bottom:.75rem }
+#about .socials{ display:flex; gap:.5rem }
+#about .soc{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:.875rem;
+  background:#f1f0ee; color:rgba(17,17,17,.7) }
+#about .soc.x{ background:#b15f2c; color:#fff }
+@media (min-width:640px){ #about .grid{ padding-inline:2rem } #about h2{ font-size:1.875rem } #about .globe-bg{ font-size:16rem } }
+@media (min-width:1024px){
+  #about .grid{ grid-template-columns:1fr 1fr; padding-block:7rem }
+  #about .globe-block{ min-height:20rem } #about .globe-bg{ left:-1.5rem; font-size:20rem }
+}
+
+/* ===================== create band ===================== */
+.createband{ background:#fff }
+.createband ul{ display:flex; flex-direction:column; gap:.75rem; padding:2.5rem 1.25rem }
+.createband li{ flex:1 }
+.createband .tile{ display:grid; place-items:center; height:6rem; border-radius:9999px; font-size:1.875rem; font-weight:500 }
+.createband .t-light{ background:#f1f0ee; color:#111 }
+.createband .t-accent{ background:linear-gradient(to bottom right,#cf8047,#97501f); color:#fff }
+.createband .t-dark{ background:#0a0a0a; color:#fff; font-size:2.25rem }
+.createband .t-ghost{ background:rgba(241,240,238,.6); color:rgba(17,17,17,.35) }
+@media (min-width:640px){
+  .createband ul{ flex-direction:row; gap:1rem; padding-inline:2rem }
+  .createband .tile{ height:10rem; font-size:2.25rem } .createband .t-dark{ font-size:3rem }
+}
+
+/* ===================== portfolio ===================== */
+#works{ background:#fff }
+#works .inner{ padding:2.5rem 1.25rem 5rem }
+#works .head{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center; margin-bottom:3rem }
+#works h2{ font-size:2.25rem; font-weight:600; letter-spacing:-.02em; width:fit-content }
+#works ul{ display:grid; grid-template-columns:1fr; gap:1.5rem }
+#works article{ position:relative; min-height:22rem; overflow:hidden; border-radius:2rem; background:#0a0a0a; padding:1.5rem; color:#fff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05) }
+#works .meta{ display:flex; justify-content:space-between; align-items:flex-start; font-size:.75rem; text-transform:uppercase;
+  letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#works .pbadge{ width:2.75rem; height:2.75rem; display:grid; place-items:center; border-radius:9999px; background:rgba(255,255,255,.1);
+  color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.15); font-size:1rem }
+#works .cwm{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none }
+#works .cwm .ic{ font-size:4.5rem; color:rgba(255,255,255,.9) }
+#works .cwm sup{ font-size:.75rem; color:rgba(255,255,255,.6) }
+#works .btm{ position:absolute; inset-inline:1.5rem; bottom:1.5rem }
+#works h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#works .desc{ margin-top:.5rem; max-width:28rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+#works .tags{ margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:.5rem }
+@media (min-width:640px){
+  #works .inner{ padding-inline:2rem } #works h2{ font-size:3rem }
+  #works article{ min-height:26rem; padding:2rem } #works .btm{ inset-inline:2rem; bottom:2rem } #works h3{ font-size:1.875rem }
+}
+@media (min-width:768px){ #works ul{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ #works .inner{ padding-bottom:7rem } }
+
+/* ===================== services ===================== */
+#services{ background:#fff }
+#services .inner{ padding:5rem 1.25rem }
+#services h2{ margin:1.25rem 0 3rem; max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+#services li{ border-top:1px solid #e6e5e2 }
+#services li:first-child{ border-top:none }
+#services .row{ display:flex; align-items:center; gap:1rem; border-radius:1.25rem; padding:1.5rem; background:rgba(241,240,238,0) }
+#services .idx{ width:1.75rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.4); flex:none }
+#services h3{ flex:1; font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#services .sdesc{ display:none; max-width:20rem; font-size:.875rem; color:rgba(17,17,17,.55) }
+#services .sbadge{ width:2.5rem; height:2.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#fff; font-size:1rem; flex:none }
+@media (min-width:640px){
+  #services .inner{ padding-inline:2rem } #services h2{ margin-bottom:3.5rem; font-size:3rem }
+  #services .row{ gap:1.5rem; padding-block:2rem } #services .idx{ width:2.5rem } #services h3{ font-size:1.875rem }
+  #services .sbadge{ width:3rem; height:3rem }
+}
+@media (min-width:768px){ #services h3{ font-size:2.25rem } }
+@media (min-width:1024px){ #services .inner{ padding-block:7rem } #services .sdesc{ display:block } }
+
+/* ===================== stats ===================== */
+.statsec{ background:#fff }
+.statsec .inner{ padding:0 1.25rem 5rem }
+.statsec .panel{ border-radius:2rem; background:#0a0a0a; padding:3rem 1.5rem; color:#fff }
+.statsec h2{ margin-top:1rem; max-width:20ch; font-size:1.875rem; font-weight:500; letter-spacing:-.01em }
+.statsec ul{ margin-top:3.5rem; display:grid; grid-template-columns:repeat(2,1fr); column-gap:2rem; row-gap:3rem }
+.statsec .num{ font-size:3rem; font-weight:600; letter-spacing:-.02em }
+.statsec .slab{ margin-top:.75rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+@media (min-width:640px){ .statsec .inner{ padding-inline:2rem } .statsec .panel{ padding:4rem 2rem } .statsec .num{ font-size:3.75rem } }
+@media (min-width:768px){ .statsec .panel{ padding-inline:4rem } .statsec h2{ font-size:2.25rem } .statsec .num{ font-size:4.5rem } }
+@media (min-width:1024px){ .statsec .inner{ padding-bottom:7rem } .statsec ul{ grid-template-columns:repeat(4,1fr) } }
+
+/* ===================== footer ===================== */
+footer.site{ position:relative; overflow:hidden; border-radius:2rem 2rem 0 0; background:#0a0a0a; color:#fff }
+footer.site .inner{ position:relative; z-index:10; padding:5rem 1.25rem 2.5rem }
+footer.site .cta{ display:flex; flex-direction:column; gap:2rem; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:4rem }
+footer.site h2{ max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+footer.site .cols{ display:grid; grid-template-columns:1fr; gap:3rem; padding-block:4rem }
+footer.site .cbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+footer.site .cbrand .ic{ font-size:1.25rem }
+footer.site .ctag{ margin-top:1rem; max-width:20rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+footer.site .ctitle{ font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.4); margin-bottom:1rem }
+footer.site .clist{ display:flex; flex-direction:column; gap:.75rem; font-size:.875rem }
+footer.site .legal{ display:flex; flex-direction:column; align-items:center; justify-content:space-between; gap:1rem;
+  border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; font-size:.75rem; color:rgba(255,255,255,.45) }
+footer.site .legal .lks{ display:flex; gap:1.5rem }
+footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; text-align:center; pointer-events:none;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.05) }
+@media (min-width:640px){ footer.site .inner{ padding-inline:2rem } footer.site h2{ font-size:3rem }
+  footer.site .legal{ flex-direction:row } }
+@media (min-width:768px){ footer.site h2{ font-size:3.75rem } footer.site .cols{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ footer.site .inner{ padding-top:6rem }
+  footer.site .cta{ flex-direction:row; align-items:flex-end; justify-content:space-between }
+  footer.site .cols{ grid-template-columns:repeat(4,1fr) } }
+
+/* ===================== nav overlay ===================== */
+#navmenu{ position:fixed; inset:0; z-index:115; display:none; flex-direction:column; background:#0a0a0a; color:#fff; opacity:0;
+  transition:opacity .45s cubic-bezier(.22,1,.36,1) }
+#navmenu.show{ display:flex } #navmenu.vis{ opacity:1 }
+#navmenu .top{ display:flex; align-items:center; justify-content:space-between; padding:1.25rem }
+#navmenu .nbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+#navmenu .nbrand .ic{ font-size:1.25rem; color:#cf8047 }
+#navmenu .closeb{ display:inline-flex; align-items:center; gap:.5rem; border:1px solid rgba(255,255,255,.15); border-radius:.875rem;
+  padding:.5rem 1rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.7) }
+#navmenu .closeb:hover{ border-color:rgba(255,255,255,.4); color:#fff }
+#navmenu .closeb .ic{ font-size:.875rem }
+#navmenu nav{ flex:1; display:flex; flex-direction:column; justify-content:center }
+#navmenu nav ul{ display:flex; flex-direction:column; gap:.25rem }
+#navmenu nav button{ width:100%; display:flex; align-items:baseline; gap:1rem; padding-block:.5rem; text-align:left;
+  font-size:2.25rem; font-weight:600; letter-spacing:-.02em; transform:translateY(1rem); opacity:0; transition:all .5s ease-out }
+#navmenu.vis nav button{ transform:none; opacity:1 }
+#navmenu nav .n{ font-size:1rem; font-weight:400; color:rgba(255,255,255,.3); transition:color .3s }
+#navmenu nav .l{ color:rgba(255,255,255,.7); transition:color .3s }
+#navmenu nav button:hover .n{ color:#cf8047 } #navmenu nav button:hover .l{ color:#fff }
+#navmenu .btm{ display:flex; flex-direction:column; gap:.75rem; border-top:1px solid rgba(255,255,255,.1); padding:1.5rem 1.25rem;
+  font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#navmenu .btm button{ color:rgba(255,255,255,.7) } #navmenu .btm button:hover{ color:#fff; text-decoration:underline }
+@media (min-width:640px){ #navmenu .top{ padding:1.5rem 2rem } #navmenu nav button{ font-size:3.75rem }
+  #navmenu .btm{ flex-direction:row; align-items:center; justify-content:space-between; padding-inline:2rem } }
+
+/* ===================== modal ===================== */
+#modal{ position:fixed; inset:0; z-index:110; display:none; align-items:flex-end; justify-content:center; padding:1rem;
+  background:rgba(17,17,17,.3); backdrop-filter:blur(16px); opacity:0; transition:opacity .4s ease }
+#modal.show{ display:flex } #modal.vis{ opacity:1 }
+#modal .panel{ position:relative; width:100%; max-width:32rem; overflow:hidden; border-radius:2rem; background:#fff; padding:1.5rem;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,.25), 0 0 0 1px #e6e5e2; transform:translateY(28px);
+  transition:transform .55s cubic-bezier(.22,1,.36,1), opacity .4s ease; opacity:0 }
+#modal.vis .panel{ transform:none; opacity:1 }
+#modal .closeb{ position:absolute; right:1rem; top:1rem; width:2.25rem; height:2.25rem; display:grid; place-items:center;
+  border-radius:9999px; background:#f1f0ee; color:rgba(17,17,17,.6); font-size:.875rem }
+#modal .closeb:hover{ background:#e3e2df; color:#111 }
+#modal .mhead{ margin-bottom:1.5rem; display:flex; flex-direction:column; gap:.375rem }
+#modal .mkick{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.6) }
+#modal .mkick::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c }
+#modal h2{ font-size:1.5rem; font-weight:600; letter-spacing:-.01em }
+#modal form{ display:flex; flex-direction:column; gap:1rem }
+#modal label{ display:flex; flex-direction:column; gap:.5rem }
+#modal .cap{ font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.5) }
+#modal input, #modal textarea{ width:100%; border:1px solid #e6e5e2; background:rgba(241,240,238,.5); border-radius:.875rem;
+  padding:.75rem 1rem; font-size:.875rem; font-family:inherit; outline:none; transition:border-color .2s, background .2s }
+#modal textarea{ resize:none }
+#modal input:focus, #modal textarea:focus{ border-color:rgba(17,17,17,.3); background:#fff }
+#modal .brow{ margin-top:.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem }
+#modal .note{ font-size:.75rem; color:rgba(17,17,17,.45) }
+#modal .success{ display:none; flex-direction:column; align-items:center; text-align:center; padding-block:2rem; gap:1rem }
+#modal.done .success{ display:flex } #modal.done .mhead, #modal.done form{ display:none }
+#modal .sbadge{ width:3.5rem; height:3.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#cf8047; font-size:1.5rem }
+#modal .stext{ max-width:32ch; font-size:.875rem; color:rgba(17,17,17,.6) }
+@media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
+
+
+/* ===================== page de niveau ===================== */
+.docs{ display:grid; grid-template-columns:1fr; gap:.5rem }
+@media(min-width:760px){ .docs{ grid-template-columns:1fr 1fr } }
+@media(min-width:1200px){ .docs{ grid-template-columns:1fr 1fr 1fr } }
+.doc{ display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%;
+  border:1px solid #e6e5e2; border-radius:1.25rem; padding:.9rem 1.1rem; font-size:.875rem;
+  color:rgba(17,17,17,.75); background:#fff; transition:.35s cubic-bezier(.22,1,.36,1) }
+.doc .dt{ line-height:1.35 }
+.doc .da{ flex:none; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:rgba(17,17,17,.35) }
+.doc.on:hover{ background:#0a0a0a; border-color:#0a0a0a; color:#fff; transform:translateY(-2px) }
+.doc.on:hover .da{ color:#cf8047 }
+.doc:not(.on){ border-style:dashed; color:rgba(17,17,17,.4); background:transparent }
+.theme{ padding-bottom:1rem }
+
+.lvl-head{ position:relative; overflow:hidden; border-radius:0 0 2rem 2rem;
+  background:linear-gradient(to bottom,#ecebe9,#dcdbd8); padding:9rem 1.25rem 4rem }
+.lvl-head .wm{ pointer-events:none; position:absolute; inset-inline:0; bottom:-2rem; z-index:0; text-align:center;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.45) }
+.lvl-head .in2{ position:relative; z-index:2 }
+.lvl-head h1{ margin-top:1.25rem; font-size:2.75rem; font-weight:600; line-height:.98; letter-spacing:-.03em }
+.lvl-head p.sub{ margin-top:1.25rem; max-width:46ch; font-size:.95rem; line-height:1.7; color:rgba(17,17,17,.65) }
+.legend{ margin-top:2rem; display:flex; flex-wrap:wrap; gap:1.25rem; font-size:.75rem; color:rgba(17,17,17,.5) }
+.legend b{ font-weight:500; color:#b15f2c }
+@media (min-width:640px){ .lvl-head{ padding-inline:2rem } .lvl-head h1{ font-size:4.5rem } }
+
+.theme{ background:#fff; padding:4.5rem 1.25rem 0 }
+.theme:last-of-type{ padding-bottom:5rem }
+.theme-head{ display:flex; align-items:baseline; gap:1.25rem; flex-wrap:wrap; margin-bottom:2.5rem }
+.theme-num{ font-family:inherit; font-weight:700; font-size:3.25rem; line-height:1; color:rgba(17,17,17,.10); letter-spacing:-.04em }
+.theme-head h2{ font-size:1.5rem; font-weight:600; letter-spacing:-.02em; max-width:44ch }
+.chaps li{ border-top:1px solid #e6e5e2 }
+.chaps li:first-child{ border-top:none }
+.chap{ display:flex; align-items:flex-start; gap:1rem; border-radius:1.25rem; padding:1.5rem;
+  background:rgba(241,240,238,0); transition:background .4s, padding .4s }
+.chap:hover{ background:rgba(241,240,238,1); padding-left:2rem }
+.chap .num{ width:2rem; flex:none; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.4); padding-top:.2rem }
+.chap .txt{ flex:1 }
+.chap h3{ font-size:1.25rem; font-weight:500; letter-spacing:-.01em }
+.chap p{ margin-top:.4rem; max-width:52ch; font-size:.875rem; line-height:1.65; color:rgba(17,17,17,.55) }
+.res{ margin-top:1rem; display:flex; flex-wrap:wrap; gap:.5rem }
+.res a, .res span{ display:inline-flex; align-items:center; gap:.4rem; border:1px solid rgba(17,17,17,.15);
+  border-radius:9999px; padding:.4rem .9rem; font-size:.75rem; color:rgba(17,17,17,.7); transition:.3s }
+.res a:hover{ background:#0a0a0a; border-color:#0a0a0a; color:#fff }
+.res span{ opacity:.4; border-style:dashed }   /* ressource pas encore deposee */
+@media (min-width:640px){
+  .theme{ padding-inline:2rem } .theme-head h2{ font-size:1.875rem } .theme-num{ font-size:4.5rem }
+  .chap{ gap:1.5rem; padding-block:1.75rem } .chap h3{ font-size:1.5rem }
+}
+
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 48 48"><path fill="currentColor" d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/></symbol>
+    <symbol id="i-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9.25"/><path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4 4 20"/></symbol>
+    <symbol id="i-dot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  </defs>
+</svg>
+
+
+<header id="hdr" class="in">
+  <div class="shell bar">
+    <button class="brandbtn" onclick="location.href='index.html'">
+      <span><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</span>
+    </button>
+    <nav class="primary" aria-label="Principale">
+      <ul>
+        <li><a href="index.html"><span>Accueil</span></a></li>
+        <li><a href="index.html#works"><span>Chapitres</span></a></li>
+        <li><button aria-current="page"><span>Seconde</span></button></li>
+        <li><a href="index.html#about"><span>La classe</span></a></li>
+        <li><button data-modal><span>Contact</span></button></li>
+      </ul>
+    </nav>
+    <div class="hdr-right">
+      <div class="clockchip">
+        <span class="lbl">Heure locale</span>
+        <span class="tm" id="clk-time">9:41</span>
+        <span class="sep">&bull;</span>
+        <span class="dt" id="clk-date">12 mars 2025</span>
+      </div>
+      <button class="menubtn" id="openmenu" aria-label="Ouvrir le menu">
+        <span><svg class="ic"><use href="#i-grid"/></svg><em class="mlabel" style="font-style:normal">Menu</em></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="lvl-head">
+  <div class="wm">2<sup style="font-size:.45em">DE</sup></div>
+  <div class="shell in2">
+    <span class="eyebrow">Classe de Seconde générale</span>
+    <h1>Seconde</h1>
+    <p class="sub">Le programme en trois thèmes. Pour chaque chapitre : le cours, les activités
+      et travaux pratiques, la fiche de révision et de quoi s'entraîner.</p>
+    <div class="legend">
+      <span><b>Cours</b> — la trace écrite</span>
+      <span><b>TP</b> — l'activité pratique</span>
+      <span><b>Fiche</b> — le bilan à réviser</span>
+      <span><b>Exos</b> — pour s'entraîner</span>
+    </div>
+  </div>
+</section>
+
+<div id="themes"></div>
+</main>
+
+<footer class="site">
+  <div class="shell inner">
+    <div class="cta">
+      <h2 class="lines in"><span class="ln"><i>Une notion qui résiste&nbsp;?</i></span><span class="ln"><i>Écrivez-moi.</i></span></h2>
+      <button class="pill light arrow" data-modal><span>Poser une question<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+    </div>
+    <div class="cols">
+      <div>
+        <div class="cbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+        <p class="ctag">Cours, travaux pratiques et ressources de Sciences de la Vie et de la Terre au lycée.</p>
+      </div>
+      <div>
+        <p class="ctitle">Niveaux</p>
+        <ul class="clist">
+          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
+          <li><a class="alink" href="index.html#services"><span>Première</span></a></li>
+          <li><a class="alink" href="index.html#services"><span>Terminale</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Ressources</p>
+        <ul class="clist">
+          <li><a class="alink" href="carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
+          <li><a class="alink" href="cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
+          <li><a class="alink" href="defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Contact</p>
+        <ul class="clist">
+          <li><a class="alink" href="mailto:reynesmanon11@gmail.com"><span>Écrire un message</span></a></li>
+          <li><a class="alink" href="index.html"><span>Retour à l'accueil</span></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="legal">
+      <span>&copy; <span id="year">2026</span> Mme Reynes — Sciences de la Vie et de la Terre</span>
+      <div class="lks"><a class="alink" href="index.html"><span>Accueil</span></a></div>
+    </div>
+  </div>
+  <div class="fwm">SVT</div>
+</footer>
+
+<div id="navmenu" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="shell top">
+    <div class="nbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <button class="closeb" id="closemenu"><svg class="ic"><use href="#i-x"/></svg> Fermer</button>
+  </div>
+  <nav class="shell" aria-label="Overlay"><ul id="navlist"></ul></nav>
+  <div class="shell btm">
+    <span id="nav-time">Heure locale</span>
+    <button id="nav-start">Poser une question →</button>
+  </div>
+</div>
+
+
+<div id="modal" role="dialog" aria-modal="true" aria-label="Poser une question">
+  <div class="panel">
+    <button class="closeb" id="closemodal" aria-label="Fermer"><svg class="ic"><use href="#i-x"/></svg></button>
+
+    <div class="mhead">
+      <span class="mkick">Contact</span>
+      <h2>Une question ? Écrivez-moi.</h2>
+    </div>
+
+    <form id="reqform">
+      <label><span class="cap">Nom</span><input type="text" name="name" required placeholder="Votre nom" /></label>
+      <label><span class="cap">Classe ou email</span><input type="text" name="email" required placeholder="2nde 4 — ou votre adresse" /></label>
+      <label><span class="cap">Votre question</span><textarea name="project" rows="4" required placeholder="Le chapitre concerné et ce qui vous bloque."></textarea></label>
+      <div class="brow">
+        <span class="note">Réponse en classe ou par mail.</span>
+        <button class="pill dark arrow" type="submit"><span id="sendlbl">Envoyer<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+      </div>
+    </form>
+
+    <div class="success">
+      <div class="sbadge"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <h2>Message noté</h2>
+      <p class="stext">Ce formulaire est une démonstration : il n'envoie rien pour l'instant. Écrivez-moi directement par mail.</p>
+      <button class="pill dark noarrow" id="successclose"><span>Fermer</span></button>
+    </div>
+  </div>
+</div>
+
+
+
+<script>
+/* =========================================================================
+   ✏️ VOS CHAPITRES — tout se règle ici, rien d'autre à modifier.
+
+   Pour chaque chapitre :
+     n     : le numéro affiché
+     t     : le titre
+     d     : la phrase de description
+     res   : les ressources. { l:'Cours', h:'fichier.pdf' } = lien actif
+                             { l:'Cours' }                  = grisé, pas encore déposé
+   ========================================================================= */
+/* =========================================================================
+   ✏️ VOS CHAPITRES — repris de votre Digipad de l'année.
+
+   Chaque document :
+     { l:'Nom affiché' }                  → grisé, le fichier n'est pas encore déposé
+     { l:'Nom affiché', h:'fichier.pdf' } → lien actif
+   Déposez le PDF sur le dépôt, ajoutez  h:'nom-du-fichier.pdf'  et c'est en ligne.
+   ========================================================================= */
+const CHAPITRES = [
+  {
+    num: 'Méthodes',
+    titre: 'Fiches méthode et documents généraux',
+    docs: [
+      { l:'Fiche sondage format de cours' },
+      { l:'Aide personnalisée mémorisation', h:'https://view.genially.com/6971363ccc025c49319751bf' },
+      { l:'Fiche méthode dessin observation' },
+      { l:'Présentation de l\'année' },
+      { l:'FICHE METHODE QUADRAT' },
+    ]
+  },
+  {
+    num: 'Chapitre 1',
+    titre: 'Comment sont organisés les êtres vivants ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pvtn0kh7n25' },
+      { l:'Bilan cours activité 1' },
+      { l:'ACTIVITE 1: Les niveaux d\'organisation du vivant' },
+      { l:'Document support activité 1' },
+      { l:'Bilan cours activité 2' },
+      { l:'ACTIVITE 2: La spécialisation des cellules chez les organismes pluricellulaires' },
+      { l:'Bilan cours activité 3' },
+      { l:'ACTIVITE 3: A la découverte de l\'origine de cette spécialisation' },
+      { l:'Bilan cours activité 4' },
+      { l:'ACTIVITE 4: L\'ADN une molécule porteuse d\'information' },
+      { l:'Document aide TP 4' },
+      { l:'Bilan cours activité 5' },
+      { l:'ACTIVITE 5: A la recherche du métabolisme des levures' },
+      { l:'Document réponse TP5' },
+      { l:'COURBES EXAO' },
+      { l:'BILAN COURS activité 6' },
+      { l:'ACTIVITE 6: Pouvons nous dormir avec une plante ?' },
+      { l:'Fiche réponse TP6' },
+      { l:'Correction TP EXAO plante' },
+      { l:'Devoir surveillé n°1' },
+      { l:'Correction du devoir n°1' },
+    ]
+  },
+  {
+    num: 'Chapitre 2',
+    titre: 'La biodiversité, témoin de l\'histoire du vivant',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pco9tk7wt25' },
+      { l:'Organisation du chapitre' },
+      { l:'ACTIVITE 1: Etude de la biodiversité du lycée Ernest Ferroul' },
+      { l:'Fiche aide compte-rendu activité 1' },
+      { l:'Grille d\'évaluation compte-rendu biodiversité' },
+      { l:'Bilan cours activité 1' },
+      { l:'ACTIVITE 2: 6ème crise biologique ?' },
+      { l:'Lien escape game', h:'https://view.genially.com/65552c2b114d1c0011e4edb6' },
+      { l:'ACTIVITE 3: Les forces à l\'origine de l\'évolution de la biodiversité' },
+      { l:'Document aide TP 3' },
+      { l:'Bilan cours activité 3' },
+      { l:'Devoir surveillé n°2' },
+      { l:'Grille devoir n°2' },
+    ]
+  },
+  {
+    num: 'Chapitre 3',
+    titre: 'Devenir homme ou femme : communication, reproduction et maîtrise de sa sexualité',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pu9k1s0g525' },
+      { l:'ACTIVITE 1: La communication chez les grenouilles' },
+      { l:'Document aide TP 1' },
+      { l:'Document secours activité 1' },
+      { l:'Bilan + correction activité 1' },
+      { l:'Activité 2: Cours chapitre reproduction diaporama' },
+      { l:'Schéma bilan cours' },
+      { l:'Schéma bilan complet' },
+      { l:'ACTIVITE 3: PMA', h:'https://view.genially.com/6943a244813341a2a79ebaa2/interactive-content-chapitre3activite-3pma' },
+      { l:'Activité 3: Tableau PMA' },
+      { l:'ACTIVITE 3: PMA (correction)' },
+      { l:'ACTIVITE 4: Les méthodes de contraception', h:'https://view.genially.com/6950034f2ddc862aca8ac52e' },
+      { l:'Activité 4: Tableau à compléter' },
+      { l:'Activité 4: Tableau corrigé' },
+      { l:'Devoir surveillé n°3' },
+      { l:'Correction du devoir n°3' },
+      { l:'ACTIVITE 6: Identité et orientation sexuelle', h:'https://view.genially.com/6967f912882e1acdabd1cd8c' },
+      { l:'Bilan cours activité 6' },
+    ]
+  },
+  {
+    num: 'Chapitre 4',
+    titre: 'Microorganismes et santé : bon ou mauvais ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=p88pu560a26' },
+      { l:'Organisation du chapitre' },
+      { l:'Bilan cours chapitre 4' },
+      { l:'ACTIVITE 1: diversité des agents pathogènes' },
+      { l:'Mise en commun des données activité 1 2nde4', h:'https://digicalc.app/698457e7ec467' },
+      { l:'Mise en commun des données activité 1 2nde5', h:'https://digicalc.app/6991a9571653f' },
+      { l:'Mise en commun des données activité 1 2nde6', h:'https://digicalc.app/6989933cb17bb' },
+      { l:'Format affiche' },
+      { l:'Outil pour la création d\'affiche', h:'https://ladigitale.dev/digidesign/editeur.html' },
+      { l:'ACTIVITE 2: Le paludisme: maladie à transmission vectorielle' },
+      { l:'ACTIVITE 3: Le microbiote intestinal est-il notre allié ?' },
+      { l:'DIAPORAMA', h:'https://view.genially.com/69b872bc82ba81ab2090f236' },
+      { l:'ACTIVITE 4: Les gestes d\'hygiènes sont-ils vraiment efficaces ?' },
+      { l:'Documents secours activité 4', h:'https://drive.google.com/drive/folders/1gUcx26Hb32qdJ6fnN4nDjH16x5OQMsF5?usp=drive_link' },
+      { l:'Devoir surveillé n°4' },
+      { l:'Correction du devoir n°4' },
+    ]
+  },
+  {
+    num: 'Chapitre 5',
+    titre: 'Quelle est l\'origine de nos paysages et comment se transforment-ils ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=phbfedhvc26' },
+      { l:'Cours chapitre 5', h:'https://view.genially.com/69cec60e8cd36e7ab9589d3f' },
+      { l:'ACTIVITE : Mission ingénieur géologue', h:'https://view.genially.com/67f370d915eb1912c18ace69' },
+      { l:'Grille d\'évaluation compte-rendu ingénieur lycée' },
+    ]
+  },
+  {
+    num: 'Chapitre 6',
+    titre: 'Nourrir l\'humanité aujourd\'hui et demain : un défi réalisable ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pbvc4dzit26' },
+      { l:'Sortie Vigne' },
+      { l:'Sortie Vigne correction' },
+    ]
+  },
+  {
+    num: 'Culture',
+    titre: 'Articles et vidéos scientifiques',
+    docs: [
+      { l:'Les super-pouvoirs de notre microbiote', h:'https://www.youtube.com/watch?v=TqyznGUuefo' },
+      { l:'Les futures épidémies que nous vivrons', h:'https://www.youtube.com/watch?v=VJNt1AQ8p2A' },
+      { l:'Dirty biology', h:'https://www.youtube.com/watch?v=WJ0f5wXETyg' },
+      { l:'Darwin chez les pokémons', h:'https://youtu.be/OcKfWW7sAMk?si=EwL_6OZZSdLdxLbt' },
+      { l:'Les atouts de l’ADN synthétique pour stocker les données numériques', h:'https://www.lemonde.fr/sciences/article/2024/09/03/les-atouts-de-l-adn-synthetique-pour-stocker-les-donnees-numeriques_6302640_1650684.html' },
+      { l:'Suivre l\'actualité scientifique', h:'https://youtube.com/@leblob_fr?si=1Vmq4BDFLd873EK5' },
+    ]
+  },
+];
+
+document.getElementById('themes').innerHTML = CHAPITRES.map(ch => `
+  <section class="theme">
+    <div class="shell">
+      <div class="theme-head">
+        <span class="theme-num">${ch.num}</span>
+        <h2>${ch.titre}</h2>
+      </div>
+      <ul class="docs">
+        ${ch.docs.map(doc => doc.h
+          ? `<li><a class="doc on" href="${doc.h}" target="_blank" rel="noopener">
+               <span class="dt">${doc.l}</span><span class="da">Ouvrir &#8599;</span></a></li>`
+          : `<li><span class="doc"><span class="dt">${doc.l}</span><span class="da">à venir</span></span></li>`
+        ).join('')}
+      </ul>
+    </div>
+  </section>`).join('');
+
+/* ---- horloge ---- */
+function tickClock(){
+  const d = new Date();
+  const time = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  document.getElementById('clk-time').textContent = time;
+  document.getElementById('clk-date').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  const nt = document.getElementById('nav-time');
+  if (nt) nt.textContent = `Heure locale — ${time}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
+
+/* ---- menu ---- */
+(function(){
+  const NAV = [
+    { label:'Accueil', href:'index.html' }, { label:'Chapitres', href:'index.html#works' },
+    { label:'Seconde', href:'2nde.html' }, { label:'La classe', href:'index.html#about' },
+    { label:'Contact', modal:true },
+  ];
+  const menu = document.getElementById('navmenu');
+  document.getElementById('navlist').innerHTML = NAV.map((n,i) => `
+    <li><button data-href="${n.href||''}" ${n.modal?'data-modal':''} style="transition-delay:${i*45+80}ms">
+      <span class="n">0${i+1}</span><span class="l">${n.label}</span></button></li>`).join('');
+  const open = () => { menu.classList.add('show'); requestAnimationFrame(()=>menu.classList.add('vis')); document.documentElement.style.overflow='hidden'; };
+  const close = () => { menu.classList.remove('vis'); setTimeout(()=>menu.classList.remove('show'),450); document.documentElement.style.removeProperty('overflow'); };
+  document.getElementById('openmenu').addEventListener('click', open);
+  document.getElementById('closemenu').addEventListener('click', close);
+  document.getElementById('nav-start').addEventListener('click', () => { close(); openModal(); });
+  document.addEventListener('keydown', e => { if(e.key==='Escape' && menu.classList.contains('show')) close(); });
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('button[data-href]');
+    if (b && b.dataset.href){ location.href = b.dataset.href; }
+  });
+})();
+
+/* ---- modale ---- */
+const modal = document.getElementById('modal');
+function openModal(){ modal.classList.add('show'); requestAnimationFrame(()=>modal.classList.add('vis')); document.documentElement.style.overflow='hidden'; }
+function closeModal(){
+  modal.classList.remove('vis');
+  setTimeout(()=>{ modal.classList.remove('show','done'); document.getElementById('reqform').reset(); }, 400);
+  document.documentElement.style.removeProperty('overflow');
+}
+document.addEventListener('click', e => { if (e.target.closest('[data-modal]')) openModal(); });
+document.getElementById('closemodal').addEventListener('click', closeModal);
+document.getElementById('successclose').addEventListener('click', closeModal);
+modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+modal.querySelector('.panel').addEventListener('click', e => e.stopPropagation());
+document.addEventListener('keydown', e => { if(e.key==='Escape' && modal.classList.contains('show')) closeModal(); });
+document.getElementById('reqform').addEventListener('submit', e => {
+  e.preventDefault();
+  document.getElementById('sendlbl').firstChild.textContent = 'Envoi…';
+  setTimeout(()=>modal.classList.add('done'), 600);
+});
+</script>
+
+</body>
+</html>
