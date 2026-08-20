@@ -371,6 +371,19 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 
 /* ===================== page de niveau ===================== */
+.docs{ display:grid; grid-template-columns:1fr; gap:.5rem }
+@media(min-width:760px){ .docs{ grid-template-columns:1fr 1fr } }
+@media(min-width:1200px){ .docs{ grid-template-columns:1fr 1fr 1fr } }
+.doc{ display:flex; align-items:center; justify-content:space-between; gap:1rem; width:100%;
+  border:1px solid #e6e5e2; border-radius:1.25rem; padding:.9rem 1.1rem; font-size:.875rem;
+  color:rgba(17,17,17,.75); background:#fff; transition:.35s cubic-bezier(.22,1,.36,1) }
+.doc .dt{ line-height:1.35 }
+.doc .da{ flex:none; font-size:.7rem; letter-spacing:.06em; text-transform:uppercase; color:rgba(17,17,17,.35) }
+.doc.on:hover{ background:#0a0a0a; border-color:#0a0a0a; color:#fff; transform:translateY(-2px) }
+.doc.on:hover .da{ color:#cf8047 }
+.doc:not(.on){ border-style:dashed; color:rgba(17,17,17,.4); background:transparent }
+.theme{ padding-bottom:1rem }
+
 .lvl-head{ position:relative; overflow:hidden; border-radius:0 0 2rem 2rem;
   background:linear-gradient(to bottom,#ecebe9,#dcdbd8); padding:9rem 1.25rem 4rem }
 .lvl-head .wm{ pointer-events:none; position:absolute; inset-inline:0; bottom:-2rem; z-index:0; text-align:center;
@@ -570,80 +583,164 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
      res   : les ressources. { l:'Cours', h:'fichier.pdf' } = lien actif
                              { l:'Cours' }                  = grisé, pas encore déposé
    ========================================================================= */
-const THEMES = [
+/* =========================================================================
+   ✏️ VOS CHAPITRES — repris de votre Digipad de l'année.
+
+   Chaque document :
+     { l:'Nom affiché' }                  → grisé, le fichier n'est pas encore déposé
+     { l:'Nom affiché', h:'fichier.pdf' } → lien actif
+   Déposez le PDF sur le dépôt, ajoutez  h:'nom-du-fichier.pdf'  et c'est en ligne.
+   ========================================================================= */
+const CHAPITRES = [
   {
-    num: '01',
-    titre: 'La Terre, la vie et l\'organisation du vivant',
-    chapitres: [
-      { n:'1', t:'L\'organisation fonctionnelle du vivant',
-        d:"La cellule, unité structurale du vivant. Des échelles d'observation emboîtées, du microscope à l'organisme.",
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'2', t:'Le métabolisme des cellules',
-        d:'Photosynthèse et respiration : comment une cellule produit et utilise sa matière et son énergie.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'3', t:'L\'ADN, support de l\'information génétique',
-        d:'Structure universelle de la molécule, gènes et allèles, mutations et diversité des individus.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'4', t:'Biodiversité, résultat et étape de l\'évolution',
-        d:'Les trois échelles de la biodiversité, sa mesure sur le terrain, et les mécanismes qui la font varier.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
+    num: 'Méthodes',
+    titre: 'Fiches méthode et documents généraux',
+    docs: [
+      { l:'Fiche sondage format de cours' },
+      { l:'Aide personnalisée mémorisation', h:'https://view.genially.com/6971363ccc025c49319751bf' },
+      { l:'Fiche méthode dessin observation' },
+      { l:'Présentation de l\'année' },
+      { l:'FICHE METHODE QUADRAT' },
     ]
   },
   {
-    num: '02',
-    titre: 'Les enjeux contemporains de la planète',
-    chapitres: [
-      { n:'5', t:'Géosciences et dynamique des paysages',
-        d:"Érosion, transport et sédimentation : lire un paysage et retrouver l'histoire qui l'a façonné.",
-        res:[{l:'Cours'},{l:'Carte interactive',h:'carte_geol_aude_v5.html'},{l:'Cycle des roches',h:'cycle_des_roches_2nde.html'},{l:'Exos'}] },
-      { n:'6', t:'L\'exploitation des ressources naturelles',
-        d:'Ressources géologiques et énergétiques : formation, exploitation, épuisement et conséquences.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'7', t:'Agrosystèmes et développement durable',
-        d:'Nourrir l\'humanité : rendement, intrants, sols et pratiques agricoles plus durables.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'—', t:'Travail de terrain',
-        d:'Sortie géologique et écologique : observer, prélever, relever — et confronter le cours au réel.',
-        res:[{l:'Défi photo',h:'defi3_photo_ferroul_finalV2.html'},{l:'Livret'},{l:'Itinéraire'}] },
+    num: 'Chapitre 1',
+    titre: 'Comment sont organisés les êtres vivants ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pvtn0kh7n25' },
+      { l:'Bilan cours activité 1' },
+      { l:'ACTIVITE 1: Les niveaux d\'organisation du vivant' },
+      { l:'Document support activité 1' },
+      { l:'Bilan cours activité 2' },
+      { l:'ACTIVITE 2: La spécialisation des cellules chez les organismes pluricellulaires' },
+      { l:'Bilan cours activité 3' },
+      { l:'ACTIVITE 3: A la découverte de l\'origine de cette spécialisation' },
+      { l:'Bilan cours activité 4' },
+      { l:'ACTIVITE 4: L\'ADN une molécule porteuse d\'information' },
+      { l:'Document aide TP 4' },
+      { l:'Bilan cours activité 5' },
+      { l:'ACTIVITE 5: A la recherche du métabolisme des levures' },
+      { l:'Document réponse TP5' },
+      { l:'COURBES EXAO' },
+      { l:'BILAN COURS activité 6' },
+      { l:'ACTIVITE 6: Pouvons nous dormir avec une plante ?' },
+      { l:'Fiche réponse TP6' },
+      { l:'Correction TP EXAO plante' },
+      { l:'Devoir surveillé n°1' },
+      { l:'Correction du devoir n°1' },
     ]
   },
   {
-    num: '03',
-    titre: 'Corps humain et santé',
-    chapitres: [
-      { n:'8', t:'Procréation et sexualité humaine',
-        d:'Contrôle hormonal, contraception et prévention : comprendre pour décider en connaissance de cause.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
-      { n:'9', t:'Micro-organismes et santé',
-        d:'Microbiote, agents infectieux et transmission : ce qui nous rend malade, ce qui nous protège.',
-        res:[{l:'Cours'},{l:'TP'},{l:'Fiche'},{l:'Exos'}] },
+    num: 'Chapitre 2',
+    titre: 'La biodiversité, témoin de l\'histoire du vivant',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pco9tk7wt25' },
+      { l:'Organisation du chapitre' },
+      { l:'ACTIVITE 1: Etude de la biodiversité du lycée Ernest Ferroul' },
+      { l:'Fiche aide compte-rendu activité 1' },
+      { l:'Grille d\'évaluation compte-rendu biodiversité' },
+      { l:'Bilan cours activité 1' },
+      { l:'ACTIVITE 2: 6ème crise biologique ?' },
+      { l:'Lien escape game', h:'https://view.genially.com/65552c2b114d1c0011e4edb6' },
+      { l:'ACTIVITE 3: Les forces à l\'origine de l\'évolution de la biodiversité' },
+      { l:'Document aide TP 3' },
+      { l:'Bilan cours activité 3' },
+      { l:'Devoir surveillé n°2' },
+      { l:'Grille devoir n°2' },
+    ]
+  },
+  {
+    num: 'Chapitre 3',
+    titre: 'Devenir homme ou femme : communication, reproduction et maîtrise de sa sexualité',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pu9k1s0g525' },
+      { l:'ACTIVITE 1: La communication chez les grenouilles' },
+      { l:'Document aide TP 1' },
+      { l:'Document secours activité 1' },
+      { l:'Bilan + correction activité 1' },
+      { l:'Activité 2: Cours chapitre reproduction diaporama' },
+      { l:'Schéma bilan cours' },
+      { l:'Schéma bilan complet' },
+      { l:'ACTIVITE 3: PMA', h:'https://view.genially.com/6943a244813341a2a79ebaa2/interactive-content-chapitre3activite-3pma' },
+      { l:'Activité 3: Tableau PMA' },
+      { l:'ACTIVITE 3: PMA (correction)' },
+      { l:'ACTIVITE 4: Les méthodes de contraception', h:'https://view.genially.com/6950034f2ddc862aca8ac52e' },
+      { l:'Activité 4: Tableau à compléter' },
+      { l:'Activité 4: Tableau corrigé' },
+      { l:'Devoir surveillé n°3' },
+      { l:'Correction du devoir n°3' },
+      { l:'ACTIVITE 6: Identité et orientation sexuelle', h:'https://view.genially.com/6967f912882e1acdabd1cd8c' },
+      { l:'Bilan cours activité 6' },
+    ]
+  },
+  {
+    num: 'Chapitre 4',
+    titre: 'Microorganismes et santé : bon ou mauvais ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=p88pu560a26' },
+      { l:'Organisation du chapitre' },
+      { l:'Bilan cours chapitre 4' },
+      { l:'ACTIVITE 1: diversité des agents pathogènes' },
+      { l:'Mise en commun des données activité 1 2nde4', h:'https://digicalc.app/698457e7ec467' },
+      { l:'Mise en commun des données activité 1 2nde5', h:'https://digicalc.app/6991a9571653f' },
+      { l:'Mise en commun des données activité 1 2nde6', h:'https://digicalc.app/6989933cb17bb' },
+      { l:'Format affiche' },
+      { l:'Outil pour la création d\'affiche', h:'https://ladigitale.dev/digidesign/editeur.html' },
+      { l:'ACTIVITE 2: Le paludisme: maladie à transmission vectorielle' },
+      { l:'ACTIVITE 3: Le microbiote intestinal est-il notre allié ?' },
+      { l:'DIAPORAMA', h:'https://view.genially.com/69b872bc82ba81ab2090f236' },
+      { l:'ACTIVITE 4: Les gestes d\'hygiènes sont-ils vraiment efficaces ?' },
+      { l:'Documents secours activité 4', h:'https://drive.google.com/drive/folders/1gUcx26Hb32qdJ6fnN4nDjH16x5OQMsF5?usp=drive_link' },
+      { l:'Devoir surveillé n°4' },
+      { l:'Correction du devoir n°4' },
+    ]
+  },
+  {
+    num: 'Chapitre 5',
+    titre: 'Quelle est l\'origine de nos paysages et comment se transforment-ils ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=phbfedhvc26' },
+      { l:'Cours chapitre 5', h:'https://view.genially.com/69cec60e8cd36e7ab9589d3f' },
+      { l:'ACTIVITE : Mission ingénieur géologue', h:'https://view.genially.com/67f370d915eb1912c18ace69' },
+      { l:'Grille d\'évaluation compte-rendu ingénieur lycée' },
+    ]
+  },
+  {
+    num: 'Chapitre 6',
+    titre: 'Nourrir l\'humanité aujourd\'hui et demain : un défi réalisable ?',
+    docs: [
+      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pbvc4dzit26' },
+      { l:'Sortie Vigne' },
+      { l:'Sortie Vigne correction' },
+    ]
+  },
+  {
+    num: 'Culture',
+    titre: 'Articles et vidéos scientifiques',
+    docs: [
+      { l:'Les super-pouvoirs de notre microbiote', h:'https://www.youtube.com/watch?v=TqyznGUuefo' },
+      { l:'Les futures épidémies que nous vivrons', h:'https://www.youtube.com/watch?v=VJNt1AQ8p2A' },
+      { l:'Dirty biology', h:'https://www.youtube.com/watch?v=WJ0f5wXETyg' },
+      { l:'Darwin chez les pokémons', h:'https://youtu.be/OcKfWW7sAMk?si=EwL_6OZZSdLdxLbt' },
+      { l:'Les atouts de l’ADN synthétique pour stocker les données numériques', h:'https://www.lemonde.fr/sciences/article/2024/09/03/les-atouts-de-l-adn-synthetique-pour-stocker-les-donnees-numeriques_6302640_1650684.html' },
+      { l:'Suivre l\'actualité scientifique', h:'https://youtube.com/@leblob_fr?si=1Vmq4BDFLd873EK5' },
     ]
   },
 ];
 
-document.getElementById('themes').innerHTML = THEMES.map(th => `
+document.getElementById('themes').innerHTML = CHAPITRES.map(ch => `
   <section class="theme">
     <div class="shell">
       <div class="theme-head">
-        <span class="theme-num">${th.num}</span>
-        <h2>${th.titre}</h2>
+        <span class="theme-num">${ch.num}</span>
+        <h2>${ch.titre}</h2>
       </div>
-      <ul class="chaps">
-        ${th.chapitres.map(c => `
-          <li>
-            <div class="chap">
-              <span class="num">${c.n}</span>
-              <div class="txt">
-                <h3>${c.t}</h3>
-                <p>${c.d}</p>
-                <div class="res">
-                  ${c.res.map(r => r.h
-                    ? `<a href="${r.h}">${r.l}</a>`
-                    : `<span>${r.l}</span>`).join('')}
-                </div>
-              </div>
-            </div>
-          </li>`).join('')}
+      <ul class="docs">
+        ${ch.docs.map(doc => doc.h
+          ? `<li><a class="doc on" href="${doc.h}" target="_blank" rel="noopener">
+               <span class="dt">${doc.l}</span><span class="da">Ouvrir &#8599;</span></a></li>`
+          : `<li><span class="doc"><span class="dt">${doc.l}</span><span class="da">à venir</span></span></li>`
+        ).join('')}
       </ul>
     </div>
   </section>`).join('');
