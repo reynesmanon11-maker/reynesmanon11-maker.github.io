@@ -588,7 +588,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
-          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
+          <li><a class="alink" href="#services"><span>Seconde</span></a></li>
           <li><a class="alink" href="#services"><span>Première</span></a></li>
           <li><a class="alink" href="#services"><span>Terminale</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
@@ -969,9 +969,9 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ portfolio ============ */
 (function(){
   const items = [
-    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'2nde.html' },
-    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'2nde.html' },
-    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'2nde.html' },
+    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'#services' },
+    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'#services' },
+    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'#services' },
     { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'carte_geol_aude_v5.html' },
   ];
   document.getElementById('works-list').innerHTML = items.map((it, i) => `
@@ -996,7 +996,7 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ services ============ */
 (function(){
   const rows = [
-    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'2nde.html' },
+    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'#services' },
     { n:'02', t:'Première',  d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
     { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
     { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
