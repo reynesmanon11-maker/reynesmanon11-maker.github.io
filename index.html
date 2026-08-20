@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Mme Reynes — Sciences de la Vie et de la Terre</title>
+<meta name="description" content="Cours, travaux pratiques et ressources de SVT au lycée — de la cellule aux plaques tectoniques." />
+<meta name="theme-color" content="#0a0a0a" />
+<meta property="og:title" content="Mme Reynes — Sciences de la Vie et de la Terre" />
+<meta property="og:description" content="Cours, TP et ressources de SVT au lycée." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ===================== reset / base ===================== */
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ font-size:16px; -webkit-font-smoothing:antialiased }
+body{ background:#ffffff; color:#111111; font-family:'Onest',sans-serif; overflow-x:hidden }
+a{ color:inherit; text-decoration:none }
+button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer }
+ul{ list-style:none }
+img{ display:block }
+.sr-only{ position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0 }
+:focus-visible{ outline:2px solid #b15f2c; outline-offset:2px }
+@media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important } }
+
+/* ===================== adaptive rem grid ===================== */
+@media (max-width:1920px){ html{ font-size:0.833333vw } }
+@media (max-width:1440px){ html{ font-size:1.111111vw } }
+@media (max-width:1024px){ html{ font-size:1.5625vw } }
+@media (max-width:640px){ html{ font-size:4.444444vw } }
+
+/* ===================== tokens ===================== */
+:root{
+  --background:#ffffff; --foreground:#111111;
+  --ink:#0a0a0a; --muted:#8d8d8d; --subtle:#b6b6b6;
+  --line:#e6e5e2; --surface:#f1f0ee; --surface-2:#e3e2df;
+  --accent:#b15f2c; --accent-from:#cf8047; --accent-to:#97501f;
+  --hero-from:#ecebe9; --hero-to:#c9c9c9;
+  --radius-pill:9999px; --radius-card:2rem; --radius-card-sm:1.25rem; --radius-control:0.875rem;
+  --text-watermark:13rem; --container-shell:88rem;
+}
+/* width:100% est nécessaire : dans un conteneur flex, une marge auto sur
+   l'axe transverse annule l'étirement et ramène l'élément à son contenu. */
+.shell{ width:100%; max-width:var(--container-shell); margin-inline:auto }
+svg.ic{ width:1em; height:1em; display:block; flex:none }
+
+/* ===================== skip link ===================== */
+.skip{ position:absolute; left:-9999px }
+.skip:focus{ position:fixed; left:1rem; top:1rem; z-index:60; border-radius:.875rem; background:#0a0a0a; padding:.5rem 1rem; font-size:.875rem; color:#fff }
+
+/* ===================== reveal ===================== */
+[data-reveal]{ opacity:0; will-change:transform,opacity }
+[data-reveal="up"]{ transform:translateY(var(--ry,20px)) }
+[data-reveal="up"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="fade"].in{ opacity:1; transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="pop"]{ transform:translateY(16px) scale(.96) }
+[data-reveal="pop"].in{ opacity:1; transform:none;
+  transition:opacity .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .8s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="panel"]{ transform:translateY(40px) scale(.99) }
+[data-reveal="panel"].in{ opacity:1; transform:none;
+  transition:opacity .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform .9s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+[data-reveal="wm"]{ transform:translateY(20px) }
+[data-reveal="wm"].in{ opacity:.4; transform:none;
+  transition:opacity 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms), transform 1s cubic-bezier(.16,1,.3,1) var(--rd,0ms) }
+
+/* Le fond de casse (« è », « p », « g ») serait coupé par le masque :
+   on rend un peu de place puis on la reprend en marge négative. */
+.ln{ display:block; overflow:hidden; padding-bottom:.09em; margin-bottom:-.09em }
+.ln > i{ display:block; font-style:normal; transform:translateY(100%); opacity:0 }
+.lines.in .ln > i{ transform:none; opacity:1;
+  transition:transform .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms), opacity .9s cubic-bezier(.215,.61,.355,1) var(--ld,0ms) }
+.wd{ display:inline-block; transform:translateY(24px); opacity:0 }
+.words.in .wd{ transform:none; opacity:1;
+  transition:transform .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms), opacity .7s cubic-bezier(.165,.84,.44,1) var(--wd,0ms) }
+
+/* ===================== loader ===================== */
+#loader{ position:fixed; inset:0; z-index:120; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; gap:2rem; background:#0a0a0a; color:#fff; border-radius:0 0 2rem 2rem; will-change:transform }
+#loader.out{ transform:translateY(-100%); transition:transform .7s cubic-bezier(.22,1,.36,1) }
+#loader .ldc{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center }
+#loader.out .ldc{ opacity:0; transform:translateY(-12px); transition:opacity .55s ease, transform .55s ease }
+#loader .ldbrand{ display:flex; align-items:center; gap:.5rem; font-weight:600; font-size:1.5rem }
+#loader .ldbrand .ic{ font-size:1.875rem; color:#cf8047 }
+#loader .ldtag{ max-width:24ch; font-size:.875rem; color:rgba(255,255,255,.55) }
+#loader .ldprog{ display:flex; flex-direction:column; gap:.75rem; width:min(22rem,72vw) }
+#loader .ldtrack{ height:1px; background:rgba(255,255,255,.15) }
+#loader .ldfill{ height:100%; background:#cf8047; width:0%; transition:width .1s ease-out }
+#loader .ldrow{ display:flex; justify-content:space-between; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.45) }
+#loader .ldnum{ font-variant-numeric:tabular-nums; color:rgba(255,255,255,.8) }
+@media (min-width:640px){ #loader .ldbrand{ font-size:1.875rem } }
+
+/* ===================== header ===================== */
+#hdr{ position:absolute; inset-inline:0; top:0; z-index:50; opacity:0; transform:translateY(-14px) }
+#hdr.in{ opacity:1; transform:none; transition:opacity .7s cubic-bezier(.22,1,.36,1) 150ms, transform .7s cubic-bezier(.22,1,.36,1) 150ms }
+#hdr .bar{ display:flex; align-items:center; justify-content:space-between; gap:1.5rem; padding:1.25rem }
+.brandbtn span{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600; letter-spacing:-.01em }
+.brandbtn .ic{ font-size:1.25rem; color:#b15f2c }
+#hdr nav.primary{ display:none }
+#hdr nav.primary ul{ display:flex; gap:2rem; font-size:.875rem; font-weight:500 }
+#hdr nav.primary button > span{ display:inline-flex; align-items:center; gap:.25rem; opacity:.8 }
+#hdr nav.primary .caret{ font-size:.75rem; opacity:.6 }
+.hdr-right{ display:flex; align-items:center; gap:.75rem }
+.clockchip{ display:none; align-items:center; gap:.75rem; border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4);
+  backdrop-filter:blur(4px); border-radius:.875rem; padding:.5rem .75rem; font-size:.75rem; color:rgba(17,17,17,.7) }
+.clockchip .lbl{ color:rgba(17,17,17,.45) }
+.clockchip .tm{ min-width:3.5rem; font-variant-numeric:tabular-nums; font-weight:500; color:#111 }
+.clockchip .sep{ color:rgba(17,17,17,.3) }
+.clockchip .dt{ font-weight:500 }
+.menubtn{ border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4); backdrop-filter:blur(4px); border-radius:.875rem }
+.menubtn:hover{ background:rgba(255,255,255,.7) }
+.menubtn > span{ display:flex; align-items:center; gap:.5rem; padding:.5rem 1rem; font-size:.75rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em }
+.menubtn .ic{ font-size:.875rem }
+.menubtn .mlabel{ display:none }
+@media (min-width:640px){ #hdr .bar{ padding:1.5rem 2rem } .menubtn .mlabel{ display:inline } }
+@media (min-width:768px){ .clockchip{ display:flex } }
+@media (min-width:1024px){ #hdr nav.primary{ display:flex } }
+
+/* ===================== shared components ===================== */
+.pill{ display:inline-block }
+.pill > span{ display:inline-flex; align-items:center; gap:.75rem; border-radius:9999px; font-size:.875rem; font-weight:500 }
+.pill.arrow > span{ padding:.375rem .375rem .375rem 1.5rem }
+.pill.noarrow > span{ padding:.875rem 1.75rem }
+.pill.dark > span{ background:#0a0a0a; color:#fff }
+.pill.light > span{ background:#f1f0ee; color:#111 }
+.pill.outline > span{ border:1px solid #e6e5e2; background:transparent; color:#111 }
+.pill .badge{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:1rem; flex:none }
+.pill.dark .badge{ background:#fff; color:#0a0a0a }
+.pill.light .badge, .pill.outline .badge{ background:#0a0a0a; color:#fff }
+.eyebrow{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.eyebrow::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:rgba(17,17,17,.5) }
+.eyebrow.lighttone{ color:rgba(255,255,255,.7) }
+.eyebrow.lighttone::before{ background:rgba(255,255,255,.6) }
+.eyebrow.boxed{ border:1px solid #e6e5e2; border-radius:9999px; padding:.375rem 1rem }
+.chip{ display:inline-flex; border:1px solid rgba(255,255,255,.25); color:#fff; border-radius:9999px; padding:.5rem 1rem; font-size:.875rem }
+.alink{ display:inline-flex }
+.alink > span{ display:inline-block; opacity:.65 }
+
+/* ===================== hero ===================== */
+#home{ position:relative; isolation:isolate; overflow:hidden; border-radius:0 0 2rem 2rem; background:#c9c9c9 }
+#home .bg{ position:absolute; inset:0; z-index:0 }
+#home .bg img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover }
+#home .bg canvas{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none }
+#home .vig{ position:absolute; inset:0; z-index:1; pointer-events:none;
+  background:linear-gradient(to bottom, rgba(255,255,255,.35), transparent, rgba(255,255,255,.35)) }
+#home .wm{ pointer-events:none; position:absolute; inset-inline:0; bottom:7rem; z-index:1; text-align:center;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.4) }
+.hero-grid{ position:relative; z-index:20; display:flex; flex-direction:column; gap:2rem; padding:7rem 1.25rem 5rem }
+.hero-left{ display:flex; flex-direction:column; gap:1.75rem }
+.hero-left h1{ max-width:18ch; font-size:2.25rem; font-weight:600; line-height:.98; letter-spacing:-.02em }
+.rating{ display:flex; align-items:center; gap:.75rem }
+.rating .stars{ color:#b15f2c; display:inline-flex; gap:.125rem; font-size:1rem }
+.rating .rtxt{ font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
+.ctarow{ display:flex; flex-wrap:wrap; gap:.75rem }
+.hero-right{ display:flex; flex-direction:column; align-items:flex-start; gap:2rem }
+.herocard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7); padding:.5rem;
+  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px) }
+.herocard .row{ display:flex; gap:.5rem; cursor:pointer; border-radius:.875rem }
+.herocard .tile{ aspect-ratio:1; width:6rem; display:grid; place-items:center; border-radius:.875rem; background:#0a0a0a; font-size:1.875rem; color:#fff; flex:none }
+.herocard .tile .ic{ color:#cf8047 }
+.herocard .panel{ flex:1; border-radius:.875rem; background:rgba(241,240,238,.7); padding:.75rem; display:flex; flex-direction:column; justify-content:space-between }
+.herocard .slot{ position:relative; min-height:3.25rem }
+.herocard .item{ position:absolute; inset:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1) }
+.herocard .item.hide-up{ opacity:0; transform:translateY(-14px) }
+.herocard .item.hide-down{ opacity:0; transform:translateY(14px) }
+.herocard .cap{ font-size:.65rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.45) }
+.herocard .ttl{ max-width:8rem; font-size:.875rem; font-weight:500; line-height:1.35 }
+.herocard .btm{ display:flex; align-items:center; justify-content:space-between; margin-top:.5rem }
+.herocard .dots{ display:flex; align-items:center; gap:.25rem }
+.herocard .dots i{ height:.25rem; border-radius:9999px; width:.375rem; background:rgba(17,17,17,.2); transition:all .3s }
+.herocard .dots i.on{ width:1rem; background:rgba(17,17,17,.7) }
+.herocard .navb{ display:flex; gap:.25rem }
+.herocard .navb button{ width:1.75rem; height:1.75rem; display:grid; place-items:center; border-radius:9999px; background:#fff;
+  color:rgba(17,17,17,.7); box-shadow:0 0 0 1px #e6e5e2 }
+.herocard .navb button:hover{ color:#111 }
+.partners{ width:100%; max-width:24rem }
+.partners .plabel{ margin-bottom:.75rem; font-size:.75rem; font-weight:500; color:rgba(17,17,17,.45); text-align:left }
+.partners ul{ display:grid; grid-template-columns:repeat(4,1fr); column-gap:1rem; row-gap:.75rem }
+.partners li a{ display:block }
+.partners li span{ display:flex; align-items:center; gap:.375rem; font-size:.75rem; color:rgba(17,17,17,.7); opacity:.7 }
+.partners li .ic{ font-size:.875rem; color:rgba(17,17,17,.4) }
+.hero-status{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; border-top:1px solid rgba(17,17,17,.1);
+  padding:1.25rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.6) }
+.hero-status .mid{ display:none }
+.hero-status .right{ display:inline-flex; gap:.5rem }
+@media (min-width:640px){
+  .hero-grid{ padding-inline:2rem } .hero-status{ padding-inline:2rem } .hero-status .mid{ display:block }
+  .hero-left h1{ font-size:3rem }
+}
+@media (min-width:768px){ .hero-left h1{ font-size:3.75rem } }
+@media (min-width:1024px){
+  .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 7rem }
+  .hero-left{ grid-column:span 7 } .hero-right{ grid-column:span 5; align-items:flex-end }
+  .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
+}
+
+/* ===================== about ===================== */
+#about{ background:#fff }
+#about .grid{ display:grid; grid-template-columns:1fr; align-items:center; gap:3rem; padding:5rem 1.25rem }
+#about .globe-block{ position:relative; min-height:14rem }
+#about .globe-bg{ position:absolute; left:-1rem; top:50%; transform:translateY(-50%); font-size:12rem; color:rgba(17,17,17,.1) }
+#about .eyerel{ position:relative }
+#about .gnote{ display:flex; align-items:center; gap:.75rem; font-size:.875rem; color:rgba(17,17,17,.7); position:relative; margin-top:2rem }
+#about .gnote .ic{ font-size:1.5rem; color:#111 }
+#about .gnote span.t{ max-width:14rem }
+#about .stmt{ display:flex; flex-direction:column; gap:2.5rem }
+#about h2{ font-size:1.5rem; font-weight:500; line-height:1.35; letter-spacing:-.01em }
+#about h2 .mu{ color:#8d8d8d }
+#about .frow{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:1.5rem; border-top:1px solid #e6e5e2; padding-top:1.5rem }
+#about .flabel{ font-size:.875rem; color:rgba(17,17,17,.45); margin-bottom:.75rem }
+#about .socials{ display:flex; gap:.5rem }
+#about .soc{ width:2.25rem; height:2.25rem; display:grid; place-items:center; border-radius:9999px; font-size:.875rem;
+  background:#f1f0ee; color:rgba(17,17,17,.7) }
+#about .soc.x{ background:#b15f2c; color:#fff }
+@media (min-width:640px){ #about .grid{ padding-inline:2rem } #about h2{ font-size:1.875rem } #about .globe-bg{ font-size:16rem } }
+@media (min-width:1024px){
+  #about .grid{ grid-template-columns:1fr 1fr; padding-block:7rem }
+  #about .globe-block{ min-height:20rem } #about .globe-bg{ left:-1.5rem; font-size:20rem }
+}
+
+/* ===================== create band ===================== */
+.createband{ background:#fff }
+.createband ul{ display:flex; flex-direction:column; gap:.75rem; padding:2.5rem 1.25rem }
+.createband li{ flex:1 }
+.createband .tile{ display:grid; place-items:center; height:6rem; border-radius:9999px; font-size:1.875rem; font-weight:500 }
+.createband .t-light{ background:#f1f0ee; color:#111 }
+.createband .t-accent{ background:linear-gradient(to bottom right,#cf8047,#97501f); color:#fff }
+.createband .t-dark{ background:#0a0a0a; color:#fff; font-size:2.25rem }
+.createband .t-ghost{ background:rgba(241,240,238,.6); color:rgba(17,17,17,.35) }
+@media (min-width:640px){
+  .createband ul{ flex-direction:row; gap:1rem; padding-inline:2rem }
+  .createband .tile{ height:10rem; font-size:2.25rem } .createband .t-dark{ font-size:3rem }
+}
+
+/* ===================== portfolio ===================== */
+#works{ background:#fff }
+#works .inner{ padding:2.5rem 1.25rem 5rem }
+#works .head{ display:flex; flex-direction:column; align-items:center; gap:1.25rem; text-align:center; margin-bottom:3rem }
+#works h2{ font-size:2.25rem; font-weight:600; letter-spacing:-.02em; width:fit-content }
+#works ul{ display:grid; grid-template-columns:1fr; gap:1.5rem }
+#works article{ position:relative; min-height:22rem; overflow:hidden; border-radius:2rem; background:#0a0a0a; padding:1.5rem; color:#fff;
+  box-shadow:0 0 0 1px rgba(255,255,255,.05) }
+#works .meta{ display:flex; justify-content:space-between; align-items:flex-start; font-size:.75rem; text-transform:uppercase;
+  letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#works .pbadge{ width:2.75rem; height:2.75rem; display:grid; place-items:center; border-radius:9999px; background:rgba(255,255,255,.1);
+  color:#fff; box-shadow:0 0 0 1px rgba(255,255,255,.15); font-size:1rem }
+#works .cwm{ position:absolute; inset:0; display:grid; place-items:center; pointer-events:none }
+#works .cwm .ic{ font-size:4.5rem; color:rgba(255,255,255,.9) }
+#works .cwm sup{ font-size:.75rem; color:rgba(255,255,255,.6) }
+#works .btm{ position:absolute; inset-inline:1.5rem; bottom:1.5rem }
+#works h3{ font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#works .desc{ margin-top:.5rem; max-width:28rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+#works .tags{ margin-top:1.25rem; display:flex; flex-wrap:wrap; gap:.5rem }
+@media (min-width:640px){
+  #works .inner{ padding-inline:2rem } #works h2{ font-size:3rem }
+  #works article{ min-height:26rem; padding:2rem } #works .btm{ inset-inline:2rem; bottom:2rem } #works h3{ font-size:1.875rem }
+}
+@media (min-width:768px){ #works ul{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ #works .inner{ padding-bottom:7rem } }
+
+/* ===================== services ===================== */
+#services{ background:#fff }
+#services .inner{ padding:5rem 1.25rem }
+#services h2{ margin:1.25rem 0 3rem; max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+#services li{ border-top:1px solid #e6e5e2 }
+#services li:first-child{ border-top:none }
+#services .row{ display:flex; align-items:center; gap:1rem; border-radius:1.25rem; padding:1.5rem; background:rgba(241,240,238,0) }
+#services .idx{ width:1.75rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.4); flex:none }
+#services h3{ flex:1; font-size:1.5rem; font-weight:500; letter-spacing:-.01em }
+#services .sdesc{ display:none; max-width:20rem; font-size:.875rem; color:rgba(17,17,17,.55) }
+#services .sbadge{ width:2.5rem; height:2.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#fff; font-size:1rem; flex:none }
+@media (min-width:640px){
+  #services .inner{ padding-inline:2rem } #services h2{ margin-bottom:3.5rem; font-size:3rem }
+  #services .row{ gap:1.5rem; padding-block:2rem } #services .idx{ width:2.5rem } #services h3{ font-size:1.875rem }
+  #services .sbadge{ width:3rem; height:3rem }
+}
+@media (min-width:768px){ #services h3{ font-size:2.25rem } }
+@media (min-width:1024px){ #services .inner{ padding-block:7rem } #services .sdesc{ display:block } }
+
+/* ===================== stats ===================== */
+.statsec{ background:#fff }
+.statsec .inner{ padding:0 1.25rem 5rem }
+.statsec .panel{ border-radius:2rem; background:#0a0a0a; padding:3rem 1.5rem; color:#fff }
+.statsec h2{ margin-top:1rem; max-width:20ch; font-size:1.875rem; font-weight:500; letter-spacing:-.01em }
+.statsec ul{ margin-top:3.5rem; display:grid; grid-template-columns:repeat(2,1fr); column-gap:2rem; row-gap:3rem }
+.statsec .num{ font-size:3rem; font-weight:600; letter-spacing:-.02em }
+.statsec .slab{ margin-top:.75rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+@media (min-width:640px){ .statsec .inner{ padding-inline:2rem } .statsec .panel{ padding:4rem 2rem } .statsec .num{ font-size:3.75rem } }
+@media (min-width:768px){ .statsec .panel{ padding-inline:4rem } .statsec h2{ font-size:2.25rem } .statsec .num{ font-size:4.5rem } }
+@media (min-width:1024px){ .statsec .inner{ padding-bottom:7rem } .statsec ul{ grid-template-columns:repeat(4,1fr) } }
+
+/* ===================== footer ===================== */
+footer.site{ position:relative; overflow:hidden; border-radius:2rem 2rem 0 0; background:#0a0a0a; color:#fff }
+footer.site .inner{ position:relative; z-index:10; padding:5rem 1.25rem 2.5rem }
+footer.site .cta{ display:flex; flex-direction:column; gap:2rem; border-bottom:1px solid rgba(255,255,255,.1); padding-bottom:4rem }
+footer.site h2{ max-width:16ch; font-size:2.25rem; font-weight:600; letter-spacing:-.02em }
+footer.site .cols{ display:grid; grid-template-columns:1fr; gap:3rem; padding-block:4rem }
+footer.site .cbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+footer.site .cbrand .ic{ font-size:1.25rem }
+footer.site .ctag{ margin-top:1rem; max-width:20rem; font-size:.875rem; color:rgba(255,255,255,.55) }
+footer.site .ctitle{ font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.4); margin-bottom:1rem }
+footer.site .clist{ display:flex; flex-direction:column; gap:.75rem; font-size:.875rem }
+footer.site .legal{ display:flex; flex-direction:column; align-items:center; justify-content:space-between; gap:1rem;
+  border-top:1px solid rgba(255,255,255,.1); padding-top:2rem; font-size:.75rem; color:rgba(255,255,255,.45) }
+footer.site .legal .lks{ display:flex; gap:1.5rem }
+footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; text-align:center; pointer-events:none;
+  user-select:none; font-weight:700; line-height:1; font-size:var(--text-watermark); color:rgba(255,255,255,.05) }
+@media (min-width:640px){ footer.site .inner{ padding-inline:2rem } footer.site h2{ font-size:3rem }
+  footer.site .legal{ flex-direction:row } }
+@media (min-width:768px){ footer.site h2{ font-size:3.75rem } footer.site .cols{ grid-template-columns:1fr 1fr } }
+@media (min-width:1024px){ footer.site .inner{ padding-top:6rem }
+  footer.site .cta{ flex-direction:row; align-items:flex-end; justify-content:space-between }
+  footer.site .cols{ grid-template-columns:repeat(4,1fr) } }
+
+/* ===================== nav overlay ===================== */
+#navmenu{ position:fixed; inset:0; z-index:115; display:none; flex-direction:column; background:#0a0a0a; color:#fff; opacity:0;
+  transition:opacity .45s cubic-bezier(.22,1,.36,1) }
+#navmenu.show{ display:flex } #navmenu.vis{ opacity:1 }
+#navmenu .top{ display:flex; align-items:center; justify-content:space-between; padding:1.25rem }
+#navmenu .nbrand{ display:flex; align-items:center; gap:.5rem; font-size:1.125rem; font-weight:600 }
+#navmenu .nbrand .ic{ font-size:1.25rem; color:#cf8047 }
+#navmenu .closeb{ display:inline-flex; align-items:center; gap:.5rem; border:1px solid rgba(255,255,255,.15); border-radius:.875rem;
+  padding:.5rem 1rem; font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(255,255,255,.7) }
+#navmenu .closeb:hover{ border-color:rgba(255,255,255,.4); color:#fff }
+#navmenu .closeb .ic{ font-size:.875rem }
+#navmenu nav{ flex:1; display:flex; flex-direction:column; justify-content:center }
+#navmenu nav ul{ display:flex; flex-direction:column; gap:.25rem }
+#navmenu nav button{ width:100%; display:flex; align-items:baseline; gap:1rem; padding-block:.5rem; text-align:left;
+  font-size:2.25rem; font-weight:600; letter-spacing:-.02em; transform:translateY(1rem); opacity:0; transition:all .5s ease-out }
+#navmenu.vis nav button{ transform:none; opacity:1 }
+#navmenu nav .n{ font-size:1rem; font-weight:400; color:rgba(255,255,255,.3); transition:color .3s }
+#navmenu nav .l{ color:rgba(255,255,255,.7); transition:color .3s }
+#navmenu nav button:hover .n{ color:#cf8047 } #navmenu nav button:hover .l{ color:#fff }
+#navmenu .btm{ display:flex; flex-direction:column; gap:.75rem; border-top:1px solid rgba(255,255,255,.1); padding:1.5rem 1.25rem;
+  font-size:.75rem; text-transform:uppercase; letter-spacing:.025em; color:rgba(255,255,255,.45) }
+#navmenu .btm button{ color:rgba(255,255,255,.7) } #navmenu .btm button:hover{ color:#fff; text-decoration:underline }
+@media (min-width:640px){ #navmenu .top{ padding:1.5rem 2rem } #navmenu nav button{ font-size:3.75rem }
+  #navmenu .btm{ flex-direction:row; align-items:center; justify-content:space-between; padding-inline:2rem } }
+
+/* ===================== modal ===================== */
+#modal{ position:fixed; inset:0; z-index:110; display:none; align-items:flex-end; justify-content:center; padding:1rem;
+  background:rgba(17,17,17,.3); backdrop-filter:blur(16px); opacity:0; transition:opacity .4s ease }
+#modal.show{ display:flex } #modal.vis{ opacity:1 }
+#modal .panel{ position:relative; width:100%; max-width:32rem; overflow:hidden; border-radius:2rem; background:#fff; padding:1.5rem;
+  box-shadow:0 25px 50px -12px rgba(0,0,0,.25), 0 0 0 1px #e6e5e2; transform:translateY(28px);
+  transition:transform .55s cubic-bezier(.22,1,.36,1), opacity .4s ease; opacity:0 }
+#modal.vis .panel{ transform:none; opacity:1 }
+#modal .closeb{ position:absolute; right:1rem; top:1rem; width:2.25rem; height:2.25rem; display:grid; place-items:center;
+  border-radius:9999px; background:#f1f0ee; color:rgba(17,17,17,.6); font-size:.875rem }
+#modal .closeb:hover{ background:#e3e2df; color:#111 }
+#modal .mhead{ margin-bottom:1.5rem; display:flex; flex-direction:column; gap:.375rem }
+#modal .mkick{ display:inline-flex; align-items:center; gap:.5rem; font-size:.875rem; font-weight:500; color:rgba(17,17,17,.6) }
+#modal .mkick::before{ content:""; width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c }
+#modal h2{ font-size:1.5rem; font-weight:600; letter-spacing:-.01em }
+#modal form{ display:flex; flex-direction:column; gap:1rem }
+#modal label{ display:flex; flex-direction:column; gap:.5rem }
+#modal .cap{ font-size:.75rem; font-weight:500; text-transform:uppercase; letter-spacing:.025em; color:rgba(17,17,17,.5) }
+#modal input, #modal textarea{ width:100%; border:1px solid #e6e5e2; background:rgba(241,240,238,.5); border-radius:.875rem;
+  padding:.75rem 1rem; font-size:.875rem; font-family:inherit; outline:none; transition:border-color .2s, background .2s }
+#modal textarea{ resize:none }
+#modal input:focus, #modal textarea:focus{ border-color:rgba(17,17,17,.3); background:#fff }
+#modal .brow{ margin-top:.5rem; display:flex; align-items:center; justify-content:space-between; gap:1rem }
+#modal .note{ font-size:.75rem; color:rgba(17,17,17,.45) }
+#modal .success{ display:none; flex-direction:column; align-items:center; text-align:center; padding-block:2rem; gap:1rem }
+#modal.done .success{ display:flex } #modal.done .mhead, #modal.done form{ display:none }
+#modal .sbadge{ width:3.5rem; height:3.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#cf8047; font-size:1.5rem }
+#modal .stext{ max-width:32ch; font-size:.875rem; color:rgba(17,17,17,.6) }
+@media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au contenu</a>
+
+<!-- ============ SVG defs ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-logo" viewBox="0 0 48 48"><path fill="currentColor" d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/></symbol>
+    <symbol id="i-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><circle cx="12" cy="12" r="9.25"/><path d="M12 2.75c2.6 2.3 4 5.8 4 9.25s-1.4 6.95-4 9.25c-2.6-2.3-4-5.8-4-9.25s1.4-6.95 4-9.25zM2.75 12h18.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4 4 20"/></symbol>
+    <symbol id="i-dot" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.2" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============ LOADER ============ -->
+<div id="loader" role="status" aria-live="polite">
+  <div class="ldc">
+    <div class="ldbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <p class="ldtag">Sciences de la Vie et de la Terre</p>
+  </div>
+  <div class="ldprog">
+    <div class="ldtrack"><div class="ldfill" id="ldfill"></div></div>
+    <div class="ldrow"><span>Chargement</span><span class="ldnum" id="ldnum">000</span></div>
+  </div>
+</div>
+
+<!-- ============ HEADER ============ -->
+<header id="hdr">
+  <div class="shell bar">
+    <button class="brandbtn" data-hs="scale:1.04" data-cfg="320/18" data-go="home">
+      <span><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</span>
+    </button>
+
+    <nav class="primary" aria-label="Primary">
+      <ul>
+        <li><button data-nav="home" aria-current="page"><span>Accueil</span></button></li>
+        <li><button data-nav="works"><span>Chapitres</span></button></li>
+        <li><button data-nav="services"><span>Niveaux</span></button></li>
+        <li><button data-nav="about"><span>La classe</span></button></li>
+        <li><button data-nav="works"><span>Ressources</span></button></li>
+        <li><button data-nav="contact"><span>Contact</span></button></li>
+      </ul>
+    </nav>
+
+    <div class="hdr-right">
+      <div class="clockchip">
+        <span class="lbl">Heure locale</span>
+        <span class="tm" id="clk-time">9:41</span>
+        <span class="sep">•</span>
+        <span class="dt" id="clk-date">12 mars 2025</span>
+      </div>
+      <button class="menubtn" id="openmenu" data-hs="scale:1.05" data-cfg="320/18" aria-label="Ouvrir le menu">
+        <span><svg class="ic"><use href="#i-grid"/></svg><em class="mlabel" style="font-style:normal">Menu</em></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<!-- ============ HERO ============ -->
+<section id="home">
+  <div class="bg" id="liquid">
+    <img id="heroimg" src="https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/after.jpg" alt="Photographie d'illustration" fetchpriority="high" />
+    <canvas aria-hidden="true"></canvas>
+  </div>
+  <div class="vig"></div>
+  <div class="wm" data-reveal="wm" data-gate="ready" style="--rd:300ms">SVT</div>
+
+  <div class="shell hero-grid">
+    <div class="hero-left">
+      <div data-reveal="up" data-gate="ready" style="--ry:10px;--rd:200ms">
+        <span class="eyebrow">Lycée — de la Seconde à la Terminale</span>
+      </div>
+
+      <h1 class="lines" data-lines data-gate="ready" data-stagger="120" data-delay="250">
+        <span class="ln"><i>Comprendre</i></span>
+        <span class="ln"><i>le vivant et</i></span>
+        <span class="ln"><i>notre planète</i></span>
+      </h1>
+
+      <div class="rating" data-reveal="up" data-gate="ready" style="--ry:10px;--rd:650ms">
+        <span class="stars"><svg class="ic"><use href="#i-globe"/></svg></span>
+        <span class="rtxt">Cours, TP et ressources en accès libre</span>
+      </div>
+
+      <div class="ctarow" data-reveal="up" data-gate="ready" style="--ry:10px;--rd:750ms">
+        <button class="pill dark arrow" data-modal><span>Me contacter<span class="badge"><svg class="ic"><use href="#i-arr"/></svg></span></span></button>
+        <button class="pill outline noarrow" data-go="works"><span>Voir les chapitres</span></button>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="herocard" data-reveal="pop" data-gate="ready" style="--rd:400ms">
+        <div class="row" id="hc-row" role="button" tabindex="0" aria-label="Next highlight">
+          <div class="tile"><svg class="ic"><use href="#i-logo"/></svg></div>
+          <div class="panel">
+            <div class="slot" id="hc-slot"></div>
+            <div class="btm">
+              <div class="dots" id="hc-dots"><i class="on"></i><i></i><i></i></div>
+              <div class="navb">
+                <button id="hc-prev" aria-label="Previous"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arr"/></svg></button>
+                <button id="hc-next" aria-label="Next"><svg class="ic"><use href="#i-arr"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="partners" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:550ms">
+        <p class="plabel">Outils interactifs</p>
+        <ul id="partners"></ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="shell hero-status" data-reveal="fade" data-gate="ready" style="--rd:900ms">
+    <span>Sciences de la Vie et de la Terre</span>
+    <span class="mid">Cours · TP · Fiches · Terrain</span>
+    <span class="right">Faire défiler <em style="font-style:normal">↓</em></span>
+  </div>
+</section>
+
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="shell grid">
+    <div class="globe-block">
+      <svg class="ic globe-bg" aria-hidden="true"><use href="#i-globe"/></svg>
+      <span class="eyebrow eyerel">La classe</span>
+      <div class="gnote" data-reveal="up" style="--ry:12px">
+        <svg class="ic"><use href="#i-globe"/></svg>
+        <span class="t">Les SVT se vérifient dehors : sur un affleurement, dans une parcelle, au microscope.</span>
+      </div>
+    </div>
+
+    <div class="stmt">
+      <h2 class="words" data-words>Observer, formuler une hypothèse, la mettre à l'épreuve <span class="mu">— et accepter de la réviser. C'est la démarche que nous construisons ensemble, chapitre après chapitre.</span></h2>
+      <div class="frow" data-reveal="up" style="--ry:12px;--rd:200ms">
+        <div>
+          <p class="flabel">En pratique</p>
+          <!-- ✏️ À PERSONNALISER : adaptez ces trois lignes -->
+          <div class="facts">
+            <span>Niveaux : Seconde, Première, Terminale</span>
+            <span>Sorties : géologie, écologie viticole, littoral</span>
+            <span>Numérique : cartes, jeux sérieux, entraînement</span>
+          </div>
+        </div>
+        <a class="pill outline arrow" href="#services"><span>Voir les niveaux<span class="badge"><svg class="ic"><use href="#i-arr"/></svg></span></span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CREATE BAND ============ -->
+<section class="createband">
+  <ul class="shell">
+    <li data-reveal="up" style="--ry:28px;--rd:0ms"><div class="tile t-light" data-hs="scale:1.03" data-cfg="300/18">Observer</div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:120ms"><div class="tile t-accent" data-hs="scale:1.03" data-cfg="300/18">Comprendre</div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:240ms"><div class="tile t-dark" data-hs="scale:1.03" data-cfg="300/18"><svg class="ic"><use href="#i-arr"/></svg></div></li>
+    <li data-reveal="up" style="--ry:28px;--rd:360ms"><div class="tile t-ghost" data-hs="scale:1.03" data-cfg="300/18">Transmettre</div></li>
+  </ul>
+</section>
+
+<!-- ============ PORTFOLIO ============ -->
+<section id="works">
+  <div class="shell inner">
+    <div class="head">
+      <span class="eyebrow boxed" data-reveal="up" style="--ry:12px">Programme</span>
+      <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Les grands thèmes</i></span></h2>
+    </div>
+    <ul id="works-list"></ul>
+  </div>
+</section>
+
+<!-- ============ SERVICES ============ -->
+<section id="services">
+  <div class="shell inner">
+    <span class="eyebrow" data-reveal="up" style="--ry:12px">Niveaux</span>
+    <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Choisir sa classe</i></span></h2>
+    <ul id="services-list"></ul>
+  </div>
+</section>
+
+<!-- ============ STATS ============ -->
+<section class="statsec">
+  <div class="shell inner">
+    <div class="panel" data-reveal="panel">
+      <span class="eyebrow lighttone">En bref</span>
+      <h2 class="lines" data-lines data-delay="120"><span class="ln"><i>Un programme, trois thèmes, une méthode.</i></span></h2>
+      <ul id="stats-list"></ul>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site">
+  <div class="shell inner">
+    <div class="cta">
+      <h2 class="lines" data-lines data-stagger="100">
+        <span class="ln"><i>Une notion qui résiste ?</i></span>
+        <span class="ln"><i>Écrivez-moi.</i></span>
+      </h2>
+      <button class="pill light arrow" data-modal><span>Poser une question<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+    </div>
+
+    <div class="cols">
+      <div>
+        <div class="cbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+        <p class="ctag">Cours, travaux pratiques et ressources de Sciences de la Vie et de la Terre au lycée.</p>
+      </div>
+      <div>
+        <p class="ctitle">Niveaux</p>
+        <ul class="clist">
+          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
+          <li><a class="alink" href="#services"><span>Première</span></a></li>
+          <li><a class="alink" href="#services"><span>Terminale</span></a></li>
+          <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Ressources</p>
+        <ul class="clist">
+          <li><a class="alink" href="carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
+          <li><a class="alink" href="cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
+          <li><a class="alink" href="chatbot_svt_TERM_test.html"><span>Assistant de révision</span></a></li>
+          <li><a class="alink" href="defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
+        </ul>
+      </div>
+      <div>
+        <p class="ctitle">Contact</p>
+        <ul class="clist">
+          <!-- ✏️ À PERSONNALISER : votre adresse -->
+          <li><a class="alink" href="mailto:reynesmanon11@gmail.com"><span>Écrire un message</span></a></li>
+          <li><a class="alink" href="#about"><span>La classe</span></a></li>
+          <li><a class="alink" href="#works"><span>Les thèmes</span></a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="legal">
+      <span>© <span id="year">2026</span> Mme Reynes — Sciences de la Vie et de la Terre</span>
+      <div class="lks"><span>Photographie d'illustration — à remplacer</span></div>
+    </div>
+  </div>
+  <div class="fwm">SVT</div>
+</footer>
+
+<!-- ============ NAV OVERLAY ============ -->
+<div id="navmenu" role="dialog" aria-modal="true" aria-label="Menu">
+  <div class="shell top">
+    <div class="nbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <button class="closeb" id="closemenu"><svg class="ic"><use href="#i-x"/></svg> Fermer</button>
+  </div>
+  <nav class="shell" aria-label="Overlay"><ul id="navlist"></ul></nav>
+  <div class="shell btm">
+    <span id="nav-time">Heure locale</span>
+    <button id="nav-start">Poser une question →</button>
+  </div>
+</div>
+
+<!-- ============ REQUEST MODAL ============ -->
+<div id="modal" role="dialog" aria-modal="true" aria-label="Poser une question">
+  <div class="panel">
+    <button class="closeb" id="closemodal" aria-label="Fermer"><svg class="ic"><use href="#i-x"/></svg></button>
+
+    <div class="mhead">
+      <span class="mkick">Contact</span>
+      <h2>Une question ? Écrivez-moi.</h2>
+    </div>
+
+    <form id="reqform">
+      <label><span class="cap">Nom</span><input type="text" name="name" required placeholder="Votre nom" /></label>
+      <label><span class="cap">Classe ou email</span><input type="text" name="email" required placeholder="2nde 4 — ou votre adresse" /></label>
+      <label><span class="cap">Votre question</span><textarea name="project" rows="4" required placeholder="Le chapitre concerné et ce qui vous bloque."></textarea></label>
+      <div class="brow">
+        <span class="note">Réponse en classe ou par mail.</span>
+        <button class="pill dark arrow" type="submit"><span id="sendlbl">Envoyer<span class="badge"><svg class="ic"><use href="#i-arrup"/></svg></span></span></button>
+      </div>
+    </form>
+
+    <div class="success">
+      <div class="sbadge"><svg class="ic"><use href="#i-logo"/></svg></div>
+      <h2>Message noté</h2>
+      <p class="stext">Ce formulaire est une démonstration : il n'envoie rien pour l'instant. Écrivez-moi directement par mail.</p>
+      <button class="pill dark noarrow" id="successclose"><span>Fermer</span></button>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{ "imports": { "lenis": "https://unpkg.com/lenis@1.3.23/dist/lenis.mjs" } }
+</script>
+<script type="module">
+/* ============ Lenis (dégradation propre si le CDN est injoignable) ============ */
+window.scrollTo(0, 0);
+let lenis = null;
+/* Chargement non bloquant : un `await` de haut niveau suspendrait tout le
+   module — loader compris — jusqu'à la réponse du CDN. */
+import('lenis').then(({ default: Lenis }) => {
+  lenis = new Lenis({ smoothWheel: true });
+  const raf = (t) => { lenis.raf(t); requestAnimationFrame(raf); };
+  requestAnimationFrame(raf);
+  if (!scrollEnabled) lenis.stop();
+}).catch(() => { /* scroll natif */ });
+
+/* ============ verrou de défilement ============ */
+let scrollEnabled = true;
+function stopScroll(){
+  scrollEnabled = false;
+  lenis && lenis.stop();
+  const h = document.documentElement;
+  h.style.position = 'relative'; h.style.overflow = 'hidden'; h.style.height = '100%';
+}
+function startScroll(){
+  scrollEnabled = true;
+  lenis && lenis.start();
+  const h = document.documentElement;
+  h.style.removeProperty('position'); h.style.removeProperty('overflow'); h.style.removeProperty('height');
+}
+function scrollTo(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  scrollEnabled = false;
+  setTimeout(() => {
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset, behavior:'smooth' });
+  }, 50);
+  setTimeout(() => { scrollEnabled = true; }, 100);
+}
+
+/* ============ grille adaptative ============ */
+function applyAdaptiveGrid(){
+  const FONT_BASE = 16, baseWidth = 1920, coef = 0.6666;
+  const w = window.innerWidth;
+  const widthReduction = ((baseWidth - w) / baseWidth) * 100;
+  const size = FONT_BASE - (FONT_BASE * (widthReduction * coef)) / 100;
+  if (size > FONT_BASE) document.documentElement.style.fontSize = size + 'px';
+  else document.documentElement.style.removeProperty('font-size');
+}
+applyAdaptiveGrid();
+addEventListener('resize', applyAdaptiveGrid);
+
+/* ============ ressort (remplace react-spring) ============ */
+const CAN_HOVER = matchMedia('(hover:hover) and (pointer:fine)').matches;
+function spring(cfg, onUpdate){
+  let x = 0, v = 0, target = 0, raf = 0;
+  const step = () => {
+    const dt = 1/60;
+    v += (cfg.tension * (target - x) - cfg.friction * v) * dt;
+    x += v * dt;
+    onUpdate(x);
+    if (Math.abs(target - x) < 0.001 && Math.abs(v) < 0.001){ x = target; v = 0; onUpdate(x); raf = 0; return; }
+    raf = requestAnimationFrame(step);
+  };
+  return { to(t){ target = t; if(!raf) raf = requestAnimationFrame(step); } };
+}
+/* data-hs="scale:1.04" | "y:-2" | "x:4" | "rot:45,scale:1.08" ; data-cfg="tension/friction"
+   data-hs-trigger="closest selector" pour être piloté par un parent */
+function initHover(el){
+  if(!CAN_HOVER) return;
+  const spec = el.dataset.hs.split(',').map(s => s.split(':'));
+  const [tension, friction] = (el.dataset.cfg || '320/18').split('/').map(Number);
+  const base = { scale:1, y:0, x:0, rot:0, opacity:null };
+  const to = { ...base };
+  spec.forEach(([k, v]) => { to[k] = Number(v); });
+  if (el.dataset.op){ const [f,t] = el.dataset.op.split('/').map(Number); base.opacity = f; to.opacity = t; }
+  const s = spring({ tension, friction }, (p) => {
+    const sc = base.scale + (to.scale - base.scale) * p;
+    const y  = base.y + (to.y - base.y) * p;
+    const x  = base.x + (to.x - base.x) * p;
+    const r  = base.rot + (to.rot - base.rot) * p;
+    el.style.transform = `translate3d(${x}px,${y}px,0) rotate(${r}deg) scale(${sc})`;
+    if (base.opacity !== null) el.style.opacity = base.opacity + (to.opacity - base.opacity) * p;
+  });
+  if (base.opacity !== null) el.style.opacity = base.opacity;
+  const trigger = el.dataset.hsTrigger ? el.closest(el.dataset.hsTrigger) : el;
+  trigger.addEventListener('mouseenter', () => s.to(1));
+  trigger.addEventListener('mouseleave', () => s.to(0));
+}
+const initAllHovers = (root=document) => root.querySelectorAll('[data-hs]').forEach(initHover);
+
+/* ============ révélations ============ */
+let ready = false;
+const pending = new Set();
+function show(el){
+  el.classList.add('in');
+  if (el.hasAttribute('data-lines')){
+    const stag = Number(el.dataset.stagger || 0), base = Number(el.dataset.delay || 0);
+    el.querySelectorAll('.ln > i').forEach((n, i) => n.style.setProperty('--ld', (base + i * stag) + 'ms'));
+  }
+}
+function maybeShow(el){
+  if (el.dataset.gate === 'ready' && !ready){ pending.add(el); return; }
+  show(el);
+}
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting){ maybeShow(e.target); io.unobserve(e.target); } });
+}, { threshold:0.15, rootMargin:'0px 0px -8% 0px' });
+
+function observeReveals(root=document){
+  root.querySelectorAll('[data-reveal],[data-lines],[data-words]').forEach(el => {
+    if (el.hasAttribute('data-words')) splitWords(el);
+    io.observe(el);
+  });
+}
+function splitWords(el){
+  const stag = 35;
+  let i = 0;
+  const walk = (node) => {
+    [...node.childNodes].forEach(n => {
+      if (n.nodeType === 3){
+        const frag = document.createDocumentFragment();
+        n.textContent.split(/(\s+)/).forEach(part => {
+          if (!part.trim()){ frag.appendChild(document.createTextNode(part)); return; }
+          const s = document.createElement('span');
+          s.className = 'wd'; s.textContent = part;
+          s.style.setProperty('--wd', (i++ * stag) + 'ms');
+          frag.appendChild(s);
+        });
+        n.replaceWith(frag);
+      } else if (n.nodeType === 1) walk(n);
+    });
+  };
+  walk(el);
+}
+function setReady(){
+  ready = true;
+  document.getElementById('hdr').classList.add('in');
+  pending.forEach(show); pending.clear();
+}
+
+/* ============ loader ============ */
+(function(){
+  const FILL_MS = 1300;
+  const loader = document.getElementById('loader');
+  const fill = document.getElementById('ldfill');
+  const num  = document.getElementById('ldnum');
+  stopScroll();
+  const ease = (t) => t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3)/2;
+  const t0 = performance.now();
+  (function tick(now){
+    const t = Math.min((now - t0) / FILL_MS, 1);
+    const p = Math.round(ease(t) * 100);
+    fill.style.width = p + '%';
+    num.textContent = String(p).padStart(3, '0');
+    if (t < 1) return requestAnimationFrame(tick);
+    loader.classList.add('out');
+    setTimeout(() => { loader.remove(); startScroll(); setReady(); }, 700);
+  })(t0);
+})();
+
+/* ============ horloge ============ */
+function tickClock(){
+  const d = new Date();
+  const time = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  document.getElementById('clk-time').textContent = time;
+  document.getElementById('clk-date').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('nav-time').textContent = `Heure locale — ${time}`;
+}
+tickClock(); setInterval(tickClock, 1000);
+
+/* ============ liquid reveal ============ */
+(function(){
+  const wrap = document.getElementById('liquid');
+  const canvas = wrap.querySelector('canvas');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { canvas.remove(); return; }
+  const ctx = canvas.getContext('2d');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const brushRadius = 143, decay = 0.016;
+  const radius = brushRadius * dpr, diam = Math.ceil(radius * 2);
+  const brush = document.createElement('canvas'); brush.width = brush.height = diam;
+  const bctx = brush.getContext('2d');
+  let cover = null, points = [], last = null, idle = 0, img = null;
+
+  const after = new Image();
+  after.crossOrigin = 'anonymous';
+  after.src = 'https://api.getlayers.ai/storage/v1/object/public/public/assets/lumora-e8b711fc68/hero/before.jpg';
+  after.onload = () => { img = after; size(); };
+
+  function size(){
+    const r = wrap.getBoundingClientRect();
+    canvas.width = Math.max(1, Math.round(r.width * dpr));
+    canvas.height = Math.max(1, Math.round(r.height * dpr));
+    if (!img) return;
+    cover = document.createElement('canvas');
+    cover.width = canvas.width; cover.height = canvas.height;
+    const c = cover.getContext('2d');
+    const ir = img.width / img.height, cr = canvas.width / canvas.height;
+    let dw, dh;
+    if (ir > cr){ dh = canvas.height; dw = dh * ir; } else { dw = canvas.width; dh = dw / ir; }
+    c.drawImage(img, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh);
+  }
+  new ResizeObserver(size).observe(wrap);
+
+  function stamp(x, y){
+    bctx.clearRect(0, 0, diam, diam);
+    bctx.globalCompositeOperation = 'source-over';
+    const g = bctx.createRadialGradient(radius, radius, 0, radius, radius, radius);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.55, 'rgba(255,255,255,0.82)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    bctx.fillStyle = g; bctx.fillRect(0, 0, diam, diam);
+    bctx.globalCompositeOperation = 'source-in';
+    bctx.drawImage(cover, x - radius, y - radius, diam, diam, 0, 0, diam, diam);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(brush, x - radius, y - radius);
+  }
+
+  window.addEventListener('pointermove', (e) => {
+    if (!cover) return;
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left) * dpr, y = (e.clientY - r.top) * dpr;
+    if (x < -radius || y < -radius || x > canvas.width + radius || y > canvas.height + radius){ last = null; return; }
+    if (last){
+      const dx = x - last.x, dy = y - last.y, dist = Math.hypot(dx, dy);
+      const step = Math.max(radius * 0.3, 1);
+      const n = Math.min(Math.ceil(dist / step), 60);
+      for (let i = 1; i <= n; i++) points.push({ x:last.x + dx * i / n, y:last.y + dy * i / n });
+    } else points.push({ x, y });
+    last = { x, y };
+  }, { passive:true });
+
+  (function tick(){
+    requestAnimationFrame(tick);
+    if (!cover) return;
+    const drawing = points.length > 0;
+    if (drawing) idle = 0; else { idle++; if (idle > 120) return; }
+    const fade = drawing ? decay : Math.min(decay + idle * 0.004, 0.5);
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = `rgba(0,0,0,${fade})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (drawing){ for (const p of points) stamp(p.x, p.y); points.length = 0; }
+    else if (idle === 120) ctx.clearRect(0, 0, canvas.width, canvas.height);
+  })();
+})();
+
+/* ============ hero card carousel ============ */
+(function(){
+  const items = [
+    { caption:'Seconde',            title:'Trois thèmes, neuf chapitres.' },
+    { caption:'Travaux pratiques',  title:'Manipuler avant de conclure.' },
+    { caption:'Terrain',            title:'Lire le paysage sur place.' },
+  ];
+  const slot = document.getElementById('hc-slot');
+  const dots = [...document.getElementById('hc-dots').children];
+  let i = 0, cur = null;
+
+  function node(item){
+    const d = document.createElement('div');
+    d.className = 'item';
+    d.innerHTML = `<p class="cap">${item.caption}</p><p class="ttl">${item.title}</p>`;
+    return d;
+  }
+  function render(step){
+    const next = node(items[i]);
+    next.classList.add(step > 0 ? 'hide-down' : 'hide-up');
+    slot.appendChild(next);
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      next.classList.remove('hide-down', 'hide-up');
+      if (cur){
+        cur.classList.add(step > 0 ? 'hide-up' : 'hide-down');
+        const old = cur;
+        setTimeout(() => old.remove(), 400);
+      }
+      cur = next;
+    }));
+    dots.forEach((d, k) => d.classList.toggle('on', k === i));
+  }
+  function go(step){ i = (i + step + items.length) % items.length; render(step); }
+  render(1);
+  document.getElementById('hc-next').addEventListener('click', (e) => { e.stopPropagation(); go(1); });
+  document.getElementById('hc-prev').addEventListener('click', (e) => { e.stopPropagation(); go(-1); });
+  const row = document.getElementById('hc-row');
+  row.addEventListener('click', () => go(1));
+  row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(1); } });
+})();
+
+/* ============ partners ============ */
+(function(){
+  /* ✏️ Ajoutez vos pages ici : { n:'Nom affiché', href:'mon-fichier.html' } */
+  const tools = [
+    { n:'Carte géologique', href:'carte_geol_aude_v5.html' },
+    { n:'Cycle des roches', href:'cycle_des_roches_2nde.html' },
+    { n:'Révision',         href:'chatbot_svt_TERM_test.html' },
+    { n:'Défi photo',       href:'defi3_photo_ferroul_finalV2.html' },
+  ];
+  document.getElementById('partners').innerHTML = tools.map(t =>
+    `<li><a href="${t.href}"><span data-hs="y:-2" data-op="0.7/1" data-cfg="320/20"><svg class="ic"><use href="#i-dot"/></svg>${t.n}</span></a></li>`
+  ).join('');
+})();
+
+/* ============ portfolio ============ */
+(function(){
+  const items = [
+    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'2nde.html' },
+    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'2nde.html' },
+    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'2nde.html' },
+    { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'carte_geol_aude_v5.html' },
+  ];
+  document.getElementById('works-list').innerHTML = items.map((it, i) => `
+    <li data-reveal="up" style="--ry:48px;--rd:${i * 90}ms">
+      <a href="${it.href}">
+        <article data-hs="y:-8,scale:1.012" data-cfg="260/22">
+          <div class="meta">
+            <span>${it.cat} — ${it.year}</span>
+            <span class="pbadge"><svg class="ic" data-hs="rot:45,scale:1.08" data-cfg="280/18" data-hs-trigger="article"><use href="#i-arrup"/></svg></span>
+          </div>
+          <div class="cwm"><span><svg class="ic"><use href="#i-logo"/></svg><sup>®</sup></span></div>
+          <div class="btm">
+            <h3>${it.name}</h3>
+            <p class="desc">${it.desc}</p>
+            <div class="tags">${it.tags.map(t => `<span class="chip">${t}</span>`).join('')}</div>
+          </div>
+        </article>
+      </a>
+    </li>`).join('');
+})();
+
+/* ============ services ============ */
+(function(){
+  const rows = [
+    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'2nde.html' },
+    { n:'02', t:'Première',  d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
+  ];
+  const ul = document.getElementById('services-list');
+  ul.innerHTML = rows.map((r, i) => `
+    <li data-reveal="up" style="--ry:24px;--rd:${i * 80}ms">
+      <a href="${r.href}">
+        <div class="row">
+          <span class="idx">${r.n}</span>
+          <h3>${r.t}</h3>
+          <p class="sdesc">${r.d}</p>
+          <span class="sbadge"><svg class="ic" data-hs="x:5" data-cfg="300/18" data-hs-trigger=".row"><use href="#i-arrup"/></svg></span>
+        </div>
+      </a>
+    </li>`).join('');
+
+  if (CAN_HOVER) ul.querySelectorAll('.row').forEach(row => {
+    const s = spring({ tension:240, friction:26 }, (p) => {
+      row.style.background = `rgba(241,240,238,${Math.max(0, Math.min(1, p))})`;
+      row.style.paddingLeft  = (1.5 + 0.5 * p) + 'rem';
+      row.style.paddingRight = (1.5 - 0.25 * p) + 'rem';
+    });
+    row.addEventListener('mouseenter', () => s.to(1));
+    row.addEventListener('mouseleave', () => s.to(0));
+  });
+})();
+
+/* ============ stats + count-up ============ */
+(function(){
+  /* ✏️ Ces chiffres décrivent le programme — adaptez-les à votre progression. */
+  const stats = [
+    { v:3, suf:'', l:'thèmes au programme' },
+    { v:9, suf:'', l:'chapitres en Seconde' },
+    { v:4, suf:'', l:'outils interactifs' },
+    { v:1, suf:'', l:'sortie de terrain' },
+  ];
+  const ul = document.getElementById('stats-list');
+  ul.innerHTML = stats.map((s, i) => `
+    <li data-reveal="up" style="--ry:20px;--rd:${i * 90}ms">
+      <p class="num"><span data-count="${s.v}">0</span>${s.suf}</p>
+      <p class="slab">${s.l}</p>
+    </li>`).join('');
+
+  const nodes = [...ul.querySelectorAll('[data-count]')];
+  let last = 0;
+  function update(){
+    const now = performance.now();
+    if (now - last < 30) return;
+    last = now;
+    const vh = window.innerHeight;
+    nodes.forEach(n => {
+      const r = n.getBoundingClientRect();
+      const startY = vh;                       // top === viewport bottom  → 0
+      const endY   = vh / 2 - r.height / 2;    // center === viewport center → 1
+      const p = Math.max(0, Math.min(1, (startY - r.top) / (startY - endY)));
+      n.textContent = Math.round(p * Number(n.dataset.count));
+    });
+  }
+  addEventListener('scroll', update, { passive:true });
+  addEventListener('resize', update);
+  update();
+})();
+
+/* ============ nav overlay ============ */
+(function(){
+  const NAV = [
+    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Niveaux', id:'services' },
+    { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
+  ];
+  const menu = document.getElementById('navmenu');
+  document.getElementById('navlist').innerHTML = NAV.map((n, i) => `
+    <li><button data-nav="${n.id}" style="transition-delay:${i * 45 + 80}ms">
+      <span class="n">0${i + 1}</span><span class="l">${n.label}</span>
+    </button></li>`).join('');
+
+  function openMenu(){
+    menu.classList.add('show');
+    requestAnimationFrame(() => menu.classList.add('vis'));
+    stopScroll();
+    document.addEventListener('keydown', esc);
+  }
+  function closeMenu(){
+    menu.classList.remove('vis');
+    setTimeout(() => menu.classList.remove('show'), 450);
+    startScroll();
+    document.removeEventListener('keydown', esc);
+  }
+  function esc(e){ if (e.key === 'Escape') closeMenu(); }
+  document.getElementById('openmenu').addEventListener('click', openMenu);
+  document.getElementById('closemenu').addEventListener('click', closeMenu);
+  document.getElementById('nav-start').addEventListener('click', () => { closeMenu(); openModal(); });
+  window.__closeMenu = closeMenu;
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-nav]');
+    if (!b) return;
+    const id = b.dataset.nav;
+    if (menu.classList.contains('show')) closeMenu();
+    if (id === 'contact'){ openModal(); return; }
+    scrollTo(id);
+  });
+  document.addEventListener('click', (e) => {
+    const g = e.target.closest('[data-go]');
+    if (g) scrollTo(g.dataset.go);
+  });
+})();
+
+/* ============ request modal ============ */
+const modal = document.getElementById('modal');
+function openModal(){
+  modal.classList.add('show');
+  requestAnimationFrame(() => modal.classList.add('vis'));
+  stopScroll();
+  document.addEventListener('keydown', escModal);
+}
+function closeModal(){
+  modal.classList.remove('vis');
+  setTimeout(() => {
+    modal.classList.remove('show');
+    modal.classList.remove('done');
+    document.getElementById('reqform').reset();
+    document.getElementById('sendlbl').firstChild.textContent = 'Envoyer';
+  }, 400);
+  startScroll();
+  document.removeEventListener('keydown', escModal);
+}
+function escModal(e){ if (e.key === 'Escape') closeModal(); }
+window.openModal = openModal;
+
+document.addEventListener('click', (e) => { if (e.target.closest('[data-modal]')) openModal(); });
+document.getElementById('closemodal').addEventListener('click', closeModal);
+document.getElementById('successclose').addEventListener('click', closeModal);
+modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+modal.querySelector('.panel').addEventListener('click', (e) => e.stopPropagation());
+document.getElementById('reqform').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const lbl = document.getElementById('sendlbl');
+  lbl.firstChild.textContent = 'Envoi…';
+  setTimeout(() => modal.classList.add('done'), 600);
+});
+
+/* ============ démarrage ============ */
+observeReveals();
+initAllHovers();
+document.querySelectorAll('.alink > span').forEach(s => {
+  s.parentElement.dataset.hs = '';
+  s.dataset.hs = s.parentElement.classList.contains('legal-l') ? 'x:3' : 'x:4';
+  s.dataset.op = s.parentElement.classList.contains('legal-l') ? '0.7/1' : '0.65/1';
+  s.dataset.cfg = '320/22';
+  s.dataset.hsTrigger = '.alink';
+  delete s.parentElement.dataset.hs;
+  initHover(s);
+});
+document.querySelectorAll('#hdr nav.primary button > span').forEach(s => {
+  s.dataset.hs = 'y:-2'; s.dataset.op = '0.8/1'; s.dataset.cfg = '320/22';
+  s.dataset.hsTrigger = 'button';
+  initHover(s);
+});
+document.querySelectorAll('.pill').forEach(p => {
+  const inner = p.querySelector(':scope > span');
+  inner.dataset.hs = 'scale:1.04'; inner.dataset.cfg = '320/18'; inner.dataset.hsTrigger = '.pill';
+  initHover(inner);
+  const icon = p.querySelector('.badge .ic');
+  if (icon){
+    const up = p.querySelector('.badge use').getAttribute('href') === '#i-arrup';
+    icon.dataset.hs = up ? 'x:2,y:-2' : 'x:3';
+    icon.dataset.cfg = '320/18'; icon.dataset.hsTrigger = '.pill';
+    initHover(icon);
+  }
+});
+</script>
+</body>
+</html>
