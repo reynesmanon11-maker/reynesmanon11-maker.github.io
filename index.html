@@ -120,6 +120,43 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 @media (min-width:768px){ .clockchip{ display:flex } }
 @media (min-width:1024px){ #hdr nav.primary{ display:flex } }
 
+
+/* ===================== menus deroulants de la navigation ===================== */
+#hdr nav.primary li.has-sub{ position:relative }
+#hdr nav.primary .submenu{
+  position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(6px);
+  min-width:12rem; padding:.75rem .4rem .4rem; display:flex; flex-direction:column; gap:.1rem;
+  background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
+  border:1px solid rgba(230,229,226,.85); border-radius:1rem;
+  box-shadow:0 14px 34px rgba(17,17,17,.12);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .25s cubic-bezier(.22,1,.36,1), transform .25s cubic-bezier(.22,1,.36,1);
+  z-index:60;
+}
+#hdr nav.primary li.has-sub:hover > .submenu,
+#hdr nav.primary li.has-sub:focus-within > .submenu{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+}
+#hdr nav.primary .submenu a,
+#hdr nav.primary .submenu button,
+#hdr nav.primary .submenu span.sub-soon{
+  display:block; width:100%; text-align:left; padding:.5rem .75rem; border-radius:.65rem;
+  font-size:.8125rem; font-weight:500; color:rgba(17,17,17,.75);
+  background:transparent; border:0; cursor:pointer; white-space:nowrap;
+  transition:background .2s, color .2s;
+}
+#hdr nav.primary .submenu a:hover, #hdr nav.primary .submenu button:hover,
+#hdr nav.primary .submenu a:focus-visible, #hdr nav.primary .submenu button:focus-visible{
+  background:rgba(177,95,44,.10); color:#b15f2c;
+}
+#hdr nav.primary .submenu span.sub-soon{ color:rgba(17,17,17,.35); cursor:default }
+#hdr nav.primary .submenu span.sub-soon::after{
+  content:" · à venir"; font-weight:400; font-size:.6875rem; opacity:.7;
+}
+#hdr nav.primary .caret{ transition:transform .25s }
+#hdr nav.primary li.has-sub:hover > button .caret,
+#hdr nav.primary li.has-sub:focus-within > button .caret{ transform:rotate(180deg) }
+
 /* ===================== shared components ===================== */
 .pill{ display:inline-block }
 .pill > span{ display:inline-flex; align-items:center; gap:.75rem; border-radius:9999px; font-size:.875rem; font-weight:500 }
@@ -412,8 +449,21 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <ul>
         <li><button data-nav="home" aria-current="page"><span>Accueil</span></button></li>
         <li><button data-nav="works"><span>Chapitres</span></button></li>
-        <li><button data-nav="services"><span>Niveaux</span></button></li>
-        <li><button data-nav="about"><span>La classe</span></button></li>
+        <li class="has-sub">
+          <button data-nav="services" aria-haspopup="true"><span>Niveaux <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><a href="2nde.html">Seconde</a></li>
+            <li><span class="sub-soon">Première</span></li>
+            <li><span class="sub-soon">Terminale</span></li>
+          </ul>
+        </li>
+        <li class="has-sub">
+          <button data-nav="about" aria-haspopup="true"><span>La classe <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><button data-nav="about">Présentation</button></li>
+            <li><button data-nav="contact">Me contacter</button></li>
+          </ul>
+        </li>
         <li><button data-nav="works"><span>Ressources</span></button></li>
         <li><button data-nav="contact"><span>Contact</span></button></li>
       </ul>
@@ -1064,12 +1114,12 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ nav overlay ============ */
 (function(){
   const NAV = [
-    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Niveaux', id:'services' },
+    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' },
     { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];
   const menu = document.getElementById('navmenu');
   document.getElementById('navlist').innerHTML = NAV.map((n, i) => `
-    <li><button data-nav="${n.id}" style="transition-delay:${i * 45 + 80}ms">
+    <li><button ${n.href ? `data-href="${n.href}"` : `data-nav="${n.id}"`} style="transition-delay:${i * 45 + 80}ms">
       <span class="n">0${i + 1}</span><span class="l">${n.label}</span>
     </button></li>`).join('');
 
@@ -1086,6 +1136,10 @@ tickClock(); setInterval(tickClock, 1000);
     document.removeEventListener('keydown', esc);
   }
   function esc(e){ if (e.key === 'Escape') closeMenu(); }
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('button[data-href]');
+    if (b) location.href = b.dataset.href;
+  });
   document.getElementById('openmenu').addEventListener('click', openMenu);
   document.getElementById('closemenu').addEventListener('click', closeMenu);
   document.getElementById('nav-start').addEventListener('click', () => { closeMenu(); openModal(); });
