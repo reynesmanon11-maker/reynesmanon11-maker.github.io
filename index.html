@@ -120,6 +120,43 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 @media (min-width:768px){ .clockchip{ display:flex } }
 @media (min-width:1024px){ #hdr nav.primary{ display:flex } }
 
+
+/* ===================== menus deroulants de la navigation ===================== */
+#hdr nav.primary li.has-sub{ position:relative }
+#hdr nav.primary .submenu{
+  position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(6px);
+  min-width:12rem; padding:.75rem .4rem .4rem; display:flex; flex-direction:column; gap:.1rem;
+  background:rgba(255,255,255,.85); backdrop-filter:blur(10px);
+  border:1px solid rgba(230,229,226,.85); border-radius:1rem;
+  box-shadow:0 14px 34px rgba(17,17,17,.12);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .25s cubic-bezier(.22,1,.36,1), transform .25s cubic-bezier(.22,1,.36,1);
+  z-index:60;
+}
+#hdr nav.primary li.has-sub:hover > .submenu,
+#hdr nav.primary li.has-sub:focus-within > .submenu{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+}
+#hdr nav.primary .submenu a,
+#hdr nav.primary .submenu button,
+#hdr nav.primary .submenu span.sub-soon{
+  display:block; width:100%; text-align:left; padding:.5rem .75rem; border-radius:.65rem;
+  font-size:.8125rem; font-weight:500; color:rgba(17,17,17,.75);
+  background:transparent; border:0; cursor:pointer; white-space:nowrap;
+  transition:background .2s, color .2s;
+}
+#hdr nav.primary .submenu a:hover, #hdr nav.primary .submenu button:hover,
+#hdr nav.primary .submenu a:focus-visible, #hdr nav.primary .submenu button:focus-visible{
+  background:rgba(177,95,44,.10); color:#b15f2c;
+}
+#hdr nav.primary .submenu span.sub-soon{ color:rgba(17,17,17,.35); cursor:default }
+#hdr nav.primary .submenu span.sub-soon::after{
+  content:" · à venir"; font-weight:400; font-size:.6875rem; opacity:.7;
+}
+#hdr nav.primary .caret{ transition:transform .25s }
+#hdr nav.primary li.has-sub:hover > button .caret,
+#hdr nav.primary li.has-sub:focus-within > button .caret{ transform:rotate(180deg) }
+
 /* ===================== shared components ===================== */
 .pill{ display:inline-block }
 .pill > span{ display:inline-flex; align-items:center; gap:.75rem; border-radius:9999px; font-size:.875rem; font-weight:500 }
@@ -197,6 +234,27 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
   .hero-left{ grid-column:span 7 } .hero-right{ grid-column:span 5; align-items:flex-end }
   .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
 }
+
+
+/* ===================== actualités scientifiques (accueil) ===================== */
+.newscard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7);
+  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px); overflow:hidden }
+.newscard .nchead{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.875rem 1rem .75rem }
+.newscard .nctitle{ display:inline-flex; align-items:center; gap:.5rem; font-size:.75rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.7) }
+.newscard .nctitle .ic{ font-size:.875rem; color:#b15f2c }
+.newscard .nclive{ display:inline-flex; align-items:center; gap:.375rem; font-size:.6rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.45) }
+.newscard .nclive i{ width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c; animation:ncpulse 2s ease-in-out infinite }
+@keyframes ncpulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+.newscard ul{ display:flex; flex-direction:column }
+.newscard li a{ display:flex; gap:.75rem; padding:.75rem 1rem; border-top:1px solid rgba(230,229,226,.7); transition:background .3s }
+.newscard li a:hover{ background:rgba(241,240,238,.6) }
+.newscard .ndate{ flex:none; width:2.75rem; font-size:.65rem; font-weight:600; line-height:1.25; color:#b15f2c; text-transform:uppercase }
+.newscard .nbody{ display:flex; flex-direction:column; gap:.15rem }
+.newscard .nh{ font-size:.8rem; font-weight:500; line-height:1.35; color:#111 }
+.newscard .nsrc{ font-size:.65rem; color:rgba(17,17,17,.45) }
+@media (min-width:1024px){ .newscard{ width:19rem } }
 
 /* ===================== about ===================== */
 #about{ background:#fff }
@@ -412,8 +470,21 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <ul>
         <li><button data-nav="home" aria-current="page"><span>Accueil</span></button></li>
         <li><button data-nav="works"><span>Chapitres</span></button></li>
-        <li><button data-nav="services"><span>Niveaux</span></button></li>
-        <li><button data-nav="about"><span>La classe</span></button></li>
+        <li class="has-sub">
+          <button data-nav="services" aria-haspopup="true"><span>Niveaux <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><a href="2nde.html">Seconde</a></li>
+            <li><span class="sub-soon">Première</span></li>
+            <li><span class="sub-soon">Terminale</span></li>
+          </ul>
+        </li>
+        <li class="has-sub">
+          <button data-nav="about" aria-haspopup="true"><span>La classe <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><button data-nav="about">Présentation</button></li>
+            <li><button data-nav="contact">Me contacter</button></li>
+          </ul>
+        </li>
         <li><button data-nav="works"><span>Ressources</span></button></li>
         <li><button data-nav="contact"><span>Contact</span></button></li>
       </ul>
@@ -486,6 +557,14 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div class="partners" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:550ms">
         <p class="plabel">Outils interactifs</p>
         <ul id="partners"></ul>
+      </div>
+
+      <div class="newscard" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:480ms">
+        <div class="nchead">
+          <span class="nctitle"><svg class="ic"><use href="#i-dot"/></svg>Actualités scientifiques</span>
+          <span class="nclive"><i></i>Veille</span>
+        </div>
+        <ul id="actus"></ul>
       </div>
     </div>
   </div>
@@ -588,7 +667,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
-          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
+          <li><a class="alink" href="#services"><span>Seconde</span></a></li>
           <li><a class="alink" href="#services"><span>Première</span></a></li>
           <li><a class="alink" href="#services"><span>Terminale</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
@@ -966,12 +1045,31 @@ tickClock(); setInterval(tickClock, 1000);
   ).join('');
 })();
 
+
+/* ============ actualités scientifiques ============ */
+(function(){
+  /* ✏️ Ajoutez / modifiez vos actualités ici :
+     { date:'Mois', h:'Titre court', src:'Source', href:'https://…' } */
+  const actus = [
+    { date:'Veille', h:'Actualités en biologie et santé',    src:'Futura Sciences', href:'https://www.futura-sciences.com/sante/biologie/actualites/' },
+    { date:'Veille', h:'Recherche en sciences du vivant',     src:'CNRS Biologie',   href:'https://www.insb.cnrs.fr/fr/news-list' },
+    { date:'Veille', h:'Dernières découvertes scientifiques', src:'franceinfo',      href:'https://www.franceinfo.fr/sante/decouverte-scientifique/' },
+  ];
+  const el = document.getElementById('actus');
+  if (el) el.innerHTML = actus.map(a =>
+    `<li><a href="${a.href}" target="_blank" rel="noopener">`
+    + `<span class="ndate">${a.date}</span>`
+    + `<span class="nbody"><span class="nh">${a.h}</span><span class="nsrc">${a.src}</span></span>`
+    + `</a></li>`
+  ).join('');
+})();
+
 /* ============ portfolio ============ */
 (function(){
   const items = [
-    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'2nde.html' },
-    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'2nde.html' },
-    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'2nde.html' },
+    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'#services' },
+    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'#services' },
+    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'#services' },
     { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'carte_geol_aude_v5.html' },
   ];
   document.getElementById('works-list').innerHTML = items.map((it, i) => `
@@ -996,7 +1094,7 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ services ============ */
 (function(){
   const rows = [
-    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'2nde.html' },
+    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'#services' },
     { n:'02', t:'Première',  d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
     { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
     { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
@@ -1064,12 +1162,12 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ nav overlay ============ */
 (function(){
   const NAV = [
-    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Niveaux', id:'services' },
+    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' },
     { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];
   const menu = document.getElementById('navmenu');
   document.getElementById('navlist').innerHTML = NAV.map((n, i) => `
-    <li><button data-nav="${n.id}" style="transition-delay:${i * 45 + 80}ms">
+    <li><button ${n.href ? `data-href="${n.href}"` : `data-nav="${n.id}"`} style="transition-delay:${i * 45 + 80}ms">
       <span class="n">0${i + 1}</span><span class="l">${n.label}</span>
     </button></li>`).join('');
 
@@ -1086,6 +1184,10 @@ tickClock(); setInterval(tickClock, 1000);
     document.removeEventListener('keydown', esc);
   }
   function esc(e){ if (e.key === 'Escape') closeMenu(); }
+  menu.addEventListener('click', e => {
+    const b = e.target.closest('button[data-href]');
+    if (b) location.href = b.dataset.href;
+  });
   document.getElementById('openmenu').addEventListener('click', openMenu);
   document.getElementById('closemenu').addEventListener('click', closeMenu);
   document.getElementById('nav-start').addEventListener('click', () => { closeMenu(); openModal(); });
