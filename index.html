@@ -235,6 +235,27 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
   .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
 }
 
+
+/* ===================== actualités scientifiques (accueil) ===================== */
+.newscard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7);
+  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px); overflow:hidden }
+.newscard .nchead{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.875rem 1rem .75rem }
+.newscard .nctitle{ display:inline-flex; align-items:center; gap:.5rem; font-size:.75rem; font-weight:600;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.7) }
+.newscard .nctitle .ic{ font-size:.875rem; color:#b15f2c }
+.newscard .nclive{ display:inline-flex; align-items:center; gap:.375rem; font-size:.6rem; font-weight:500;
+  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.45) }
+.newscard .nclive i{ width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c; animation:ncpulse 2s ease-in-out infinite }
+@keyframes ncpulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+.newscard ul{ display:flex; flex-direction:column }
+.newscard li a{ display:flex; gap:.75rem; padding:.75rem 1rem; border-top:1px solid rgba(230,229,226,.7); transition:background .3s }
+.newscard li a:hover{ background:rgba(241,240,238,.6) }
+.newscard .ndate{ flex:none; width:2.75rem; font-size:.65rem; font-weight:600; line-height:1.25; color:#b15f2c; text-transform:uppercase }
+.newscard .nbody{ display:flex; flex-direction:column; gap:.15rem }
+.newscard .nh{ font-size:.8rem; font-weight:500; line-height:1.35; color:#111 }
+.newscard .nsrc{ font-size:.65rem; color:rgba(17,17,17,.45) }
+@media (min-width:1024px){ .newscard{ width:19rem } }
+
 /* ===================== about ===================== */
 #about{ background:#fff }
 #about .grid{ display:grid; grid-template-columns:1fr; align-items:center; gap:3rem; padding:5rem 1.25rem }
@@ -536,6 +557,14 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div class="partners" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:550ms">
         <p class="plabel">Outils interactifs</p>
         <ul id="partners"></ul>
+      </div>
+
+      <div class="newscard" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:480ms">
+        <div class="nchead">
+          <span class="nctitle"><svg class="ic"><use href="#i-dot"/></svg>Actualités scientifiques</span>
+          <span class="nclive"><i></i>Veille</span>
+        </div>
+        <ul id="actus"></ul>
       </div>
     </div>
   </div>
@@ -1013,6 +1042,25 @@ tickClock(); setInterval(tickClock, 1000);
   ];
   document.getElementById('partners').innerHTML = tools.map(t =>
     `<li><a href="${t.href}"><span data-hs="y:-2" data-op="0.7/1" data-cfg="320/20"><svg class="ic"><use href="#i-dot"/></svg>${t.n}</span></a></li>`
+  ).join('');
+})();
+
+
+/* ============ actualités scientifiques ============ */
+(function(){
+  /* ✏️ Ajoutez / modifiez vos actualités ici :
+     { date:'Mois', h:'Titre court', src:'Source', href:'https://…' } */
+  const actus = [
+    { date:'Veille', h:'Actualités en biologie et santé',    src:'Futura Sciences', href:'https://www.futura-sciences.com/sante/biologie/actualites/' },
+    { date:'Veille', h:'Recherche en sciences du vivant',     src:'CNRS Biologie',   href:'https://www.insb.cnrs.fr/fr/news-list' },
+    { date:'Veille', h:'Dernières découvertes scientifiques', src:'franceinfo',      href:'https://www.franceinfo.fr/sante/decouverte-scientifique/' },
+  ];
+  const el = document.getElementById('actus');
+  if (el) el.innerHTML = actus.map(a =>
+    `<li><a href="${a.href}" target="_blank" rel="noopener">`
+    + `<span class="ndate">${a.date}</span>`
+    + `<span class="nbody"><span class="nh">${a.h}</span><span class="nsrc">${a.src}</span></span>`
+    + `</a></li>`
   ).join('');
 })();
 
