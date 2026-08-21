@@ -419,6 +419,34 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
   .chap{ gap:1.5rem; padding-block:1.75rem } .chap h3{ font-size:1.5rem }
 }
 
+
+/* ===================== palette pastel multicolore (Seconde) ===================== */
+/* Une teinte douce par thème, en rotation. Bloc autonome et réversible. */
+#themes .theme:nth-child(6n+1){ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 } /* vert     */
+#themes .theme:nth-child(6n+2){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 } /* bleu     */
+#themes .theme:nth-child(6n+3){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 } /* rose     */
+#themes .theme:nth-child(6n+4){ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 } /* ambre    */
+#themes .theme:nth-child(6n+5){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 } /* violet   */
+#themes .theme:nth-child(6n+6){ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 } /* turquoise*/
+
+/* Numéro de chapitre : coloré et lisible (au lieu du gris très pâle) */
+.theme .theme-num{ color:var(--pt,#b15f2c); opacity:1 }
+
+/* Titre du thème : petit trait de couleur devant + meilleure aération */
+.theme .theme-head{ padding-left:1rem; border-left:.28rem solid var(--pt,#b15f2c);
+  border-radius:0 0 0 .25rem; margin-bottom:2.75rem }
+.theme .theme-head h2{ line-height:1.2 }
+
+/* Fiches disponibles : fond pastel doux assorti au thème
+   (le survol reste inchangé : la carte passe toujours en noir) */
+.doc.on{ background:var(--ptbg,#fff); border-color:var(--ptbd,#e6e5e2) }
+
+/* Légende de l'en-tête : 4 repères en 4 couleurs pastel */
+.legend span:nth-of-type(1) b{ color:#4fae7a } /* Cours */
+.legend span:nth-of-type(2) b{ color:#4f93d4 } /* TP    */
+.legend span:nth-of-type(3) b{ color:#d56a97 } /* Fiche */
+.legend span:nth-of-type(4) b{ color:#cf9430 } /* Exos  */
+
 </style>
 </head>
 <body>
@@ -508,9 +536,9 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Ressources</p>
         <ul class="clist">
-          <li><a class="alink" href="carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
-          <li><a class="alink" href="cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
-          <li><a class="alink" href="defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
+          <li><a class="alink" href="outils/carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
+          <li><a class="alink" href="outils/cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
+          <li><a class="alink" href="outils/defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
         </ul>
       </div>
       <div>
@@ -608,7 +636,7 @@ const CHAPITRES = [
     titre: 'Comment sont organisés les êtres vivants ?',
     docs: [
       { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pvtn0kh7n25' },
-      { l:'Bilan cours activité 1', h:'cours/2nde/c1-act1-niveaux-organisation.pdf' },
+      { l:'Bilan cours activité 1', h:'cours/2nde/chapitre-1/c1-act1-niveaux-organisation.pdf' },
       { l:'ACTIVITE 1: Les niveaux d\'organisation du vivant' },
       { l:'Document support activité 1' },
       { l:'Bilan cours activité 2' },
@@ -616,11 +644,11 @@ const CHAPITRES = [
       { l:'Bilan cours activité 3' },
       { l:'ACTIVITE 3: A la découverte de l\'origine de cette spécialisation' },
       { l:'Bilan cours activité 4' },
-      { l:'ACTIVITE 4: L\'ADN une molécule porteuse d\'information', h:'cours/2nde/c1-act4-adn.pdf' },
+      { l:'ACTIVITE 4: L\'ADN une molécule porteuse d\'information', h:'cours/2nde/chapitre-1/c1-act4-adn.pdf' },
       { l:'Document aide TP 4' },
       { l:'Bilan cours activité 5' },
       { l:'ACTIVITE 5: A la recherche du métabolisme des levures' },
-      { l:'Document réponse TP5' },
+      { l:'Document réponse TP5', h:'cours/2nde/chapitre-1/c1-act5-doc-reponse-levures.pdf' },
       { l:'COURBES EXAO' },
       { l:'BILAN COURS activité 6' },
       { l:'ACTIVITE 6: Pouvons nous dormir avec une plante ?' },
