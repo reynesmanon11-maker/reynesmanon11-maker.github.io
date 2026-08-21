@@ -676,10 +676,10 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Ressources</p>
         <ul class="clist">
-          <li><a class="alink" href="carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
-          <li><a class="alink" href="cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
-          <li><a class="alink" href="chatbot_svt_TERM_test.html"><span>Assistant de révision</span></a></li>
-          <li><a class="alink" href="defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
+          <li><a class="alink" href="outils/carte_geol_aude_v5.html"><span>Carte géologique</span></a></li>
+          <li><a class="alink" href="outils/cycle_des_roches_2nde.html"><span>Cycle des roches</span></a></li>
+          <li><a class="alink" href="outils/chatbot_svt_TERM_test.html"><span>Assistant de révision</span></a></li>
+          <li><a class="alink" href="outils/defi3_photo_ferroul_finalV2.html"><span>Défi photo</span></a></li>
         </ul>
       </div>
       <div>
@@ -1035,10 +1035,10 @@ tickClock(); setInterval(tickClock, 1000);
 (function(){
   /* ✏️ Ajoutez vos pages ici : { n:'Nom affiché', href:'mon-fichier.html' } */
   const tools = [
-    { n:'Carte géologique', href:'carte_geol_aude_v5.html' },
-    { n:'Cycle des roches', href:'cycle_des_roches_2nde.html' },
-    { n:'Révision',         href:'chatbot_svt_TERM_test.html' },
-    { n:'Défi photo',       href:'defi3_photo_ferroul_finalV2.html' },
+    { n:'Carte géologique', href:'outils/carte_geol_aude_v5.html' },
+    { n:'Cycle des roches', href:'outils/cycle_des_roches_2nde.html' },
+    { n:'Révision',         href:'outils/chatbot_svt_TERM_test.html' },
+    { n:'Défi photo',       href:'outils/defi3_photo_ferroul_finalV2.html' },
   ];
   document.getElementById('partners').innerHTML = tools.map(t =>
     `<li><a href="${t.href}"><span data-hs="y:-2" data-op="0.7/1" data-cfg="320/20"><svg class="ic"><use href="#i-dot"/></svg>${t.n}</span></a></li>`
@@ -1070,7 +1070,7 @@ tickClock(); setInterval(tickClock, 1000);
     { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'#services' },
     { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'#services' },
     { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'#services' },
-    { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'carte_geol_aude_v5.html' },
+    { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'outils/carte_geol_aude_v5.html' },
   ];
   document.getElementById('works-list').innerHTML = items.map((it, i) => `
     <li data-reveal="up" style="--ry:48px;--rd:${i * 90}ms">
