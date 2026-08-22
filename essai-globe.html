@@ -36,7 +36,7 @@ canvas{ display:block }
 
 .legende{ display:flex; align-items:center; gap:.75rem; margin:.75rem 0 2.5rem; font-size:.7rem;
   letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.45); flex-wrap:wrap; justify-content:center }
-.barre{ width:11rem; height:.4rem; border-radius:9999px;
+.barre{ display:block; width:11rem; height:.4rem; border-radius:9999px;
   background:linear-gradient(90deg,#22d3ee,#4ade80,#facc15,#fb923c,#ef4444) }
 .tri{ display:inline-block; width:0; height:0; border-left:.32rem solid transparent;
   border-right:.32rem solid transparent; border-bottom:.55rem solid #ef4444; vertical-align:-.05rem }
@@ -44,6 +44,12 @@ canvas{ display:block }
   vertical-align:.02rem }
 .cle{ display:inline-flex; align-items:center; gap:.4rem; color:rgba(255,255,255,.6) }
 .sep{ width:1px; height:.9rem; background:rgba(255,255,255,.18) }
+.ech{ flex-direction:column; align-items:flex-start; gap:.3rem }
+.grad{ display:grid; grid-template-columns:repeat(5,1fr); width:11rem; font-weight:400;
+  font-size:.6rem; letter-spacing:.04em; color:rgba(255,255,255,.35) }
+.grad span{ text-align:left } .grad span:last-child{ text-align:right }
+.credit{ margin:-1.5rem 0 2rem; font-size:.65rem; letter-spacing:.1em; text-transform:uppercase;
+  color:rgba(255,255,255,.22) }
 
 .note{ max-width:44rem; margin:0 1.5rem 3rem; padding:1rem 1.25rem; font-size:.8rem; line-height:1.65;
   color:rgba(255,255,255,.5); border-left:2px solid #cf8047; background:rgba(255,255,255,.03) }
@@ -74,9 +80,13 @@ canvas{ display:block }
   <span class="cle"><i class="rond"></i> Séismes</span>
   <span class="cle"><i class="tri"></i> Volcans</span>
   <span class="sep"></span>
-  <span>Profondeur des foyers</span>
-  <span>0</span><span class="barre"></span><span>800 km</span>
+  <span class="cle ech">
+    Profondeur des foyers
+    <i class="barre"></i>
+    <b class="grad"><span>0</span><span>200</span><span>400</span><span>600</span><span>800 km</span></b>
+  </span>
 </div>
+<p class="credit">Fond : NASA Blue Marble · données de démonstration</p>
 
 <p class="note">
   <b>Données provisoires.</b> Les points sont générés le long des grandes ceintures
@@ -151,10 +161,17 @@ function interpoler(pts, pas){
   const out = [];
   for(let i = 0; i < pts.length - 1; i++){
     const [la1, lo1] = pts[i], [la2, lo2] = pts[i+1];
-    const d = Math.hypot(la2-la1, lo2-lo1);
+    /* Chemin le plus court en longitude. Sans ce recadrage, une fosse qui
+       franchit l'antimeridien — les Tonga passent de -177 a +179 — est lue
+       comme un ecart de 356 degres : l'interpolation semait alors des foyers
+       tout autour du globe, en un anneau continu. */
+    let dlo = lo2 - lo1;
+    if(dlo > 180) dlo -= 360;
+    if(dlo < -180) dlo += 360;
+    const d = Math.hypot(la2-la1, dlo);
     const n = Math.max(1, Math.round(d / pas));
     for(let k = 0; k < n; k++){
-      out.push([la1 + (la2-la1)*k/n, lo1 + (lo2-lo1)*k/n]);
+      out.push([la1 + (la2-la1)*k/n, lo1 + dlo*k/n]);
     }
   }
   out.push(pts[pts.length-1]);
@@ -162,23 +179,37 @@ function interpoler(pts, pas){
 }
 const alea = (a) => (Math.random()-0.5)*2*a;
 
+/* Perpendiculaire locale a la fosse, orientee du cote de la plaque
+   chevauchante. Un azimut unique par fosse faisait partir tout l'eventail
+   dans la meme direction : pour les Andes, plein est, il s'etalait le long
+   de l'equateur au lieu de suivre la cote. */
+function perpendiculaires(ligne, azimut){
+  const ar = azimut*Math.PI/180;
+  const vx = Math.cos(ar), vy = Math.sin(ar);        // direction voulue (lat, lon)
+  return ligne.map(([la, lo], i) => {
+    const a = ligne[Math.max(0, i-1)], b = ligne[Math.min(ligne.length-1, i+1)];
+    const k = Math.max(0.25, Math.cos(la*Math.PI/180));
+    let dx = b[0]-a[0], dy = (b[1]-a[1])*k;          // tangente en km-equivalents
+    const n = Math.hypot(dx, dy) || 1; dx /= n; dy /= n;
+    let px = -dy, py = dx;                            // perpendiculaire
+    if(px*vx + py*vy < 0){ px = -px; py = -py; }      // du bon cote
+    return [la, lo, px, py/k];                        // retour en degres de longitude
+  });
+}
+
 function construireSeismes(){
   const S = [];
   // subductions : le plan de Wadati-Benioff s'enfonce sous la plaque chevauchante
   for(const [, trace, azimut, pendage, pmax] of SUBDUCTIONS){
-    const ligne = interpoler(trace, 1.2);
-    const ar = azimut*Math.PI/180, tanp = Math.tan(pendage*Math.PI/180);
-    for(const [la, lo] of ligne){
+    const ligne = perpendiculaires(interpoler(trace, 1.2), azimut);
+    const tanp = Math.tan(pendage*Math.PI/180);
+    for(const [la, lo, px, py] of ligne){
       const n = 14 + Math.round(Math.random()*10);
       for(let k = 0; k < n; k++){
         const dist = Math.random()**0.8 * (pmax/tanp);      // km depuis la fosse
         const prof = Math.min(pmax, dist*tanp) + alea(18);
         const dd = dist/111;                                 // km -> degrés
-        S.push([
-          la + dd*Math.cos(ar)*0.9 + alea(0.5),
-          lo + dd*Math.sin(ar)/Math.max(0.25, Math.cos(la*Math.PI/180)) + alea(0.5),
-          Math.max(0, prof)
-        ]);
+        S.push([ la + dd*px + alea(0.5), lo + dd*py + alea(0.5), Math.max(0, prof) ]);
       }
     }
   }
@@ -209,15 +240,11 @@ function construireVolcans(){
   const V = [];
   // arcs volcaniques : en arriere de la fosse, cote plaque chevauchante
   for(const [, trace, azimut, pendage] of SUBDUCTIONS){
-    const ligne = interpoler(trace, 1.8);
-    const ar = azimut*Math.PI/180;
+    const ligne = perpendiculaires(interpoler(trace, 1.8), azimut);
     const recul = (110/Math.tan(pendage*Math.PI/180))/111;   // arc a ~110 km de profondeur
-    for(const [la, lo] of ligne){
+    for(const [la, lo, px, py] of ligne){
       if(Math.random() > 0.62) continue;
-      V.push([
-        la + recul*Math.cos(ar) + alea(0.6),
-        lo + recul*Math.sin(ar)/Math.max(0.25, Math.cos(la*Math.PI/180)) + alea(0.6)
-      ]);
+      V.push([ la + recul*px + alea(0.5), lo + recul*py + alea(0.5) ]);
     }
   }
   /* Pas de volcans le long des dorsales : leur volcanisme est sous-marin et
@@ -236,15 +263,18 @@ function construireVolcans(){
 (function(){
   const cv = document.getElementById('globe');
   const ctx = cv.getContext('2d');
-  const TEX = ['images/terre-hd.jpg','images/terre.jpg','terre.jpg'];
-  const TEX_W = 1024, TEX_H = 512, TILT = 23.4*Math.PI/180;
+  const TEX = ['images/terre-hd.jpeg','images/terre-hd.jpg','images/terre.jpg','terre.jpg'];
+  /* La texture est ramenee a 2048x1024 : assez fin pour un globe de 700 px,
+   sans immobiliser 58 Mo comme le ferait le 5400x2700 d'origine. */
+  const TEX_W = 2048, TEX_H = 1024;
+  const INCL = 23.4*Math.PI/180;          // inclinaison de l'axe, pour l'eclairage
 
   const SEISMES = construireSeismes();
   const VOLCANS = construireVolcans();
 
   let W=0,H=0,S=0,dpr=1, tex=null, lut=null, buf,bufCtx,img;
   let masque, masqueCtx, couche, coucheCtx;
-  let rot = -0.35, tourne = false, vSeismes = true, vVolcans = true, tout = false;
+  let rot = -0.35, vue = 0, tourne = false, vSeismes = true, vVolcans = true, tout = false;
   let dernier = 0, souris = null, oisif = 0;
 
   /* ---- couleur d'un foyer selon sa profondeur (echelle Tectoglob) ---- */
@@ -278,22 +308,30 @@ function construireVolcans(){
     im.onerror = () => charger(i+1);
     im.src = TEX[i];
   }
+  /* La table depend de la latitude visee : on la reconstruit quand elle change.
+     Auparavant l'inclinaison etait figee, ce qui centrait la vue sur 23,4 N et
+     rejetait l'equateur vers le bas. */
+  let lutVue = null;
   function construireLut(){
     if(!tex || !S) return;
     const R = S/2-1, n = S*S;
     const row = new Int32Array(n), col = new Int32Array(n), sh = new Float32Array(n);
-    const cT = Math.cos(TILT), sT = Math.sin(TILT);
-    const lx=-.42, ly=-.46, lz=.78, ln = Math.hypot(lx,ly,lz);
+    const cV = Math.cos(vue), sV = Math.sin(vue);
+    const lx=-.38, ly=-.42, lz=.82, ln = Math.hypot(lx,ly,lz);
     for(let y=0;y<S;y++) for(let x=0;x<S;x++){
       const i = y*S+x, nx=(x-S/2+.5)/R, ny=(y-S/2+.5)/R, d2=nx*nx+ny*ny;
       if(d2>1){ row[i]=-1; continue; }
-      const nz=Math.sqrt(1-d2), py=ny*cT-nz*sT, pz=ny*sT+nz*cT;
+      const nz=Math.sqrt(1-d2), py=ny*cV-nz*sV, pz=ny*sV+nz*cV;
       row[i] = Math.min(TEX_H-1,Math.max(0,((0.5-Math.asin(Math.max(-1,Math.min(1,-py)))/Math.PI)*TEX_H)|0));
       col[i] = ((Math.atan2(nx,pz)/(2*Math.PI)+0.5)*TEX_W)|0;
-      let s=(nx*lx+ny*ly+nz*lz)/ln; s=.2+.9*Math.max(0,s);
-      sh[i] = Math.min(1.25,s)*(1-Math.pow(d2,6)*.45);
+      // eclairage : diffus doux + rehaut rasant qui detache le limbe
+      let d=(nx*lx+ny*ly+nz*lz)/ln;
+      let e = .16 + .95*Math.max(0, d);
+      e += .22*Math.pow(Math.max(0, 1-nz), 2.2);
+      sh[i] = Math.min(1.35, e);
     }
     lut = {row,col,sh};
+    lutVue = vue;
   }
 
   function taille(){
@@ -314,8 +352,8 @@ function construireVolcans(){
   }
 
   /* ---- projection d'un point (lat,lon) sur la sphere ---- */
-  const cT = Math.cos(TILT), sT = Math.sin(TILT);
   function projeter(lat, lon, cx, cy, R){
+    const cT = Math.cos(vue), sT = Math.sin(vue);
     /* La texture est echantillonnee avec un decalage de +rot ; un point de
        longitude L se retrouve donc a l'ecran en L - rot. Avec un +, la carte
        et les points tournaient en sens inverse et les foyers derivaient. */
@@ -381,14 +419,25 @@ function construireVolcans(){
     if(!W) return;
     const dt = dernier ? (t-dernier)/1000 : 0; dernier = t;
     if(tourne) rot += dt*0.085;
+    if(lutVue !== vue) construireLut();       // la vue a bouge en hauteur
 
     const cx = W/2, cy = H/2, R = Math.min(W,H)*0.44;
     ctx.clearRect(0,0,W,H);
 
-    // halo
-    const halo = ctx.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.35);
-    halo.addColorStop(0,'rgba(90,170,240,.22)'); halo.addColorStop(1,'rgba(90,170,240,0)');
-    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx,cy,R*1.35,0,6.2832); ctx.fill();
+    // champ d'etoiles : discret, il donne la profondeur du vide
+    if(etoiles) ctx.drawImage(etoiles, 0, 0, W, H);
+
+    // atmosphere : un halo serre sur le limbe, plus un voile large
+    const large = ctx.createRadialGradient(cx,cy,R*.96,cx,cy,R*1.42);
+    large.addColorStop(0,'rgba(96,168,235,.20)');
+    large.addColorStop(.45,'rgba(96,168,235,.07)');
+    large.addColorStop(1,'rgba(96,168,235,0)');
+    ctx.fillStyle = large; ctx.beginPath(); ctx.arc(cx,cy,R*1.42,0,6.2832); ctx.fill();
+    const serre = ctx.createRadialGradient(cx,cy,R*.985,cx,cy,R*1.065);
+    serre.addColorStop(0,'rgba(150,205,255,0)');
+    serre.addColorStop(.35,'rgba(160,212,255,.5)');
+    serre.addColorStop(1,'rgba(150,205,255,0)');
+    ctx.fillStyle = serre; ctx.beginPath(); ctx.arc(cx,cy,R*1.065,0,6.2832); ctx.fill();
 
     // sphere
     if(tex && lut){
@@ -409,9 +458,13 @@ function construireVolcans(){
       ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832); ctx.fill();
     }
 
-    // limbe
-    ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832);
-    ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1; ctx.stroke();
+    // ombre portee du cote nuit, pour asseoir la sphere
+    const nuit = ctx.createRadialGradient(cx-R*.35,cy-R*.4,R*.15,cx,cy,R*1.02);
+    nuit.addColorStop(0,'rgba(0,0,0,0)');
+    nuit.addColorStop(.62,'rgba(0,0,0,0)');
+    nuit.addColorStop(1,'rgba(2,6,14,.55)');
+    ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832); ctx.clip();
+    ctx.fillStyle = nuit; ctx.fillRect(cx-R,cy-R,R*2,R*2); ctx.restore();
 
     // donnees, revelees par le pinceau
     dessinerDonnees(cx,cy,R);
@@ -430,7 +483,7 @@ function construireVolcans(){
      survoler revele les donnees. */
   let glisse = null;
   cv.addEventListener('pointerdown', e => {
-    glisse = { x:e.clientX, rot };
+    glisse = { x:e.clientX, y:e.clientY, rot, vue };
     cv.setPointerCapture(e.pointerId);
     cv.style.cursor = 'grabbing';
     souris = null;
@@ -440,6 +493,9 @@ function construireVolcans(){
     document.getElementById('astuce').classList.add('off');
     if(glisse){
       rot = glisse.rot + (e.clientX - glisse.x) / r.width * Math.PI * 2;
+      // la latitude visee est bornee : au-dela des poles la vue se retourne
+      const nv = glisse.vue + (e.clientY - glisse.y) / r.height * Math.PI;
+      vue = Math.max(-1.35, Math.min(1.35, nv));
       return;
     }
     souris = { x:e.clientX-r.left, y:e.clientY-r.top };
@@ -459,7 +515,27 @@ function construireVolcans(){
   bascule('b-rotation', ()=>tourne,  v=>tourne=v);
   bascule('b-tout',     ()=>tout,    v=>tout=v);
 
-  taille(); new ResizeObserver(taille).observe(cv); charger(0);
+  /* Le champ d'etoiles est dessine une fois dans un calque hors ecran :
+     le regenerer a chaque image le ferait scintiller au hasard. */
+  let etoiles = null;
+  function semerEtoiles(){
+    if(!W) return;
+    etoiles = document.createElement('canvas');
+    etoiles.width = Math.round(W); etoiles.height = Math.round(H);
+    const c = etoiles.getContext('2d');
+    const n = Math.round(W*H/5200);
+    for(let i=0;i<n;i++){
+      const x = Math.random()*W, y = Math.random()*H;
+      const r = Math.random()<.86 ? Math.random()*.75+.25 : Math.random()*.9+.9;
+      const a = .12 + Math.random()*.5;
+      c.beginPath(); c.fillStyle = `rgba(255,255,255,${a})`;
+      c.arc(x,y,r,0,6.2832); c.fill();
+    }
+  }
+
+  taille(); semerEtoiles();
+  new ResizeObserver(() => { taille(); semerEtoiles(); }).observe(cv);
+  charger(0);
   requestAnimationFrame(dessiner);
   console.log('points : ' + SEISMES.length + ' séismes, ' + VOLCANS.length + ' volcans');
 })();
