@@ -17,6 +17,7 @@ canvas{ display:block }
 .bandeau{ width:100%; max-width:70rem; padding:1.75rem 1.5rem .5rem; }
 .bandeau .kick{ font-size:.7rem; letter-spacing:.22em; text-transform:uppercase; color:#cf8047 }
 .bandeau h1{ margin-top:.5rem; font-size:clamp(1.6rem,4vw,2.4rem); font-weight:600; letter-spacing:-.02em }
+.bandeau p b{ color:rgba(255,255,255,.85); font-weight:500 }
 .bandeau p{ margin-top:.6rem; max-width:52ch; font-size:.9rem; line-height:1.6; color:rgba(255,255,255,.55) }
 
 .scene{ position:relative; width:min(92vw,44rem); aspect-ratio:1; margin:.5rem 0 0 }
@@ -39,6 +40,10 @@ canvas{ display:block }
   background:linear-gradient(90deg,#22d3ee,#4ade80,#facc15,#fb923c,#ef4444) }
 .tri{ display:inline-block; width:0; height:0; border-left:.32rem solid transparent;
   border-right:.32rem solid transparent; border-bottom:.55rem solid #ef4444; vertical-align:-.05rem }
+.rond{ display:inline-block; width:.45rem; height:.45rem; border-radius:9999px; background:#22d3ee;
+  vertical-align:.02rem }
+.cle{ display:inline-flex; align-items:center; gap:.4rem; color:rgba(255,255,255,.6) }
+.sep{ width:1px; height:.9rem; background:rgba(255,255,255,.18) }
 
 .note{ max-width:44rem; margin:0 1.5rem 3rem; padding:1rem 1.25rem; font-size:.8rem; line-height:1.65;
   color:rgba(255,255,255,.5); border-left:2px solid #cf8047; background:rgba(255,255,255,.03) }
@@ -50,26 +55,27 @@ canvas{ display:block }
 <div class="bandeau">
   <p class="kick">Essai — ne pas publier tel quel</p>
   <h1>Globe sismique et volcanique</h1>
-  <p>Passez la souris sur le globe : les foyers de séismes et les volcans apparaissent
-     sous le curseur, puis s'effacent. Les séismes sont colorés selon leur profondeur.</p>
+  <p><b>Survolez</b> le globe : les foyers et les volcans apparaissent sous le curseur, puis s'effacent. <b>Glissez</b> en maintenant le bouton pour faire tourner la Terre. Les séismes sont colorés selon leur profondeur.</p>
 </div>
 
 <div class="scene">
   <canvas id="globe" role="img" aria-label="Globe terrestre : séismes et volcans révélés au passage du curseur"></canvas>
-  <p class="astuce" id="astuce">Passez la souris sur le globe</p>
+  <p class="astuce" id="astuce">Survolez pour révéler · glissez pour tourner</p>
 </div>
 
 <div class="reglages">
   <button id="b-seismes" aria-pressed="true">Séismes</button>
   <button id="b-volcans" aria-pressed="true">Volcans</button>
-  <button id="b-rotation" aria-pressed="true">Rotation</button>
+  <button id="b-rotation" aria-pressed="false">Rotation auto</button>
   <button id="b-tout" aria-pressed="false">Tout afficher</button>
 </div>
 
 <div class="legende">
+  <span class="cle"><i class="rond"></i> Séismes</span>
+  <span class="cle"><i class="tri"></i> Volcans</span>
+  <span class="sep"></span>
   <span>Profondeur des foyers</span>
   <span>0</span><span class="barre"></span><span>800 km</span>
-  <span style="margin-left:1rem"><i class="tri"></i> Volcans</span>
 </div>
 
 <p class="note">
@@ -190,9 +196,9 @@ function construireSeismes(){
   for(const [, trace] of DORSALES){
     const ligne = interpoler(trace, 0.8);
     for(const [la, lo] of ligne){
-      const n = 2 + Math.round(Math.random()*3);
+      const n = 1 + Math.round(Math.random()*2);
       for(let k = 0; k < n; k++){
-        S.push([la + alea(1.1), lo + alea(1.4), Math.random()*25]);
+        S.push([la + alea(0.9), lo + alea(1.1), Math.random()*25]);
       }
     }
   }
@@ -214,14 +220,9 @@ function construireVolcans(){
       ]);
     }
   }
-  // dorsales : volcanisme effusif, surtout ou elles emergent
-  for(const [, trace] of DORSALES){
-    const ligne = interpoler(trace, 3.5);
-    for(const [la, lo] of ligne){
-      if(Math.random() > 0.25) continue;
-      V.push([la + alea(0.8), lo + alea(1.0)]);
-    }
-  }
+  /* Pas de volcans le long des dorsales : leur volcanisme est sous-marin et
+     n'apparait pas sur les cartes de Tectoglob. Les seuls edifices emerges
+     (Islande, Acores, Galapagos) sont deja dans les points chauds. */
   // points chauds : une petite grappe autour de chaque
   for(const [, [la, lo]] of POINTS_CHAUDS){
     const n = 2 + Math.round(Math.random()*4);
@@ -235,7 +236,7 @@ function construireVolcans(){
 (function(){
   const cv = document.getElementById('globe');
   const ctx = cv.getContext('2d');
-  const TEX = ['images/terre.jpg','terre.jpg'];
+  const TEX = ['images/terre-hd.jpg','images/terre.jpg','terre.jpg'];
   const TEX_W = 1024, TEX_H = 512, TILT = 23.4*Math.PI/180;
 
   const SEISMES = construireSeismes();
@@ -243,7 +244,7 @@ function construireVolcans(){
 
   let W=0,H=0,S=0,dpr=1, tex=null, lut=null, buf,bufCtx,img;
   let masque, masqueCtx, couche, coucheCtx;
-  let rot = -0.35, tourne = true, vSeismes = true, vVolcans = true, tout = false;
+  let rot = -0.35, tourne = false, vSeismes = true, vVolcans = true, tout = false;
   let dernier = 0, souris = null, oisif = 0;
 
   /* ---- couleur d'un foyer selon sa profondeur (echelle Tectoglob) ---- */
@@ -315,10 +316,13 @@ function construireVolcans(){
   /* ---- projection d'un point (lat,lon) sur la sphere ---- */
   const cT = Math.cos(TILT), sT = Math.sin(TILT);
   function projeter(lat, lon, cx, cy, R){
-    const la = lat*Math.PI/180, lo = lon*Math.PI/180 + rot;
+    /* La texture est echantillonnee avec un decalage de +rot ; un point de
+       longitude L se retrouve donc a l'ecran en L - rot. Avec un +, la carte
+       et les points tournaient en sens inverse et les foyers derivaient. */
+    const la = lat*Math.PI/180, lo = lon*Math.PI/180 - rot;
     const x = Math.cos(la)*Math.sin(lo), y = -Math.sin(la), z = Math.cos(la)*Math.cos(lo);
     const yy = y*cT + z*sT, zz = -y*sT + z*cT;      // inclinaison de l'axe
-    if(zz <= 0.02) return null;                      // face cachee
+    if(zz <= 0.06) return null;                      // face cachee
     return [cx + x*R, cy + yy*R, zz];
   }
 
@@ -330,7 +334,9 @@ function construireVolcans(){
         const q = projeter(la,lo,cx,cy,R); if(!q) continue;
         const [r,g,b] = couleurProf(p);
         coucheCtx.beginPath();
-        coucheCtx.fillStyle = `rgba(${r|0},${g|0},${b|0},${0.55+0.45*q[2]})`;
+        /* Vus par la tranche, les points s'entassaient sur le limbe en un lisere
+   continu : on les fait disparaitre a mesure qu'ils s'en approchent. */
+        coucheCtx.fillStyle = `rgba(${r|0},${g|0},${b|0},${Math.min(1, q[2]*3.2)})`;
         coucheCtx.arc(q[0], q[1], 1.15, 0, 6.2832);
         coucheCtx.fill();
       }
@@ -342,11 +348,13 @@ function construireVolcans(){
       for(const [la,lo] of VOLCANS){
         const q = projeter(la,lo,cx,cy,R); if(!q) continue;
         const s = 3.1;
+        coucheCtx.globalAlpha = Math.min(1, q[2]*3.2);
         coucheCtx.beginPath();
         coucheCtx.moveTo(q[0], q[1]-s);
         coucheCtx.lineTo(q[0]+s*0.9, q[1]+s*0.75);
         coucheCtx.lineTo(q[0]-s*0.9, q[1]+s*0.75);
         coucheCtx.closePath(); coucheCtx.fill(); coucheCtx.stroke();
+        coucheCtx.globalAlpha = 1;
       }
     }
   }
@@ -418,12 +426,29 @@ function construireVolcans(){
     }
   }
 
+  /* Deux gestes distincts : glisser fait tourner le globe, simplement
+     survoler revele les donnees. */
+  let glisse = null;
+  cv.addEventListener('pointerdown', e => {
+    glisse = { x:e.clientX, rot };
+    cv.setPointerCapture(e.pointerId);
+    cv.style.cursor = 'grabbing';
+    souris = null;
+  });
   cv.addEventListener('pointermove', e => {
     const r = cv.getBoundingClientRect();
-    souris = { x:e.clientX-r.left, y:e.clientY-r.top };
     document.getElementById('astuce').classList.add('off');
+    if(glisse){
+      rot = glisse.rot + (e.clientX - glisse.x) / r.width * Math.PI * 2;
+      return;
+    }
+    souris = { x:e.clientX-r.left, y:e.clientY-r.top };
   });
-  cv.addEventListener('pointerleave', () => { souris = null; });
+  const finGlisse = () => { glisse = null; cv.style.cursor = 'grab'; };
+  cv.addEventListener('pointerup', finGlisse);
+  cv.addEventListener('pointercancel', finGlisse);
+  cv.addEventListener('pointerleave', () => { finGlisse(); souris = null; });
+  cv.style.cursor = 'grab';
 
   const bascule = (id, get, set) => {
     const b = document.getElementById(id);
