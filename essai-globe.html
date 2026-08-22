@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Essai — Globe sismique et volcanique</title>
+<meta name="robots" content="noindex" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{ box-sizing:border-box; margin:0; padding:0 }
+body{ background:#07080b; color:#fff; font-family:'Onest',system-ui,sans-serif;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; overflow-x:hidden }
+canvas{ display:block }
+
+.bandeau{ width:100%; max-width:70rem; padding:1.75rem 1.5rem .5rem; }
+.bandeau .kick{ font-size:.7rem; letter-spacing:.22em; text-transform:uppercase; color:#cf8047 }
+.bandeau h1{ margin-top:.5rem; font-size:clamp(1.6rem,4vw,2.4rem); font-weight:600; letter-spacing:-.02em }
+.bandeau p{ margin-top:.6rem; max-width:52ch; font-size:.9rem; line-height:1.6; color:rgba(255,255,255,.55) }
+
+.scene{ position:relative; width:min(92vw,44rem); aspect-ratio:1; margin:.5rem 0 0 }
+#globe{ width:100%; height:100% }
+.astuce{ position:absolute; inset-inline:0; bottom:-.5rem; text-align:center; font-size:.72rem;
+  letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.35); pointer-events:none;
+  transition:opacity .5s }
+.astuce.off{ opacity:0 }
+
+.reglages{ display:flex; flex-wrap:wrap; gap:.5rem; justify-content:center; margin:1.5rem 0 .5rem }
+.reglages button{ font:inherit; font-size:.8rem; color:rgba(255,255,255,.7); cursor:pointer;
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.14); border-radius:9999px;
+  padding:.5rem 1.1rem; transition:.25s }
+.reglages button:hover{ border-color:rgba(255,255,255,.4); color:#fff }
+.reglages button[aria-pressed="true"]{ background:#fff; color:#0a0a0a; border-color:#fff }
+
+.legende{ display:flex; align-items:center; gap:.75rem; margin:.75rem 0 2.5rem; font-size:.7rem;
+  letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.45); flex-wrap:wrap; justify-content:center }
+.barre{ width:11rem; height:.4rem; border-radius:9999px;
+  background:linear-gradient(90deg,#22d3ee,#4ade80,#facc15,#fb923c,#ef4444) }
+.tri{ display:inline-block; width:0; height:0; border-left:.32rem solid transparent;
+  border-right:.32rem solid transparent; border-bottom:.55rem solid #ef4444; vertical-align:-.05rem }
+
+.note{ max-width:44rem; margin:0 1.5rem 3rem; padding:1rem 1.25rem; font-size:.8rem; line-height:1.65;
+  color:rgba(255,255,255,.5); border-left:2px solid #cf8047; background:rgba(255,255,255,.03) }
+.note b{ color:rgba(255,255,255,.8); font-weight:500 }
+</style>
+</head>
+<body>
+
+<div class="bandeau">
+  <p class="kick">Essai — ne pas publier tel quel</p>
+  <h1>Globe sismique et volcanique</h1>
+  <p>Passez la souris sur le globe : les foyers de séismes et les volcans apparaissent
+     sous le curseur, puis s'effacent. Les séismes sont colorés selon leur profondeur.</p>
+</div>
+
+<div class="scene">
+  <canvas id="globe" role="img" aria-label="Globe terrestre : séismes et volcans révélés au passage du curseur"></canvas>
+  <p class="astuce" id="astuce">Passez la souris sur le globe</p>
+</div>
+
+<div class="reglages">
+  <button id="b-seismes" aria-pressed="true">Séismes</button>
+  <button id="b-volcans" aria-pressed="true">Volcans</button>
+  <button id="b-rotation" aria-pressed="true">Rotation</button>
+  <button id="b-tout" aria-pressed="false">Tout afficher</button>
+</div>
+
+<div class="legende">
+  <span>Profondeur des foyers</span>
+  <span>0</span><span class="barre"></span><span>800 km</span>
+  <span style="margin-left:1rem"><i class="tri"></i> Volcans</span>
+</div>
+
+<p class="note">
+  <b>Données provisoires.</b> Les points sont générés le long des grandes ceintures
+  sismiques et volcaniques : la géographie est juste, mais ce n'est pas un catalogue réel.
+  Envoyez-moi vos captures Tectoglob <b>en pièces jointes</b> et je les remplacerai par
+  vos données exactes, extraites image par image.
+</p>
+
+<script>
+/* =========================================================================
+   JEU DE DONNÉES PROVISOIRE
+   Les points sont générés le long des grandes ceintures sismiques et
+   volcaniques. Ce n'est PAS un catalogue réel : à remplacer par
+   l'extraction des captures Tectoglob.
+   ========================================================================= */
+
+/* Fosses de subduction : [nom, [[lat,lon]...], azimut de plongement (deg),
+   pendage (deg), profondeur max (km)] */
+const SUBDUCTIONS = [
+  ['Andes',        [[2,-79],[-8,-81],[-18,-71],[-30,-72],[-40,-75],[-46,-76]],  90,  30, 650],
+  ['Am. centrale', [[19,-105],[16,-99],[12,-90],[8,-84]],                       45,  45, 250],
+  ['Cascades',     [[49,-127],[44,-125],[40,-125]],                             90,  30, 100],
+  ['Aléoutiennes', [[52,-172],[52,-165],[55,-158],[58,-150],[60,-145]],        350,  45, 250],
+  ['Kamtchatka',   [[56,163],[52,159],[48,155],[44,148]],                      290,  50, 600],
+  ['Japon',        [[42,145],[38,143],[34,141],[31,133]],                      280,  35, 550],
+  ['Ryukyu',       [[29,131],[25,127],[22,122]],                               300,  45, 300],
+  ['Philippines',  [[18,122],[12,125],[6,127]],                                250,  55, 650],
+  ['Mariannes',    [[22,147],[16,148],[11,146]],                               260,  60, 700],
+  ['Sonde',        [[14,93],[6,95],[0,99],[-8,106],[-10,116],[-9,124]],          20,  45, 650],
+  ['Tonga',        [[-15,-173],[-22,-175],[-29,-177],[-35,179]],               260,  60, 700],
+  ['Kermadec',     [[-35,179],[-39,177]],                                      260,  55, 400],
+  ['Nlle-Zélande', [[-39,177],[-43,172],[-46,167]],                            240,  40, 250],
+  ['Antilles',     [[18,-59],[15,-59],[12,-61]],                               270,  50, 200],
+  ['Scotia',       [[-56,-26],[-59,-27],[-61,-25]],                            270,  50, 200],
+  ['Hellénique',   [[36,21],[35,25],[35,29]],                                    0,  40, 180],
+  ['Makran',       [[25,60],[25,64]],                                            0,  30, 100],
+];
+
+/* Chaînes de collision : sismicité superficielle à intermédiaire */
+const COLLISIONS = [
+  ['Himalaya',   [[36,72],[33,77],[30,82],[28,88],[27,93],[25,96]],  90],
+  ['Anatolie',   [[40,27],[40,33],[39,40],[38,44]],                  40],
+  ['Zagros',     [[34,46],[31,51],[28,56]],                          60],
+  ['Alpes',      [[45,7],[46,11],[47,15]],                           40],
+  ['Tian Shan',  [[42,75],[42,82],[43,88]],                          50],
+];
+
+/* Dorsales et rifts : sismicité très superficielle */
+const DORSALES = [
+  ['Atlantique N', [[66,-18],[60,-30],[52,-32],[45,-28],[38,-31],[30,-42],[20,-46],[10,-40],[2,-30]]],
+  ['Atlantique S', [[0,-25],[-10,-13],[-20,-12],[-30,-14],[-40,-17],[-50,-8],[-55,-3]]],
+  ['Indienne O',   [[10,57],[0,64],[-10,66],[-25,70],[-33,57],[-40,45]]],
+  ['Indienne SE',  [[-27,73],[-35,80],[-45,95],[-50,115],[-55,135]]],
+  ['Pacifique E',  [[24,-109],[15,-105],[5,-103],[-5,-102],[-20,-113],[-35,-112],[-50,-118],[-58,-150]]],
+  ['Juan de Fuca', [[48,-129],[44,-130],[40,-127]]],
+  ['Rift E-Afr.',  [[13,42],[8,39],[2,36],[-3,36],[-9,34],[-15,34]]],
+  ['Chili SE',     [[-35,-110],[-45,-95],[-55,-85]]],
+];
+
+/* Points chauds : volcanisme intraplaque */
+const POINTS_CHAUDS = [
+  ['Hawaii',[19.4,-155.3]], ['Islande',[64.4,-17.3]], ['La Réunion',[-21.2,55.7]],
+  ['Galápagos',[-0.4,-91.5]], ['Canaries',[28.3,-16.6]], ['Açores',[37.8,-25.5]],
+  ['Yellowstone',[44.4,-110.7]], ['Cap-Vert',[15,-24]], ['Samoa',[-14.2,-169.5]],
+  ['Kerguelen',[-49.6,69.5]], ['Tristan',[-37.1,-12.3]], ['Sainte-Hélène',[-16,-5.7]],
+  ['Afar',[11.6,41.5]], ['Tibesti',[20.5,17.5]], ['Hoggar',[23.3,5.5]],
+  ['Comores',[-11.7,43.4]], ['Marquises',[-9.8,-139]], ['Pitcairn',[-25.1,-129.3]],
+];
+
+/* ---- génération ---- */
+function interpoler(pts, pas){
+  const out = [];
+  for(let i = 0; i < pts.length - 1; i++){
+    const [la1, lo1] = pts[i], [la2, lo2] = pts[i+1];
+    const d = Math.hypot(la2-la1, lo2-lo1);
+    const n = Math.max(1, Math.round(d / pas));
+    for(let k = 0; k < n; k++){
+      out.push([la1 + (la2-la1)*k/n, lo1 + (lo2-lo1)*k/n]);
+    }
+  }
+  out.push(pts[pts.length-1]);
+  return out;
+}
+const alea = (a) => (Math.random()-0.5)*2*a;
+
+function construireSeismes(){
+  const S = [];
+  // subductions : le plan de Wadati-Benioff s'enfonce sous la plaque chevauchante
+  for(const [, trace, azimut, pendage, pmax] of SUBDUCTIONS){
+    const ligne = interpoler(trace, 1.2);
+    const ar = azimut*Math.PI/180, tanp = Math.tan(pendage*Math.PI/180);
+    for(const [la, lo] of ligne){
+      const n = 14 + Math.round(Math.random()*10);
+      for(let k = 0; k < n; k++){
+        const dist = Math.random()**0.8 * (pmax/tanp);      // km depuis la fosse
+        const prof = Math.min(pmax, dist*tanp) + alea(18);
+        const dd = dist/111;                                 // km -> degrés
+        S.push([
+          la + dd*Math.cos(ar)*0.9 + alea(0.5),
+          lo + dd*Math.sin(ar)/Math.max(0.25, Math.cos(la*Math.PI/180)) + alea(0.5),
+          Math.max(0, prof)
+        ]);
+      }
+    }
+  }
+  // collisions : superficiel a intermediaire, disperse de part et d'autre
+  for(const [, trace, largeur] of COLLISIONS){
+    const ligne = interpoler(trace, 1.0);
+    for(const [la, lo] of ligne){
+      const n = 6 + Math.round(Math.random()*6);
+      for(let k = 0; k < n; k++){
+        S.push([la + alea(largeur/111*3), lo + alea(largeur/111*4), Math.random()**2*90]);
+      }
+    }
+  }
+  // dorsales : quasi en surface, etroitement alignes
+  for(const [, trace] of DORSALES){
+    const ligne = interpoler(trace, 0.8);
+    for(const [la, lo] of ligne){
+      const n = 2 + Math.round(Math.random()*3);
+      for(let k = 0; k < n; k++){
+        S.push([la + alea(1.1), lo + alea(1.4), Math.random()*25]);
+      }
+    }
+  }
+  return S;
+}
+
+function construireVolcans(){
+  const V = [];
+  // arcs volcaniques : en arriere de la fosse, cote plaque chevauchante
+  for(const [, trace, azimut, pendage] of SUBDUCTIONS){
+    const ligne = interpoler(trace, 1.8);
+    const ar = azimut*Math.PI/180;
+    const recul = (110/Math.tan(pendage*Math.PI/180))/111;   // arc a ~110 km de profondeur
+    for(const [la, lo] of ligne){
+      if(Math.random() > 0.62) continue;
+      V.push([
+        la + recul*Math.cos(ar) + alea(0.6),
+        lo + recul*Math.sin(ar)/Math.max(0.25, Math.cos(la*Math.PI/180)) + alea(0.6)
+      ]);
+    }
+  }
+  // dorsales : volcanisme effusif, surtout ou elles emergent
+  for(const [, trace] of DORSALES){
+    const ligne = interpoler(trace, 3.5);
+    for(const [la, lo] of ligne){
+      if(Math.random() > 0.25) continue;
+      V.push([la + alea(0.8), lo + alea(1.0)]);
+    }
+  }
+  // points chauds : une petite grappe autour de chaque
+  for(const [, [la, lo]] of POINTS_CHAUDS){
+    const n = 2 + Math.round(Math.random()*4);
+    for(let k = 0; k < n; k++) V.push([la + alea(1.6), lo + alea(2.2)]);
+  }
+  return V;
+}
+
+
+/* ============ le globe ============ */
+(function(){
+  const cv = document.getElementById('globe');
+  const ctx = cv.getContext('2d');
+  const TEX = ['images/terre.jpg','terre.jpg'];
+  const TEX_W = 1024, TEX_H = 512, TILT = 23.4*Math.PI/180;
+
+  const SEISMES = construireSeismes();
+  const VOLCANS = construireVolcans();
+
+  let W=0,H=0,S=0,dpr=1, tex=null, lut=null, buf,bufCtx,img;
+  let masque, masqueCtx, couche, coucheCtx;
+  let rot = -0.35, tourne = true, vSeismes = true, vVolcans = true, tout = false;
+  let dernier = 0, souris = null, oisif = 0;
+
+  /* ---- couleur d'un foyer selon sa profondeur (echelle Tectoglob) ---- */
+  function couleurProf(p){
+    const t = Math.min(1, Math.max(0, p/800));
+    const paliers = [[0,34,211,238],[.25,74,222,128],[.5,250,204,21],[.75,251,146,60],[1,239,68,68]];
+    for(let i=0;i<paliers.length-1;i++){
+      const [t0,r0,g0,b0] = paliers[i], [t1,r1,g1,b1] = paliers[i+1];
+      if(t <= t1){
+        const k = (t-t0)/(t1-t0);
+        return [r0+(r1-r0)*k, g0+(g1-g0)*k, b0+(b1-b0)*k];
+      }
+    }
+    return [239,68,68];
+  }
+
+  /* ---- texture ---- */
+  function charger(i){
+    if(i >= TEX.length) return;
+    const im = new Image();
+    im.onload = () => {
+      if(Math.abs(im.naturalWidth/im.naturalHeight - 2) > 0.3) return charger(i+1);
+      try{
+        const c = document.createElement('canvas'); c.width=TEX_W; c.height=TEX_H;
+        const cc = c.getContext('2d',{willReadFrequently:true});
+        cc.drawImage(im,0,0,TEX_W,TEX_H);
+        tex = cc.getImageData(0,0,TEX_W,TEX_H).data;
+        construireLut();
+      }catch(e){ tex = null; }
+    };
+    im.onerror = () => charger(i+1);
+    im.src = TEX[i];
+  }
+  function construireLut(){
+    if(!tex || !S) return;
+    const R = S/2-1, n = S*S;
+    const row = new Int32Array(n), col = new Int32Array(n), sh = new Float32Array(n);
+    const cT = Math.cos(TILT), sT = Math.sin(TILT);
+    const lx=-.42, ly=-.46, lz=.78, ln = Math.hypot(lx,ly,lz);
+    for(let y=0;y<S;y++) for(let x=0;x<S;x++){
+      const i = y*S+x, nx=(x-S/2+.5)/R, ny=(y-S/2+.5)/R, d2=nx*nx+ny*ny;
+      if(d2>1){ row[i]=-1; continue; }
+      const nz=Math.sqrt(1-d2), py=ny*cT-nz*sT, pz=ny*sT+nz*cT;
+      row[i] = Math.min(TEX_H-1,Math.max(0,((0.5-Math.asin(Math.max(-1,Math.min(1,-py)))/Math.PI)*TEX_H)|0));
+      col[i] = ((Math.atan2(nx,pz)/(2*Math.PI)+0.5)*TEX_W)|0;
+      let s=(nx*lx+ny*ly+nz*lz)/ln; s=.2+.9*Math.max(0,s);
+      sh[i] = Math.min(1.25,s)*(1-Math.pow(d2,6)*.45);
+    }
+    lut = {row,col,sh};
+  }
+
+  function taille(){
+    const r = cv.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio||1, 2);
+    W = r.width; H = r.height;
+    cv.width = W*dpr; cv.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    S = Math.max(140, Math.round(Math.min(W,H)*0.9));
+    buf = document.createElement('canvas'); buf.width=S; buf.height=S;
+    bufCtx = buf.getContext('2d'); img = bufCtx.createImageData(S,S);
+    for(const [c, name] of [[masque,'m'],[couche,'c']]) void c;
+    masque = document.createElement('canvas'); masque.width=Math.round(W); masque.height=Math.round(H);
+    masqueCtx = masque.getContext('2d');
+    couche = document.createElement('canvas'); couche.width=Math.round(W); couche.height=Math.round(H);
+    coucheCtx = couche.getContext('2d');
+    construireLut();
+  }
+
+  /* ---- projection d'un point (lat,lon) sur la sphere ---- */
+  const cT = Math.cos(TILT), sT = Math.sin(TILT);
+  function projeter(lat, lon, cx, cy, R){
+    const la = lat*Math.PI/180, lo = lon*Math.PI/180 + rot;
+    const x = Math.cos(la)*Math.sin(lo), y = -Math.sin(la), z = Math.cos(la)*Math.cos(lo);
+    const yy = y*cT + z*sT, zz = -y*sT + z*cT;      // inclinaison de l'axe
+    if(zz <= 0.02) return null;                      // face cachee
+    return [cx + x*R, cy + yy*R, zz];
+  }
+
+  /* ---- couche de donnees ---- */
+  function dessinerDonnees(cx, cy, R){
+    coucheCtx.clearRect(0,0,W,H);
+    if(vSeismes){
+      for(const [la,lo,p] of SEISMES){
+        const q = projeter(la,lo,cx,cy,R); if(!q) continue;
+        const [r,g,b] = couleurProf(p);
+        coucheCtx.beginPath();
+        coucheCtx.fillStyle = `rgba(${r|0},${g|0},${b|0},${0.55+0.45*q[2]})`;
+        coucheCtx.arc(q[0], q[1], 1.15, 0, 6.2832);
+        coucheCtx.fill();
+      }
+    }
+    if(vVolcans){
+      coucheCtx.fillStyle = '#ef4444';
+      coucheCtx.strokeStyle = 'rgba(255,220,220,.85)';
+      coucheCtx.lineWidth = .5;
+      for(const [la,lo] of VOLCANS){
+        const q = projeter(la,lo,cx,cy,R); if(!q) continue;
+        const s = 3.1;
+        coucheCtx.beginPath();
+        coucheCtx.moveTo(q[0], q[1]-s);
+        coucheCtx.lineTo(q[0]+s*0.9, q[1]+s*0.75);
+        coucheCtx.lineTo(q[0]-s*0.9, q[1]+s*0.75);
+        coucheCtx.closePath(); coucheCtx.fill(); coucheCtx.stroke();
+      }
+    }
+  }
+
+  /* ---- pinceau : la traînée qui revele ---- */
+  function majMasque(){
+    masqueCtx.globalCompositeOperation = 'destination-out';
+    masqueCtx.fillStyle = 'rgba(0,0,0,0.035)';
+    masqueCtx.fillRect(0,0,W,H);
+    if(souris){
+      const rr = Math.min(W,H)*0.19;
+      const g = masqueCtx.createRadialGradient(souris.x,souris.y,0,souris.x,souris.y,rr);
+      g.addColorStop(0,'rgba(255,255,255,1)');
+      g.addColorStop(.55,'rgba(255,255,255,.85)');
+      g.addColorStop(1,'rgba(255,255,255,0)');
+      masqueCtx.globalCompositeOperation = 'source-over';
+      masqueCtx.fillStyle = g;
+      masqueCtx.beginPath(); masqueCtx.arc(souris.x,souris.y,rr,0,6.2832); masqueCtx.fill();
+    }
+  }
+
+  function dessiner(t){
+    requestAnimationFrame(dessiner);
+    if(!W) return;
+    const dt = dernier ? (t-dernier)/1000 : 0; dernier = t;
+    if(tourne) rot += dt*0.085;
+
+    const cx = W/2, cy = H/2, R = Math.min(W,H)*0.44;
+    ctx.clearRect(0,0,W,H);
+
+    // halo
+    const halo = ctx.createRadialGradient(cx,cy,R*.9,cx,cy,R*1.35);
+    halo.addColorStop(0,'rgba(90,170,240,.22)'); halo.addColorStop(1,'rgba(90,170,240,0)');
+    ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(cx,cy,R*1.35,0,6.2832); ctx.fill();
+
+    // sphere
+    if(tex && lut){
+      const shift = Math.round(((rot/(2*Math.PI))%1+1)%1 * TEX_W);
+      const o = img.data, {row,col,sh} = lut;
+      for(let i=0,n=S*S;i<n;i++){
+        const r = row[i];
+        if(r<0){ o[i*4+3]=0; continue; }
+        let c = col[i]+shift; if(c>=TEX_W) c-=TEX_W;
+        const s = sh[i], p = (r*TEX_W+c)<<2;
+        o[i*4]=tex[p]*s; o[i*4+1]=tex[p+1]*s; o[i*4+2]=tex[p+2]*s; o[i*4+3]=255;
+      }
+      bufCtx.putImageData(img,0,0);
+      ctx.drawImage(buf, cx-R, cy-R, R*2, R*2);
+    } else {
+      const g = ctx.createRadialGradient(cx-R*.3,cy-R*.35,R*.1,cx,cy,R);
+      g.addColorStop(0,'#2b6f9a'); g.addColorStop(1,'#0d2436');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832); ctx.fill();
+    }
+
+    // limbe
+    ctx.beginPath(); ctx.arc(cx,cy,R,0,6.2832);
+    ctx.strokeStyle='rgba(255,255,255,.18)'; ctx.lineWidth=1; ctx.stroke();
+
+    // donnees, revelees par le pinceau
+    dessinerDonnees(cx,cy,R);
+    if(tout){
+      ctx.drawImage(couche,0,0);
+    } else {
+      majMasque();
+      coucheCtx.globalCompositeOperation = 'destination-in';
+      coucheCtx.drawImage(masque,0,0);
+      coucheCtx.globalCompositeOperation = 'source-over';
+      ctx.drawImage(couche,0,0);
+    }
+  }
+
+  cv.addEventListener('pointermove', e => {
+    const r = cv.getBoundingClientRect();
+    souris = { x:e.clientX-r.left, y:e.clientY-r.top };
+    document.getElementById('astuce').classList.add('off');
+  });
+  cv.addEventListener('pointerleave', () => { souris = null; });
+
+  const bascule = (id, get, set) => {
+    const b = document.getElementById(id);
+    b.addEventListener('click', () => { set(!get()); b.setAttribute('aria-pressed', String(get())); });
+  };
+  bascule('b-seismes', ()=>vSeismes, v=>vSeismes=v);
+  bascule('b-volcans', ()=>vVolcans, v=>vVolcans=v);
+  bascule('b-rotation', ()=>tourne,  v=>tourne=v);
+  bascule('b-tout',     ()=>tout,    v=>tout=v);
+
+  taille(); new ResizeObserver(taille).observe(cv); charger(0);
+  requestAnimationFrame(dessiner);
+  console.log('points : ' + SEISMES.length + ' séismes, ' + VOLCANS.length + ' volcans');
+})();
+</script>
+</body>
+</html>
