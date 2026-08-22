@@ -474,7 +474,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
           <button data-nav="services" aria-haspopup="true"><span>Niveaux <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
             <li><a href="2nde.html">Seconde</a></li>
-            <li><span class="sub-soon">Première</span></li>
+            <li><a href="1ere.html">Première</a></li>
             <li><span class="sub-soon">Terminale</span></li>
           </ul>
         </li>
@@ -668,7 +668,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
           <li><a class="alink" href="#services"><span>Seconde</span></a></li>
-          <li><a class="alink" href="#services"><span>Première</span></a></li>
+          <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
           <li><a class="alink" href="#services"><span>Terminale</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
         </ul>
@@ -1095,7 +1095,7 @@ tickClock(); setInterval(tickClock, 1000);
 (function(){
   const rows = [
     { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'#services' },
-    { n:'02', t:'Première',  d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'02', t:'Première',  d:'Enseignement scientifique : les cinq thèmes du programme.',      href:'1ere.html' },
     { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
     { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
   ];
@@ -1162,7 +1162,7 @@ tickClock(); setInterval(tickClock, 1000);
 /* ============ nav overlay ============ */
 (function(){
   const NAV = [
-    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' },
+    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' },
     { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];
   const menu = document.getElementById('navmenu');
