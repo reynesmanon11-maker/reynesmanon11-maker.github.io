@@ -74,7 +74,6 @@ canvas{ display:block }
   <button id="b-seismes" aria-pressed="true">Séismes</button>
   <button id="b-volcans" aria-pressed="true">Volcans</button>
   <button id="b-rotation" aria-pressed="false">Rotation auto</button>
-  <button id="b-tout" aria-pressed="false">Tout afficher</button>
   <button id="b-fond">Carte Tectoglob</button>
 </div>
 
@@ -170,7 +169,11 @@ function lireVolcans(){
 
   let W=0,H=0,S=0,dpr=1, tex=null, lut=null, buf,bufCtx,img;
   let masque, masqueCtx, couche, coucheCtx;
-  let rot = -0.35, vue = 0, tourne = false, vSeismes = true, vVolcans = true, tout = false;
+  let rot = -0.35, vue = 0, tourne = false, vSeismes = true, vVolcans = true;
+  /* Sans souris, `pointermove` ne se declenche pas tant qu'on ne touche pas
+     l'ecran, et le glissement sert deja a faire tourner la Terre : la trainee
+     qui revele n'a aucun sens au doigt. Au tactile, tout est montre d'emblee. */
+  const tactile = matchMedia('(hover: none)').matches;
   let dernier = 0, souris = null, oisif = 0;
 
   /* ---- couleur d'un foyer selon sa profondeur (echelle Tectoglob) ---- */
@@ -400,7 +403,7 @@ function lireVolcans(){
 
     // donnees, revelees par le pinceau
     dessinerDonnees(cx,cy,R);
-    if(tout){
+    if(tactile){
       ctx.drawImage(couche,0,0);
     } else {
       majMasque();
@@ -445,7 +448,6 @@ function lireVolcans(){
   bascule('b-seismes', ()=>vSeismes, v=>vSeismes=v);
   bascule('b-volcans', ()=>vVolcans, v=>vVolcans=v);
   bascule('b-rotation', ()=>tourne,  v=>tourne=v);
-  bascule('b-tout',     ()=>tout,    v=>tout=v);
 
   /* Le bouton porte le nom du fond vers lequel il fait basculer. */
   const bFond = document.getElementById('b-fond');
