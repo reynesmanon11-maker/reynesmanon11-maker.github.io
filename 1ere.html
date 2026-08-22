@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Seconde — SVT · Mme Reynes</title>
-<meta name="description" content="Programme de SVT en classe de Seconde : cours, TP, fiches de révision et exercices, thème par thème." />
+<title>Première — Enseignement scientifique · Mme Reynes</title>
+<meta name="description" content="Enseignement scientifique en Première : les cinq thèmes du programme, cours, activités et ressources." />
 <meta name="theme-color" content="#0a0a0a" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -475,7 +475,8 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <ul>
         <li><a href="index.html"><span>Accueil</span></a></li>
         <li><a href="index.html#works"><span>Chapitres</span></a></li>
-        <li><button aria-current="page"><span>Seconde</span></button></li>
+        <li><a href="2nde.html"><span>Seconde</span></a></li>
+        <li><button aria-current="page"><span>Première</span></button></li>
         <li><a href="index.html#about"><span>La classe</span></a></li>
         <li><button data-modal><span>Contact</span></button></li>
       </ul>
@@ -496,12 +497,12 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 <main id="main">
 <section class="lvl-head">
-  <div class="wm">2<sup style="font-size:.45em">DE</sup></div>
+  <div class="wm">1<sup style="font-size:.45em">RE</sup></div>
   <div class="shell in2">
-    <span class="eyebrow">Classe de Seconde générale</span>
-    <h1>Seconde</h1>
-    <p class="sub">Le programme en trois thèmes. Pour chaque chapitre : le cours, les activités
-      et travaux pratiques, la fiche de révision et de quoi s'entraîner.</p>
+    <span class="eyebrow">Première — Enseignement scientifique</span>
+    <h1>Première</h1>
+    <p class="sub">Les cinq thèmes du programme d'enseignement scientifique. Les documents
+      arrivent au fil de l'année : cours, activités, fiches de révision et entraînement.</p>
     <div class="legend">
       <span><b>Cours</b> — la trace écrite</span>
       <span><b>TP</b> — l'activité pratique</span>
@@ -621,137 +622,49 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
    ========================================================================= */
 const CHAPITRES = [
   {
-    num: 'Méthodes',
-    titre: 'Fiches méthode et documents généraux',
+    num: 'Thème 1',
+    titre: 'Une longue histoire de la matière',
     docs: [
-      { l:'Fiche sondage format de cours' },
-      { l:'Aide personnalisée mémorisation', h:'https://view.genially.com/6971363ccc025c49319751bf' },
-      { l:'Fiche méthode dessin observation' },
-      { l:'Présentation de l\'année' },
-      { l:'FICHE METHODE QUADRAT' },
+      { l:'Un niveau d\'organisation : les éléments chimiques' },
+      { l:'Des édifices ordonnés : les cristaux' },
+      { l:'Une structure complexe : la cellule vivante' },
     ]
   },
   {
-    num: 'Chapitre 1',
-    titre: 'Comment sont organisés les êtres vivants ?',
+    num: 'Thème 2',
+    titre: 'Le Soleil, notre source d\'énergie',
     docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pvtn0kh7n25' },
-      { l:'Bilan cours activité 1', h:'cours/2nde/chapitre-1/c1-act1-niveaux-organisation.pdf' },
-      { l:'ACTIVITE 1: Les niveaux d\'organisation du vivant' },
-      { l:'Document support activité 1' },
-      { l:'Bilan cours activité 2' },
-      { l:'ACTIVITE 2: La spécialisation des cellules chez les organismes pluricellulaires' },
-      { l:'Bilan cours activité 3' },
-      { l:'ACTIVITE 3: A la découverte de l\'origine de cette spécialisation' },
-      { l:'Bilan cours activité 4' },
-      { l:'ACTIVITE 4: L\'ADN une molécule porteuse d\'information', h:'cours/2nde/chapitre-1/c1-act4-adn.pdf' },
-      { l:'Document aide TP 4' },
-      { l:'Bilan cours activité 5' },
-      { l:'ACTIVITE 5: A la recherche du métabolisme des levures' },
-      { l:'Document réponse TP5', h:'cours/2nde/chapitre-1/c1-act5-doc-reponse-levures.pdf' },
-      { l:'COURBES EXAO' },
-      { l:'BILAN COURS activité 6' },
-      { l:'ACTIVITE 6: Pouvons nous dormir avec une plante ?' },
-      { l:'Fiche réponse TP6' },
-      { l:'Correction TP EXAO plante' },
-      { l:'Devoir surveillé n°1' },
-      { l:'Correction du devoir n°1' },
+      { l:'Le rayonnement solaire' },
+      { l:'Le bilan radiatif terrestre' },
+      { l:'Une conversion biologique de l\'énergie solaire : la photosynthèse' },
     ]
   },
   {
-    num: 'Chapitre 2',
-    titre: 'La biodiversité, témoin de l\'histoire du vivant',
+    num: 'Thème 3',
+    titre: 'La Terre, un astre singulier',
     docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pco9tk7wt25' },
-      { l:'Organisation du chapitre' },
-      { l:'ACTIVITE 1: Etude de la biodiversité du lycée Ernest Ferroul' },
-      { l:'Fiche aide compte-rendu activité 1' },
-      { l:'Grille d\'évaluation compte-rendu biodiversité' },
-      { l:'Bilan cours activité 1' },
-      { l:'ACTIVITE 2: 6ème crise biologique ?' },
-      { l:'Lien escape game', h:'https://view.genially.com/65552c2b114d1c0011e4edb6' },
-      { l:'ACTIVITE 3: Les forces à l\'origine de l\'évolution de la biodiversité' },
-      { l:'Document aide TP 3' },
-      { l:'Bilan cours activité 3' },
-      { l:'Devoir surveillé n°2' },
-      { l:'Grille devoir n°2' },
+      { l:'La forme de la Terre' },
+      { l:'L\'histoire de l\'âge de la Terre' },
+      { l:'La Terre dans l\'Univers' },
     ]
   },
   {
-    num: 'Chapitre 3',
-    titre: 'Devenir homme ou femme : communication, reproduction et maîtrise de sa sexualité',
+    num: 'Thème 4',
+    titre: 'Son et musique, porteurs d\'information',
     docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pu9k1s0g525' },
-      { l:'ACTIVITE 1: La communication chez les grenouilles' },
-      { l:'Document aide TP 1' },
-      { l:'Document secours activité 1' },
-      { l:'Bilan + correction activité 1' },
-      { l:'Activité 2: Cours chapitre reproduction diaporama' },
-      { l:'Schéma bilan cours' },
-      { l:'Schéma bilan complet' },
-      { l:'ACTIVITE 3: PMA', h:'https://view.genially.com/6943a244813341a2a79ebaa2/interactive-content-chapitre3activite-3pma' },
-      { l:'Activité 3: Tableau PMA' },
-      { l:'ACTIVITE 3: PMA (correction)' },
-      { l:'ACTIVITE 4: Les méthodes de contraception', h:'https://view.genially.com/6950034f2ddc862aca8ac52e' },
-      { l:'Activité 4: Tableau à compléter' },
-      { l:'Activité 4: Tableau corrigé' },
-      { l:'Devoir surveillé n°3' },
-      { l:'Correction du devoir n°3' },
-      { l:'ACTIVITE 6: Identité et orientation sexuelle', h:'https://view.genially.com/6967f912882e1acdabd1cd8c' },
-      { l:'Bilan cours activité 6' },
+      { l:'Le son, phénomène vibratoire' },
+      { l:'Musique et nombres' },
+      { l:'Le son, une information à coder' },
+      { l:'Entendre la musique' },
     ]
   },
   {
-    num: 'Chapitre 4',
-    titre: 'Microorganismes et santé : bon ou mauvais ?',
+    num: 'Thème 5',
+    titre: 'Projet expérimental et numérique',
     docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=p88pu560a26' },
-      { l:'Organisation du chapitre' },
-      { l:'Bilan cours chapitre 4' },
-      { l:'ACTIVITE 1: diversité des agents pathogènes' },
-      { l:'Mise en commun des données activité 1 2nde4', h:'https://digicalc.app/698457e7ec467' },
-      { l:'Mise en commun des données activité 1 2nde5', h:'https://digicalc.app/6991a9571653f' },
-      { l:'Mise en commun des données activité 1 2nde6', h:'https://digicalc.app/6989933cb17bb' },
-      { l:'Format affiche' },
-      { l:'Outil pour la création d\'affiche', h:'https://ladigitale.dev/digidesign/editeur.html' },
-      { l:'ACTIVITE 2: Le paludisme: maladie à transmission vectorielle' },
-      { l:'ACTIVITE 3: Le microbiote intestinal est-il notre allié ?' },
-      { l:'DIAPORAMA', h:'https://view.genially.com/69b872bc82ba81ab2090f236' },
-      { l:'ACTIVITE 4: Les gestes d\'hygiènes sont-ils vraiment efficaces ?' },
-      { l:'Documents secours activité 4', h:'https://drive.google.com/drive/folders/1gUcx26Hb32qdJ6fnN4nDjH16x5OQMsF5?usp=drive_link' },
-      { l:'Devoir surveillé n°4' },
-      { l:'Correction du devoir n°4' },
-    ]
-  },
-  {
-    num: 'Chapitre 5',
-    titre: 'Quelle est l\'origine de nos paysages et comment se transforment-ils ?',
-    docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=phbfedhvc26' },
-      { l:'Cours chapitre 5', h:'https://view.genially.com/69cec60e8cd36e7ab9589d3f' },
-      { l:'ACTIVITE : Mission ingénieur géologue', h:'https://view.genially.com/67f370d915eb1912c18ace69' },
-      { l:'Grille d\'évaluation compte-rendu ingénieur lycée' },
-    ]
-  },
-  {
-    num: 'Chapitre 6',
-    titre: 'Nourrir l\'humanité aujourd\'hui et demain : un défi réalisable ?',
-    docs: [
-      { l:'Tester ses connaissances', h:'https://learningapps.org/watch?v=pbvc4dzit26' },
-      { l:'Sortie Vigne' },
-      { l:'Sortie Vigne correction' },
-    ]
-  },
-  {
-    num: 'Culture',
-    titre: 'Articles et vidéos scientifiques',
-    docs: [
-      { l:'Les super-pouvoirs de notre microbiote', h:'https://www.youtube.com/watch?v=TqyznGUuefo' },
-      { l:'Les futures épidémies que nous vivrons', h:'https://www.youtube.com/watch?v=VJNt1AQ8p2A' },
-      { l:'Dirty biology', h:'https://www.youtube.com/watch?v=WJ0f5wXETyg' },
-      { l:'Darwin chez les pokémons', h:'https://youtu.be/OcKfWW7sAMk?si=EwL_6OZZSdLdxLbt' },
-      { l:'Les atouts de l’ADN synthétique pour stocker les données numériques', h:'https://www.lemonde.fr/sciences/article/2024/09/03/les-atouts-de-l-adn-synthetique-pour-stocker-les-donnees-numeriques_6302640_1650684.html' },
-      { l:'Suivre l\'actualité scientifique', h:'https://youtube.com/@leblob_fr?si=1Vmq4BDFLd873EK5' },
+      { l:'Choix du sujet et problématique' },
+      { l:'Mesures et acquisition de données' },
+      { l:'Traitement numérique et restitution' },
     ]
   },
 ];
