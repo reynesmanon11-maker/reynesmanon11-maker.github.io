@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plan d'attaque — mini-formation Claude Code (1 h)</title>
+<meta name="description" content="Conducteur minuté d'une formation d'une heure à Claude Code, construite sur un parcours réel de quatre mois.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:oklch(0.13 0.004 240);
+  --matte:oklch(0.16 0.004 240);
+  --card:oklch(0.185 0.004 240);
+  --lime:oklch(0.92 0.23 124);
+  --amber:#f0a93b;
+  --txt:#fff;
+  --txt-soft:rgba(255,255,255,.68);
+  --txt-dim:rgba(255,255,255,.45);
+  --line:rgba(255,255,255,.10);
+  --display:'Helvetica Neue', Helvetica, Arial, system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0; background:var(--bg); color:var(--txt); font-family:'Poppins',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; line-height:1.6}
+a{color:var(--lime)}
+.wrap{max-width:900px; margin:0 auto; padding:0 24px}
+
+.hero{padding:60px 0 40px; border-bottom:1px solid var(--line);
+  background:radial-gradient(800px 340px at 12% -10%, rgba(163,230,53,.13), transparent 60%), var(--matte)}
+.kicker{display:inline-block; font-size:12px; letter-spacing:.16em; text-transform:uppercase; color:var(--lime);
+  border:1px solid rgba(163,230,53,.35); border-radius:999px; padding:6px 14px}
+h1{font-family:var(--display); font-size:clamp(28px,4.6vw,44px); line-height:1.08; letter-spacing:-.02em; margin:18px 0 12px}
+.lead{color:var(--txt-soft); max-width:68ch}
+.meta{display:flex; flex-wrap:wrap; gap:9px; margin-top:22px}
+.meta span{font-size:13px; color:var(--txt-soft); background:rgba(255,255,255,.05); border:1px solid var(--line);
+  border-radius:999px; padding:6px 13px}
+
+main{padding:38px 0 80px}
+h2{font-family:var(--display); font-size:clamp(20px,2.6vw,26px); margin:52px 0 4px; letter-spacing:-.01em}
+h2:first-child{margin-top:0}
+.sub{color:var(--txt-dim); font-size:14px; margin:0 0 18px}
+h3{font-size:16px; margin:24px 0 8px}
+p,li{color:var(--txt-soft)}
+p{max-width:74ch}
+ul,ol{padding-left:20px; max-width:74ch}
+li{margin:5px 0}
+strong{color:#fff; font-weight:600}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:.88em;
+  background:rgba(255,255,255,.08); border:1px solid var(--line); border-radius:6px; padding:2px 6px; color:#fff}
+
+/* --- blocs horaires --- */
+.slot{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:0; margin:16px 0; overflow:hidden}
+.slot > .head{display:flex; gap:16px; align-items:baseline; flex-wrap:wrap;
+  padding:18px 22px 14px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.02)}
+.time{font-family:var(--display); font-weight:700; color:var(--lime); font-size:15px; letter-spacing:.02em; flex:none}
+.slot h3{margin:0; font-size:17px; color:#fff; flex:1 1 260px}
+.dur{font-size:12px; color:var(--txt-dim); border:1px solid var(--line); border-radius:999px; padding:3px 10px; flex:none}
+.body{padding:16px 22px 20px}
+.body p:first-child{margin-top:0}
+.lbl{display:block; font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--txt-dim); margin:16px 0 5px}
+.lbl:first-child{margin-top:0}
+.say{border-left:3px solid var(--lime); padding:9px 0 9px 15px; margin:6px 0; color:#fff; font-style:italic}
+.verdict{border-left:3px solid var(--amber); background:rgba(240,169,59,.07); border-radius:0 10px 10px 0;
+  padding:12px 16px; margin:14px 0 0}
+.verdict b{color:var(--amber); font-size:12px; letter-spacing:.1em; text-transform:uppercase; display:block; margin-bottom:4px}
+.verdict p{margin:0; color:var(--txt-soft)}
+
+table{width:100%; border-collapse:collapse; margin:16px 0; font-size:14px}
+th,td{text-align:left; padding:10px 11px; border-bottom:1px solid var(--line); color:var(--txt-soft); vertical-align:top}
+th{color:#fff; font-weight:600; font-size:12px; letter-spacing:.05em; text-transform:uppercase}
+.ok{color:var(--lime); font-weight:600}
+.ko{color:var(--amber); font-weight:600}
+
+.card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:18px 22px; margin:16px 0}
+.card h4{margin:0 0 8px; font-size:15px; color:#fff}
+.grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.check{list-style:none; padding:0}
+.check li{padding-left:26px; position:relative}
+.check li::before{content:"☐"; position:absolute; left:0; color:var(--lime); font-size:15px}
+
+footer{border-top:1px solid var(--line); padding:28px 0 60px; color:var(--txt-dim); font-size:13.5px}
+
+@media print{
+  body{background:#fff; color:#111}
+  .hero{background:none; border-color:#ddd}
+  .kicker,.meta span{color:#333; border-color:#bbb}
+  p,li,td,.verdict p{color:#222}
+  h1,h2,h3,strong,th,.say{color:#000}
+  .time{color:#000}
+  .slot,.card{border-color:#bbb; break-inside:avoid; background:none}
+  .slot > .head{background:none; border-color:#ddd}
+  .verdict{background:#f6f6f6; border-left-color:#111}
+  .verdict b{color:#111}
+  .say{border-left-color:#111}
+  code{background:#f0f0f0; border-color:#ddd; color:#000}
+  a{color:#000}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <span class="kicker">Conducteur · 60 minutes</span>
+    <h1>Quatre mois en une heure</h1>
+    <p class="lead">Une formation racontée comme un parcours, pas comme un mode d'emploi : chaque étape correspond
+      à une découverte réelle, dans l'ordre où elle a eu lieu, et chacune s'accompagne d'un verdict honnête —
+      était-ce la bonne façon de faire ?</p>
+    <div class="meta">
+      <span>1 formatrice, 1 personne formée</span>
+      <span>Un ordinateur, un vidéoprojecteur</span>
+      <span>Zéro diaporama</span>
+      <span>Trois démonstrations en direct</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap"><main>
+
+  <h2>Avant de commencer</h2>
+  <p class="sub">Dix minutes de préparation la veille, pas le jour même.</p>
+  <div class="grid">
+    <div class="card">
+      <h4>Onglets à ouvrir d'avance</h4>
+      <ul class="check">
+        <li>Le site en ligne</li>
+        <li>L'outil de correction, clé API déjà collée</li>
+        <li>Le dépôt sur GitHub, page « commits »</li>
+        <li>La pull request n°1, déjà fusionnée</li>
+        <li>Une session Claude Code vierge</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>À avoir sous la main</h4>
+      <ul class="check">
+        <li>Une copie d'élève scannée, anonymisée</li>
+        <li>Un besoin de cours réel de la personne formée <strong>(demandé à l'avance)</strong></li>
+        <li>Ce conducteur imprimé</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Si une démo plante</h4>
+      <p>Ne pas déboguer en direct. Basculer sur l'historique GitHub et commenter un commit déjà fait.
+        Le message passe aussi bien, et le stress ne passe pas au public.</p>
+    </div>
+  </div>
+
+  <h2>Le déroulé</h2>
+  <p class="sub">Sept séquences. Les minutes sont indicatives, l'ordre ne l'est pas.</p>
+
+  <div class="slot">
+    <div class="head"><span class="time">00 – 05</span><h3>Le résultat, avant toute explication</h3><span class="dur">5 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>Le site en ligne, puis l'outil de correction : coller une vraie copie, lancer, obtenir la note,
+        le détail du barème et la remédiation. On ne dit pas encore un mot de technique.</p>
+      <span class="lbl">On dit</span>
+      <p class="say">« Voilà où j'en suis après quatre mois. Je ne savais pas coder avant, je ne sais toujours pas.
+        Je vais vous montrer comment j'y suis arrivée — et surtout les trois ou quatre erreurs que j'ai faites,
+        pour que vous les évitiez. »</p>
+      <span class="lbl">Pourquoi commencer ainsi</span>
+      <p>La personne formée doit voir ce qu'elle a à gagner avant qu'on lui parle de dépôts et de branches.
+        L'aveu des erreurs, dès la première minute, installe le bon climat : ce n'est pas une démonstration de force.</p>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">05 – 13</span><h3>Époque 1 · « Je fabriquais dans le chat, je téléversais à la main »</h3><span class="dur">8 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>Le tout premier commit du dépôt : <code>carte_geol_aude_v5.html</code>. Puis, deux jours plus tard,
+        <code>defi3_photo_ferroul.html</code> et <code>defi3_photo_ferroul_finalV2.html</code> —
+        deux fichiers de 400 lignes presque identiques. Puis <code>rudy_ricciotti_chatbot.html</code>
+        suivi de <code>rudy_boost.html</code>. Tous arrivés par « Add files via upload ».</p>
+      <span class="lbl">Ce qui se passait vraiment</span>
+      <p>Le chat classique fabriquait la page, on la téléchargeait, on la déposait dans GitHub par le bouton
+        de l'interface. GitHub servait uniquement d'hébergeur.</p>
+      <span class="lbl">On fait remarquer</span>
+      <p>Le premier fichier du dépôt s'appelle <strong>v5</strong>. Les versions 1 à 4 ont existé quelque part
+        sur un ordinateur, et personne ne peut plus les retrouver. Et <code>finalV2</code> : tout le monde reconnaît
+        ce nom de fichier, et tout le monde sait qu'un mois plus tard on ne sait plus lequel est le bon.</p>
+      <div class="verdict"><b>Verdict honnête</b>
+        <p><span class="ok">À garder :</span> une activité = un fichier HTML autonome, publié à une adresse.
+          Ce choix-là était bon dès le premier jour, il tient toujours.<br>
+          <span class="ko">À abandonner :</span> la version dans le nom du fichier, et la copie du fichier pour faire
+          une variante. C'est le symptôme d'un travail sans historique — exactement ce que la suite corrige.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">13 – 26</span><h3>Époque 2 · Claude Code prend la main — la séquence centrale</h3><span class="dur">13 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>L'historique du 4 au 18 août, lu à voix haute : <em>« v3 : grilles à niveaux » · « v5 : notation reproductible » ·
+        « v7 : calibrage anti-surnotation » · « v9 : barèmes ultra-détaillés, cache API »</em>.
+        Neuf versions, et pas un seul <code>v9</code> dans un nom de fichier : le fichier s'appelle toujours
+        <code>correction_copies.html</code>.</p>
+      <span class="lbl">Le récit à faire, version par version</span>
+      <p>Chaque version répond à un agacement vécu en corrigeant pour de vrai : la v5 parce que la même copie
+        recevait deux notes différentes, la v7 parce que l'IA surnotait systématiquement, la v8 parce qu'on
+        perdait son travail en changeant d'ordinateur.</p>
+      <span class="lbl">Démonstration en direct <strong>(le cœur de l'heure)</strong></span>
+      <ol>
+        <li>Demander une modification simple et visible sur une page existante.</li>
+        <li>Montrer Claude annoncer les fichiers qu'il lit et ce qu'il change.</li>
+        <li>Refuser le premier jet, demander un ajustement — <strong>montrer qu'on n'accepte pas tout</strong>.</li>
+        <li>Demander l'enregistrement, lire le message de commit à voix haute.</li>
+      </ol>
+      <span class="lbl">On dit</span>
+      <p class="say">« La v7 était moins bonne que la v6 sur un point. Je n'ai pas eu à réparer :
+        j'ai demandé de revenir en arrière, et c'était fait. C'est ça qui m'a décoincée — à partir du moment
+        où rien n'est définitif, on ose essayer. »</p>
+      <div class="verdict"><b>Verdict honnête</b>
+        <p><span class="ok">Excellent :</span> sortir une v1 imparfaite et la faire évoluer à l'usage,
+          plutôt que d'écrire un cahier des charges parfait au départ. Les neuf versions ne sont pas un échec,
+          c'est la méthode.<br>
+          <span class="ko">Ce qui manque encore :</span> aucun fichier <code>CLAUDE.md</code> à la racine.
+          Résultat : les mêmes consignes de charte graphique sont réexpliquées à chaque session.
+          <code>/init</code> règle cela en une fois — à faire ensemble si le temps le permet.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">26 – 34</span><h3>Époque 3 · La branche et la relecture avant publication</h3><span class="dur">8 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>La pull request n°1 sur GitHub, avec son diff : l'activité sur le cycle des roches, préparée à part,
+        relue, puis fusionnée. Insister sur le fait que pendant tout ce temps, <strong>le site vu par les élèves
+        n'avait pas changé d'un pixel</strong>.</p>
+      <span class="lbl">Les trois mots, dans cet ordre</span>
+      <table>
+        <tr><th>Mot</th><th>Traduction en français courant</th></tr>
+        <tr><td><strong>commit</strong></td><td>Un point de sauvegarde daté et commenté</td></tr>
+        <tr><td><strong>branche</strong></td><td>Un brouillon isolé, invisible des élèves</td></tr>
+        <tr><td><strong>pull request</strong></td><td>« Voilà ce que ça change, est-ce qu'on publie ? »</td></tr>
+      </table>
+      <span class="lbl">On insiste</span>
+      <p>La personne formée ne tapera <strong>jamais</strong> une commande Git. Elle dira
+        « enregistre et pousse », « montre-moi ce que tu as changé », « reviens en arrière ».</p>
+      <div class="verdict"><b>Verdict honnête</b>
+        <p><span class="ok">Indispensable :</span> dès qu'on modifie une page déjà donnée aux élèves,
+          on passe par une branche. Le coût est nul, le filet est réel.<br>
+          <span class="ko">Inutile de dramatiser :</span> pour créer une page qui n'existe pas encore,
+          travailler directement est très bien. Ne pas transformer la relecture en formalité administrative.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">34 – 42</span><h3>Les skills · apprendre sa méthode à Claude</h3><span class="dur">8 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>Le dossier <code>.claude/skills/</code> et ses sept skills de design, puis on ouvre un
+        <code>SKILL.md</code> : c'est du texte, en français, pas du code.</p>
+      <span class="lbl">L'erreur à raconter</span>
+      <p>Un commit du dépôt s'appelle <code>Fix skill folder structure</code>. Les skills avaient d'abord été
+        déposées à la racine : elles n'étaient donc <strong>jamais chargées</strong>, sans le moindre message d'erreur.
+        Le bon emplacement est <code>.claude/skills/&lt;nom&gt;/SKILL.md</code>.</p>
+      <span class="lbl">Ce qu'on propose de faire ensemble</span>
+      <p>Écrire une skill « fiche de révision » qui fixe une fois pour toutes la structure attendue —
+        objectifs, notions clés, schéma, cinq questions de vérification — le niveau de langue et la mise en page.
+        Ensuite, chaque nouvelle fiche la respecte sans qu'on ait à le redemander.</p>
+      <div class="verdict"><b>Verdict honnête</b>
+        <p><span class="ok">Bon réflexe :</span> installer des skills de design pour éviter les pages qui
+          ressemblent à du web des années 2000.<br>
+          <span class="ko">Sous-exploité :</span> les sept skills en place viennent toutes de l'extérieur.
+          <strong>Aucune n'est faite maison</strong>, alors que c'est là que se trouve le vrai gain pour un enseignant :
+          formaliser <em>sa</em> méthode, pas emprunter celle d'un autre.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">42 – 50</span><h3>Clés API et sécurité · le seul passage où l'on n'improvise pas</h3><span class="dur">8 min</span></div>
+    <div class="body">
+      <span class="lbl">On montre</span>
+      <p>Le trio de fichiers : <code>.env.example</code> (le modèle, sans valeur, publié),
+        <code>.env</code> (la vraie clé, jamais publiée), <code>.gitignore</code> (la ligne qui interdit
+        physiquement de publier le précédent). Puis l'ouverture de l'outil de correction :
+        « Collez votre clé API Anthropic pour démarrer ».</p>
+      <span class="lbl">On dit</span>
+      <p class="say">« Une clé API est un mot de passe qui facture. Publiée sur GitHub, elle est repérée par des robots
+        en quelques minutes. C'est pour ça qu'aucune de mes pages n'en contient : c'est celui qui l'utilise qui colle
+        la sienne, et elle ne quitte pas son navigateur. »</p>
+      <span class="lbl">Deux réflexes à transmettre</span>
+      <ul>
+        <li><code>/security-review</code> avant de publier une page qui manipule des données d'élèves.</li>
+        <li>Si une clé a fuité : la <strong>révoquer</strong> chez le fournisseur. La supprimer du code ne suffit pas,
+          elle reste dans l'historique.</li>
+      </ul>
+      <div class="verdict"><b>Verdict honnête</b>
+        <p><span class="ok">Très bien vu :</span> la clé saisie par l'utilisateur. C'est ce qui permet de publier
+          l'outil sans risque et de le partager à des collègues.<br>
+          <span class="ko">Limite à assumer :</span> chaque collègue doit donc créer son propre compte et payer
+          sa consommation. À dire franchement plutôt que de le laisser découvrir.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="slot">
+    <div class="head"><span class="time">50 – 60</span><h3>À vous · le premier projet</h3><span class="dur">10 min</span></div>
+    <div class="body">
+      <span class="lbl">On fait faire</span>
+      <p>La personne formée dicte elle-même sa demande, sur un besoin de cours <strong>réel</strong>, préparé à l'avance.
+        On la laisse écrire. On corrige seulement si la demande est trop vague — en montrant comment on la précise :
+        quoi, pour qui, où, avec quelles contraintes.</p>
+      <span class="lbl">On termine par le test à trois questions</span>
+      <ol>
+        <li>Est-ce que ça doit exister sous forme de fichier durable ?</li>
+        <li>Est-ce que j'y reviendrai pour le modifier ?</li>
+        <li>Est-ce que ça doit être en ligne, à mon adresse ?</li>
+      </ol>
+      <p>Un seul « oui » → Claude Code. Trois « non » → le chat classique suffit, et c'est plus rapide.</p>
+      <span class="lbl">On ne termine pas par</span>
+      <p>Un récapitulatif de tout ce qui a été dit. La personne repart avec <strong>une page qu'elle utilisera
+        en classe la semaine prochaine</strong> — c'est le seul résumé qui tienne.</p>
+    </div>
+  </div>
+
+  <h2>Le tableau du « est-ce bien de faire comme ça ? »</h2>
+  <p class="sub">À projeter en fin de séance, ou à donner en sortie. C'est la partie la plus utile à transmettre.</p>
+  <table>
+    <tr><th>Pratique</th><th>Pourquoi je l'ai adoptée</th><th>Verdict</th></tr>
+    <tr><td>Une activité = un fichier HTML autonome</td><td>Un lien à coller dans l'ENT, qui marche sur le téléphone des élèves</td><td class="ok">À garder — aucune dépendance, ça durera</td></tr>
+    <tr><td>Publier via GitHub Pages</td><td>Gratuit, une vraie adresse, aucune configuration</td><td class="ok">À garder</td></tr>
+    <tr><td>Neuf versions au lieu d'un cahier des charges</td><td>Chaque agacement d'usage devenait la demande suivante</td><td class="ok">À garder — c'est la méthode, pas un rattrapage</td></tr>
+    <tr><td>Clé API saisie par l'utilisateur</td><td>Publier l'outil sans exposer de secret</td><td class="ok">À garder — en assumant que chacun paie sa consommation</td></tr>
+    <tr><td>Choisir le modèle selon la tâche</td><td>Haiku pour un chatbot, Opus pour une copie délicate</td><td class="ok">À garder — économie réelle, à généraliser</td></tr>
+    <tr><td>Numéroter les versions dans le nom du fichier</td><td>Époque où il n'y avait pas d'historique</td><td class="ko">À abandonner — c'est le rôle des commits</td></tr>
+    <tr><td>Dupliquer un fichier pour faire une variante</td><td>Peur de casser l'original</td><td class="ko">À abandonner — une branche fait ça mieux</td></tr>
+    <tr><td>Téléverser des fichiers à la main dans GitHub</td><td>Réflexe de la première époque</td><td class="ko">Acceptable pour une image, risqué pour du code : la session en cours ne voit pas l'ajout et peut l'écraser</td></tr>
+    <tr><td>Garder des fichiers convertis illisibles<br><span style="color:var(--txt-dim)">(845 Ko sur une seule ligne)</span></td><td>Exportés depuis un autre outil, ils fonctionnaient</td><td class="ko">À ne pas reproduire — demander une page régénérée proprement</td></tr>
+    <tr><td>Pas de <code>CLAUDE.md</code></td><td>On ne savait pas que ça existait</td><td class="ko">Manque — <code>/init</code>, une fois, et les consignes cessent de se répéter</td></tr>
+    <tr><td>Sept skills installées, zéro écrite</td><td>Objectif design au départ</td><td class="ko">Occasion manquée — la skill maison est le vrai levier</td></tr>
+  </table>
+
+  <h2>Les trois questions qui vont tomber</h2>
+  <div class="grid">
+    <div class="card">
+      <h4>« Pourquoi un compte GitHub ? »</h4>
+      <p>Parce que la version web tourne sur une machine louée qui est détruite après la session : il faut bien
+        que le projet vienne de quelque part et retourne quelque part. Et parce que le site <em>est</em> hébergé
+        par GitHub — ce compte serait nécessaire même sans Claude. L'app installée sur ordinateur, elle, n'en
+        demande aucun.</p>
+    </div>
+    <div class="card">
+      <h4>« Le chat garde mes conversations, ça ne suffit pas ? »</h4>
+      <p>La conversation garde <strong>la discussion</strong>, pas <strong>le travail</strong>. Elle ne donne pas
+        d'adresse web à une page, ne dit pas laquelle des neuf versions est l'actuelle, et ne tient pas un dossier
+        où les fichiers se renvoient les uns aux autres.</p>
+    </div>
+    <div class="card">
+      <h4>« Et si je casse tout ? »</h4>
+      <p>C'est précisément ce que l'historique empêche. Montrer la liste des commits : chacun est un point de retour.
+        La bonne réponse est une démonstration, pas une phrase rassurante.</p>
+    </div>
+  </div>
+
+  <h2>Si vous n'avez que 30 minutes</h2>
+  <p>Supprimer, dans cet ordre : les skills (34–42), la sécurité (42–50), l'époque 1 (05–13).
+    Garder <strong>la démonstration en direct</strong>, <strong>la branche et la relecture</strong>,
+    et <strong>les dix dernières minutes où la personne formée fait elle-même</strong>.
+    Une formation où l'on n'a rien fabriqué soi-même ne laisse aucune trace.</p>
+
+</main></div>
+
+<footer>
+  <div class="wrap">
+    Conducteur établi à partir de l'historique réel du dépôt <code>reynesmanon11-maker.github.io</code> :
+    23 commits, d'avril à août, y compris les tâtonnements.
+  </div>
+</footer>
+
+</body>
+</html>
