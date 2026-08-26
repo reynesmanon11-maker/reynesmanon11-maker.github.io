@@ -454,7 +454,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 #modal .success{ display:none; flex-direction:column; align-items:center; text-align:center; padding-block:2rem; gap:1rem }
 #modal.done .success{ display:flex } #modal.done .mhead, #modal.done form{ display:none }
 #modal .sbadge{ width:3.5rem; height:3.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#cf8047; font-size:1.5rem }
-#modal .stext{ max-width:32ch; font-size:.875rem; color:rgba(17,17,17,.6) }
+#modal .stext{ max-width:42ch; font-size:.875rem; line-height:1.55; color:rgba(17,17,17,.6) }
 @media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
 </style>
 </head>
@@ -503,7 +503,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
           <ul class="submenu">
             <li><a href="2nde.html">Seconde</a></li>
             <li><a href="1ere.html">Première</a></li>
-            <li><span class="sub-soon">Terminale</span></li>
+            <li><a href="terminale.html">Terminale</a></li>
           </ul>
         </li>
         <li class="has-sub">
@@ -699,7 +699,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
         <ul class="clist">
           <li><a class="alink" href="#services"><span>Seconde</span></a></li>
           <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
-          <li><a class="alink" href="#services"><span>Terminale</span></a></li>
+          <li><a class="alink" href="terminale.html"><span>Terminale</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
         </ul>
       </div>
@@ -766,8 +766,10 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
     <div class="success">
       <div class="sbadge"><svg class="ic"><use href="#i-logo"/></svg></div>
-      <h2>Message noté</h2>
-      <p class="stext">Ce formulaire est une démonstration : il n'envoie rien pour l'instant. Écrivez-moi directement par mail.</p>
+      <h2>Votre message est prêt</h2>
+      <p class="stext">Votre logiciel de messagerie s'ouvre avec le message déjà rempli.
+        <b>Il ne partira que lorsque vous aurez cliqué sur « Envoyer » dans votre messagerie.</b>
+        Si rien ne s'est ouvert, écrivez directement à <b id="madresse"></b>.</p>
       <button class="pill dark noarrow" id="successclose"><span>Fermer</span></button>
     </div>
   </div>
@@ -1392,9 +1394,9 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 /* ============ services ============ */
 (function(){
   const rows = [
-    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'#services' },
+    { n:'01', t:'Seconde',   d:'Trois thèmes, neuf chapitres : cours, TP, fiches et exercices.', href:'2nde.html' },
     { n:'02', t:'Première',  d:'Enseignement scientifique : les cinq thèmes du programme.',      href:'1ere.html' },
-    { n:'03', t:'Terminale', d:'À venir — déposez la page et remplacez le lien.',                href:'#services' },
+    { n:'03', t:'Terminale', d:'Enseignement scientifique : climat, énergies, histoire du vivant.', href:'terminale.html' },
     { n:'04', t:'Méthodes',  d:'Analyser un document, rédiger, réviser efficacement.',           href:'#services' },
   ];
   const ul = document.getElementById('services-list');
@@ -1532,11 +1534,26 @@ document.getElementById('closemodal').addEventListener('click', closeModal);
 document.getElementById('successclose').addEventListener('click', closeModal);
 modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 modal.querySelector('.panel').addEventListener('click', (e) => e.stopPropagation());
+/* Aucun service externe : on ouvre le logiciel de messagerie avec un message
+   deja redige. L'adresse est assemblee ici plutot qu'ecrite dans la page, ce
+   qui n'empeche personne d'ecrire mais decourage les aspirateurs d'adresses. */
+const ADRESSE = ['reynesmanon11', 'gmail.com'].join('@');
+document.getElementById('madresse').textContent = ADRESSE;
+
 document.getElementById('reqform').addEventListener('submit', (e) => {
   e.preventDefault();
-  const lbl = document.getElementById('sendlbl');
-  lbl.firstChild.textContent = 'Envoi…';
-  setTimeout(() => modal.classList.add('done'), 600);
+  /* `form.name` designe l'attribut name du formulaire, pas le champ qui porte
+     ce nom : il faut passer par elements.namedItem pour l'atteindre. */
+  const champ = (n) => e.target.elements.namedItem(n).value.trim();
+  const nom = champ('name'), qui = champ('email'), question = champ('project');
+  const objet = 'Question SVT — ' + (nom || 'un élève');
+  const corps = 'Nom : ' + nom + '\nClasse ou adresse : ' + qui
+              + '\n\nQuestion :\n' + question + '\n';
+  document.getElementById('sendlbl').firstChild.textContent = 'Ouverture…';
+  window.location.href = 'mailto:' + ADRESSE
+    + '?subject=' + encodeURIComponent(objet)
+    + '&body=' + encodeURIComponent(corps);
+  setTimeout(() => modal.classList.add('done'), 500);
 });
 
 /* ============ démarrage ============ */

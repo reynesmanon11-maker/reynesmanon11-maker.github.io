@@ -11,8 +11,8 @@ Ce fichier pilote la tâche automatique (toutes les 3 h) : elle propose UNE amé
 
 ## À faire
 - [x] Page 2nde.html : améliorer la mise en forme du texte (titres, tailles de police, espacements, lisibilité) et appliquer une palette PASTEL MULTICOLORE (plusieurs teintes douces : vert, bleu, rose…). Ne pas toucher au contenu pédagogique, seulement la présentation.
-- [ ] Créer une page « Première — Enseignement scientifique » sur le modèle de 2nde.html (même design), avec une structure thèmes/chapitres à compléter, et l'ajouter à la navigation du site.
-- [ ] Créer une page « Terminale — Enseignement scientifique » sur le même modèle, et l'ajouter à la navigation du site.
-- [ ] Rendre le formulaire de contact fonctionnel via un lien « mailto » : à l'envoi, ouvrir le logiciel de messagerie avec un e-mail pré-rempli vers reynesmanon11@gmail.com (objet + corps reprenant les champs). Aucun service externe.
+- [x] Créer une page « Première — Enseignement scientifique » sur le modèle de 2nde.html (même design), avec une structure thèmes/chapitres à compléter, et l'ajouter à la navigation du site.
+- [x] Créer une page « Terminale — Enseignement scientifique » sur le même modèle, et l'ajouter à la navigation du site.
+- [x] Rendre le formulaire de contact fonctionnel via un lien « mailto » : à l'envoi, ouvrir le logiciel de messagerie avec un e-mail pré-rempli vers reynesmanon11@gmail.com (objet + corps reprenant les champs). Aucun service externe.
 
 ## Fait
