@@ -15,4 +15,16 @@ Ce fichier pilote la tâche automatique (toutes les 3 h) : elle propose UNE amé
 - [x] Créer une page « Terminale — Enseignement scientifique » sur le même modèle, et l'ajouter à la navigation du site.
 - [x] Rendre le formulaire de contact fonctionnel via un lien « mailto » : à l'envoi, ouvrir le logiciel de messagerie avec un e-mail pré-rempli vers reynesmanon11@gmail.com (objet + corps reprenant les champs). Aucun service externe.
 
-## Fait
+- [ ] Ajouter un favicon (icône d'onglet) reprenant le logo, sur toutes les pages.
+- [ ] Ajouter un bouton flottant « Haut de page » qui apparaît au défilement, sur les pages longues (2nde, 1ere, terminale).
+- [ ] Ajouter une fine barre de progression de lecture en haut des pages de cours.
+- [ ] Ajouter une image de partage (og:image) pour un bel aperçu quand on envoie le lien du site.
+- [ ] Ajouter un mode sombre / clair avec un petit bouton discret, en conservant la palette terracotta.
+- [ ] Ajouter une barre de recherche pour filtrer en direct les chapitres et ressources d'une page.
+- [ ] Créer une vraie page « Méthodes » (le lien existe déjà mais pointe dans le vide) : analyser un document, rédiger une réponse, réviser efficacement.
+- [ ] Ajouter à la page Seconde une section « À télécharger » listant les PDF déjà présents dans le dossier cours.
+- [ ] Ajouter un mini-quiz d'auto-évaluation (QCM auto-corrigé) en bas de chaque chapitre, piloté par un petit tableau JS.
+- [ ] Ajouter un glossaire / lexique SVT interactif (termes clés dépliables) accessible depuis le menu.
+- [ ] Compléter les chapitres 2 à 6 de Seconde.
+- [ ] Ajouter une feuille de style « impression » propre + un bouton « Imprimer / PDF » sur les pages de cours.
+- [ ] Passe d'accessibilité : vérifier les contrastes, les contours de focus au clavier et les textes alternatifs des images.
