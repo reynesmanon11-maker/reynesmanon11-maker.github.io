@@ -1,6 +1,10 @@
 # TODO — idées pour le site
 
-Ce fichier pilote la tâche automatique (toutes les 3 h) : elle propose UNE amélioration à la fois.
+Ce fichier pilote deux tâches automatiques :
+- **la tâche Cowork** (toutes les 3 h) : elle AJOUTE des idées à la liste et me propose du code à coller ;
+- **la tâche « une idée toutes les 2 h »** : elle PREND la première idée non cochée, la réalise,
+  la vérifie dans un navigateur, la publie sur `main` et coche la case toute seule.
+  Si une vérification échoue, elle ne touche pas à `main` : elle ouvre une pull request.
 
 ## Comment ça marche
 - Une idée par ligne, format :  - [ ] description claire
@@ -14,8 +18,9 @@ Ce fichier pilote la tâche automatique (toutes les 3 h) : elle propose UNE amé
 - [x] Créer une page « Première — Enseignement scientifique » sur le modèle de 2nde.html (même design), avec une structure thèmes/chapitres à compléter, et l'ajouter à la navigation du site.
 - [x] Créer une page « Terminale — Enseignement scientifique » sur le même modèle, et l'ajouter à la navigation du site.
 - [x] Rendre le formulaire de contact fonctionnel via un lien « mailto » : à l'envoi, ouvrir le logiciel de messagerie avec un e-mail pré-rempli vers reynesmanon11@gmail.com (objet + corps reprenant les champs). Aucun service externe.
+- [x] Section « Les grands thèmes » de l'accueil : les quatre cartes venaient du gabarit d'origine et menaient toutes à #services. Les remplacer par les six vrais chapitres de Seconde, chacun pointant sur sa section dans 2nde.html.
 
-- [ ] Ajouter un favicon (icône d'onglet) reprenant le logo, sur toutes les pages.
+- [x] Ajouter un favicon (icône d'onglet) reprenant le logo, sur toutes les pages.
 - [ ] Ajouter un bouton flottant « Haut de page » qui apparaît au défilement, sur les pages longues (2nde, 1ere, terminale).
 - [ ] Ajouter une fine barre de progression de lecture en haut des pages de cours.
 - [ ] Ajouter une image de partage (og:image) pour un bel aperçu quand on envoie le lien du site.

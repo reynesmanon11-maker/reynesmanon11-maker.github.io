@@ -447,7 +447,14 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 .legend span:nth-of-type(3) b{ color:#d56a97 } /* Fiche */
 .legend span:nth-of-type(4) b{ color:#cf9430 } /* Exos  */
 
+/* Arrivee par une ancre : le titre doit rester sous l'en-tete collant. */
+.theme{ scroll-margin-top:5.5rem }
 </style>
+<!-- Icone d'onglet : le carre noir et l'etoile terracotta du site.
+     Le SVG suffit aux navigateurs recents ; le PNG couvre les autres. -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
@@ -758,8 +765,13 @@ const CHAPITRES = [
   },
 ];
 
+/* Une ancre par chapitre, pour que l'accueil puisse pointer droit dessus :
+   « Chapitre 1 » devient #chapitre-1, « Méthodes » devient #methodes. */
+const ancre = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 document.getElementById('themes').innerHTML = CHAPITRES.map(ch => `
-  <section class="theme">
+  <section class="theme" id="${ancre(ch.num)}">
     <div class="shell">
       <div class="theme-head">
         <span class="theme-num">${ch.num}</span>

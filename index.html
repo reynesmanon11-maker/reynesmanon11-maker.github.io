@@ -457,6 +457,11 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 #modal .stext{ max-width:42ch; font-size:.875rem; line-height:1.55; color:rgba(17,17,17,.6) }
 @media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
 </style>
+<!-- Icone d'onglet : le carre noir et l'etoile terracotta du site.
+     Le SVG suffit aux navigateurs recents ; le PNG couvre les autres. -->
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 </head>
 <body>
 <a class="skip" href="#main">Aller au contenu</a>
@@ -697,7 +702,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
-          <li><a class="alink" href="#services"><span>Seconde</span></a></li>
+          <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
           <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
           <li><a class="alink" href="terminale.html"><span>Terminale</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
@@ -1367,10 +1372,26 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 /* ============ portfolio ============ */
 (function(){
   const items = [
-    { name:"La cellule et le métabolisme", cat:'Thème 1', year:'Le vivant',  desc:"De l'observation au microscope aux échanges qui font vivre une cellule.", tags:['Seconde','TP','Microscope'], href:'#services' },
-    { name:'ADN et biodiversité',          cat:'Thème 1', year:'Le vivant',  desc:'Du gène au caractère, et ce qui fait varier la diversité du vivant.',    tags:['Seconde','Génétique'],       href:'#services' },
-    { name:'Dynamique de la Terre',        cat:'Thème 2', year:'La planète', desc:"Séismes, volcans et mouvements des plaques : lire l'activité interne.",  tags:['Géologie','Risques'],        href:'#services' },
-    { name:'Paysages et temps géologiques',cat:'Thème 2', year:'La planète', desc:"Érosion, sédimentation, strates : retrouver l'histoire d'un paysage.",  tags:['Terrain','Sortie'],          href:'outils/carte_geol_aude_v5.html' },
+    /* Les six chapitres de Seconde, dans l'ordre de la page 2nde.html.
+       Chaque carte mene droit a la section correspondante. */
+    { name:'Comment sont organisés les êtres vivants ?', cat:'Chapitre 1', year:'Le vivant',
+      desc:"Des niveaux d'organisation à la cellule : observer, comparer, comprendre.",
+      tags:['TP','Microscope'],   href:'2nde.html#chapitre-1' },
+    { name:'La biodiversité, témoin de l\'histoire du vivant', cat:'Chapitre 2', year:'Le vivant',
+      desc:'Ce que la diversité des espèces raconte de leur passé commun.',
+      tags:['Évolution'],         href:'2nde.html#chapitre-2' },
+    { name:'Devenir homme ou femme', cat:'Chapitre 3', year:'Corps humain',
+      desc:'Communication hormonale, reproduction et maîtrise de sa sexualité.',
+      tags:['Santé'],             href:'2nde.html#chapitre-3' },
+    { name:'Microorganismes et santé : bon ou mauvais ?', cat:'Chapitre 4', year:'Corps humain',
+      desc:"Microbiote, agents infectieux et défenses de l'organisme.",
+      tags:['Santé','TP'],        href:'2nde.html#chapitre-4' },
+    { name:'Quelle est l\'origine de nos paysages ?', cat:'Chapitre 5', year:'La planète',
+      desc:"Érosion, transport, sédimentation : retrouver l'histoire d'un paysage.",
+      tags:['Terrain','Sortie'],  href:'2nde.html#chapitre-5' },
+    { name:"Nourrir l'humanité, un défi réalisable ?", cat:'Chapitre 6', year:'Enjeux',
+      desc:'Agrosystèmes, rendements et durabilité : produire sans épuiser.',
+      tags:['Enjeux'],            href:'2nde.html#chapitre-6' },
   ];
   document.getElementById('works-list').innerHTML = items.map((it, i) => `
     <li data-reveal="up" style="--ry:48px;--rd:${i * 90}ms">

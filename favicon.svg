@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" role="img" aria-label="Mme Reynes — SVT">
+  <!-- Le carré noir et l'étoile terracotta reprennent la tuile du site. -->
+  <rect width="48" height="48" rx="11" fill="#0a0a0a"/>
+  <path fill="#cf8047" transform="translate(24 24) scale(.74) translate(-24 -24)"
+    d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/>
+</svg>
