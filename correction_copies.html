@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.3 — calibrage type Ed.ai : notation DÉDUCTIVE (partir du max, retrancher chaque faiblesse), repères de calibrage, observations granulaires — fin de la surnotation à 9/9 -->
+<!-- Correction·IA v9.4 — copies de référence (calibrage few-shot type Ed.ai) : l'IA calque la note du prof + notation déductive -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.3</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.4</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -321,6 +321,12 @@
         <div class="row" style="margin-top:14px">
           <button class="btn purple" id="d2-buildgrille">✏️ Construire / éditer ma grille</button>
         </div>
+      </div>
+      <div class="card">
+        <h3>🎯 Copies de référence <span style="color:var(--muted2);font-weight:400;font-size:0.85rem">(calibrage — facultatif mais très efficace)</span></h3>
+        <div class="sub">Ajoutez une ou deux copies <b>que vous avez déjà notées</b> (ou un corrigé étalon), avec leur note. L'IA calquera <b>exactement votre niveau d'exigence</b> dessus : une copie équivalente recevra une note équivalente. C'est le meilleur moyen d'obtenir une notation « comme vous ».</div>
+        <div id="d2-reflist" style="margin-top:10px"></div>
+        <button class="btn secondary small" id="d2-refadd" style="margin-top:8px">+ Ajouter une copie de référence</button>
       </div>
       <div class="card" id="d2-grillecard" style="display:none">
         <div class="row" style="justify-content:space-between; margin-bottom:8px">
@@ -791,8 +797,54 @@ function renderDevoirEditor() {
   $('d2-niveau').value = d.niveau || '';
   renderPdfBadge('d2-sujet-badge', d.sujetPdf, () => { d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
   renderPdfBadge('d2-grille-badge', d.grillePdf, () => { d.grillePdf = null; saveDB(); renderDevoirEditor(); });
+  renderReferences(d);
   renderGrilleEditor(d);
 }
+function renderReferences(d) {
+  d.references = d.references || [];
+  const box = $('d2-reflist');
+  if (!d.references.length) { box.innerHTML = '<div class="empty" style="padding:8px 0">Aucune copie de référence pour l\'instant.</div>'; return; }
+  box.innerHTML = d.references.map((r, i) => `
+    <div class="refitem" style="border:1px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:8px">
+      <div class="row" style="justify-content:space-between;align-items:center;gap:10px">
+        <input class="field refnote" data-i="${i}" style="max-width:230px" placeholder="Note attribuée (ex : 4,5/9 ou 12/20)" value="${esc(r.note || '')}">
+        <button class="iconbtn refdel" data-i="${i}" title="Retirer">🗑️</button>
+      </div>
+      <div class="refdz dropzone" data-i="${i}" style="margin-top:8px"><span class="dz-ic">📎</span>${r.pdf ? '📕 ' + esc(r.pdf.name) : 'Déposer la copie notée (PDF / Word)'}</div>
+      <input type="file" class="reffile" data-i="${i}" accept="application/pdf,.docx" style="display:none">
+      <details style="margin-top:6px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le texte de la copie</summary>
+        <textarea class="field reftxt" data-i="${i}" style="margin-top:6px" placeholder="Collez ici le texte de la copie notée…">${esc(r.texte || '')}</textarea></details>
+    </div>`).join('');
+  const q = s => box.querySelectorAll(s);
+  q('.refnote').forEach(inp => inp.addEventListener('input', () => { d.references[+inp.dataset.i].note = inp.value; saveDB(); }));
+  q('.reftxt').forEach(inp => inp.addEventListener('input', () => { d.references[+inp.dataset.i].texte = inp.value; saveDB(); }));
+  q('.refdel').forEach(b => b.addEventListener('click', () => { d.references.splice(+b.dataset.i, 1); saveDB(); renderReferences(d); }));
+  q('.refdz').forEach(dz => {
+    const i = +dz.dataset.i, input = box.querySelector(`.reffile[data-i="${i}"]`);
+    dz.addEventListener('click', () => input.click());
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+    dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('drag'); handleRefPick(e.dataTransfer.files, i); });
+    input.addEventListener('change', e => { handleRefPick(e.target.files, i); e.target.value = ''; });
+  });
+}
+async function handleRefPick(files, i) {
+  const d = devoirById($('d2-devoir').value); if (!d || !d.references[i]) return;
+  const f = files[0]; if (!f) return;
+  if (/\.docx$/i.test(f.name)) {
+    try { d.references[i].texte = await docxToText(f); d.references[i].pdf = null; saveDB(); renderReferences(d); }
+    catch (e) { alert('.docx illisible : ' + e.message); }
+    return;
+  }
+  if (f.type !== 'application/pdf') { alert('Déposez un PDF (ou un .docx).'); return; }
+  d.references[i].pdf = { name: f.name, base64: await fileToB64(f) };
+  saveDB(); renderReferences(d);
+}
+$('d2-refadd').onclick = () => {
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  d.references = d.references || []; d.references.push({ id: 'r' + uid(), note: '', pdf: null, texte: '' });
+  saveDB(); renderReferences(d);
+};
 function renderPdfBadge(boxId, pdf, onRemove) {
   const box = $(boxId);
   if (!pdf) { box.innerHTML = ''; return; }
@@ -1061,7 +1113,17 @@ async function corrigerCopie(q) {
   const content = [{ type: 'text', text: `Corrige la copie pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés ; si un critère porte une RÈGLE DE NOTATION, applique EXACTEMENT ce barème de points partiels, sans le réinterpréter) :\n${grilleTxt}` }];
   if (d.sujetPdf) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
   else if (d.sujet) content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
-  // marque la fin du préfixe stable pour le cache API (tools + system + grille + sujet)
+  // ── Copies de référence déjà notées : ancrage de calibrage (stable → mis en cache) ──
+  const refs = (d.references || []).filter(r => (r.note || '').trim() && (r.pdf || (r.texte || '').trim()));
+  if (refs.length) {
+    content.push({ type: 'text', text: `\n═══ COPIES DE RÉFÉRENCE DÉJÀ NOTÉES PAR LE PROFESSEUR ═══\nCe sont des copies réelles avec la note EXACTE donnée par le professeur. Elles définissent son niveau d'exigence. Calibre ta sévérité et tes déductions pour que ces copies-là obtiennent bien ces notes-là : une copie de qualité équivalente doit recevoir une note équivalente, une copie meilleure une note plus haute, une moins bonne une note plus basse. En cas de doute sur la sévérité, aligne-toi sur ces exemples plutôt que sur ton intuition.` });
+    refs.forEach((r, i) => {
+      content.push({ type: 'text', text: `\n— Référence ${i + 1} — NOTE DONNÉE PAR LE PROFESSEUR : ${r.note.trim()} —` });
+      if (r.pdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: r.pdf.base64 } });
+      else content.push({ type: 'text', text: r.texte.trim() });
+    });
+  }
+  // marque la fin du préfixe stable pour le cache API (tools + system + grille + sujet + références)
   content[content.length - 1] = { ...content[content.length - 1], cache_control: { type: 'ephemeral' } };
   // ── Partie VARIABLE : identité de l'élève + sa copie (jamais mise en cache) ──
   content.push({ type: 'text', text: `\nCette copie est celle de l'élève « ${q.eleveNom} ». Corrige-la ci-dessous.` });
@@ -1088,6 +1150,7 @@ REPÈRES DE CALIBRAGE (sur le total du barème — respecte ces ordres de grande
 • Copie complète et organisée, raisonnement globalement correct MAIS quelques documents sous-exploités ou un maillon du raisonnement non expliqué → environ 70-75 %.
 • Le maximum (100 %) est EXCEPTIONNEL : réservé à une copie complète, rigoureuse, sans la moindre confusion, aux conclusions démontrées. La grande majorité des bonnes copies se situe entre 55 et 80 %.
 • N'attribue une note globale ≥ 90 % que si, objectivement, tu ne trouves AUCUNE faiblesse à retrancher. Se retrouver à 100 % doit être rarissime — si tu y arrives, c'est presque toujours que tu as été trop généreux : relis la copie et cherche les confusions, incomplétudes et affirmations non démontrées.
+• Si des COPIES DE RÉFÉRENCE DÉJÀ NOTÉES par le professeur te sont fournies, elles PRIMENT sur tout le reste : c'est l'étalon exact de son exigence. Compare mentalement la copie à corriger à ces références et attribue une note cohérente avec elles (qualité équivalente → note équivalente).
 
 OBSERVATIONS — sois GRANULAIRE et CRITIQUE : relève de NOMBREUSES observations en citant VERBATIM l'extrait concerné, et catégorise chacune (réussite : lien de causalité bien identifié, connaissance bien mobilisée, problématique pertinente ; ou erreur : erreur d'interprétation de document, raisonnement incomplet, conclusion incohérente, confusion entre notions, connaissance mal/non mobilisée, problématique confuse). Il est NORMAL qu'une copie moyenne présente plus d'erreurs relevées que de réussites.
 
