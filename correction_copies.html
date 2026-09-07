@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.2 — barèmes ultra-détaillés (règle à la lettre), dépôt du barème visible, auto-correction du total (jusqu'à 3 essais), cache API, badge de version -->
+<!-- Correction·IA v9.3 — calibrage type Ed.ai : notation DÉDUCTIVE (partir du max, retrancher chaque faiblesse), repères de calibrage, observations granulaires — fin de la surnotation à 9/9 -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.2</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.3</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -1072,22 +1072,28 @@ async function corrigerCopie(q) {
     else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
   }
   const out = await callClaude({
-    system: `Tu es un professeur rigoureux qui corrige une copie en remplissant STRICTEMENT la grille, critère par critère (chaque critère, même non traité : 0 avec explication). Ne note que ce qui est présent ; signale toute illisibilité/page manquante dans le commentaire concerné.
+    system: `Tu es un correcteur EXIGEANT de niveau examen (comme un correcteur officiel du bac, ou un service de correction du type Ed.ai). Tu corriges une copie en remplissant la grille critère par critère. Un critère non traité = 0 avec explication. Signale toute illisibilité/page manquante dans le commentaire concerné.
 
-MÉTHODE DE NOTATION REPRODUCTIBLE (pour qu'une même copie reçoive toujours la même note) :
-- Traite les critères dans l'ordre, indépendamment les uns des autres. Ne compense pas un critère par un autre.
-- PRIORITÉ ABSOLUE — Pour un critère qui porte une « RÈGLE DE NOTATION » : applique cette règle À LA LETTRE, exactement comme le professeur l'a écrite (points partiels, décotes du type « −0,25 par exemple manquant », seuils, conditions). Ne la réinterprète pas, ne la simplifies pas, ne demande jamais de recalibrer : le professeur a déjà tout calibré, ton rôle est de constater sur la copie ce qui est présent/absent et d'en déduire les points selon la règle. Dans le commentaire, explique brièvement le décompte (ce qui a fait perdre les points).
-- Pour un critère À NIVEAUX : identifie le descripteur qui correspond le mieux à la copie, puis attribue EXACTEMENT les points de ce niveau. N'utilise un demi-niveau que si la copie est réellement à cheval entre deux descripteurs voisins. Dans le commentaire, nomme le niveau retenu.
-- Pour un critère SANS règle ni niveaux : barème binaire ou proportionnel à ce qui est explicitement attendu (attendus). Ne donne un point que si l'élément attendu est présent. Pas de point « au feeling », pas de bonus hors barème.
-- N'attribue jamais plus que le maximum du critère. En cas d'hésitation entre deux valeurs, choisis la plus basse et justifie-la : sois strict et constant plutôt que généreux et variable.
+MÉTHODE DE NOTATION — DÉDUCTIVE, PAS ADDITIVE (c'est essentiel).
+Ne pars JAMAIS de 0 en ajoutant des points « parce que l'élément est là ». Pour CHAQUE critère :
+1. PRIORITÉ ABSOLUE — s'il porte une « RÈGLE DE NOTATION » ou des « Niveaux » explicites : applique-les À LA LETTRE (points partiels, décotes, seuils), sans les réinterpréter ni recalibrer. Explique le décompte dans le commentaire.
+2. Sinon : PARS DU MAXIMUM du critère, puis RETRANCHE des points pour CHAQUE faiblesse réelle de la copie :
+   • attendu absent ou seulement effleuré ; • analyse/raisonnement INCOMPLET (une sous-question, un cas, un document, un modèle demandé non traité) ; • CONFUSION de notions (ex : sélection naturelle vs artificielle, deux populations/documents confondus) ; • conclusion NON démontrée ou AFFIRMATION TROP FORTE (aller au-delà de ce que prouvent les données) ; • connaissance correcte mais MAL mobilisée ou hors sujet ; • problématique vague/hors-sujet ; • imprécisions, manque de rigueur.
+   Chaque retrait est CHIFFRÉ et JUSTIFIÉ dans le commentaire (ex : « −1 : cas de Luangwa non traité ; −0,5 : confusion sélection naturelle/artificielle »).
+3. Le MAXIMUM d'un critère ne se donne QUE si son traitement est COMPLET, RIGOUREUX et SANS AUCUNE confusion ni approximation. Une copie « correcte mais incomplète ou avec des confusions » ne peut PAS avoir le maximum. En cas d'hésitation, tranche vers le BAS.
+4. Traite les critères indépendamment, ne compense pas l'un par l'autre.
 
-Dans "observations", cite VERBATIM des extraits de la copie et commente-les (réussites ET erreurs).
+REPÈRES DE CALIBRAGE (sur le total du barème — respecte ces ordres de grandeur) :
+• Copie structurée mobilisant des connaissances pertinentes MAIS analyse incomplète + plusieurs confusions ou affirmations trop fortes → environ 50 % du barème.
+• Copie complète et organisée, raisonnement globalement correct MAIS quelques documents sous-exploités ou un maillon du raisonnement non expliqué → environ 70-75 %.
+• Le maximum (100 %) est EXCEPTIONNEL : réservé à une copie complète, rigoureuse, sans la moindre confusion, aux conclusions démontrées. La grande majorité des bonnes copies se situe entre 55 et 80 %.
+• N'attribue une note globale ≥ 90 % que si, objectivement, tu ne trouves AUCUNE faiblesse à retrancher. Se retrouver à 100 % doit être rarissime — si tu y arrives, c'est presque toujours que tu as été trop généreux : relis la copie et cherche les confusions, incomplétudes et affirmations non démontrées.
+
+OBSERVATIONS — sois GRANULAIRE et CRITIQUE : relève de NOMBREUSES observations en citant VERBATIM l'extrait concerné, et catégorise chacune (réussite : lien de causalité bien identifié, connaissance bien mobilisée, problématique pertinente ; ou erreur : erreur d'interprétation de document, raisonnement incomplet, conclusion incohérente, confusion entre notions, connaissance mal/non mobilisée, problématique confuse). Il est NORMAL qu'une copie moyenne présente plus d'erreurs relevées que de réussites.
 
 ${niveauDirectives(niveau)}
 
 ${severiteDirectives()}
-
-CALIBRAGE ANTI-SURNOTATION : réserve les points hauts aux performances réellement complètes ET rigoureuses. Le maximum d'un critère ne se donne QUE si l'attendu est pleinement satisfait, sans confusion ni imprécision. Une confusion de notions, un raisonnement incomplet ou une conclusion non démontrée fait perdre des points, même si le reste est bon.
 
 ${profileDirectives()}
 
