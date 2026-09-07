@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9 — barèmes ultra-détaillés (règle de notation appliquée à la lettre), cache API du barème/sujet, bouton Valider ma grille -->
+<!-- Correction·IA v9.2 — barèmes ultra-détaillés (règle à la lettre), dépôt du barème visible, auto-correction du total (jusqu'à 3 essais), cache API, badge de version -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.2</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -305,19 +305,17 @@
           </div>
           <div class="col" style="min-width:260px">
             <label>Grille de correction / barème</label>
-            <div class="sub" style="margin:4px 0 8px">Construisez votre grille ci-dessous : <b>vos points sont conservés à l'identique</b>, l'IA ne les modifie pas.</div>
-            <input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="Total de votre barème (ex : 20)" style="max-width:260px">
-            <details style="margin-top:10px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">✨ (optionnel) Pré-remplir la grille depuis un PDF / texte — à vérifier ensuite</summary>
-              <div style="margin-top:8px">
-                <div class="dropzone" id="d2-grille-dz"><span class="dz-ic">📝</span>Déposer la grille (PDF)</div>
-                <input type="file" id="d2-grille-file" accept="application/pdf,.docx" style="display:none">
-                <div id="d2-grille-badge"></div>
-                <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="…ou collez le barème en texte (parties, critères, points, niveaux)"></textarea>
-                <button class="btn secondary small" id="d2-structurer" style="margin-top:8px">✨ Pré-remplir avec l'IA</button>
-                <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Lecture en cours…</div>
-                <div id="d2-structerr"></div>
-              </div>
-            </details>
+            <div class="sub" style="margin:4px 0 8px">Indiquez d'abord le <b>total de votre barème</b> — c'est lui qui fait foi, l'IA ne le change pas.</div>
+            <input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="Total de votre barème (ex : 9)" style="max-width:260px">
+            <div class="dropzone" id="d2-grille-dz" style="margin-top:10px"><span class="dz-ic">📝</span>Déposer votre barème (PDF / Word)</div>
+            <input type="file" id="d2-grille-file" accept="application/pdf,.docx" style="display:none">
+            <div id="d2-grille-badge"></div>
+            <details style="margin-top:8px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le barème en texte</summary>
+              <textarea class="field" id="d2-brute" style="margin-top:6px" placeholder="Collez ici votre barème (parties, critères, points, curseurs…)"></textarea></details>
+            <button class="btn purple small" id="d2-structurer" style="margin-top:10px">✨ Lire mon barème avec l'IA</button>
+            <div class="sub" style="margin-top:6px;font-size:0.7rem">L'IA lit votre barème et remplit la grille en respectant votre total. Vous vérifiez ensuite ci-dessous.</div>
+            <div id="d2-structloading" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Lecture en cours…</div>
+            <div id="d2-structerr"></div>
           </div>
         </div>
         <div class="row" style="margin-top:14px">
@@ -860,18 +858,28 @@ $('d2-structurer').onclick = async () => {
 
     let out = await runStruct('');
     let grille = buildGrille(out);
-    // auto-correction : si un total est déclaré et que le total obtenu diffère, on relance UNE fois en montrant l'erreur
+    // auto-correction : si un total est déclaré et que le total obtenu diffère, on relance
+    // jusqu'à 3 fois en montrant précisément l'erreur, pour retomber pile sur le total déclaré.
+    if (totalDecl != null) {
+      for (let essai = 0; essai < 3 && Math.abs(grilleNoteMax(grille) - totalDecl) > 0.01; essai++) {
+        const got = grilleNoteMax(grille);
+        $('d2-structloading').innerHTML = `<div class="dot3"><span></span><span></span><span></span></div> Ajustement du total sur ${fmtPts(totalDecl)}…`;
+        const recap = grille.parties.map(p => `${p.titre} : ` + p.criteres.map(c => `« ${c.intitule} » = ${fmtPts(critMax(c))} pts`).join(', ')).join(' | ');
+        out = await runStruct(`\n\n🔴 CORRECTION OBLIGATOIRE — ta proposition précédente totalisait ${fmtPts(got)} pts, or mon barème est sur ${fmtPts(totalDecl)} pts. Voici ce que tu avais produit : ${recap}. Tu as très probablement compté des curseurs/niveaux d'un même exercice comme des critères séparés et additionné leurs points. Refais la grille pour que la SOMME des maximums de TOUS les critères fasse EXACTEMENT ${fmtPts(totalDecl)}, en regroupant les curseurs d'un même exercice en UN SEUL critère noté sur le maximum de cet exercice. Ne rends la grille que lorsque la somme fait ${fmtPts(totalDecl)}.`);
+        grille = buildGrille(out);
+      }
+    }
+    // on ne garde une remarque de l'IA que si elle ne contredit pas le total (sinon elle sème la confusion)
     if (totalDecl != null && Math.abs(grilleNoteMax(grille) - totalDecl) > 0.01) {
-      const got = grilleNoteMax(grille);
-      const recap = grille.parties.map(p => `${p.titre} : ` + p.criteres.map(c => `« ${c.intitule} » = ${fmtPts(critMax(c))} pts`).join(', ')).join(' | ');
-      out = await runStruct(`\n\n🔴 CORRECTION OBLIGATOIRE — ta proposition précédente totalisait ${fmtPts(got)} pts, or mon barème est sur ${fmtPts(totalDecl)} pts. Voici ce que tu avais produit : ${recap}. Tu as très probablement compté des curseurs/niveaux d'un même exercice comme des critères séparés et additionné leurs points. Refais la grille pour que la SOMME des maximums de tous les critères fasse EXACTEMENT ${fmtPts(totalDecl)}, en regroupant les curseurs d'un même exercice en UN seul critère noté sur le maximum de cet exercice.`);
-      grille = buildGrille(out);
+      grille.remarque = `⚠️ Lecture automatique imparfaite : total obtenu ${fmtPts(grilleNoteMax(grille))} au lieu de ${fmtPts(totalDecl)}. Ajustez les points ci-dessous à la main — vos corrections sont respectées à l'identique.`;
+    } else if (totalDecl != null) {
+      grille.remarque = '';
     }
     d.grille = grille;
     d.grillePdf = null; // libère l'espace : la grille structurée suffit désormais
     saveDB(); renderDevoirEditor();
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
-  finally { $('d2-structloading').style.display = 'none'; $('d2-structurer').disabled = false; }
+  finally { $('d2-structloading').style.display = 'none'; $('d2-structloading').innerHTML = '<div class="dot3"><span></span><span></span><span></span></div> Lecture en cours…'; $('d2-structurer').disabled = false; }
 };
 
 function updateGrilleNote(d) {
