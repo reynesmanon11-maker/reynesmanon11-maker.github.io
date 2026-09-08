@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.5 — anti-belle-copie : audit obligatoire des attendus, refus du tout-vert/9-9 facile ; copies de référence ; notation déductive -->
+<!-- Correction·IA v9.6 — message d'erreur cloud clair (projet Supabase en pause / URL) + calibrage anti belle-copie + copies de référence -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.5</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.6</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -1549,12 +1549,29 @@ async function cloudAuth(mode) {
     cloudMsg('Connexion…', 'info');
     const fn = mode === 'signup' ? supaClient.auth.signUp({ email, password: pass }) : supaClient.auth.signInWithPassword({ email, password: pass });
     const { data, error } = await fn;
-    if (error) { cloudMsg('❌ ' + esc(error.message), 'err'); return; }
+    if (error) {
+      if (/fetch|network|failed to fetch/i.test(error.message)) { cloudMsg(cloudNetworkHelp(), 'err'); return; }
+      cloudMsg('❌ ' + esc(error.message), 'err'); return;
+    }
     if (mode === 'signup' && (!data.session)) { cloudMsg('📧 Compte créé. Vérifiez votre email pour confirmer, puis connectez-vous (ou désactivez la confirmation email dans Supabase).', 'ok'); return; }
     supaUser = data.user || (data.session && data.session.user);
     $('cloud-pass').value = '';
     await cloudAfterLogin();
-  } catch (e) { cloudMsg('❌ ' + esc(e.message), 'err'); }
+  } catch (e) {
+    if (/fetch|network|failed to fetch/i.test(e.message || '')) { cloudMsg(cloudNetworkHelp(), 'err'); return; }
+    cloudMsg('❌ ' + esc(e.message), 'err');
+  }
+}
+function cloudNetworkHelp() {
+  const url = (supaCfg && supaCfg.url) || '(non configurée)';
+  return `❌ Impossible de joindre le cloud (« Failed to fetch »). Ce n'est PAS un souci de mot de passe : l'application n'atteint pas votre projet Supabase.<br><br>
+  <b>Causes les plus fréquentes :</b>
+  <ol style="margin:6px 0 0 18px;padding:0">
+    <li><b>Projet Supabase en pause</b> (offre gratuite : mis en pause après ~1 semaine sans activité). Allez sur <b>supabase.com</b> → votre projet → bouton <b>Restore / Resume</b>, patientez 1-2 min, puis réessayez. <i>(cause n°1)</i></li>
+    <li><b>Adresse du projet incorrecte</b>. L'app utilise : <code style="word-break:break-all">${esc(url)}</code>. Elle doit être de la forme <code>https://xxxxx.supabase.co</code> (sans <code>/rest/v1/</code> à la fin). Corrigez-la dans « Configurer le cloud ».</li>
+    <li><b>Réseau qui bloque</b> : bloqueur de pub / VPN / réseau du lycée. Essayez une navigation privée, un autre réseau, ou désactivez l'extension.</li>
+  </ol>
+  <span style="color:var(--muted2)">Le cloud est facultatif : sans lui, tout fonctionne en local sur cet ordinateur.</span>`;
 }
 $('cloud-signin').onclick = () => cloudAuth('signin');
 $('cloud-signup').onclick = () => cloudAuth('signup');
