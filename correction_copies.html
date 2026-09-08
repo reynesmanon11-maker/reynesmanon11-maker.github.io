@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.6 — message d'erreur cloud clair (projet Supabase en pause / URL) + calibrage anti belle-copie + copies de référence -->
+<!-- Correction·IA v9.7 — stockage des PDF dans IndexedDB (fin de la saturation ~5 Mo), bouton Libérer de l'espace + jauge ; calibrage déductif + copies de référence -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -260,7 +260,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.6</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.7</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -537,8 +537,10 @@
         <button class="btn secondary" id="s-export">⬇️ Exporter (JSON)</button>
         <button class="btn secondary" id="s-import">⬆️ Importer</button>
         <input type="file" id="s-importfile" accept="application/json" style="display:none">
+        <button class="btn secondary" id="s-freespace">🧹 Libérer de l'espace</button>
         <button class="btn danger" id="s-wipe">🗑️ Tout effacer</button>
       </div>
+      <div class="sub" id="s-storage" style="margin-top:8px"></div>
     </div>
   </div>
 
@@ -562,7 +564,39 @@ function $(id) { return document.getElementById(id); }
 function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtPts(n) { return (Math.round(n * 100) / 100).toString().replace('.', ','); }
-function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage du navigateur saturé (souvent à cause des PDF de sujets stockés).\nExportez vos données puis supprimez d'anciens devoirs, ou retirez le PDF du sujet une fois la grille structurée."); } if (typeof scheduleCloudPush === 'function') scheduleCloudPush(); }
+function saveDB() { try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch (e) { alert("Espace de stockage saturé. Ouvrez Réglages → « Libérer de l'espace », ou supprimez d'anciens devoirs. (Astuce : collez le barème/la copie de référence en texte plutôt qu'en PDF.)"); } if (typeof scheduleCloudPush === 'function') scheduleCloudPush(); }
+
+// ─── Stockage des PDF volumineux hors localStorage, dans IndexedDB (centaines de Mo au lieu de ~5 Mo) ───
+const BLOB_STORE = 'corrIA_blobs'; let _idbP = null;
+function idbOpen() { return _idbP || (_idbP = new Promise((res, rej) => { try { const r = indexedDB.open(BLOB_STORE, 1); r.onupgradeneeded = () => { if (!r.result.objectStoreNames.contains('blobs')) r.result.createObjectStore('blobs'); }; r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); } catch (e) { rej(e); } })); }
+async function blobPut(id, data) { const d = await idbOpen(); return new Promise((res, rej) => { const tx = d.transaction('blobs', 'readwrite'); tx.objectStore('blobs').put(data, id); tx.oncomplete = () => res(id); tx.onerror = () => rej(tx.error); }); }
+async function blobGet(id) { try { const d = await idbOpen(); return await new Promise((res, rej) => { const tx = d.transaction('blobs', 'readonly'); const rq = tx.objectStore('blobs').get(id); rq.onsuccess = () => res(rq.result || null); rq.onerror = () => rej(rq.error); }); } catch (e) { return null; } }
+async function blobDel(id) { try { const d = await idbOpen(); await new Promise(res => { const tx = d.transaction('blobs', 'readwrite'); tx.objectStore('blobs').delete(id); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+// Récupère le base64 d'un PDF stocké, qu'il soit ancien (base64 inline) ou nouveau (dans IndexedDB)
+async function pdfB64(p) { if (!p) return null; if (p.base64) return p.base64; if (p.blobId) return await blobGet(p.blobId); return null; }
+// Enregistre un PDF : base64 dans IndexedDB, seulement {name, blobId} dans le db (léger)
+async function pdfStore(name, base64) { const blobId = 'b' + uid(); await blobPut(blobId, base64); return { name, blobId }; }
+// Retire proprement un PDF (supprime aussi le blob associé)
+async function pdfDrop(p) { if (p && p.blobId) await blobDel(p.blobId); }
+// Migration : déplace les PDF anciens (base64 inline dans localStorage) vers IndexedDB pour libérer l'espace
+async function migrateInlinePdfs() {
+  let moved = 0;
+  for (const d of (db.devoirs || [])) {
+    for (const k of ['sujetPdf', 'grillePdf']) {
+      if (d[k] && d[k].base64) { d[k] = await pdfStore(d[k].name || 'document.pdf', d[k].base64); moved++; }
+    }
+    for (const r of (d.references || [])) {
+      if (r.pdf && r.pdf.base64) { r.pdf = await pdfStore(r.pdf.name || 'copie.pdf', r.pdf.base64); moved++; }
+    }
+  }
+  if (moved) { saveLocalOnly(); }
+}
+// Estimation de l'espace localStorage utilisé (Mo) et nombre de PDF encore inline
+function storageStats() {
+  let bytes = 0; try { bytes = (localStorage.getItem(DB_KEY) || '').length; } catch (e) {}
+  let inline = 0; for (const d of (db.devoirs || [])) { ['sujetPdf', 'grillePdf'].forEach(k => { if (d[k] && d[k].base64) inline++; }); (d.references || []).forEach(r => { if (r.pdf && r.pdf.base64) inline++; }); }
+  return { mo: (bytes / 1048576), inline };
+}
 function freshDB() { return { version: 4, model: 'claude-sonnet-5', profile: { ton: 'neutre', enonc: 'tutoiement', longueur: 'standard', severite: 'examen' }, classes: [], devoirs: [], copies: [] }; }
 function loadDB() {
   try {
@@ -795,8 +829,8 @@ function renderDevoirEditor() {
   const clsLbl = cls.niveau ? niveauLabel(cls.niveau) : 'non précisé';
   $('d2-niveau').innerHTML = `<option value="">— niveau de la classe (${esc(clsLbl)}) —</option>` + NIVEAUX.filter(n => n.v).map(n => `<option value="${n.v}">${esc(n.label)}</option>`).join('');
   $('d2-niveau').value = d.niveau || '';
-  renderPdfBadge('d2-sujet-badge', d.sujetPdf, () => { d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
-  renderPdfBadge('d2-grille-badge', d.grillePdf, () => { d.grillePdf = null; saveDB(); renderDevoirEditor(); });
+  renderPdfBadge('d2-sujet-badge', d.sujetPdf, async () => { await pdfDrop(d.sujetPdf); d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
+  renderPdfBadge('d2-grille-badge', d.grillePdf, async () => { await pdfDrop(d.grillePdf); d.grillePdf = null; saveDB(); renderDevoirEditor(); });
   renderReferences(d);
   renderGrilleEditor(d);
 }
@@ -818,7 +852,7 @@ function renderReferences(d) {
   const q = s => box.querySelectorAll(s);
   q('.refnote').forEach(inp => inp.addEventListener('input', () => { d.references[+inp.dataset.i].note = inp.value; saveDB(); }));
   q('.reftxt').forEach(inp => inp.addEventListener('input', () => { d.references[+inp.dataset.i].texte = inp.value; saveDB(); }));
-  q('.refdel').forEach(b => b.addEventListener('click', () => { d.references.splice(+b.dataset.i, 1); saveDB(); renderReferences(d); }));
+  q('.refdel').forEach(b => b.addEventListener('click', async () => { await pdfDrop(d.references[+b.dataset.i].pdf); d.references.splice(+b.dataset.i, 1); saveDB(); renderReferences(d); }));
   q('.refdz').forEach(dz => {
     const i = +dz.dataset.i, input = box.querySelector(`.reffile[data-i="${i}"]`);
     dz.addEventListener('click', () => input.click());
@@ -832,12 +866,13 @@ async function handleRefPick(files, i) {
   const d = devoirById($('d2-devoir').value); if (!d || !d.references[i]) return;
   const f = files[0]; if (!f) return;
   if (/\.docx$/i.test(f.name)) {
-    try { d.references[i].texte = await docxToText(f); d.references[i].pdf = null; saveDB(); renderReferences(d); }
+    try { await pdfDrop(d.references[i].pdf); d.references[i].texte = await docxToText(f); d.references[i].pdf = null; saveDB(); renderReferences(d); }
     catch (e) { alert('.docx illisible : ' + e.message); }
     return;
   }
   if (f.type !== 'application/pdf') { alert('Déposez un PDF (ou un .docx).'); return; }
-  d.references[i].pdf = { name: f.name, base64: await fileToB64(f) };
+  await pdfDrop(d.references[i].pdf);
+  d.references[i].pdf = await pdfStore(f.name, await fileToB64(f));
   saveDB(); renderReferences(d);
 }
 $('d2-refadd').onclick = () => {
@@ -868,14 +903,15 @@ function wirePdfZone(dzId, inputId, field) {
 async function handlePdfPick(files, field) {
   const d = devoirById($('d2-devoir').value); if (!d) return;
   const f = files[0]; if (!f) return;
+  const key = field === 'sujet' ? 'sujetPdf' : 'grillePdf';
   if (/\.docx$/i.test(f.name)) {
-    try { const txt = await docxToText(f); if (field === 'sujet') { d.sujet = txt; } else { d.grilleBrute = txt; } d[field === 'sujet' ? 'sujetPdf' : 'grillePdf'] = null; saveDB(); renderDevoirEditor(); }
+    try { await pdfDrop(d[key]); const txt = await docxToText(f); if (field === 'sujet') { d.sujet = txt; } else { d.grilleBrute = txt; } d[key] = null; saveDB(); renderDevoirEditor(); }
     catch (e) { alert('.docx illisible : ' + e.message); }
     return;
   }
   if (f.type !== 'application/pdf') { alert('Déposez un PDF (ou un .docx).'); return; }
-  const base64 = await fileToB64(f);
-  d[field === 'sujet' ? 'sujetPdf' : 'grillePdf'] = { name: f.name, base64 };
+  await pdfDrop(d[key]);
+  d[key] = await pdfStore(f.name, await fileToB64(f));
   saveDB(); renderDevoirEditor();
 }
 wirePdfZone('d2-sujet-dz', 'd2-sujet-file', 'sujet');
@@ -896,11 +932,12 @@ $('d2-structurer').onclick = async () => {
       : `\n\n⚠️ RÈGLE ABSOLUE : conserve EXACTEMENT le total de points de mon barème. Ne le change pas.`;
     const baseText = `Recopie fidèlement la grille/barème ci-dessous en grille structurée, SANS RIEN CHANGER aux points ni aux critères.\n\nRÈGLES :\n1. Reprends CHAQUE critère du barème tel quel, avec EXACTEMENT le nombre de points indiqué. Un critère du barème = un critère de la grille. Ne DÉCOUPE PAS, ne FUSIONNE PAS, n'AJOUTE PAS de critère.\n2. CURSEURS / NIVEAUX : si un même exercice (ou une même question) est noté par plusieurs CURSEURS ou par des paliers du type « exercice sur 9 points : curseur 1… curseur 2… », c'est UN SEUL critère noté sur le maximum de l'exercice. Les curseurs sont des NIVEAUX de ce critère (champ "niveaux"), PAS des critères séparés. N'ADDITIONNE JAMAIS les points de curseurs différents d'un même exercice : le maximum du critère = la note maximale de l'exercice, pas la somme des curseurs.\n3. N'invente aucun point. Si un critère vaut 1 point dans mon barème, il vaut 1 point dans la grille.\n4. TRÈS IMPORTANT — mes barèmes sont TRÈS détaillés : ils précisent souvent comment donner les points partiels (ex : « 1 pt si au moins 2 des 3 niveaux cités avec un exemple pour chacun ; −0,25 par exemple manquant ; −0,5 si niveaux donnés sans exemple »). Reprends cette règle FIDÈLEMENT et intégralement dans le champ "regle" de chaque critère. NE me demande PAS de recalibrer : c'est à TOI de déduire la règle à partir de mon barème détaillé.\n5. Ajoute une "competence" courte réutilisable par critère.\n6. N'écris JAMAIS de demande de confirmation, ni « veuillez confirmer », ni « souhaitez-vous ». Tu produis DIRECTEMENT la meilleure grille possible dont le total est exact. Utilise "remarque" seulement pour une note brève (une phrase), pas pour poser des questions.${consigneTotal}` + (d.sujet ? `\n\nSujet (contexte) :\n${d.sujet}` : '');
 
+    const grilleB64 = await pdfB64(d.grillePdf), sujetB64 = await pdfB64(d.sujetPdf);
     const runStruct = async (extra) => {
       const content = [{ type: 'text', text: baseText + (extra || '') }];
-      if (d.grillePdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.grillePdf.base64 } });
+      if (grilleB64) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: grilleB64 } });
       else content.push({ type: 'text', text: '\nBarème :\n' + d.grilleBrute });
-      if (d.sujetPdf) { content.push({ type: 'text', text: 'Sujet distribué (PDF, pour contexte) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
+      if (sujetB64) { content.push({ type: 'text', text: 'Sujet distribué (PDF, pour contexte) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: sujetB64 } }); }
       return callClaude({
         system: "Tu structures des barèmes de correction TRÈS détaillés SANS jamais modifier le total des points ni le nombre de critères. Utilise structurer_grille. Reprends chaque critère tel quel, un pour un, avec ses points exacts — interdit de découper, fusionner, ajouter ou rééchelonner. Les curseurs/paliers d'un même exercice sont des NIVEAUX d'un seul critère, jamais des critères séparés, et leurs points ne s'additionnent pas. Capture FIDÈLEMENT la règle de points partiels dans 'regle' (tu la déduis toi-même, tu ne demandes jamais de recalibrer). Ne pose aucune question, ne demande aucune confirmation.",
         userContent: content, tool: STRUCT_TOOL
@@ -928,7 +965,7 @@ $('d2-structurer').onclick = async () => {
       grille.remarque = '';
     }
     d.grille = grille;
-    d.grillePdf = null; // libère l'espace : la grille structurée suffit désormais
+    await pdfDrop(d.grillePdf); d.grillePdf = null; // libère l'espace : la grille structurée suffit désormais
     saveDB(); renderDevoirEditor();
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
   finally { $('d2-structloading').style.display = 'none'; $('d2-structloading').innerHTML = '<div class="dot3"><span></span><span></span><span></span></div> Lecture en cours…'; $('d2-structurer').disabled = false; }
@@ -1111,17 +1148,20 @@ async function corrigerCopie(q) {
   }).join('\n')).join('\n');
   // ── Préfixe STABLE (identique pour toutes les copies de ce devoir) : mis en cache API pour économiser ──
   const content = [{ type: 'text', text: `Corrige la copie pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés ; si un critère porte une RÈGLE DE NOTATION, applique EXACTEMENT ce barème de points partiels, sans le réinterpréter) :\n${grilleTxt}` }];
-  if (d.sujetPdf) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: d.sujetPdf.base64 } }); }
+  const sujetB64 = await pdfB64(d.sujetPdf);
+  if (sujetB64) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: sujetB64 } }); }
   else if (d.sujet) content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
   // ── Copies de référence déjà notées : ancrage de calibrage (stable → mis en cache) ──
   const refs = (d.references || []).filter(r => (r.note || '').trim() && (r.pdf || (r.texte || '').trim()));
   if (refs.length) {
     content.push({ type: 'text', text: `\n═══ COPIES DE RÉFÉRENCE DÉJÀ NOTÉES PAR LE PROFESSEUR ═══\nCe sont des copies réelles avec la note EXACTE donnée par le professeur. Elles définissent son niveau d'exigence. Calibre ta sévérité et tes déductions pour que ces copies-là obtiennent bien ces notes-là : une copie de qualité équivalente doit recevoir une note équivalente, une copie meilleure une note plus haute, une moins bonne une note plus basse. En cas de doute sur la sévérité, aligne-toi sur ces exemples plutôt que sur ton intuition.` });
-    refs.forEach((r, i) => {
+    for (let i = 0; i < refs.length; i++) {
+      const r = refs[i];
       content.push({ type: 'text', text: `\n— Référence ${i + 1} — NOTE DONNÉE PAR LE PROFESSEUR : ${r.note.trim()} —` });
-      if (r.pdf) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: r.pdf.base64 } });
-      else content.push({ type: 'text', text: r.texte.trim() });
-    });
+      const rb64 = await pdfB64(r.pdf);
+      if (rb64) content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: rb64 } });
+      else content.push({ type: 'text', text: (r.texte || '').trim() });
+    }
   }
   // marque la fin du préfixe stable pour le cache API (tools + system + grille + sujet + références)
   content[content.length - 1] = { ...content[content.length - 1], cache_control: { type: 'ephemeral' } };
@@ -1617,7 +1657,26 @@ function renderSettings() {
   $('s-model').value = db.model || 'claude-sonnet-5';
   fillClasseSelect($('s-classesel'), $('s-classesel').value); renderElevesAdmin();
   renderCloudUI();
+  renderStorage();
 }
+function renderStorage() {
+  const box = $('s-storage'); if (!box) return;
+  const s = storageStats();
+  const pct = Math.min(100, Math.round(s.mo / 5 * 100));
+  box.innerHTML = `💾 Stockage local utilisé : <b>${s.mo.toFixed(1)} Mo</b> / ~5 Mo (${pct} %).${s.inline ? ` <span style="color:var(--amber2,#c47f1a)">${s.inline} PDF encore dans l'ancien stockage — cliquez « 🧹 Libérer de l'espace ».</span>` : ' Les PDF sont stockés hors de cette limite (IndexedDB). 👍'}`;
+}
+$('s-freespace').onclick = async () => {
+  const before = storageStats();
+  await migrateInlinePdfs();
+  const after = storageStats();
+  renderStorage();
+  if (before.inline && !after.inline) alert(`Espace libéré : ${before.inline} PDF déplacé(s) hors de la limite du navigateur. Le message de saturation ne devrait plus apparaître.`);
+  else if (!before.inline) {
+    if (confirm("Aucun ancien PDF à déplacer. Voulez-vous RETIRER les PDF de sujet des devoirs dont la grille est déjà structurée (ils ne servent plus une fois la grille faite) ? Cela libère de l'espace.")) {
+      let n = 0; for (const d of db.devoirs) { if (d.grille && d.sujetPdf) { await pdfDrop(d.sujetPdf); d.sujetPdf = null; n++; } } saveDB(); renderStorage(); alert(n ? `${n} PDF de sujet retiré(s).` : 'Rien à retirer.');
+    }
+  }
+};
 $('s-ton').addEventListener('change', e => { db.profile.ton = e.target.value; saveDB(); });
 $('s-enonc').addEventListener('change', e => { db.profile.enonc = e.target.value; saveDB(); });
 $('s-longueur').addEventListener('change', e => { db.profile.longueur = e.target.value; saveDB(); });
@@ -1646,6 +1705,8 @@ $('s-wipe').onclick = () => { if (!confirm('Effacer TOUTES les données ? Irrév
 
 renderDevoirs();
 initCloud();
+// Déplace en tâche de fond les anciens PDF (base64 inline) vers IndexedDB pour libérer localStorage
+migrateInlinePdfs().then(() => { if (typeof renderStorage === 'function') try { renderStorage(); } catch (e) {} }).catch(() => {});
 </script>
 </body>
 </html>
