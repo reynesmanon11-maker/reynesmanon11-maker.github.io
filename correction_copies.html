@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.8 — rémédiation par devoir (ou bilan global) + export PDF ; observations catégorisées type Ed.ai ; stockage IndexedDB -->
+<!-- Correction·IA v9.9 — remédiations type Ed.ai : ateliers scaffoldés + tableaux comparatifs + exercices de transfert, ancrés sur le sujet et les erreurs réelles -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -173,6 +173,15 @@
   .exlist .ex { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 15px 16px; }
   .exlist .ex .en { font-size: 0.85rem; margin-bottom: 8px; line-height: 1.6; white-space: pre-wrap; }
   .exlist .ex .cor { font-size: 0.78rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 11px; white-space: pre-wrap; line-height: 1.6; }
+  .rtable { border-collapse: collapse; width: 100%; font-size: 0.76rem; margin: 6px 0 10px; }
+  .rtable th, .rtable td { border: 1px solid var(--border2); padding: 7px 9px; text-align: left; vertical-align: top; line-height: 1.45; }
+  .rtable th { background: var(--purple-soft); color: var(--purple); font-weight: 600; }
+  .rsub { font-weight: 700; color: var(--purple); font-size: 0.82rem; margin: 14px 0 6px; }
+  .rsub2 { font-weight: 600; font-size: 0.76rem; color: var(--muted2); text-transform: uppercase; letter-spacing: .02em; margin: 10px 0 4px; }
+  .rlist { margin: 4px 0 8px 18px; font-size: 0.82rem; line-height: 1.6; }
+  .rlist li { margin-bottom: 4px; }
+  .rquote { font-style: italic; font-size: 0.82rem; border-left: 2px solid var(--border2); padding-left: 10px; color: var(--muted2); margin: 4px 0; }
+  .rtip { background: #fff7e8; border: 1px solid #f0dcae; color: #9a6b12; font-size: 0.78rem; padding: 8px 11px; border-radius: 9px; margin: 8px 0; }
   .elrow { display: flex; align-items: center; gap: 8px; padding: 7px 11px; background: var(--surface2); border-radius: 9px; margin-bottom: 6px; font-size: 0.8rem; }
   .elrow .eln { flex: 1; }
 
@@ -203,7 +212,7 @@
   .qopt { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--border2); border-radius: 8px; margin-bottom: 5px; font-size: 0.8rem; }
   .qopt.good { border-color: #b8e6d1; background: #f2fbf7; color: var(--green); font-weight: 600; }
   .qexpl { font-size: 0.76rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; margin-top: 6px; line-height: 1.5; }
-  .coursbox { font-size: 0.85rem; line-height: 1.65; white-space: pre-wrap; }
+  .coursbox { font-size: 0.85rem; line-height: 1.65; }
 
   #printroot { display: none; }
   @media print {
@@ -260,7 +269,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.8</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.9</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -751,19 +760,40 @@ function buildRemediationTool(type) {
     }, required: ['question', 'propositions', 'bonnes_reponses', 'explication'] } };
     req.push('qcm');
   } else if (type === 'cours') {
-    props.resume = { type: 'string', description: "Résumé de cours clair et structuré des notions à revoir (titres, points clés, définitions, exemples). Sauts de ligne autorisés." };
-    req.push('resume');
-  } else { // corriger / entrainer
-    props.exercices = { type: 'array', description: '2 à 4 exercices courts et progressifs.', items: { type: 'object', properties: { enonce: { type: 'string' }, correction: { type: 'string' } }, required: ['enonce', 'correction'] } };
+    props.introduction = { type: 'string', description: "Pourquoi ces notions comptent + ce qui est attendu au niveau visé (2-4 phrases)." };
+    props.tableau_notions = { type: 'array', description: "Tableau comparatif des notions à distinguer (2 à 5 lignes).", items: { type: 'object', properties: {
+      notion: { type: 'string' }, idee_essentielle: { type: 'string' }, indices_documents: { type: 'string', description: "Comment la repérer dans des documents." }, exemple_type: { type: 'string' }, contre_exemple: { type: 'string', description: "Confusion fréquente / ce que ce n'est PAS." }
+    }, required: ['notion', 'idee_essentielle'] } };
+    props.methode = { type: 'array', items: { type: 'string' }, description: "3 à 6 étapes concrètes pour ne plus refaire l'erreur." };
+    props.a_retenir = { type: 'array', items: { type: 'string' }, description: "Points clés à mémoriser." };
+    req.push('introduction', 'tableau_notions');
+  } else if (type === 'corriger') {
+    props.ateliers = { type: 'array', description: "Un atelier par savoir-faire fragile (2 à 4).", items: { type: 'object', properties: {
+      savoir_faire: { type: 'string', description: "Le savoir-faire / la notion retravaillé(e)." },
+      supports: { type: 'array', items: { type: 'string' }, description: "1 à 3 extraits de documents du sujet utiles (cite le document)." },
+      extrait_copie: { type: 'string', description: "Un extrait de copie ERRONÉ (réel si fourni, sinon typique)." },
+      erreur: { type: 'string', description: "Le diagnostic précis de l'erreur." },
+      consignes: { type: 'array', items: { type: 'string' }, description: "2 à 4 sous-questions scaffoldées et progressives." },
+      astuce: { type: 'string' },
+      corrige: { type: 'string', description: "La correction attendue de l'extrait." }
+    }, required: ['savoir_faire', 'extrait_copie', 'erreur', 'consignes', 'corrige'] } };
+    req.push('ateliers');
+  } else { // entrainer
+    props.exercices = { type: 'array', description: "2 à 4 exercices de transfert (nouveaux contextes).", items: { type: 'object', properties: {
+      enonce: { type: 'string', description: "Un nouveau contexte mobilisant le même savoir-faire." },
+      tableau: { type: 'object', description: "Données chiffrées optionnelles.", properties: { colonnes: { type: 'array', items: { type: 'string' } }, lignes: { type: 'array', items: { type: 'array', items: { type: 'string' } } } } },
+      questions: { type: 'array', items: { type: 'string' }, description: "2 à 4 questions progressives et scaffoldées." },
+      corrige: { type: 'string', description: "Corrigé détaillé." }
+    }, required: ['enonce', 'questions', 'corrige'] } };
     req.push('exercices');
   }
   return { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: props, required: req } };
 }
 const ACT_PROMPTS = {
-  corriger: "Type : « Corriger ses erreurs ». Propose 2 à 4 courts exercices présentant des affirmations/raisonnements ERRONÉS typiques (inspirés des erreurs à travailler). Pour chacun, l'élève doit repérer l'erreur, la corriger et l'expliquer. Le champ correction donne l'erreur, la correction attendue et l'explication.",
-  qcm: "Type : « Réviser avec un QCM ». Propose 6 à 10 questions à choix multiples ciblant les notions à travailler, avec 3-4 propositions chacune, la ou les bonnes réponses (index), et une courte explication. Vise à créer des automatismes (vocabulaire, définitions, applications).",
-  cours: "Type : « Revoir son cours ». Rédige un résumé de cours clair et structuré (titres, définitions, points clés, un ou deux exemples) sur les notions à revoir. Pas d'exercices : c'est une fiche de révision.",
-  entrainer: "Type : « S'entraîner ». Propose 2 à 4 exercices d'application progressifs sur les savoir-faire à retravailler, avec corrigé détaillé pour chacun."
+  corriger: "Type : « Corriger ses erreurs ». Conçois UN ATELIER PAR savoir-faire/notion fragile (2 à 4 ateliers). Chaque atelier suit CE format précis, ancré sur le devoir réel : (1) le savoir-faire travaillé ; (2) supports = 1 à 3 extraits de documents du sujet réellement utiles (cite le document, ex « Document 3 : … ») ; (3) extrait_copie = un extrait de copie ERRONÉ — réutilise un vrai extrait erroné de l'élève si on t'en fournit, sinon un extrait typique ; (4) erreur = le diagnostic précis ; (5) consignes = 2 à 4 sous-questions SCAFFOLDÉES et progressives (ex : « (a) repère dans la consigne les attendus à traiter », « (b) à partir de l'extrait, dis ce qui est déjà traité et ce qui manque », « prépare un brouillon corrigé sous la forme … ») ; (6) une astuce ; (7) le corrigé attendu. Reste FIDÈLE au sujet et aux documents fournis.",
+  qcm: "Type : « Réviser avec un QCM ». Propose 6 à 10 questions à choix multiples ciblant PRÉCISÉMENT les notions fragiles et les confusions repérées (ex : distinguer sélection naturelle et dérive génétique), avec 3-4 propositions, la/les bonnes réponses (index) et une courte explication. Des questions qui cassent les confusions, pas du par-cœur.",
+  cours: "Type : « Revoir son cours ». Produis une fiche STRUCTURÉE (pas un simple pavé) : (1) introduction = pourquoi ces notions comptent + ce qui est attendu au niveau visé ; (2) tableau_notions = un TABLEAU COMPARATIF des notions à distinguer, avec pour chaque ligne : notion, idée essentielle, comment la repérer dans les documents, un exemple type, et un contre-exemple/confusion fréquente à éviter ; (3) methode = 3 à 6 étapes concrètes pour ne plus refaire l'erreur ; (4) a_retenir = points clés. Cible les confusions réellement repérées dans les copies.",
+  entrainer: "Type : « S'entraîner ». Propose 2 à 4 exercices de TRANSFERT : de NOUVEAUX contextes/scénarios (différents du sujet d'origine) mobilisant le MÊME savoir-faire fragile. Chaque exercice : un énoncé avec, si utile, un petit tableau de données chiffrées ; puis 2 à 4 questions progressives et scaffoldées (ex : choisir la bonne problématique parmi des formulations et justifier, puis exploiter les données, puis conclure) ; enfin un corrigé détaillé. Objectif : réinvestir la compétence dans un cas neuf."
 };
 
 let mammothPromise = null;
@@ -1507,35 +1537,82 @@ $('m-generer').onclick = async () => {
   const scopeTxt = dv ? `Ces notions fragiles proviennent du devoir « ${dv.nom} » : recentre l'activité sur les notions de CE devoir.` : `Ces notions fragiles sont un BILAN GLOBAL sur l'ensemble des devoirs de l'année : propose une remédiation transversale sur les non-acquis persistants.`;
   const cls = classeById($('m-classe').value) || {};
   const niveau = (dv && (dv.niveau ?? '') !== '') ? dv.niveau : (cls.niveau || '');
+  // Ancrage sur le contenu réel : erreurs verbatim observées + sujet/documents du devoir
+  const copies = remedCopies();
+  const erreurs = copies.flatMap(c => (c.observations || []).filter(o => o.type === 'erreur').map(o => `• [${o.categorie || 'erreur'}] « ${o.citation} » → ${o.commentaire}`));
+  const erreursTxt = erreurs.length ? `\n\nERREURS RÉELLEMENT REPÉRÉES dans les copies (réutilise-les comme extraits erronés à corriger, et cible ces confusions précises) :\n${[...new Set(erreurs)].slice(0, 12).join('\n')}` : '';
+  const userContent = [{ type: 'text', text: `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${matiere ? ` en ${matiere}` : ''}${niveau ? ` (niveau ${niveauLabel(niveau)})` : ''}.\n\n${scopeTxt}\n\nCompétences / notions fragiles à retravailler (issues de la correction) :\n${cible}${erreursTxt}` }];
+  if (dv) {
+    const sujetB64 = await pdfB64(dv.sujetPdf);
+    if (sujetB64) { userContent.push({ type: 'text', text: "\nSUJET / DOCUMENTS du devoir (ancre les exercices dessus) :" }); userContent.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: sujetB64 } }); }
+    else if (dv.sujet) userContent.push({ type: 'text', text: "\nSUJET / DOCUMENTS du devoir (ancre les exercices dessus) :\n" + dv.sujet });
+  }
   $('m-generer').disabled = true; $('m-loading').style.display = 'flex'; $('m-result').style.display = 'none';
   try {
     const result = await callClaude({
-      system: `Tu conçois des activités de remédiation pédagogiques, ciblées et adaptées au niveau des élèves. ${ACT_PROMPTS[actType]} ${niveau ? niveauDirectives(niveau) : ''} ${profileDirectives()} Renseigne uniquement les champs de l'outil (texte simple). Utilise generer_activite.`,
-      userContent: [{ type: 'text', text: `Conçois une activité de remédiation ${isEleve && el ? `individuelle pour ${el.nom}` : `pour la classe ${classe ? classe.nom : ''}`}${matiere ? ` en ${matiere}` : ''}${niveau ? ` (niveau ${niveauLabel(niveau)})` : ''}.\n\n${scopeTxt}\n\nCompétences / notions fragiles à retravailler (issues de la correction) :\n${cible}` }],
-      tool: buildRemediationTool(actType)
+      system: `Tu conçois des activités de remédiation pédagogiques de haute qualité, ciblées, scaffoldées et ANCRÉES sur le devoir réel et les erreurs réellement commises. ${ACT_PROMPTS[actType]} ${niveau ? niveauDirectives(niveau) : ''} ${profileDirectives()} Renseigne uniquement les champs de l'outil (texte simple, sans balise). Utilise generer_activite.`,
+      userContent,
+      tool: buildRemediationTool(actType), maxTokens: 4096
     });
     renderActivite(result);
     $('m-result').style.display = ''; $('m-result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   } catch (e) { errBox.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
   finally { $('m-generer').disabled = false; $('m-loading').style.display = 'none'; }
 };
+function ctxt(s) { return esc(cleanText(s)); }
+function renderNotionsTable(rows) {
+  if (!rows || !rows.length) return '';
+  const cols = [['notion', 'Notion'], ['idee_essentielle', 'Idée essentielle'], ['indices_documents', 'Indices dans les documents'], ['exemple_type', 'Exemple type'], ['contre_exemple', 'Contre-exemple / à ne pas confondre']];
+  const used = cols.filter(([k]) => rows.some(r => (r[k] || '').trim()));
+  return `<div style="overflow-x:auto"><table class="rtable"><thead><tr>${used.map(([, l]) => `<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${used.map(([k]) => `<td>${ctxt(r[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function renderDataTable(t) {
+  if (!t || !((t.colonnes || []).length) || !((t.lignes || []).length)) return '';
+  return `<div style="overflow-x:auto"><table class="rtable"><thead><tr>${t.colonnes.map(c => `<th>${ctxt(c)}</th>`).join('')}</tr></thead><tbody>${t.lignes.map(l => `<tr>${(l || []).map(c => `<td>${ctxt(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+}
 function renderActivite(result) {
   $('m-titre').textContent = cleanText(result.titre);
   $('m-objectif').textContent = cleanText(result.objectif);
   $('m-consignes').textContent = cleanText(result.consignes);
   const cours = $('m-cours'), qcm = $('m-qcm'), ex = $('m-exercices');
-  cours.style.display = 'none'; qcm.style.display = 'none'; ex.innerHTML = '';
-  if (result.resume) {
-    cours.style.display = ''; cours.textContent = cleanText(result.resume);
-  } else if (result.qcm && result.qcm.length) {
+  cours.style.display = 'none'; cours.innerHTML = ''; qcm.style.display = 'none'; qcm.innerHTML = ''; ex.innerHTML = '';
+  // REVOIR SON COURS (structuré) ou ancien résumé
+  if (result.tableau_notions || result.introduction || result.resume) {
+    cours.style.display = '';
+    let h = '';
+    if (result.introduction) h += `<p style="margin:0 0 10px">${ctxt(result.introduction)}</p>`;
+    if (result.resume) h += `<div style="white-space:pre-wrap">${ctxt(result.resume)}</div>`;
+    if (result.tableau_notions && result.tableau_notions.length) h += `<div class="rsub">À retenir — distinguer les notions</div>` + renderNotionsTable(result.tableau_notions);
+    if (result.methode && result.methode.length) h += `<div class="rsub">Méthode pour ne plus se tromper</div><ol class="rlist">${result.methode.map(m => `<li>${ctxt(m)}</li>`).join('')}</ol>`;
+    if (result.a_retenir && result.a_retenir.length) h += `<div class="rsub">À retenir</div><ul class="rlist">${result.a_retenir.map(m => `<li>${ctxt(m)}</li>`).join('')}</ul>`;
+    cours.innerHTML = h;
+  }
+  // QCM
+  if (result.qcm && result.qcm.length) {
     qcm.style.display = '';
     qcm.innerHTML = result.qcm.map((question, qi) => {
       const bonnes = new Set((question.bonnes_reponses || []).map(Number));
-      const opts = (question.propositions || []).map((p, i) => `<div class="qopt${bonnes.has(i) ? ' good' : ''}">${bonnes.has(i) ? '✅' : '◯'} ${esc(cleanText(p))}</div>`).join('');
-      return `<div class="qcard"><div class="qq">${qi + 1}. ${esc(cleanText(question.question))}</div>${opts}${question.explication ? `<div class="qexpl">${esc(cleanText(question.explication))}</div>` : ''}</div>`;
+      const opts = (question.propositions || []).map((p, i) => `<div class="qopt${bonnes.has(i) ? ' good' : ''}">${bonnes.has(i) ? '✅' : '◯'} ${ctxt(p)}</div>`).join('');
+      return `<div class="qcard"><div class="qq">${qi + 1}. ${ctxt(question.question)}</div>${opts}${question.explication ? `<div class="qexpl">${ctxt(question.explication)}</div>` : ''}</div>`;
     }).join('');
-  } else {
-    ex.innerHTML = (result.exercices || []).map((e, i) => `<div class="ex"><div class="en"><b>Exercice ${i + 1}.</b> ${esc(cleanText(e.enonce))}</div><div class="cor"><b>Corrigé :</b> ${esc(cleanText(e.correction))}</div></div>`).join('');
+  }
+  // CORRIGER SES ERREURS (ateliers scaffoldés)
+  if (result.ateliers && result.ateliers.length) {
+    ex.innerHTML = result.ateliers.map((a, i) => `<div class="ex">
+      <div class="en"><b>Atelier ${i + 1} — ${ctxt(a.savoir_faire)}</b></div>
+      ${(a.supports && a.supports.length) ? `<div class="rsub2">Supports</div><ul class="rlist">${a.supports.map(s => `<li>${ctxt(s)}</li>`).join('')}</ul>` : ''}
+      <div class="rsub2">Extrait de copie à analyser</div><div class="rquote">« ${ctxt(a.extrait_copie)} »</div>
+      ${a.erreur ? `<div class="rsub2">Ce qui ne va pas</div><div style="font-size:0.8rem">${ctxt(a.erreur)}</div>` : ''}
+      <div class="rsub2">Consignes</div><ol class="rlist">${(a.consignes || []).map(c => `<li>${ctxt(c)}</li>`).join('')}</ol>
+      ${a.astuce ? `<div class="rtip">💡 ${ctxt(a.astuce)}</div>` : ''}
+      <div class="cor"><b>Corrigé :</b> ${ctxt(a.corrige)}</div></div>`).join('');
+  } else if (result.exercices && result.exercices.length) {
+    // S'ENTRAÎNER (transfert, questions scaffoldées) ou ancien format {enonce, correction}
+    ex.innerHTML = result.exercices.map((e, i) => `<div class="ex">
+      <div class="en"><b>Exercice ${i + 1}.</b> ${ctxt(e.enonce)}</div>
+      ${renderDataTable(e.tableau)}
+      ${(e.questions && e.questions.length) ? `<div class="rsub2">Questions</div><ol class="rlist">${e.questions.map(q => `<li>${ctxt(q)}</li>`).join('')}</ol>` : ''}
+      <div class="cor"><b>Corrigé :</b> ${ctxt(e.corrige || e.correction)}</div></div>`).join('');
   }
 }
 function buildRemedDoc() {
