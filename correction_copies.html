@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.9 — remédiations type Ed.ai : ateliers scaffoldés + tableaux comparatifs + exercices de transfert, ancrés sur le sujet et les erreurs réelles -->
+<!-- Correction·IA v9.10 — remédiation : fiche ÉLÈVE par défaut (réponses masquées) + corrigé prof masquable ; ateliers/tableaux/transfert ancrés Ed.ai -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -210,8 +210,14 @@
   .qcard { background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
   .qcard .qq { font-size: 0.85rem; font-weight: 600; margin-bottom: 8px; }
   .qopt { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--border2); border-radius: 8px; margin-bottom: 5px; font-size: 0.8rem; }
-  .qopt.good { border-color: #b8e6d1; background: #f2fbf7; color: var(--green); font-weight: 600; }
+  .qopt::before { content: '◯'; color: var(--muted2); flex-shrink: 0; }
+  /* réponses masquées par défaut (fiche élève) — révélées seulement en mode corrigé */
+  .show-corrige .qopt.good { border-color: #b8e6d1; background: #f2fbf7; color: var(--green); font-weight: 600; }
+  .show-corrige .qopt.good::before { content: '✅'; }
   .qexpl { font-size: 0.76rem; color: var(--muted2); border-left: 2px solid var(--green); padding-left: 10px; margin-top: 6px; line-height: 1.5; }
+  .corrige-block { display: none; }
+  .show-corrige .corrige-block { display: block; }
+  .corrige-tag { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .03em; color: var(--green); margin-top: 8px; }
   .coursbox { font-size: 0.85rem; line-height: 1.65; }
 
   #printroot { display: none; }
@@ -269,7 +275,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.9</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.10</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -463,6 +469,9 @@
       <div id="m-error"></div>
     </div>
     <div class="card" id="m-result" style="display:none">
+      <div class="row noprint" style="justify-content:flex-end; margin-bottom:6px">
+        <label style="display:flex; align-items:center; gap:7px; font-size:0.8rem; cursor:pointer; user-select:none"><input type="checkbox" id="m-showcorrige"> 🔑 Afficher le corrigé (prof)</label>
+      </div>
       <h3 id="m-titre"></h3>
       <div class="sub" id="m-objectif"></div>
       <p id="m-consignes" style="font-size:0.85rem; line-height:1.6; margin-bottom:14px"></p>
@@ -1571,6 +1580,7 @@ function renderDataTable(t) {
   return `<div style="overflow-x:auto"><table class="rtable"><thead><tr>${t.colonnes.map(c => `<th>${ctxt(c)}</th>`).join('')}</tr></thead><tbody>${t.lignes.map(l => `<tr>${(l || []).map(c => `<td>${ctxt(c)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function renderActivite(result) {
+  $('m-showcorrige').checked = false; $('m-result').classList.remove('show-corrige'); // démarre en fiche élève (corrigé masqué)
   $('m-titre').textContent = cleanText(result.titre);
   $('m-objectif').textContent = cleanText(result.objectif);
   $('m-consignes').textContent = cleanText(result.consignes);
@@ -1592,8 +1602,8 @@ function renderActivite(result) {
     qcm.style.display = '';
     qcm.innerHTML = result.qcm.map((question, qi) => {
       const bonnes = new Set((question.bonnes_reponses || []).map(Number));
-      const opts = (question.propositions || []).map((p, i) => `<div class="qopt${bonnes.has(i) ? ' good' : ''}">${bonnes.has(i) ? '✅' : '◯'} ${ctxt(p)}</div>`).join('');
-      return `<div class="qcard"><div class="qq">${qi + 1}. ${ctxt(question.question)}</div>${opts}${question.explication ? `<div class="qexpl">${ctxt(question.explication)}</div>` : ''}</div>`;
+      const opts = (question.propositions || []).map((p, i) => `<div class="qopt${bonnes.has(i) ? ' good' : ''}">${ctxt(p)}</div>`).join('');
+      return `<div class="qcard"><div class="qq">${qi + 1}. ${ctxt(question.question)}</div>${opts}${question.explication ? `<div class="corrige-block"><div class="corrige-tag">Corrigé</div><div class="qexpl">${ctxt(question.explication)}</div></div>` : ''}</div>`;
     }).join('');
   }
   // CORRIGER SES ERREURS (ateliers scaffoldés)
@@ -1602,21 +1612,22 @@ function renderActivite(result) {
       <div class="en"><b>Atelier ${i + 1} — ${ctxt(a.savoir_faire)}</b></div>
       ${(a.supports && a.supports.length) ? `<div class="rsub2">Supports</div><ul class="rlist">${a.supports.map(s => `<li>${ctxt(s)}</li>`).join('')}</ul>` : ''}
       <div class="rsub2">Extrait de copie à analyser</div><div class="rquote">« ${ctxt(a.extrait_copie)} »</div>
-      ${a.erreur ? `<div class="rsub2">Ce qui ne va pas</div><div style="font-size:0.8rem">${ctxt(a.erreur)}</div>` : ''}
       <div class="rsub2">Consignes</div><ol class="rlist">${(a.consignes || []).map(c => `<li>${ctxt(c)}</li>`).join('')}</ol>
       ${a.astuce ? `<div class="rtip">💡 ${ctxt(a.astuce)}</div>` : ''}
-      <div class="cor"><b>Corrigé :</b> ${ctxt(a.corrige)}</div></div>`).join('');
+      <div class="corrige-block"><div class="corrige-tag">Corrigé</div>${a.erreur ? `<div style="font-size:0.8rem;margin-bottom:4px"><b>Erreur :</b> ${ctxt(a.erreur)}</div>` : ''}<div class="cor">${ctxt(a.corrige)}</div></div></div>`).join('');
   } else if (result.exercices && result.exercices.length) {
     // S'ENTRAÎNER (transfert, questions scaffoldées) ou ancien format {enonce, correction}
     ex.innerHTML = result.exercices.map((e, i) => `<div class="ex">
       <div class="en"><b>Exercice ${i + 1}.</b> ${ctxt(e.enonce)}</div>
       ${renderDataTable(e.tableau)}
       ${(e.questions && e.questions.length) ? `<div class="rsub2">Questions</div><ol class="rlist">${e.questions.map(q => `<li>${ctxt(q)}</li>`).join('')}</ol>` : ''}
-      <div class="cor"><b>Corrigé :</b> ${ctxt(e.corrige || e.correction)}</div></div>`).join('');
+      <div class="corrige-block"><div class="corrige-tag">Corrigé</div><div class="cor">${ctxt(e.corrige || e.correction)}</div></div></div>`).join('');
   }
 }
+$('m-showcorrige').addEventListener('change', e => $('m-result').classList.toggle('show-corrige', e.target.checked));
 function buildRemedDoc() {
   const el = document.createElement('div');
+  if ($('m-showcorrige').checked) el.className = 'show-corrige';
   el.style.cssText = "width:760px;padding:26px 30px;background:#fff;color:#1a1a2e;font-family:'Sora',sans-serif;box-sizing:border-box";
   el.innerHTML = `<div style="border-bottom:2px solid #6c5ce7;padding-bottom:10px;margin-bottom:14px">
       <div style="font-size:16pt;font-weight:700;color:#5a4bd8">${esc($('m-titre').textContent)}</div>
@@ -1633,7 +1644,7 @@ $('m-pdf').onclick = async () => {
     const el = buildRemedDoc();
     const holder = document.createElement('div'); holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:800px;background:#fff'; holder.appendChild(el); document.body.appendChild(holder);
     const prev = window.scrollY; window.scrollTo(0, 0);
-    const fn = `Remédiation - ${$('m-titre').textContent || 'activité'}.pdf`.replace(/[\\/:*?"<>|]/g, '-');
+    const fn = `Remédiation ${$('m-showcorrige').checked ? '(corrigé prof)' : '(élève)'} - ${$('m-titre').textContent || 'activité'}.pdf`.replace(/[\\/:*?"<>|]/g, '-');
     try { await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: fn, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 820, scrollX: 0, scrollY: 0, x: 0, y: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(el).save(); }
     finally { document.body.removeChild(holder); window.scrollTo(0, prev); }
   } catch (e) {
