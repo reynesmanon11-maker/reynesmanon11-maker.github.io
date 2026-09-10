@@ -1,0 +1,2632 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratoire virtuel — Biologie et physiologie végétales</title>
+<meta name="description" content="Simulations de travaux pratiques de biologie végétale : ExAO photosynthèse et respiration, tests biochimiques, pigments, cinétiques enzymatiques, histologie. D'après R. Pratt, Expérimentation en biologie et physiologie végétales.">
+<meta name="theme-color" content="#b15f2c">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Laboratoire virtuel de biologie végétale
+   Page autonome : aucune bibliothèque externe, tout est en JS natif.
+   ============================================================ */
+*{ box-sizing:border-box; margin:0; padding:0 }
+:root{
+  --fond:#f5f2ed; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
+  --ligne:#e4dfd5; --ligne-forte:#d3ccbe;
+  --accent:#b15f2c; --accent-clair:#cf8047; --accent-pale:#f6e9df;
+  --vert:#3f7d5f; --vert-pale:#e6f1ea;
+  --bleu:#2f6ba8; --bleu-pale:#e5eef7;
+  --violet:#6e5fa8; --or:#c08a1e; --rouge:#c0392b; --rose:#d46a8b;
+  --ombre:0 1px 2px rgba(35,32,28,.05), 0 8px 24px rgba(35,32,28,.06);
+  --r:14px;
+}
+html{ scroll-behavior:smooth }
+body{
+  font-family:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--fond); color:var(--encre); line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:var(--accent); text-decoration:none }
+a:hover{ text-decoration:underline }
+button{ font:inherit; color:inherit; cursor:pointer }
+ul{ list-style:none }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+h1,h2,h3,h4{ line-height:1.25; font-weight:700; letter-spacing:-.01em }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0) }
+
+/* ---------- en-tête ---------- */
+header.top{
+  position:sticky; top:0; z-index:60; background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--ligne);
+}
+.top-bar{ max-width:1180px; margin-inline:auto; padding:10px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
+.marque{ display:flex; align-items:baseline; gap:10px; min-width:0 }
+.marque b{ font-size:15px }
+.marque i{ font-style:normal; font-size:11px; color:var(--gris-clair); white-space:nowrap }
+.top-spacer{ flex:1 }
+.top-actions{ display:flex; gap:8px; flex-wrap:wrap }
+nav.onglets{ max-width:1180px; margin-inline:auto; padding:0 12px 8px; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin }
+nav.onglets button{
+  border:1px solid transparent; background:none; padding:7px 13px; border-radius:999px;
+  font-size:13px; font-weight:500; color:var(--gris); white-space:nowrap;
+}
+nav.onglets button:hover{ background:var(--fond); color:var(--encre) }
+nav.onglets button[aria-selected="true"]{ background:var(--encre); color:#fff }
+
+/* ---------- boutons ---------- */
+.btn{
+  border:1px solid var(--ligne-forte); background:var(--papier); border-radius:10px;
+  padding:7px 13px; font-size:12.5px; font-weight:500; color:var(--encre);
+  display:inline-flex; align-items:center; gap:7px; transition:background .15s, border-color .15s, transform .1s;
+}
+.btn:hover{ background:var(--fond); border-color:var(--gris-clair) }
+.btn:active{ transform:translateY(1px) }
+.btn.primaire{ background:var(--accent); border-color:var(--accent); color:#fff }
+.btn.primaire:hover{ background:var(--accent-clair); border-color:var(--accent-clair) }
+.btn.sombre{ background:var(--encre); border-color:var(--encre); color:#fff }
+.btn.sombre:hover{ background:#3a352e }
+.btn[disabled]{ opacity:.45; cursor:not-allowed }
+.btn.mini{ padding:4px 9px; font-size:11.5px; border-radius:8px }
+
+/* ---------- structure ---------- */
+main{ max-width:1180px; margin-inline:auto; padding:22px 18px 90px }
+.module{ display:none }
+.module.actif{ display:block; animation:apparait .35s ease both }
+@keyframes apparait{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+.intro-mod{ margin-bottom:20px }
+.intro-mod h2{ font-size:26px; margin-bottom:6px }
+.intro-mod p{ color:var(--gris); font-size:14px; max-width:70ch }
+.ref{ display:inline-block; margin-top:8px; font-size:11.5px; color:var(--accent);
+  background:var(--accent-pale); border-radius:999px; padding:3px 10px; font-weight:500 }
+
+.carte{ background:var(--papier); border:1px solid var(--ligne); border-radius:var(--r); box-shadow:var(--ombre); padding:18px }
+.carte + .carte{ margin-top:16px }
+.carte h3{ font-size:16px; margin-bottom:4px }
+.carte h3 + .sous{ color:var(--gris); font-size:12.5px; margin-bottom:14px }
+.grille{ display:grid; gap:16px }
+@media(min-width:900px){ .grille.deux{ grid-template-columns:minmax(0,340px) minmax(0,1fr) } .grille.deux-eg{ grid-template-columns:1fr 1fr } }
+
+/* ---------- réglages ---------- */
+.reglage{ margin-bottom:14px }
+.reglage > label, .lgd{ display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  font-size:12.5px; font-weight:500; margin-bottom:6px }
+.reglage .val{ font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; font-size:12.5px }
+input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:99px;
+  background:var(--ligne-forte); outline:none }
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:17px; height:17px; border-radius:50%;
+  background:var(--papier); border:2px solid var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.2); cursor:pointer }
+input[type=range]::-moz-range-thumb{ width:15px; height:15px; border-radius:50%; background:var(--papier);
+  border:2px solid var(--accent); cursor:pointer }
+select, input[type=text], textarea{
+  font:inherit; font-size:13px; width:100%; padding:8px 10px; border:1px solid var(--ligne-forte);
+  border-radius:10px; background:var(--papier); color:var(--encre)
+}
+textarea{ resize:vertical; line-height:1.5 }
+.segment{ display:flex; gap:4px; flex-wrap:wrap; background:var(--fond); padding:4px; border-radius:11px; border:1px solid var(--ligne) }
+.segment button{ flex:1 1 auto; border:none; background:none; padding:6px 10px; border-radius:8px;
+  font-size:12px; font-weight:500; color:var(--gris); white-space:nowrap }
+.segment button[aria-pressed="true"]{ background:var(--papier); color:var(--encre); box-shadow:0 1px 3px rgba(0,0,0,.08) }
+.inter{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500; cursor:pointer;
+  padding:9px 12px; border:1px solid var(--ligne-forte); border-radius:11px; background:var(--papier) }
+.inter input{ display:none }
+.piste{ width:38px; height:21px; border-radius:99px; background:var(--ligne-forte); position:relative; transition:background .2s; flex:none }
+.piste::after{ content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%;
+  background:#fff; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.25) }
+.inter input:checked + .piste{ background:var(--or) }
+.inter input:checked + .piste::after{ transform:translateX(17px) }
+
+/* ---------- divers ---------- */
+.note{ background:var(--fond); border-left:3px solid var(--accent-clair); border-radius:0 10px 10px 0;
+  padding:11px 14px; font-size:12.5px; color:#4a453d; margin-top:14px }
+.note b{ color:var(--encre) }
+.badge{ display:inline-block; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;
+  padding:3px 8px; border-radius:999px; background:var(--fond); color:var(--gris) }
+.badge.vert{ background:var(--vert-pale); color:var(--vert) }
+.badge.bleu{ background:var(--bleu-pale); color:var(--bleu) }
+.badge.orange{ background:var(--accent-pale); color:var(--accent) }
+.mesures{ display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:9px; margin-bottom:14px }
+.mesure{ background:var(--fond); border-radius:11px; padding:9px 11px; border:1px solid var(--ligne) }
+.mesure .t{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600 }
+.mesure .v{ font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.3 }
+.mesure .u{ font-size:11px; color:var(--gris); font-weight:500 }
+table.tab{ width:100%; border-collapse:collapse; font-size:12.5px }
+table.tab th, table.tab td{ text-align:left; padding:7px 9px; border-bottom:1px solid var(--ligne) }
+table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair) }
+.scroll-x{ overflow-x:auto }
+canvas{ display:block; max-width:100%; touch-action:pan-y }
+#ex-enceinte,#ex-graphe,#ex-serie,#pi-spectre,#pi-fluo,#en-graphe,#en-gamme,#en-serie,#hi-coupe{ width:100% }
+
+/* ---------- catalogue ---------- */
+.filtres{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px }
+.filtres input[type=text]{ max-width:260px }
+.partie-titre{ display:flex; align-items:center; gap:10px; margin:26px 0 10px; font-size:13px;
+  text-transform:uppercase; letter-spacing:.06em; color:var(--gris-clair); font-weight:600 }
+.partie-titre::after{ content:''; flex:1; height:1px; background:var(--ligne) }
+.liste-exp{ display:grid; gap:8px }
+.exp{ background:var(--papier); border:1px solid var(--ligne); border-radius:11px; padding:10px 14px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.exp .num{ font-variant-numeric:tabular-nums; font-weight:700; color:var(--accent-clair); font-size:12.5px; min-width:34px }
+.exp .titre{ flex:1; min-width:180px; font-size:13.5px 	}
+.exp .page{ font-size:11.5px; color:var(--gris-clair); font-variant-numeric:tabular-nums }
+.exp.simulable{ border-color:var(--accent-clair); background:linear-gradient(90deg,var(--accent-pale),var(--papier) 70%) }
+
+/* ---------- carnet ---------- */
+#carnet{ position:fixed; right:0; bottom:0; top:0; width:min(420px,100%); background:var(--papier);
+  border-left:1px solid var(--ligne); box-shadow:-8px 0 30px rgba(35,32,28,.12); z-index:80;
+  transform:translateX(100%); transition:transform .3s cubic-bezier(.22,1,.36,1); display:flex; flex-direction:column }
+#carnet.ouvert{ transform:none }
+#carnet .cn-tete{ padding:16px 18px; border-bottom:1px solid var(--ligne); display:flex; align-items:center; gap:10px }
+#carnet .cn-corps{ flex:1; overflow-y:auto; padding:16px 18px }
+#carnet .cn-pied{ padding:12px 18px; border-top:1px solid var(--ligne); display:flex; gap:8px; flex-wrap:wrap }
+#carnet textarea{ min-height:120px; margin-bottom:14px }
+.flottant{ position:fixed; right:18px; bottom:18px; z-index:70; box-shadow:0 6px 20px rgba(35,32,28,.18) }
+
+/* ---------- impression ---------- */
+@media print{
+  header.top, nav.onglets, .flottant, #carnet, .no-print{ display:none !important }
+  body{ background:#fff } main{ padding:0 } .carte{ box-shadow:none; break-inside:avoid }
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-bar">
+    <div class="marque">
+      <b>Laboratoire virtuel — biologie végétale</b>
+      <i>d'après R. Pratt</i>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="top-actions">
+      <button class="btn mini" id="btn-carnet">Carnet de manip</button>
+      <a class="btn mini" href="../index.html">Retour au site</a>
+    </div>
+  </div>
+  <nav class="onglets" role="tablist" aria-label="Modules du laboratoire">
+    <button role="tab" data-mod="accueil"    aria-selected="true">Accueil &amp; catalogue</button>
+    <button role="tab" data-mod="exao"       aria-selected="false">ExAO — photosynthèse &amp; respiration</button>
+    <button role="tab" data-mod="biochimie"  aria-selected="false">Paillasse biochimie</button>
+    <button role="tab" data-mod="pigments"   aria-selected="false">Pigments</button>
+    <button role="tab" data-mod="enzymes"    aria-selected="false">Cinétiques enzymatiques</button>
+    <button role="tab" data-mod="histologie" aria-selected="false">Histologie</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- =========================================================
+     MODULE — ACCUEIL & CATALOGUE
+     ========================================================= -->
+<section class="module actif" id="mod-accueil" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Cinq paillasses virtuelles</h2>
+    <p>Les élèves choisissent les conditions expérimentales, lancent la manipulation et observent
+       le résultat : virage d'un réactif, migration des pigments, courbes ExAO qui se déforment
+       selon l'éclairement, la température ou la teneur en CO<sub>2</sub>. Chaque module reprend
+       le protocole d'un TP de l'ouvrage de Roger Pratt, avec des questions d'exploitation.</p>
+    <span class="ref">Expérimentation en biologie et physiologie végétales — R. Pratt</span>
+  </div>
+
+  <div class="grille" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    <div class="carte">
+      <span class="badge bleu">Parties III &amp; IV</span>
+      <h3 style="margin-top:8px">ExAO — photosynthèse &amp; respiration</h3>
+      <p class="sous">Enceinte fermée, sonde à O<sub>2</sub> et sonde à CO<sub>2</sub>. Lumière / obscurité,
+         intensité, filtre coloré, température, CO<sub>2</sub> disponible. Courbes en direct,
+         point de compensation, spectre d'action.</p>
+      <button class="btn primaire" data-va="exao">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge orange">Partie I — 1, 2, 3, 5</span>
+      <h3 style="margin-top:8px">Paillasse biochimie</h3>
+      <p class="sous">Quinze échantillons, dix-huit réactifs. Lugol, liqueur de Fehling, biuret,
+         Soudan III, phloroglucine… Mode « échantillon mystère » pour un vrai raisonnement d'identification.</p>
+      <button class="btn primaire" data-va="biochimie">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge vert">Partie I — 4</span>
+      <h3 style="margin-top:8px">Pigments photosynthétiques</h3>
+      <p class="sous">Chromatographie sur papier animée avec calcul des R<sub>f</sub>, spectres d'absorption
+         superposables, fluorescence de la chlorophylle, algue rouge.</p>
+      <button class="btn primaire" data-va="pigments">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge orange">Partie I — 6</span>
+      <h3 style="margin-top:8px">Cinétiques enzymatiques</h3>
+      <p class="sous">Amylase, saccharase, peroxydase. Température, pH, concentrations.
+         Gamme de tubes au lugol, courbes de cinétique et représentation v = f([S]).</p>
+      <button class="btn primaire" data-va="enzymes">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge vert">Partie II</span>
+      <h3 style="margin-top:8px">Histologie des plantes</h3>
+      <p class="sous">Coupes transversales schématiques : tige de dicotylédone, d'iris, feuille, racine.
+         Colorations au carmin-vert d'iode ou à la phloroglucine, mode « légender la coupe ».</p>
+      <button class="btn primaire" data-va="histologie">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte" style="background:var(--encre); color:#fff; border-color:var(--encre)">
+      <span class="badge" style="background:rgba(255,255,255,.14); color:#fff">Pour la classe</span>
+      <h3 style="margin-top:8px">Comment s'en servir</h3>
+      <p class="sous" style="color:rgba(255,255,255,.7)">
+         En démonstration au vidéoprojecteur pour formuler une hypothèse, en autonomie sur tablette
+         avant le TP réel, ou en remédiation après. Le carnet de manip garde les observations
+         de l'élève et s'imprime en fin de séance.</p>
+      <button class="btn" id="btn-carnet-2" style="background:#fff; border-color:#fff">Voir le carnet</button>
+    </div>
+  </div>
+
+  <div class="partie-titre">Sommaire des travaux pratiques de l'ouvrage</div>
+  <div class="filtres no-print">
+    <input type="text" id="cat-recherche" placeholder="Rechercher : amidon, Fehling, lignine…" aria-label="Rechercher une expérience">
+    <div class="segment" id="cat-filtre">
+      <button aria-pressed="true"  data-p="tout">Tout</button>
+      <button aria-pressed="false" data-p="I">I. Biochimie</button>
+      <button aria-pressed="false" data-p="II">II. Histologie</button>
+      <button aria-pressed="false" data-p="III">III. Respiration</button>
+      <button aria-pressed="false" data-p="IV">IV. Photosynthèse</button>
+      <button aria-pressed="false" data-p="sim">Simulable ici</button>
+    </div>
+  </div>
+  <div id="cat-liste"></div>
+  <p style="font-size:11.5px; color:var(--gris-clair); margin-top:14px">
+    Les parties III et IV sont reprises à partir des extraits de sommaire disponibles : certains
+    intitulés y sont tronqués et les pages ne sont pas renseignées.
+  </p>
+</section>
+
+<!-- =========================================================
+     MODULE — ExAO
+     ========================================================= -->
+<section class="module" id="mod-exao" role="tabpanel">
+  <div class="intro-mod">
+    <h2>ExAO — échanges gazeux d'un végétal</h2>
+    <p>Un fragment de végétal est enfermé dans une enceinte étanche remplie d'eau, avec une sonde
+       à oxygène et une sonde à dioxyde de carbone. On règle les conditions, on lance
+       l'enregistrement : les deux courbes se construisent en direct. En inversant l'éclairement
+       on fait apparaître la respiration seule, puis la photosynthèse nette.</p>
+    <span class="ref">Partie III — respiration · Partie IV — photosynthèse</span>
+  </div>
+
+  <div class="grille deux">
+    <!-- ----- colonne réglages ----- -->
+    <div>
+      <div class="carte">
+        <h3>Dispositif</h3>
+        <p class="sous">Ce que l'on met dans l'enceinte.</p>
+
+        <div class="reglage">
+          <label for="ex-mat">Matériel biologique</label>
+          <select id="ex-mat">
+            <option value="elodee">Élodée (rameau chlorophyllien)</option>
+            <option value="chlorelles">Chlorelles (suspension d'algues)</option>
+            <option value="feuille">Disques de feuille de lierre</option>
+            <option value="germination">Graines de lentille germées</option>
+            <option value="levure">Levures (suspension)</option>
+          </select>
+        </div>
+
+        <div class="reglage">
+          <label class="inter" for="ex-lum">
+            <input type="checkbox" id="ex-lum" checked><span class="piste"></span>
+            <span id="ex-lum-txt">Lampe allumée</span>
+          </label>
+        </div>
+
+        <div class="reglage">
+          <label for="ex-int">Intensité lumineuse <span class="val" id="ex-int-v">60 %</span></label>
+          <input type="range" id="ex-int" min="0" max="100" value="60" step="1">
+        </div>
+
+        <div class="reglage">
+          <label>Filtre coloré</label>
+          <div class="segment" id="ex-filtre">
+            <button aria-pressed="true"  data-f="blanc">Blanc</button>
+            <button aria-pressed="false" data-f="bleu">Bleu</button>
+            <button aria-pressed="false" data-f="vert">Vert</button>
+            <button aria-pressed="false" data-f="rouge">Rouge</button>
+          </div>
+        </div>
+
+        <div class="reglage">
+          <label for="ex-temp">Température <span class="val" id="ex-temp-v">20 °C</span></label>
+          <input type="range" id="ex-temp" min="0" max="55" value="20" step="1">
+        </div>
+
+        <div class="reglage">
+          <label for="ex-sub" id="ex-sub-lab">Hydrogénocarbonate (CO<sub>2</sub> disponible) <span class="val" id="ex-sub-v">50 %</span></label>
+          <input type="range" id="ex-sub" min="0" max="100" value="50" step="1">
+        </div>
+
+        <div class="reglage">
+          <label>Vitesse de l'enregistrement</label>
+          <div class="segment" id="ex-vit">
+            <button aria-pressed="false" data-v="1">×1</button>
+            <button aria-pressed="true"  data-v="10">×10</button>
+            <button aria-pressed="false" data-v="40">×40</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px">
+          <button class="btn primaire" id="ex-play">Lancer</button>
+          <button class="btn" id="ex-raz">Réinitialiser</button>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Protocoles guidés</h3>
+        <p class="sous">La manipulation se règle et se déroule toute seule.</p>
+        <div style="display:grid; gap:7px">
+          <button class="btn" data-proto="alternance">Alternance lumière / obscurité</button>
+          <button class="btn" data-proto="intensite">Courbe de réponse à la lumière</button>
+          <button class="btn" data-proto="temperature">Effet de la température</button>
+          <button class="btn" data-proto="spectre">Spectre d'action</button>
+          <button class="btn" data-proto="fermentation">Respiration puis fermentation</button>
+        </div>
+        <div class="note" id="ex-consigne">
+          <b>Consigne.</b> Commencez par enregistrer 2 minutes à la lumière, puis éteignez la lampe
+          sans rien changer d'autre. Comparez la pente des deux courbes avant et après.
+        </div>
+      </div>
+    </div>
+
+    <!-- ----- colonne enceinte + courbes ----- -->
+    <div>
+      <div class="carte">
+        <div style="display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap">
+          <div style="flex:0 0 168px; max-width:100%">
+            <canvas id="ex-enceinte" height="430" style="border-radius:12px"></canvas>
+          </div>
+          <div style="flex:1 1 260px; min-width:0">
+            <div class="mesures">
+              <div class="mesure"><div class="t">Temps</div><div class="v" id="ex-t">0:00</div><div class="u">min:s</div></div>
+              <div class="mesure"><div class="t">O₂ dissous</div><div class="v" id="ex-o2" style="color:var(--bleu)">8,00</div><div class="u">mg·L⁻¹</div></div>
+              <div class="mesure"><div class="t">CO₂ dissous</div><div class="v" id="ex-co2" style="color:var(--accent)">5,00</div><div class="u">mg·L⁻¹</div></div>
+              <div class="mesure"><div class="t">pH</div><div class="v" id="ex-ph" style="color:var(--violet)">7,10</div><div class="u">unité pH</div></div>
+              <div class="mesure"><div class="t">Échange net O₂</div><div class="v" id="ex-net">0,00</div><div class="u">mg·L⁻¹·min⁻¹</div></div>
+            </div>
+            <p id="ex-etat" style="font-size:12.5px; color:var(--gris)">Enregistrement à l'arrêt.</p>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="lgd">
+            <span>Enregistrement des sondes</span>
+            <span style="font-weight:400; color:var(--gris); font-size:11.5px">
+              <b style="color:var(--bleu)">—</b> O₂ &nbsp;
+              <b style="color:var(--accent)">—</b> CO₂ &nbsp;
+              <b style="color:var(--violet)">—</b> pH &nbsp;
+              <span style="background:#ddd8ce; padding:0 6px; border-radius:3px">zone grise = obscurité</span>
+            </span>
+          </div>
+          <canvas id="ex-graphe" height="300"></canvas>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+            <button class="btn mini" id="ex-csv">Exporter les mesures (CSV)</button>
+            <button class="btn mini" id="ex-png">Enregistrer le graphique</button>
+            <label class="btn mini" style="gap:6px"><input type="checkbox" id="ex-vph" style="accent-color:var(--violet)"> afficher le pH</label>
+            <label class="btn mini" style="gap:6px"><input type="checkbox" id="ex-auto" style="accent-color:var(--accent)"> zoom sur les variations</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="carte" id="ex-serie-carte" style="display:none">
+        <h3 id="ex-serie-titre">Résultats de la série</h3>
+        <p class="sous" id="ex-serie-sous"></p>
+        <canvas id="ex-serie" height="280"></canvas>
+        <div class="note" id="ex-serie-note"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Exploitation</h3>
+        <p class="sous">Réponses à cacher puis à vérifier.</p>
+        <div class="qcm" id="ex-questions"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — BIOCHIMIE
+     ========================================================= -->
+<section class="module" id="mod-biochimie" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Paillasse de biochimie</h2>
+    <p>On choisit un échantillon végétal, un réactif, et on observe. Chaque test rend un résultat
+       conforme au protocole de l'ouvrage : coloration obtenue, conclusion, et molécule mise en évidence.
+       Le mode « échantillon mystère » demande à l'élève de choisir lui-même ses tests pour identifier
+       un extrait inconnu.</p>
+    <span class="ref">Partie I — oses, constituants pariétaux, substances de réserve, autres substances</span>
+  </div>
+
+  <div class="segment" id="bio-mode" style="max-width:340px; margin-bottom:16px">
+    <button aria-pressed="true"  data-m="libre">Manipulation libre</button>
+    <button aria-pressed="false" data-m="mystere">Échantillon mystère</button>
+  </div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3 id="bio-tit-ech">Échantillon</h3>
+        <p class="sous" id="bio-sous-ech">Ce que l'on dépose dans le tube ou sur la lame.</p>
+        <div id="bio-echantillons" style="display:grid; gap:6px; max-height:330px; overflow-y:auto"></div>
+      </div>
+      <div class="carte">
+        <h3>Réactif</h3>
+        <p class="sous">Attention aux conditions : certains réactifs demandent un chauffage.</p>
+        <div id="bio-reactifs" style="display:grid; gap:6px; max-height:330px; overflow-y:auto"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>Poste d'observation</h3>
+        <p class="sous" id="bio-legende">Sélectionnez un échantillon et un réactif, puis lancez le test.</p>
+        <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap">
+          <canvas id="bio-tube" width="180" height="270" style="flex:none"></canvas>
+          <div style="flex:1 1 240px; min-width:0">
+            <div id="bio-resultat">
+              <p style="font-size:13px; color:var(--gris)">Aucun test réalisé pour l'instant.</p>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+              <button class="btn primaire" id="bio-lancer">Réaliser le test</button>
+              <button class="btn" id="bio-chauffe">Chauffer au bain-marie</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Cahier de résultats</h3>
+        <p class="sous">Tous les tests réalisés au cours de la séance.</p>
+        <div class="scroll-x">
+          <table class="tab" id="bio-journal">
+            <thead><tr><th>Échantillon</th><th>Réactif</th><th>Observation</th><th>Conclusion</th></tr></thead>
+            <tbody><tr><td colspan="4" style="color:var(--gris-clair)">Vide pour le moment.</td></tr></tbody>
+          </table>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:12px" class="no-print">
+          <button class="btn mini" id="bio-vider">Vider le cahier</button>
+          <button class="btn mini" id="bio-imprimer">Imprimer</button>
+        </div>
+      </div>
+
+      <div class="carte" id="bio-mystere-carte" style="display:none">
+        <h3>Votre identification</h3>
+        <p class="sous">Après avoir réuni assez d'indices, proposez une réponse.</p>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+          <select id="bio-proposition" style="max-width:280px"></select>
+          <button class="btn primaire" id="bio-valider">Valider</button>
+          <button class="btn" id="bio-nouveau">Nouvel échantillon</button>
+        </div>
+        <div id="bio-verdict" style="margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — PIGMENTS
+     ========================================================= -->
+<section class="module" id="mod-pigments" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Pigments photosynthétiques</h2>
+    <p>Extraction, séparation par chromatographie, mesure des R<sub>f</sub>, spectres d'absorption
+       et fluorescence : les quatre manipulations de la partie 4 de l'ouvrage, sur le même extrait.</p>
+    <span class="ref">Partie I — 4.1 à 4.9</span>
+  </div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Extrait déposé</h3>
+        <p class="sous">Le broyat est réalisé à l'alcool puis filtré.</p>
+        <div class="reglage">
+          <label for="pi-mat">Matériel</label>
+          <select id="pi-mat">
+            <option value="epinard">Feuille d'épinard</option>
+            <option value="lierre-panache">Feuille panachée (lierre)</option>
+            <option value="feuille-jaunie">Feuille jaunie d'automne</option>
+            <option value="algue-brune">Algue brune (laminaire)</option>
+            <option value="algue-rouge">Algue rouge</option>
+          </select>
+        </div>
+        <div class="reglage">
+          <label for="pi-solv">Solvant de migration</label>
+          <select id="pi-solv">
+            <option value="rapide">Éther de pétrole / acétone (90:10)</option>
+            <option value="moyen">Éther de pétrole / acétone (70:30)</option>
+            <option value="lent">Alcool à 90°</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+          <button class="btn primaire" id="pi-migrer">Lancer la migration</button>
+          <button class="btn" id="pi-raz">Nouvelle bande</button>
+        </div>
+        <div class="note">
+          <b>Rappel.</b> R<sub>f</sub> = distance parcourue par le pigment ÷ distance parcourue par
+          le front du solvant. Il ne dépend que du couple pigment / solvant : c'est ce qui permet
+          d'identifier une tache.
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Fluorescence</h3>
+        <p class="sous">L'extrait est éclairé par une lampe à UV, dans l'obscurité.</p>
+        <label class="inter" for="pi-uv" style="margin-bottom:12px">
+          <input type="checkbox" id="pi-uv"><span class="piste"></span><span>Allumer la lampe UV</span>
+        </label>
+        <canvas id="pi-fluo" height="150"></canvas>
+        <p id="pi-fluo-txt" style="font-size:12.5px; color:var(--gris); margin-top:10px">
+          En lumière blanche, l'extrait est vert intense.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>Chromatographie sur papier</h3>
+        <p class="sous" id="pi-chromo-sous">Bande de papier Whatman, dépôt à 2 cm du bas, cuve fermée.</p>
+        <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">
+          <canvas id="pi-chromo" width="200" height="400" style="flex:none"></canvas>
+          <div style="flex:1 1 240px; min-width:0" class="scroll-x">
+            <table class="tab" id="pi-tableau">
+              <thead><tr><th>Pigment</th><th>Teinte</th><th>Distance</th><th>R<sub>f</sub></th></tr></thead>
+              <tbody><tr><td colspan="4" style="color:var(--gris-clair)">Lancez la migration.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Spectres d'absorption</h3>
+        <p class="sous">Cochez les pigments à superposer. Le spectre d'action mesuré à l'ExAO peut
+           être ajouté pour comparaison.</p>
+        <div id="pi-cases" style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px"></div>
+        <canvas id="pi-spectre" height="300"></canvas>
+        <div class="note" id="pi-spectre-note">
+          <b>À observer.</b> Les chlorophylles absorbent surtout dans le bleu et le rouge, très peu
+          dans le vert — c'est cette lumière verte, renvoyée, qui donne sa couleur à la feuille.
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — ENZYMES
+     ========================================================= -->
+<section class="module" id="mod-enzymes" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Cinétiques enzymatiques</h2>
+    <p>On suit la disparition du substrat et l'apparition du produit au cours du temps. Une gamme
+       de tubes témoins est prélevée toutes les minutes et testée, comme sur une plaque à godets.</p>
+    <span class="ref">Partie I — 6.1 à 6.6</span>
+  </div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Milieu réactionnel</h3>
+        <div class="reglage">
+          <label for="en-enz">Enzyme</label>
+          <select id="en-enz">
+            <option value="amylase">Amylase (salivaire ou de malt) — amidon</option>
+            <option value="saccharase">Saccharase de levure — saccharose</option>
+            <option value="peroxydase">Peroxydase de navet — eau oxygénée</option>
+          </select>
+        </div>
+        <div class="reglage">
+          <label for="en-temp">Température <span class="val" id="en-temp-v">37 °C</span></label>
+          <input type="range" id="en-temp" min="0" max="100" value="37" step="1">
+        </div>
+        <div class="reglage">
+          <label for="en-ph">pH <span class="val" id="en-ph-v">7,0</span></label>
+          <input type="range" id="en-ph" min="10" max="110" value="70" step="1">
+        </div>
+        <div class="reglage">
+          <label for="en-e">Quantité d'enzyme <span class="val" id="en-e-v">100 %</span></label>
+          <input type="range" id="en-e" min="0" max="200" value="100" step="5">
+        </div>
+        <div class="reglage">
+          <label for="en-s">Concentration en substrat <span class="val" id="en-s-v">10,0 g·L⁻¹</span></label>
+          <input type="range" id="en-s" min="0" max="300" value="100" step="5">
+        </div>
+        <div class="reglage">
+          <label class="inter" for="en-bouilli">
+            <input type="checkbox" id="en-bouilli"><span class="piste"></span>
+            <span>Enzyme préalablement bouillie (témoin)</span>
+          </label>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
+          <button class="btn primaire" id="en-play">Lancer la cinétique</button>
+          <button class="btn" id="en-raz">Réinitialiser</button>
+        </div>
+      </div>
+      <div class="carte">
+        <h3>Séries d'expériences</h3>
+        <p class="sous">Chaque série relance automatiquement la manipulation en faisant varier un seul facteur.</p>
+        <div style="display:grid; gap:7px">
+          <button class="btn" data-serie="temp">Vitesse en fonction de la température</button>
+          <button class="btn" data-serie="ph">Vitesse en fonction du pH</button>
+          <button class="btn" data-serie="subs">Vitesse en fonction de [substrat]</button>
+          <button class="btn" data-serie="enz">Vitesse en fonction de [enzyme]</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>Suivi de la réaction</h3>
+        <p class="sous" id="en-sous">Amidon dosé au lugol, maltose dosé à la liqueur de Fehling.</p>
+        <div class="mesures">
+          <div class="mesure"><div class="t">Temps</div><div class="v" id="en-t">0:00</div><div class="u">min:s</div></div>
+          <div class="mesure"><div class="t" id="en-lab-s">Substrat</div><div class="v" id="en-vs" style="color:var(--violet)">10,0</div><div class="u">g·L⁻¹</div></div>
+          <div class="mesure"><div class="t" id="en-lab-p">Produit</div><div class="v" id="en-vp" style="color:var(--vert)">0,0</div><div class="u">g·L⁻¹</div></div>
+          <div class="mesure"><div class="t">Vitesse initiale</div><div class="v" id="en-vi">—</div><div class="u">g·L⁻¹·min⁻¹</div></div>
+        </div>
+        <canvas id="en-graphe" height="290"></canvas>
+        <div style="margin-top:14px">
+          <div class="lgd"><span id="en-gamme-titre">Gamme de tubes prélevés</span><span style="font-weight:400;color:var(--gris);font-size:11.5px">une goutte par minute</span></div>
+          <canvas id="en-gamme" height="92"></canvas>
+        </div>
+      </div>
+
+      <div class="carte" id="en-serie-carte" style="display:none">
+        <h3 id="en-serie-titre">Résultats de la série</h3>
+        <p class="sous" id="en-serie-sous"></p>
+        <canvas id="en-serie" height="280"></canvas>
+        <div class="note" id="en-serie-note"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — HISTOLOGIE
+     ========================================================= -->
+<section class="module" id="mod-histologie" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Histologie des plantes</h2>
+    <p>Coupes transversales schématiques. On choisit l'organe, la coloration, le grossissement,
+       puis on clique sur un tissu pour l'identifier. Le mode « légender » interroge l'élève.</p>
+    <span class="ref">Partie II — 1 à 3</span>
+  </div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Préparation</h3>
+        <div class="reglage">
+          <label for="hi-org">Coupe observée</label>
+          <select id="hi-org">
+            <option value="tige-dico">Tige de Dicotylédone herbacée (lamier)</option>
+            <option value="tige-mono">Tige de Monocotylédone (iris)</option>
+            <option value="racine-dico">Racine jeune de Dicotylédone (ficaire)</option>
+            <option value="feuille-dico">Feuille de Dicotylédone (lierre)</option>
+            <option value="tige-ligneuse">Tige de Dicotylédone ligneuse (bruyère)</option>
+          </select>
+        </div>
+        <div class="reglage">
+          <label>Coloration</label>
+          <div class="segment" id="hi-color">
+            <button aria-pressed="false" data-c="aucune">Sans</button>
+            <button aria-pressed="true"  data-c="carmin">Carmin-vert d'iode</button>
+            <button aria-pressed="false" data-c="phloro">Phloroglucine</button>
+          </div>
+        </div>
+        <div class="reglage">
+          <label for="hi-zoom">Grossissement <span class="val" id="hi-zoom-v">×1,0</span></label>
+          <input type="range" id="hi-zoom" min="10" max="30" value="10" step="1">
+        </div>
+        <div class="reglage">
+          <label>Mode</label>
+          <div class="segment" id="hi-mode">
+            <button aria-pressed="true"  data-m="obs">Observer</button>
+            <button aria-pressed="false" data-m="quiz">Légender</button>
+          </div>
+        </div>
+        <div class="note" id="hi-aide">
+          <b>Double coloration.</b> Le carmin aluné colore en rose les parois de cellulose,
+          le vert d'iode colore en vert les parois lignifiées : on repère d'un coup d'œil le
+          xylème, le sclérenchyme et le liège.
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">
+          <canvas id="hi-coupe" width="420" height="420" style="flex:1 1 300px; max-width:440px; cursor:crosshair; border-radius:12px; background:#fdfcfa"></canvas>
+          <div style="flex:1 1 220px; min-width:0">
+            <div id="hi-info">
+              <p style="font-size:13px; color:var(--gris)">Cliquez sur un tissu de la coupe.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="carte">
+        <h3>Clé de lecture</h3>
+        <div class="scroll-x"><table class="tab" id="hi-cle"><tbody></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ---------- carnet de manip ---------- -->
+<button class="btn sombre flottant no-print" id="btn-carnet-3">Carnet</button>
+<aside id="carnet" aria-label="Carnet de manipulation">
+  <div class="cn-tete">
+    <b style="flex:1">Carnet de manipulation</b>
+    <button class="btn mini" id="cn-fermer">Fermer</button>
+  </div>
+  <div class="cn-corps">
+    <div class="reglage">
+      <label for="cn-nom">Nom, classe, date</label>
+      <input type="text" id="cn-nom" placeholder="Léa M. — 2nde 4 — 12/03">
+    </div>
+    <label class="lgd" for="cn-1">ExAO — observations et interprétation</label>
+    <textarea id="cn-1" placeholder="Ce que montrent les courbes…"></textarea>
+    <label class="lgd" for="cn-2">Biochimie — résultats des tests</label>
+    <textarea id="cn-2" placeholder="Tube 1 : pomme de terre + lugol → …"></textarea>
+    <label class="lgd" for="cn-3">Pigments</label>
+    <textarea id="cn-3" placeholder="Rf mesurés, comparaison des spectres…"></textarea>
+    <label class="lgd" for="cn-4">Enzymes</label>
+    <textarea id="cn-4" placeholder="Optimum de température, effet du pH…"></textarea>
+    <label class="lgd" for="cn-5">Histologie</label>
+    <textarea id="cn-5" placeholder="Tissus repérés sur la coupe…"></textarea>
+    <p style="font-size:11.5px; color:var(--gris-clair)">
+      Le carnet est enregistré dans ce navigateur uniquement : rien n'est envoyé sur Internet.</p>
+  </div>
+  <div class="cn-pied">
+    <button class="btn primaire" id="cn-imprimer">Imprimer / PDF</button>
+    <button class="btn" id="cn-txt">Télécharger (.txt)</button>
+    <button class="btn" id="cn-effacer">Tout effacer</button>
+  </div>
+</aside>
+
+<script>
+/* ==========================================================================
+   OUTILS COMMUNS
+   ========================================================================== */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const borne = (v,a,b) => Math.max(a, Math.min(b, v));
+const fr = (v,d=2) => v.toLocaleString('fr-FR',{minimumFractionDigits:d, maximumFractionDigits:d});
+const mmss = s => Math.floor(s/60) + ':' + String(Math.floor(s%60)).padStart(2,'0');
+
+/* --- groupe de boutons « segment » --- */
+function segment(el, cb){
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    $$('button', el).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    cb(b.dataset);
+  });
+}
+function segmentValeur(el, cle){
+  const b = $('button[aria-pressed="true"]', el);
+  return b ? b.dataset[cle] : null;
+}
+
+/* --- téléchargement d'un fichier construit à la volée --- */
+function telecharge(nom, contenu, type='text/plain;charset=utf-8'){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([contenu], {type}));
+  a.download = nom; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+
+/* ==========================================================================
+   GRAPHIQUES — petit moteur maison sur <canvas>
+   ========================================================================== */
+function dimensionne(cv){
+  const dpr = window.devicePixelRatio || 1;
+  const l = cv.clientWidth || cv.width;
+  const h = parseFloat(cv.getAttribute('height')) || cv.height;
+  cv.width = Math.round(l*dpr); cv.height = Math.round(h*dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, l, h};
+}
+/* graduations « rondes » */
+function pas(etendue, cible=6){
+  const brut = etendue/cible, ex = Math.pow(10, Math.floor(Math.log10(brut))), n = brut/ex;
+  return (n<1.5?1:n<3?2:n<7?5:10)*ex;
+}
+/* cfg : {xmin,xmax,ymin,ymax,xtit,ytit,series,bandes,barres,reperes,fmtX,fmtY} */
+function traceGraphe(cv, cfg){
+  const {ctx, l, h} = dimensionne(cv);
+  const mg = {g:46, d:12, ht:12, b:34};
+  const X = x => mg.g + (x-cfg.xmin)/(cfg.xmax-cfg.xmin || 1)*(l-mg.g-mg.d);
+  const Y = y => h-mg.b - (y-cfg.ymin)/(cfg.ymax-cfg.ymin || 1)*(h-mg.ht-mg.b);
+  ctx.clearRect(0,0,l,h);
+  ctx.fillStyle = '#fdfcfa'; ctx.fillRect(mg.g, mg.ht, l-mg.g-mg.d, h-mg.ht-mg.b);
+  if(cfg.fondSpectre){                       /* bande des couleurs du visible */
+    const g = ctx.createLinearGradient(mg.g, 0, l-mg.d, 0);
+    [[400,'#6a00b8'],[440,'#3b2ae0'],[480,'#00a3e0'],[510,'#00b04a'],
+     [560,'#c8d400'],[590,'#ffb300'],[620,'#ff6a00'],[700,'#c40000']]
+      .forEach(([nm,c]) => g.addColorStop(borne((nm-cfg.xmin)/(cfg.xmax-cfg.xmin),0,1), c));
+    ctx.globalAlpha = .17; ctx.fillStyle = g;
+    ctx.fillRect(mg.g, mg.ht, l-mg.g-mg.d, h-mg.ht-mg.b); ctx.globalAlpha = 1;
+  }
+
+  (cfg.bandes||[]).forEach(b => {
+    ctx.fillStyle = b.couleur || 'rgba(35,32,28,.07)';
+    const x0 = X(Math.max(b.x0,cfg.xmin)), x1 = X(Math.min(b.x1,cfg.xmax));
+    if(x1>x0) ctx.fillRect(x0, mg.ht, x1-x0, h-mg.ht-mg.b);
+  });
+
+  ctx.font = '10px Onest, sans-serif'; ctx.lineWidth = 1;
+  const px = pas(cfg.xmax-cfg.xmin), py = pas(cfg.ymax-cfg.ymin);
+  ctx.strokeStyle = '#eae5db'; ctx.fillStyle = '#a9a294';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  for(let x = Math.ceil(cfg.xmin/px)*px; x <= cfg.xmax+1e-9; x += px){
+    ctx.beginPath(); ctx.moveTo(X(x), mg.ht); ctx.lineTo(X(x), h-mg.b); ctx.stroke();
+    ctx.fillText(cfg.fmtX ? cfg.fmtX(x) : (Math.round(x*100)/100).toLocaleString('fr-FR'), X(x), h-mg.b+6);
+  }
+  ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+  for(let y = Math.ceil(cfg.ymin/py)*py; y <= cfg.ymax+1e-9; y += py){
+    ctx.beginPath(); ctx.moveTo(mg.g, Y(y)); ctx.lineTo(l-mg.d, Y(y)); ctx.stroke();
+    ctx.fillText(cfg.fmtY ? cfg.fmtY(y) : (Math.round(y*100)/100).toLocaleString('fr-FR'), mg.g-6, Y(y));
+  }
+  if(cfg.ymin < 0 && cfg.ymax > 0){
+    ctx.strokeStyle = '#c8c1b3'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(mg.g, Y(0)); ctx.lineTo(l-mg.d, Y(0)); ctx.stroke();
+  }
+
+  /* barres */
+  (cfg.barres||[]).forEach(b => {
+    const larg = (l-mg.g-mg.d)/((cfg.barres.length)*1.7);
+    ctx.fillStyle = b.couleur;
+    const y0 = Y(Math.max(0,cfg.ymin)), y1 = Y(b.y);
+    ctx.fillRect(X(b.x)-larg/2, Math.min(y0,y1), larg, Math.abs(y1-y0));
+    if(b.etiquette){
+      ctx.fillStyle = '#7d776c'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
+      ctx.fillText(b.etiquette, X(b.x), Math.min(y0,y1)-3);
+    }
+  });
+
+  /* courbes */
+  (cfg.series||[]).forEach(s => {
+    if(!s.pts || s.pts.length < 1) return;
+    ctx.strokeStyle = s.couleur; ctx.lineWidth = s.largeur || 2;
+    ctx.setLineDash(s.pointille ? [5,4] : []);
+    ctx.lineJoin = 'round'; ctx.beginPath();
+    s.pts.forEach((p,i) => i ? ctx.lineTo(X(p[0]),Y(p[1])) : ctx.moveTo(X(p[0]),Y(p[1])));
+    ctx.stroke(); ctx.setLineDash([]);
+    if(s.marqueurs) s.pts.forEach(p => {
+      ctx.fillStyle = s.couleur; ctx.beginPath();
+      ctx.arc(X(p[0]), Y(p[1]), 3.2, 0, 7); ctx.fill();
+    });
+  });
+
+  /* repères annotés */
+  (cfg.reperes||[]).forEach(r => {
+    ctx.strokeStyle = r.couleur || '#c0392b'; ctx.setLineDash([3,3]); ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    if(r.x !== undefined){ ctx.moveTo(X(r.x), mg.ht); ctx.lineTo(X(r.x), h-mg.b); }
+    else { ctx.moveTo(mg.g, Y(r.y)); ctx.lineTo(l-mg.d, Y(r.y)); }
+    ctx.stroke(); ctx.setLineDash([]);
+    if(r.texte){
+      ctx.fillStyle = r.couleur || '#c0392b'; ctx.font = '600 10px Onest, sans-serif';
+      ctx.textAlign = r.x !== undefined ? 'left' : 'right'; ctx.textBaseline = 'top';
+      ctx.fillText(r.texte, r.x !== undefined ? X(r.x)+4 : l-mg.d-4, mg.ht+3);
+    }
+  });
+
+  /* cadre + titres */
+  ctx.strokeStyle = '#d3ccbe'; ctx.lineWidth = 1;
+  ctx.strokeRect(mg.g+.5, mg.ht+.5, l-mg.g-mg.d-1, h-mg.ht-mg.b-1);
+  ctx.fillStyle = '#7d776c'; ctx.font = '500 10.5px Onest, sans-serif';
+  ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
+  if(cfg.xtit) ctx.fillText(cfg.xtit, l-mg.d, h-2);
+  if(cfg.ytit){ ctx.save(); ctx.translate(10, mg.ht); ctx.rotate(-Math.PI/2);
+    ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText(cfg.ytit, 0, 0); ctx.restore(); }
+}
+
+/* ==========================================================================
+   NAVIGATION ENTRE MODULES
+   ========================================================================== */
+const Labo = { surAffichage:{}, moduleActif:'accueil' };
+function ouvreModule(nom){
+  $$('.module').forEach(m => m.classList.toggle('actif', m.id === 'mod-'+nom));
+  $$('nav.onglets button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mod === nom)));
+  Labo.moduleActif = nom;
+  history.replaceState(null,'','#'+nom);
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  if(Labo.surAffichage[nom]) Labo.surAffichage[nom]();
+}
+$('nav.onglets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(b) ouvreModule(b.dataset.mod);
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-va]'); if(b) ouvreModule(b.dataset.va);
+});
+window.addEventListener('resize', () => {
+  clearTimeout(Labo._t);
+  Labo._t = setTimeout(() => { if(Labo.surAffichage[Labo.moduleActif]) Labo.surAffichage[Labo.moduleActif](); }, 150);
+});
+
+/* ==========================================================================
+   CARNET DE MANIPULATION (mémorisé dans le navigateur)
+   ========================================================================== */
+(function carnet(){
+  const pan = $('#carnet');
+  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4','cn-5'];
+  const CLE = 'labo-vegetal-carnet';
+  let sauv = {};
+  try { sauv = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch(e){ sauv = {}; }
+  champs.forEach(id => {
+    const el = $('#'+id); if(!el) return;
+    if(sauv[id]) el.value = sauv[id];
+    el.addEventListener('input', () => {
+      sauv[id] = el.value;
+      try { localStorage.setItem(CLE, JSON.stringify(sauv)); } catch(e){}
+    });
+  });
+  const ouvre = () => pan.classList.add('ouvert');
+  ['#btn-carnet','#btn-carnet-2','#btn-carnet-3'].forEach(s => { const b=$(s); if(b) b.addEventListener('click', ouvre); });
+  $('#cn-fermer').addEventListener('click', () => pan.classList.remove('ouvert'));
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') pan.classList.remove('ouvert'); });
+  $('#cn-effacer').addEventListener('click', () => {
+    if(!confirm('Effacer tout le carnet ?')) return;
+    champs.forEach(id => { const el=$('#'+id); if(el) el.value=''; });
+    sauv = {}; try { localStorage.removeItem(CLE); } catch(e){}
+  });
+  const texte = () => {
+    const t = ['CARNET DE MANIPULATION — laboratoire virtuel de biologie végétale',
+               $('#cn-nom').value, ''];
+    [['ExAO','cn-1'],['Biochimie','cn-2'],['Pigments','cn-3'],['Enzymes','cn-4'],['Histologie','cn-5']]
+      .forEach(([tit,id]) => { t.push('— ' + tit + ' —', $('#'+id).value || '(rien)', ''); });
+    return t.join('\n');
+  };
+  $('#cn-txt').addEventListener('click', () => telecharge('carnet-manip.txt', texte()));
+  $('#cn-imprimer').addEventListener('click', () => {
+    const f = window.open('', '_blank');
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer le carnet."); return; }
+    f.document.write('<meta charset="utf-8"><title>Carnet de manipulation</title>' +
+      '<style>body{font:14px/1.6 system-ui,sans-serif;max-width:19cm;margin:2cm auto;color:#23201c}' +
+      'h1{font-size:19px} h2{font-size:14px;margin-top:22px;color:#b15f2c;border-bottom:1px solid #e4dfd5;padding-bottom:4px}' +
+      'p{white-space:pre-wrap;margin:6px 0 0}</style>' +
+      '<h1>Carnet de manipulation — biologie végétale</h1><p><b>' +
+      $('#cn-nom').value.replace(/[<>]/g,'') + '</b></p>' +
+      [['ExAO — photosynthèse et respiration','cn-1'],['Paillasse de biochimie','cn-2'],
+       ['Pigments photosynthétiques','cn-3'],['Cinétiques enzymatiques','cn-4'],['Histologie','cn-5']]
+      .map(([t,id]) => '<h2>'+t+'</h2><p>'+($('#'+id).value.replace(/[<>]/g,'')||'—')+'</p>').join(''));
+    f.document.close(); f.focus(); setTimeout(() => f.print(), 250);
+  });
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   CATALOGUE DES TP DE L'OUVRAGE
+   p : partie · n : numéro · t : intitulé · pg : page · sim : module associé
+   ========================================================================== */
+const CATALOGUE = [
+ {p:'I', n:'1',   t:'Oses et diholosides', pg:9, titre:true},
+ {p:'I', n:'1.1', t:"Réaction générale des oses : réaction de Molisch", pg:9,  sim:'biochimie'},
+ {p:'I', n:'1.2', t:"Mise en évidence des sucres réducteurs (réaction de Fehling)", pg:10, sim:'biochimie'},
+ {p:'I', n:'1.3', t:"Mise en évidence des sucres réducteurs (réaction au nitrate d'argent)", pg:11, sim:'biochimie'},
+ {p:'I', n:'1.4', t:"Hydrolyse acide du saccharose", pg:12, sim:'biochimie'},
+ {p:'I', n:'2',   t:'Constituants pariétaux', pg:13, titre:true},
+ {p:'I', n:'2.1', t:"Réaction générale des polysaccharides (APS ou acide périodique/Schiff)", pg:13, sim:'biochimie'},
+ {p:'I', n:'2.2', t:"Mise en évidence de la cellulose", pg:14, sim:'biochimie'},
+ {p:'I', n:'2.3', t:"Mise en évidence des pectines", pg:15, sim:'biochimie'},
+ {p:'I', n:'2.4', t:"Extraction et propriétés des pectines in vitro", pg:16},
+ {p:'I', n:'2.5', t:"Mise en évidence de la lignine (phloroglucine chlorhydrique)", pg:17, sim:'biochimie'},
+ {p:'I', n:'3',   t:'Substances de réserve', pg:18, titre:true},
+ {p:'I', n:'3.1', t:"Mise en évidence et localisation de l'amidon par le lugol", pg:18, sim:'biochimie'},
+ {p:'I', n:'3.2', t:"Structure de l'amidon (phénomène de la croix noire)", pg:19},
+ {p:'I', n:'3.3', t:"Extraction de l'amidon et préparation d'un empois", pg:20},
+ {p:'I', n:'3.4', t:"Hydrolyse acide de l'amidon", pg:21, sim:'biochimie'},
+ {p:'I', n:'3.5', t:"Mise en évidence de l'inuline", pg:23, sim:'biochimie'},
+ {p:'I', n:'3.6', t:"Mise en évidence et caractérisation des lipides", pg:23, sim:'biochimie'},
+ {p:'I', n:'3.7', t:"Mise en évidence des grains d'aleurone", pg:24, sim:'biochimie'},
+ {p:'I', n:'3.8', t:"Caractérisation des protéines (réaction du biuret)", pg:25, sim:'biochimie'},
+ {p:'I', n:'3.9', t:"Caractérisation des protéines (réaction xanthoprotéique)", pg:26, sim:'biochimie'},
+ {p:'I', n:'4',   t:'Pigments photosynthétiques', pg:26, titre:true},
+ {p:'I', n:'4.1', t:"Extraction globale des pigments", pg:26, sim:'pigments'},
+ {p:'I', n:'4.2', t:"Chromatographie sur papier", pg:28, sim:'pigments'},
+ {p:'I', n:'4.3', t:"Observation d'un spectre d'absorption", pg:29, sim:'pigments'},
+ {p:'I', n:'4.4', t:"Spectre d'absorption (ExAO-spectrophotomètre)", pg:30, sim:'pigments'},
+ {p:'I', n:'4.5', t:"Fluorescence de la chlorophylle", pg:31, sim:'pigments'},
+ {p:'I', n:'4.6', t:"Séparation des pigments par solubilité différentielle", pg:32},
+ {p:'I', n:'4.7', t:"Séparation des pigments sur colonne", pg:34},
+ {p:'I', n:'4.8', t:"Spectres d'absorption des pigments", pg:36, sim:'pigments'},
+ {p:'I', n:'4.9', t:"Extraction des pigments d'une algue rouge", pg:37, sim:'pigments'},
+ {p:'I', n:'5',   t:'Autres substances', pg:38, titre:true},
+ {p:'I', n:'5.1', t:"Mise en évidence des lycopènes", pg:38, sim:'biochimie'},
+ {p:'I', n:'5.2', t:"Mise en évidence des anthocyanes", pg:39, sim:'biochimie'},
+ {p:'I', n:'5.3', t:"Extraction et propriétés des anthocyanes", pg:40, sim:'biochimie'},
+ {p:'I', n:'5.4', t:"Mise en évidence de l'oxalate de calcium", pg:40, sim:'biochimie'},
+ {p:'I', n:'5.5', t:"Mise en évidence des tannins", pg:41, sim:'biochimie'},
+ {p:'I', n:'5.6', t:"Mise en évidence d'essences", pg:42},
+ {p:'I', n:'6',   t:'Activités enzymatiques', pg:42, titre:true},
+ {p:'I', n:'6.1', t:"Mise en évidence d'une activité amylasique", pg:42, sim:'enzymes'},
+ {p:'I', n:'6.2', t:"Hydrolyse enzymatique de l'amidon", pg:44, sim:'enzymes'},
+ {p:'I', n:'6.3', t:"Synthèse de l'amidon", pg:45},
+ {p:'I', n:'6.4', t:"Mise en évidence d'une saccharase extracellulaire", pg:46, sim:'enzymes'},
+ {p:'I', n:'6.5', t:"Mise en évidence d'une peroxydase", pg:47, sim:'enzymes'},
+ {p:'I', n:'6.6', t:"Cinétiques enzymatiques", pg:48, sim:'enzymes'},
+ {p:'I', n:'7',   t:'Acides nucléiques', pg:50, titre:true},
+ {p:'I', n:'7.1', t:"Mise en évidence in situ de l'ADN", pg:50, sim:'biochimie'},
+ {p:'I', n:'7.2', t:"Extraction de l'ADN", pg:51},
+
+ {p:'II', n:'1',   t:"Quelques techniques simples d'histologie", pg:53, titre:true},
+ {p:'II', n:'1.1', t:"Réaliser des sections fines d'échantillons variés", pg:53},
+ {p:'II', n:'1.2', t:"Observer sans coloration les coupes obtenues", pg:55, sim:'histologie'},
+ {p:'II', n:'1.3', t:"Utiliser des colorants spécifiques", pg:56, sim:'histologie'},
+ {p:'II', n:'1.4', t:"Utiliser une double coloration, le carmin-vert d'iode", pg:56, sim:'histologie'},
+ {p:'II', n:'2',   t:'Reconnaître les différents types de tissus', pg:57, titre:true},
+ {p:'II', n:'2.1', t:"Tissus de revêtement", pg:58, sim:'histologie'},
+ {p:'II', n:'2.2', t:"Tissus de soutien", pg:59, sim:'histologie'},
+ {p:'II', n:'2.3', t:"Tissus conducteurs primaires", pg:59, sim:'histologie'},
+ {p:'II', n:'2.4', t:"Parenchymes", pg:60, sim:'histologie'},
+ {p:'II', n:'2.5', t:"Cambium et tissus conducteurs secondaires", pg:60, sim:'histologie'},
+ {p:'II', n:'3',   t:"Application à l'étude de quelques organes", pg:61, titre:true},
+ {p:'II', n:'3.1', t:"Tige de Dicotylédone herbacée (lamier)", pg:61, sim:'histologie'},
+ {p:'II', n:'3.2', t:"Tige de Monocotylédone (iris)", pg:62, sim:'histologie'},
+ {p:'II', n:'3.3', t:"Feuille de Dicotylédone (lierre)", pg:62, sim:'histologie'},
+ {p:'II', n:'3.4', t:"Feuille de Monocotylédone (brome)", pg:63},
+ {p:'II', n:'3.5', t:"Racine jeune de Dicotylédone (ficaire)", pg:64, sim:'histologie'},
+ {p:'II', n:'3.6', t:"Racine de Monocotylédone (iris)", pg:65},
+ {p:'II', n:'3.7', t:"Tige de Dicotylédone ligneuse (bruyère)", pg:65, sim:'histologie'},
+ {p:'II', n:'3.8', t:"Racine de Dicotylédone ligneuse", pg:66},
+ {p:'II', n:'4',   t:'Cas particuliers', pg:null, titre:true, tronq:true},
+ {p:'II', n:'4.1', t:"Interpréter la structure…", tronq:true},
+ {p:'II', n:'4.2', t:"Structure micro…", tronq:true},
+ {p:'II', n:'5',   t:'Quelques matériaux', pg:null, titre:true, tronq:true},
+ {p:'II', n:'5.1', t:"Planches de bois…", tronq:true},
+ {p:'II', n:'5.2', t:"Contreplaqué", tronq:true},
+ {p:'II', n:'5.3', t:"Papyrus", tronq:true},
+
+ {p:'III', n:'1',   t:'Respiration', titre:true, tronq:true},
+ {p:'III', n:'1.1', t:"Mise en évidence de la respiration…", sim:'exao', tronq:true},
+ {p:'III', n:'1.2', t:"Nécessité d'…", sim:'exao', tronq:true},
+ {p:'III', n:'1.3', t:"Nature du substrat…", sim:'exao', tronq:true},
+ {p:'III', n:'1.4', t:"Concentration…", sim:'exao', tronq:true},
+ {p:'III', n:'1.5', t:"Respiration…", sim:'exao', tronq:true},
+ {p:'III', n:'2',   t:'Production de CO₂', titre:true, tronq:true},
+ {p:'III', n:'2.1', t:"Mise en évidence…", sim:'exao', tronq:true},
+ {p:'III', n:'2.2', t:"Cinétique…", sim:'exao', tronq:true},
+ {p:'III', n:'3',   t:'Respiration mitochondriale', titre:true, tronq:true},
+ {p:'III', n:'3.1', t:"Isolement des mitochondries…", tronq:true},
+ {p:'III', n:'3.2', t:"Fonctionnement…", tronq:true},
+ {p:'III', n:'4',   t:'Fermentation', titre:true, tronq:true},
+ {p:'III', n:'4.1', t:"Mise en évidence…", sim:'exao', tronq:true},
+ {p:'III', n:'4.2', t:"Mise en évidence…", sim:'exao', tronq:true},
+ {p:'III', n:'4.3', t:"Sucres fermentescibles…", sim:'exao', tronq:true},
+ {p:'III', n:'4.4', t:"Fermentation…", sim:'exao', tronq:true},
+ {p:'III', n:'5',   t:'Applications', titre:true, tronq:true},
+ {p:'III', n:'5.1', t:"Isolement…", tronq:true},
+ {p:'III', n:'5.2', t:"Préparation…", tronq:true},
+
+ {p:'IV', n:'1',   t:'Formation de dioxygène et consommation de CO₂', titre:true, tronq:true},
+ {p:'IV', n:'1.1', t:"Mise en évidence…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.2', t:"Mise en évidence…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.3', t:"Cinétique…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.4', t:"Effet de…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.5', t:"Rôle de…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.6', t:"Importance de…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.7', t:"Rôle de…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.8', t:"Rôle de…", sim:'exao', tronq:true},
+ {p:'IV', n:'1.9', t:"Rôle de…", sim:'exao', tronq:true}
+];
+const NOM_PARTIE = {I:'I — Biochimie', II:'II — Histologie des plantes',
+                    III:'III — Respiration et fermentation', IV:'IV — Photosynthèse'};
+const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
+                    enzymes:'Enzymes', histologie:'Histologie'};
+
+(function catalogue(){
+  const liste = $('#cat-liste'), champ = $('#cat-recherche');
+  let filtre = 'tout', texte = '';
+  const sansAccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+
+  function rendu(){
+    const q = sansAccent(texte.trim());
+    let html = '', partieCourante = null, rien = true;
+    CATALOGUE.forEach(e => {
+      if(filtre === 'sim' ? !e.sim : (filtre !== 'tout' && e.p !== filtre)) return;
+      if(q && !sansAccent(e.t + ' ' + e.n).includes(q)) return;
+      rien = false;
+      if(e.p !== partieCourante){
+        partieCourante = e.p;
+        html += '<div class="partie-titre">' + NOM_PARTIE[e.p] + '</div><div class="liste-exp">';
+      }
+      if(e.titre){
+        html += '<div class="exp" style="background:var(--fond); border-style:dashed">' +
+                '<span class="num">' + e.n + '</span>' +
+                '<span class="titre" style="font-weight:600; text-transform:uppercase; font-size:12px; letter-spacing:.03em">' +
+                e.t + '</span>' + (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '') + '</div>';
+      } else {
+        html += '<div class="exp' + (e.sim ? ' simulable' : '') + '">' +
+                '<span class="num">' + e.n + '</span>' +
+                '<span class="titre">' + e.t + '</span>' +
+                (e.sim ? '<button class="btn mini primaire no-print" data-va="' + e.sim + '">Simuler — ' + NOM_MODULE[e.sim] + '</button>' : '') +
+                (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '<span class="page">—</span>') +
+                '</div>';
+      }
+    });
+    liste.innerHTML = (rien ? '<p style="color:var(--gris); font-size:13px">Aucune expérience ne correspond.</p>' : html + '</div>');
+  }
+  champ.addEventListener('input', () => { texte = champ.value; rendu(); });
+  segment($('#cat-filtre'), d => { filtre = d.p; rendu(); });
+  rendu();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE ExAO — modèle physiologique + enceinte animée + courbes
+   ==========================================================================
+   Modèle retenu (volontairement simple, mais cohérent avec les résultats
+   classiques d'un TP) :
+     P (photosynthèse brute) = Pmax · f(lumière) · f(CO2) · f(température)
+     R (respiration)         = R20 · 2^((T-20)/10) · f(O2)
+     échange net d'O2        = P - R
+   ========================================================================== */
+const MATERIEL = {
+  elodee:      {nom:'Élodée',            pmax:1.10, r20:0.22, chloro:true,  ferm:false,
+                sub:'Hydrogénocarbonate (CO₂ disponible)', teinte:'#3f7d5f'},
+  chlorelles:  {nom:'Chlorelles',        pmax:1.45, r20:0.30, chloro:true,  ferm:false,
+                sub:'Hydrogénocarbonate (CO₂ disponible)', teinte:'#5a9a5a'},
+  feuille:     {nom:'Disques de feuille',pmax:0.85, r20:0.18, chloro:true,  ferm:false,
+                sub:'Hydrogénocarbonate (CO₂ disponible)', teinte:'#356b48'},
+  germination: {nom:'Graines germées',   pmax:0.00, r20:0.42, chloro:false, ferm:false,
+                sub:'Réserves disponibles', teinte:'#b9a06a'},
+  levure:      {nom:'Levures',           pmax:0.00, r20:0.55, chloro:false, ferm:true,
+                sub:'Glucose disponible', teinte:'#d8b678'}
+};
+const FILTRES = {blanc:{eff:1.00, c:'#fff6d8'}, bleu:{eff:0.88, c:'#7fb2e8'},
+                 vert:{eff:0.12, c:'#8fd28f'}, rouge:{eff:0.82, c:'#e8877f'}};
+
+const fTphoto = T => {
+  let f = Math.exp(-Math.pow(T-28,2)/(2*11*11));
+  if(T > 40) f *= Math.max(0, 1-(T-40)/10);
+  return f;
+};
+const fTrespi = T => {
+  let f = Math.pow(2, (T-20)/10);
+  if(T > 45) f *= Math.max(0, 1-(T-45)/8);
+  return f;
+};
+/* vitesses en mg·L⁻¹·min⁻¹ */
+function vPhoto(mat, intensite, filtre, T, co2){
+  if(!mat.chloro) return 0;
+  const Ieff = intensite * FILTRES[filtre].eff;
+  return mat.pmax * (Ieff/(Ieff+25)) * (co2/(co2+1.5)) * fTphoto(T);
+}
+function vRespi(mat, T, o2, sub){
+  const dispo = mat.ferm ? sub/(sub+15) : 1;
+  return mat.r20 * fTrespi(T) * (o2/(o2+0.35)) * dispo;
+}
+function vFerment(mat, T, o2, sub){          /* CO2 produit sans consommer d'O2 */
+  if(!mat.ferm) return 0;
+  const anoxie = 0.4/(o2+0.4);
+  return mat.r20 * 1.1 * fTrespi(T) * anoxie * (sub/(sub+15));
+}
+const cibleCO2 = pct => 1 + pct/100*11;      /* réglage du curseur → mg·L⁻¹ */
+const versPH   = co2 => borne(7.55 - 0.09*co2, 4.5, 9);
+
+const EX = {
+  t:0, o2:8, co2:5, hist:[], bandes:[], marche:false, vitesse:10,
+  bulles:[], scenario:null, dernierNet:0, alcool:0, last:0
+};
+
+(function exao(){
+  const cvE = $('#ex-enceinte'), cvG = $('#ex-graphe'), cvS = $('#ex-serie');
+  const lampe = $('#ex-lum'), intens = $('#ex-int'), temp = $('#ex-temp'), sub = $('#ex-sub');
+
+  const etat = () => ({
+    mat: MATERIEL[$('#ex-mat').value],
+    lampe: lampe.checked,
+    I: lampe.checked ? +intens.value : 0,
+    filtre: segmentValeur($('#ex-filtre'),'f') || 'blanc',
+    T: +temp.value,
+    sub: +sub.value
+  });
+
+  /* ---------- affichage des valeurs des curseurs ---------- */
+  const majLibelles = () => {
+    $('#ex-lum-txt').textContent = lampe.checked ? 'Lampe allumée' : 'Lampe éteinte';
+    $('#ex-int-v').textContent  = intens.value + ' %';
+    $('#ex-temp-v').textContent = temp.value + ' °C';
+    $('#ex-sub-v').textContent  = sub.value + ' %';
+    $('#ex-sub-lab').innerHTML  = MATERIEL[$('#ex-mat').value].sub +
+                                  ' <span class="val" id="ex-sub-v">' + sub.value + ' %</span>';
+  };
+  [intens, temp, sub].forEach(el => el.addEventListener('input', majLibelles));
+
+  /* ---------- remise à zéro ---------- */
+  function raz(){
+    const e = etat();
+    EX.t = 0; EX.o2 = 8; EX.co2 = cibleCO2(e.sub); EX.alcool = 0;
+    EX.hist = [[0, EX.o2, EX.co2, versPH(EX.co2)]];
+    EX.bandes = []; EX.bulles = []; EX.scenario = null; EX.dernierNet = 0;
+    if(!e.lampe) EX.bandes.push({x0:0, x1:0});
+    arrete(); majAffichage(); traceCourbes();
+  }
+  function lance(){
+    if(EX.marche) return;
+    EX.marche = true; EX.last = performance.now();
+    $('#ex-play').textContent = 'Pause';
+    $('#ex-play').classList.remove('primaire');
+    $('#ex-etat').textContent = 'Enregistrement en cours…';
+    requestAnimationFrame(boucle);
+  }
+  function arrete(){
+    EX.marche = false;
+    $('#ex-play').textContent = 'Lancer';
+    $('#ex-play').classList.add('primaire');
+    $('#ex-etat').textContent = EX.t > 0 ? 'Enregistrement en pause à ' + mmss(EX.t) + '.' : 'Enregistrement à l\'arrêt.';
+  }
+
+  /* ---------- bandes d'obscurité ---------- */
+  function majBandes(){
+    const obscur = !lampe.checked || +intens.value === 0;
+    $('#ex-lum-txt').textContent = lampe.checked ? 'Lampe allumée' : 'Lampe éteinte';
+    const der = EX.bandes[EX.bandes.length-1];
+    if(obscur){
+      if(!der || der.fini) EX.bandes.push({x0:EX.t/60, x1:EX.t/60, fini:false});
+      else der.x1 = EX.t/60;
+    } else if(der && !der.fini){ der.x1 = EX.t/60; der.fini = true; }
+  }
+  lampe.addEventListener('change', majBandes);
+  intens.addEventListener('input', majBandes);
+
+  /* ---------- boucle de simulation ---------- */
+  function boucle(now){
+    if(!EX.marche) return;
+    let dtr = (now - EX.last)/1000; EX.last = now;
+    dtr = Math.min(dtr, 0.1);
+    const dt = dtr * EX.vitesse;             /* secondes simulées */
+    const e = etat();
+
+    if(EX.scenario) jouerScenario();
+
+    const P  = vPhoto(e.mat, e.I, e.filtre, e.T, EX.co2);
+    const R  = vRespi(e.mat, e.T, EX.o2, e.sub);
+    const F  = vFerment(e.mat, e.T, EX.o2, e.sub);
+    const dm = dt/60;                         /* minutes simulées */
+
+    EX.o2  = borne(EX.o2 + (P - R)*dm, 0, 22);
+    EX.co2 = borne(EX.co2 + (R + F - P)*dm + 0.15*(cibleCO2(e.sub) - EX.co2)*dm, 0, 24);
+    EX.alcool += F*dm*0.6;
+    EX.dernierNet = P - R;
+    EX.t += dt;
+    majBandes();
+
+    const der = EX.hist[EX.hist.length-1];
+    if(EX.t - der[0]*60 >= 1.5) EX.hist.push([EX.t/60, EX.o2, EX.co2, versPH(EX.co2)]);
+
+    /* bulles de dioxygène */
+    if(P - R > 0.02 && Math.random() < (P-R)*0.9) EX.bulles.push({
+      x: 20+Math.random()*90, y: 300+Math.random()*60,
+      r: 1.6+Math.random()*2.2, v: 22+Math.random()*30
+    });
+    EX.bulles.forEach(b => b.y -= b.v*dtr);
+    EX.bulles = EX.bulles.filter(b => b.y > 60).slice(-120);
+
+    majAffichage(); traceCourbes(); dessineEnceinte();
+    if(EX.t >= 1500){ arrete(); $('#ex-etat').textContent = 'Enregistrement terminé (25 min simulées).'; return; }
+    requestAnimationFrame(boucle);
+  }
+
+  function majAffichage(){
+    $('#ex-t').textContent   = mmss(EX.t);
+    $('#ex-o2').textContent  = fr(EX.o2);
+    $('#ex-co2').textContent = fr(EX.co2);
+    $('#ex-ph').textContent  = fr(versPH(EX.co2));
+    const n = EX.dernierNet;
+    $('#ex-net').textContent = (n>0?'+':'') + fr(n);
+    $('#ex-net').style.color = n > 0.01 ? 'var(--vert)' : n < -0.01 ? 'var(--rouge)' : 'var(--gris)';
+  }
+
+  /* ---------- tracé des courbes ---------- */
+  function traceCourbes(){
+    const xmax = Math.max(4, Math.ceil(EX.t/60/2)*2);
+    const series = [
+      {couleur:'#2f6ba8', pts: EX.hist.map(p => [p[0],p[1]])},
+      {couleur:'#b15f2c', pts: EX.hist.map(p => [p[0],p[2]])}
+    ];
+    if($('#ex-vph').checked)
+      series.push({couleur:'#6e5fa8', pointille:true, largeur:1.6, pts: EX.hist.map(p => [p[0],p[3]])});
+    let ymin = 0, ymax = 16;
+    if($('#ex-auto').checked){                 /* échelle resserrée sur les mesures */
+      const v = series.flatMap(s => s.pts.map(p => p[1]));
+      const a = Math.min(...v), b = Math.max(...v), m = Math.max(0.5, (b-a)*0.25);
+      ymin = Math.max(0, a-m); ymax = b+m;
+    }
+    traceGraphe(cvG, {
+      xmin:0, xmax, ymin, ymax,
+      xtit:'temps (min)', ytit:'concentration (mg·L⁻¹) et pH',
+      bandes: EX.bandes.map(b => ({x0:b.x0, x1:b.fini ? b.x1 : EX.t/60})),
+      series
+    });
+  }
+
+  /* ---------- enceinte dessinée ---------- */
+  function dessineEnceinte(){
+    const {ctx, l, h} = dimensionne(cvE);
+    const e = etat(), m = e.mat;
+    const ech = l/168;
+    ctx.clearRect(0,0,l,h); ctx.save(); ctx.scale(ech, ech);
+    const L = 168, H = h/ech;
+
+    /* fond */
+    ctx.fillStyle = e.I > 0 ? '#2b2a27' : '#1b1a18'; ctx.fillRect(0,0,L,H);
+
+    /* lampe + halo */
+    ctx.fillStyle = '#4a4741'; ctx.fillRect(64, 6, 40, 12);
+    ctx.beginPath(); ctx.moveTo(58,18); ctx.lineTo(110,18); ctx.lineTo(98,30); ctx.lineTo(70,30); ctx.closePath(); ctx.fill();
+    if(e.I > 0){
+      const f = FILTRES[e.filtre];
+      ctx.globalAlpha = 0.10 + 0.42*(e.I/100);
+      const gr = ctx.createRadialGradient(84,30,4,84,30,150);
+      gr.addColorStop(0, f.c); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = gr; ctx.fillRect(0,18,L,H-18); ctx.globalAlpha = 1;
+    }
+
+    /* cuve */
+    const x0=26, y0=76, lg=116, ht=H-110;
+    ctx.fillStyle = 'rgba(160,205,230,.30)';
+    ctx.strokeStyle = '#cfd6da'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.roundRect(x0, y0, lg, ht, 10); ctx.fill(); ctx.stroke();
+    /* teinte de la suspension */
+    if(m.chloro && $('#ex-mat').value === 'chlorelles') ctx.fillStyle = 'rgba(90,154,90,.35)';
+    else if($('#ex-mat').value === 'levure') ctx.fillStyle = 'rgba(216,182,120,.30)';
+    else ctx.fillStyle = 'rgba(0,0,0,0)';
+    ctx.beginPath(); ctx.roundRect(x0+2, y0+12, lg-4, ht-14, 8); ctx.fill();
+
+    /* sondes */
+    [['O₂','#2f6ba8',46],['CO₂','#b15f2c',108]].forEach(([nom,c,x]) => {
+      ctx.fillStyle = '#3a3733'; ctx.fillRect(x-5, 40, 10, 46);
+      ctx.fillStyle = c; ctx.beginPath(); ctx.roundRect(x-6, 82, 12, 16, 3); ctx.fill();
+      ctx.fillStyle = '#e8e3da'; ctx.font = '600 9px Onest, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(nom, x, 36);
+    });
+
+    /* matériel biologique */
+    const base = y0+ht-8;
+    if($('#ex-mat').value === 'elodee' || $('#ex-mat').value === 'feuille'){
+      ctx.strokeStyle = m.teinte; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(84, base); ctx.quadraticCurveTo(74, base-60, 86, base-118); ctx.stroke();
+      for(let i=0;i<9;i++){
+        const y = base-14-i*12, c = i%2 ? 1 : -1;
+        ctx.fillStyle = m.teinte; ctx.beginPath();
+        ctx.ellipse(84+c*13, y, 12, 4.6, c*0.5, 0, 7); ctx.fill();
+      }
+    } else if($('#ex-mat').value === 'germination'){
+      for(let i=0;i<7;i++){
+        const x = 40+ (i%4)*26, y = base - Math.floor(i/4)*16;
+        ctx.fillStyle = '#c8ad74'; ctx.beginPath(); ctx.ellipse(x, y, 8, 6, 0, 0, 7); ctx.fill();
+        ctx.strokeStyle = '#e6ddc6'; ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(x, y-4); ctx.quadraticCurveTo(x+4, y-14, x+1, y-20); ctx.stroke();
+      }
+    } else {
+      ctx.fillStyle = 'rgba(255,255,255,.5)';
+      for(let i=0;i<26;i++){
+        const x = x0+8+Math.random()*(lg-16), y = y0+24+Math.random()*(ht-40);
+        ctx.beginPath(); ctx.arc(x, y, 1.5, 0, 7); ctx.fill();
+      }
+    }
+
+    /* bulles */
+    ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1;
+    EX.bulles.forEach(b => { ctx.beginPath(); ctx.arc(b.x+26, b.y, b.r, 0, 7); ctx.stroke(); });
+
+    /* étiquettes */
+    ctx.fillStyle = 'rgba(232,227,218,.85)'; ctx.font = '600 10px Onest, sans-serif';
+    ctx.textAlign = 'left'; ctx.fillText(m.nom, 10, H-14);
+    ctx.textAlign = 'right'; ctx.fillText(e.T + ' °C', L-10, H-14);
+    ctx.restore();
+  }
+
+  /* ---------- scénarios automatiques ---------- */
+  function jouerScenario(){
+    const s = EX.scenario; if(!s) return;
+    while(s.etapes.length && EX.t >= s.etapes[0].t){
+      const et = s.etapes.shift(); et.f();
+    }
+    if(!s.etapes.length && s.fin && EX.t >= s.tFin){ EX.scenario = null; arrete(); if(s.apres) s.apres(); }
+  }
+
+  function serie(titre, sous, cfg, note, cles){
+    $('#ex-serie-carte').style.display = '';
+    $('#ex-serie-titre').textContent = titre;
+    $('#ex-serie-sous').innerHTML = sous + (cles ? '<br>' + cles.map(([c,l]) =>
+      '<b style="color:' + c + '">—</b> ' + l).join(' &nbsp; ') : '');
+    $('#ex-serie-note').innerHTML = note;
+    traceGraphe(cvS, cfg);
+    $('#ex-serie-carte').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  const PROTOS = {
+    alternance(){
+      raz(); lampe.checked = true; intens.value = 70; majLibelles(); majBandes();
+      EX.vitesse = 40; segmentUI($('#ex-vit'), '40');
+      EX.scenario = {tFin:960, fin:true, etapes:[
+        {t:240, f:() => { lampe.checked = false; majBandes(); }},
+        {t:480, f:() => { lampe.checked = true;  majBandes(); }},
+        {t:720, f:() => { lampe.checked = false; majBandes(); }}
+      ], apres(){
+        $('#ex-consigne').innerHTML = '<b>À exploiter.</b> Sur les plages éclairées, l\'O₂ augmente et le CO₂ diminue : ' +
+          'la photosynthèse l\'emporte sur la respiration. Dans les plages grises, l\'O₂ diminue et le CO₂ augmente : ' +
+          'seule la respiration s\'exprime. La plante respire donc en permanence, jour et nuit.';
+      }};
+      $('#ex-consigne').innerHTML = '<b>En cours.</b> 4 min de lumière, 4 min d\'obscurité, deux fois. Observez le sens des pentes.';
+      lance();
+    },
+    intensite(){
+      const e = etat(), co2 = cibleCO2(e.sub), pts = [], brut = [], resp = [];
+      const R = vRespi(e.mat, e.T, 8, e.sub);
+      for(let I=0; I<=100; I+=5){
+        const P = vPhoto(e.mat, I, e.filtre, e.T, co2);
+        brut.push([I,P]); pts.push([I,P-R]); resp.push([I,-R]);
+      }
+      /* point de compensation : première intensité où l'échange net s'annule */
+      let pc = null;
+      for(let i=1;i<pts.length;i++) if(pts[i-1][1] < 0 && pts[i][1] >= 0){
+        const a = pts[i-1], b = pts[i];
+        pc = a[0] + (0-a[1])*(b[0]-a[0])/(b[1]-a[1]); break;
+      }
+      serie('Courbe de réponse à la lumière',
+        'Échange net d\'O₂ mesuré à ' + e.T + ' °C, filtre ' + e.filtre + ', CO₂ à ' + fr(co2,1) + ' mg·L⁻¹.',
+        {xmin:0, xmax:100, ymin:Math.min(-0.1, -R*1.4), ymax:Math.max(0.2, brut[brut.length-1][1]*1.25),
+         xtit:'intensité lumineuse (%)', ytit:'mg O₂·L⁻¹·min⁻¹',
+         series:[{couleur:'#3f7d5f', pts, marqueurs:true},
+                 {couleur:'#a9a294', pts:brut, pointille:true},
+                 {couleur:'#c0392b', pts:resp, pointille:true}],
+         reperes: pc !== null ? [{x:pc, texte:'point de compensation ≈ ' + Math.round(pc) + ' %'}] : []},
+        pc !== null
+          ? '<b>Lecture.</b> En dessous de ' + Math.round(pc) + ' % d\'éclairement, la respiration l\'emporte : l\'échange net est négatif. ' +
+            'Au <b>point de compensation</b>, photosynthèse et respiration se compensent exactement, l\'échange net est nul. ' +
+            'Au-delà, la courbe s\'infléchit : un autre facteur devient limitant (CO₂, température, équipement en enzymes).'
+          : '<b>Lecture.</b> Aucun point de compensation : ce matériel ne réalise pas la photosynthèse, l\'échange net reste négatif ' +
+            'quelle que soit la lumière. C\'est le témoin qui montre que la lumière seule ne suffit pas — il faut de la chlorophylle.',
+        [['#3f7d5f','échange net'], ['#a9a294','photosynthèse brute'], ['#c0392b','respiration']]);
+    },
+    temperature(){
+      const e = etat(), co2 = cibleCO2(e.sub), net = [], brut = [], resp = [];
+      for(let T=0; T<=55; T+=1){
+        const P = vPhoto(e.mat, e.I || 70, e.filtre, T, co2), R = vRespi(e.mat, T, 8, e.sub);
+        brut.push([T,P]); resp.push([T,R]); net.push([T,P-R]);
+      }
+      let opt = 0; net.forEach(p => { if(p[1] > net[opt][1]) opt = p[0]; });
+      serie('Effet de la température',
+        'Éclairement maintenu à ' + (e.I || 70) + ' %, filtre ' + e.filtre + '.',
+        {xmin:0, xmax:55, ymin:Math.min(-0.15, -Math.max(...resp.map(p=>p[1]))*1.2),
+         ymax:Math.max(0.2, Math.max(...brut.map(p=>p[1]))*1.2),
+         xtit:'température (°C)', ytit:'mg O₂·L⁻¹·min⁻¹',
+         series:[{couleur:'#3f7d5f', pts:net}, {couleur:'#a9a294', pts:brut, pointille:true},
+                 {couleur:'#c0392b', pts:resp, pointille:true}],
+         reperes:[{x:opt, texte:'optimum ≈ ' + opt + ' °C', couleur:'#2f6ba8'}]},
+        '<b>Lecture.</b> La respiration (rouge) augmente régulièrement avec la température — elle double environ tous les 10 °C. ' +
+        'La photosynthèse (gris) passe par un optimum puis s\'effondre : au-delà de 40-45 °C les enzymes sont dénaturées. ' +
+        'L\'échange net (vert) s\'annule donc deux fois : au froid et à la chaleur.',
+        [['#3f7d5f','échange net'], ['#a9a294','photosynthèse brute'], ['#c0392b','respiration']]);
+    },
+    spectre(){
+      const e = etat(), co2 = cibleCO2(e.sub), R = vRespi(e.mat, e.T, 8, e.sub);
+      const noms = ['bleu','vert','rouge','blanc'], coul = {bleu:'#2f6ba8', vert:'#3f7d5f', rouge:'#c0392b', blanc:'#c9b98f'};
+      const barres = noms.map((f,i) => {
+        const P = vPhoto(e.mat, e.I || 80, f, e.T, co2);
+        Labo.spectreAction = Labo.spectreAction || {};
+        Labo.spectreAction[f] = P;
+        return {x:i, y:P-R, couleur:coul[f], etiquette:f};
+      });
+      serie('Spectre d\'action de la photosynthèse',
+        'Même intensité lumineuse (' + (e.I || 80) + ' %) derrière quatre filtres différents.',
+        {xmin:-0.6, xmax:3.6, ymin:Math.min(-0.1, -R*1.5),
+         ymax:Math.max(0.2, Math.max(...barres.map(b=>b.y))*1.3),
+         xtit:'filtre coloré', ytit:'mg O₂·L⁻¹·min⁻¹',
+         fmtX: x => ['bleu','vert','rouge','blanc'][Math.round(x)] || '', barres},
+        '<b>Lecture.</b> La lumière verte est très peu efficace, le bleu et le rouge le sont beaucoup. ' +
+        'Superposez ce spectre d\'action au spectre d\'absorption des pigments (onglet Pigments) : les deux courbes se ressemblent, ' +
+        'ce qui montre que ce sont bien les pigments chlorophylliens qui captent l\'énergie utilisée par la photosynthèse.');
+    },
+    fermentation(){
+      $('#ex-mat').value = 'levure'; sub.value = 80; temp.value = 30;
+      lampe.checked = false; majLibelles(); raz();
+      EX.o2 = 7; EX.hist = [[0,7,EX.co2,versPH(EX.co2)]];
+      EX.vitesse = 40; segmentUI($('#ex-vit'), '40');
+      EX.scenario = {tFin:600, fin:true, etapes:[], apres(){
+        $('#ex-consigne').innerHTML = '<b>À exploiter.</b> Tant qu\'il reste de l\'O₂, les levures respirent : O₂ consommé, CO₂ rejeté. ' +
+          'Quand l\'O₂ s\'épuise, la courbe d\'O₂ s\'aplatit sur zéro mais le CO₂ continue d\'augmenter : ' +
+          'les levures sont passées en <b>fermentation alcoolique</b> (alcool produit : ' + fr(EX.alcool,2) + ' g·L⁻¹).';
+      }};
+      $('#ex-consigne').innerHTML = '<b>En cours.</b> Enceinte fermée, à l\'obscurité, avec du glucose. Surveillez le moment où la courbe d\'O₂ atteint zéro.';
+      lance();
+    }
+  };
+  function segmentUI(el, val){
+    $$('button', el).forEach(b => b.setAttribute('aria-pressed', String(Object.values(b.dataset)[0] === val)));
+  }
+  $$('[data-proto]').forEach(b => b.addEventListener('click', () => PROTOS[b.dataset.proto]()));
+
+  /* ---------- commandes ---------- */
+  $('#ex-play').addEventListener('click', () => EX.marche ? arrete() : lance());
+  $('#ex-raz').addEventListener('click', () => { EX.scenario = null; raz();
+    $('#ex-serie-carte').style.display = 'none'; });
+  $('#ex-mat').addEventListener('change', () => { majLibelles(); raz(); });
+  segment($('#ex-filtre'), () => dessineEnceinte());
+  segment($('#ex-vit'), d => EX.vitesse = +d.v);
+  $('#ex-vph').addEventListener('change', traceCourbes);
+  $('#ex-auto').addEventListener('change', traceCourbes);
+  lampe.addEventListener('change', () => {
+    $('#ex-lum-txt').textContent = lampe.checked ? 'Lampe allumée' : 'Lampe éteinte';
+    dessineEnceinte();
+  });
+  intens.addEventListener('input', dessineEnceinte);
+
+  $('#ex-csv').addEventListener('click', () => {
+    const l = ['temps_min;O2_mg_L;CO2_mg_L;pH'];
+    EX.hist.forEach(p => l.push(p.map(v => fr(v,3)).join(';')));
+    telecharge('exao-mesures.csv', l.join('\n'), 'text/csv;charset=utf-8');
+  });
+  $('#ex-png').addEventListener('click', () => {
+    const a = document.createElement('a');
+    a.href = cvG.toDataURL('image/png'); a.download = 'exao-courbes.png'; a.click();
+  });
+
+  /* ---------- questions d'exploitation ---------- */
+  const QUESTIONS = [
+    ['Pourquoi la concentration en O₂ diminue-t-elle à l\'obscurité alors que la plante est verte ?',
+     'Parce que la respiration ne s\'arrête jamais : elle consomme de l\'O₂ et rejette du CO₂ en permanence. À la lumière elle est masquée par la photosynthèse, plus intense ; à l\'obscurité elle est seule à s\'exprimer.'],
+    ['Que mesure-t-on exactement quand on lit la pente de la courbe d\'O₂ à la lumière ?',
+     'La photosynthèse NETTE : la différence entre l\'O₂ produit par la photosynthèse et l\'O₂ consommé par la respiration. Pour obtenir la photosynthèse brute, il faut ajouter la respiration mesurée à l\'obscurité.'],
+    ['Le filtre vert fait chuter la production d\'O₂. Qu\'en déduire ?',
+     'Que la lumière verte est peu absorbée par les pigments chlorophylliens : elle est en grande partie réfléchie et transmise. Seule la lumière absorbée peut fournir l\'énergie de la photosynthèse.'],
+    ['Vous augmentez l\'intensité lumineuse mais la courbe ne monte plus. Que se passe-t-il ?',
+     'Un autre facteur est devenu limitant : le plus souvent la teneur en CO₂, parfois la température ou la quantité d\'enzymes. C\'est la loi des facteurs limitants.'],
+    ['Chez les levures privées d\'O₂, le CO₂ continue d\'augmenter. Quelle voie métabolique ?',
+     'La fermentation alcoolique : le glucose est dégradé sans dioxygène, en éthanol et CO₂. Le rendement énergétique est bien plus faible que celui de la respiration.']
+  ];
+  $('#ex-questions').innerHTML = QUESTIONS.map((q,i) =>
+    '<details style="border-bottom:1px solid var(--ligne); padding:9px 0">' +
+    '<summary style="cursor:pointer; font-size:13.5px; font-weight:500">' + (i+1) + '. ' + q[0] + '</summary>' +
+    '<p style="font-size:12.5px; color:var(--gris); margin-top:7px">' + q[1] + '</p></details>').join('');
+
+  Labo.surAffichage.exao = () => { majLibelles(); traceCourbes(); dessineEnceinte(); };
+  raz();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE BIOCHIMIE — échantillons, réactifs, résultats
+   ========================================================================== */
+const ECHANTILLONS = [
+ {id:'patate',   nom:'Tubercule de pomme de terre', ind:'coupe fine', tags:['amidon','cellulose','polysaccharide']},
+ {id:'ble',      nom:'Grain de blé (coupe)',        ind:'coupe fine', tags:['amidon','proteines','aleurone','cellulose','polysaccharide']},
+ {id:'glucose',  nom:'Solution de glucose',         ind:'liquide',    tags:['ose','reducteur']},
+ {id:'saccharose',nom:'Solution de saccharose',     ind:'liquide',    tags:['ose']},
+ {id:'sacc-hydro',nom:'Saccharose après hydrolyse acide', ind:'liquide', tags:['ose','reducteur','fructose']},
+ {id:'blanc',    nom:"Blanc d'œuf dilué / gluten",  ind:'liquide',    tags:['proteines']},
+ {id:'arachide', nom:'Graine d\'arachide broyée',   ind:'broyat',     tags:['lipides','proteines']},
+ {id:'topinambour',nom:'Tubercule de topinambour',  ind:'coupe fine', tags:['inuline','fructose','cellulose','polysaccharide']},
+ {id:'feuille',  nom:'Fragment de feuille verte',   ind:'coupe fine', tags:['amidon','cellulose','polysaccharide','chlorophylle']},
+ {id:'bois',     nom:'Coupe de tige lignifiée',     ind:'coupe fine', tags:['lignine','cellulose','polysaccharide']},
+ {id:'tomate',   nom:'Pulpe de tomate mûre',        ind:'broyat',     tags:['lycopene','pectines','cellulose','polysaccharide']},
+ {id:'chou',     nom:'Chou rouge / pétale coloré',  ind:'broyat',     tags:['anthocyanes','cellulose','polysaccharide']},
+ {id:'rhubarbe', nom:'Pétiole de rhubarbe',         ind:'coupe fine', tags:['oxalate','pectines','cellulose','polysaccharide']},
+ {id:'ecorce',   nom:'Écorce de chêne (macérat)',   ind:'liquide',    tags:['tannins']},
+ {id:'oignon',   nom:'Épiderme d\'oignon',          ind:'coupe fine', tags:['adn','cellulose','polysaccharide']}
+];
+
+const REACTIFS = [
+ {id:'molisch', nom:'Réaction de Molisch (α-naphtol + H₂SO₄)', ref:'1.1', mode:'tube', cible:['ose','amidon','cellulose','inuline','polysaccharide'],
+  pos:{c:'#6e3fa8', obs:'Un anneau violet apparaît à la limite des deux liquides.', ccl:'Présence de glucides : la réaction de Molisch est commune à tous les oses, libres ou engagés dans un polymère.'},
+  neg:{c:'#f0e6cf', obs:'Aucun anneau coloré.', ccl:'Pas de glucides décelables dans cet échantillon.'}},
+
+ {id:'fehling', nom:'Liqueur de Fehling', ref:'1.2', mode:'tube', chauffage:true, cible:['reducteur'],
+  pos:{c:'#b5401f', obs:'Le bleu vire au jaune puis un précipité rouge brique se dépose.', ccl:'Présence de sucres réducteurs (oxyde de cuivre I formé par réduction du cuivre II).'},
+  neg:{c:'#1f6fb5', obs:'La liqueur reste bleue même après chauffage.', ccl:'Pas de sucre réducteur. Attention : le saccharose n\'est pas réducteur, il faut d\'abord l\'hydrolyser.'}},
+
+ {id:'argent', nom:'Nitrate d\'argent ammoniacal', ref:'1.3', mode:'tube', chauffage:true, cible:['reducteur'],
+  pos:{c:'#b9bec4', obs:'Un dépôt métallique brillant tapisse le tube : le miroir d\'argent.', ccl:'Présence de sucres réducteurs : l\'ion argent a été réduit en argent métallique.'},
+  neg:{c:'#eef1f3', obs:'Le tube reste limpide, aucun dépôt.', ccl:'Pas de sucre réducteur.'}},
+
+ {id:'aps', nom:'APS — acide périodique / réactif de Schiff', ref:'2.1', mode:'lame', cible:['polysaccharide','amidon','cellulose','inuline'],
+  pos:{c:'#c2185b', obs:'Les parois et les grains d\'amidon prennent une teinte magenta soutenue.', ccl:'Présence de polysaccharides : réaction générale des sucres complexes.'},
+  neg:{c:'#f5eee6', obs:'Aucune coloration magenta.', ccl:'Pas de polysaccharide décelable.'}},
+
+ {id:'zinc', nom:'Chlorure de zinc iodé', ref:'2.2', mode:'lame', cible:['cellulose'],
+  pos:{c:'#4a3f9a', obs:'Les parois se colorent en violet-bleu.', ccl:'Présence de cellulose dans les parois. Les parois lignifiées, elles, restent jaunes.'},
+  neg:{c:'#e8d9a8', obs:'Les parois restent jaunâtres.', ccl:'Pas de cellulose accessible.'}},
+
+ {id:'ruthenium', nom:'Rouge de ruthénium', ref:'2.3', mode:'lame', cible:['pectines'],
+  pos:{c:'#d46a8b', obs:'La lamelle moyenne, entre les cellules, se colore en rose vif.', ccl:'Présence de pectines : ce sont elles qui « cimentent » les cellules entre elles.'},
+  neg:{c:'#f3e9e2', obs:'Pas de liseré rose entre les cellules.', ccl:'Pectines non décelables ici.'}},
+
+ {id:'phloro', nom:'Phloroglucine chlorhydrique', ref:'2.5', mode:'lame', cible:['lignine'],
+  pos:{c:'#b5182b', obs:'Les parois lignifiées virent au rouge cerise.', ccl:'Présence de lignine : vaisseaux du xylème, fibres, sclérenchyme.'},
+  neg:{c:'#f6efe6', obs:'Aucune paroi ne rougit.', ccl:'Pas de lignine : les parois sont seulement cellulosiques.'}},
+
+ {id:'carmin', nom:"Carmin-vert d'iode (double coloration)", ref:'II — 1.4', mode:'lame', cible:['cellulose','lignine'],
+  pos:{c:'#59a06a', obs:'Les parois cellulosiques sont roses, les parois lignifiées vert-bleu.', ccl:'La double coloration sépare d\'un coup d\'œil les tissus de soutien et conducteurs lignifiés du reste de la coupe.'},
+  neg:{c:'#f3ece2', obs:'Coloration faible et non contrastée.', ccl:'Matériel peu adapté à cette double coloration.'}},
+
+ {id:'lugol', nom:'Eau iodée (lugol)', ref:'3.1', mode:'lame', cible:['amidon'],
+  pos:{c:'#1a1f4d', obs:'Coloration bleu très foncé, presque noire ; au microscope, les grains d\'amidon sont nettement dessinés.', ccl:"Présence d'amidon, polymère de glucose de réserve."},
+  neg:{c:'#c08a1e', obs:'L\'échantillon prend seulement la teinte jaune-brun du lugol.', ccl:"Pas d'amidon. Attention : l'inuline ne réagit pas au lugol."}},
+
+ {id:'resorcine', nom:'Résorcine chlorhydrique (Sélivanoff)', ref:'3.5', mode:'tube', chauffage:true, cible:['inuline','fructose'],
+  pos:{c:'#c0392b', obs:'Coloration rouge vif après chauffage.', ccl:"Présence de fructose libre ou lié : c'est le cas de l'inuline, glucide de réserve du topinambour et du dahlia."},
+  neg:{c:'#f2e6d8', obs:'Pas de coloration rouge.', ccl:'Pas de cétose de type fructose.'}},
+
+ {id:'soudan', nom:'Soudan III (ou rouge Soudan)', ref:'3.6', mode:'lame', cible:['lipides'],
+  pos:{c:'#e2662a', obs:'Des gouttelettes rouge orangé se détachent nettement.', ccl:'Présence de lipides : le colorant, liposoluble, se concentre dans les gouttelettes.'},
+  neg:{c:'#f7e9dd', obs:'Aucune gouttelette colorée.', ccl:'Pas de lipides décelables.'}},
+
+ {id:'biuret', nom:'Réaction du biuret', ref:'3.8', mode:'tube', cible:['proteines','aleurone'],
+  pos:{c:'#7b3fa0', obs:'Le milieu vire au violet.', ccl:'Présence de protéines : le réactif révèle les liaisons peptidiques.'},
+  neg:{c:'#bfe0f5', obs:'Le milieu reste bleu clair.', ccl:'Pas de protéines décelables.'}},
+
+ {id:'xantho', nom:'Réaction xanthoprotéique (HNO₃)', ref:'3.9', mode:'tube', chauffage:true, cible:['proteines','aleurone'],
+  pos:{c:'#e08b1e', obs:'Coloration jaune, virant à l\'orangé par addition d\'ammoniaque.', ccl:'Présence de protéines contenant des acides aminés aromatiques.'},
+  neg:{c:'#f4efe4', obs:'Pas de coloration jaune.', ccl:'Pas de protéines aromatiques décelables.'}},
+
+ {id:'h2so4', nom:'Acide sulfurique concentré (caroténoïdes)', ref:'5.1', mode:'tube', cible:['lycopene'],
+  pos:{c:'#2b4a8a', obs:'La solution prend une teinte bleue intense et fugace.', ccl:'Présence de lycopène, caroténoïde rouge des fruits mûrs.'},
+  neg:{c:'#f0ead9', obs:'Pas de coloration bleue.', ccl:'Pas de lycopène.'}},
+
+ {id:'ph', nom:'Changement de pH (acide puis base)', ref:'5.2', mode:'tube', cible:['anthocyanes'],
+  pos:{c:'#6a3fa0', obs:'Rouge vif en milieu acide, violet à pH neutre, vert-jaune en milieu basique.', ccl:'Présence d\'anthocyanes : ce sont des indicateurs colorés naturels.'},
+  neg:{c:'#efe9e0', obs:'La teinte ne change pas avec le pH.', ccl:'Pas d\'anthocyanes.'}},
+
+ {id:'polarise', nom:'Observation en lumière polarisée', ref:'5.4', mode:'lame', cible:['oxalate'],
+  pos:{c:'#d8dee6', obs:'Des cristaux brillants (mâcles, raphides) scintillent sur fond noir.', ccl:'Présence d\'oxalate de calcium cristallisé : ces cristaux sont biréfringents.'},
+  neg:{c:'#2a2a2a', obs:'Le champ reste sombre.', ccl:'Pas de cristaux biréfringents.'}},
+
+ {id:'fer', nom:'Perchlorure de fer', ref:'5.5', mode:'tube', cible:['tannins'],
+  pos:{c:'#2b3a2f', obs:'Coloration bleu-noir à vert très foncé.', ccl:'Présence de tannins, composés phénoliques de défense.'},
+  neg:{c:'#f2ecdf', obs:'Pas d\'assombrissement.', ccl:'Pas de tannins.'}},
+
+ {id:'feulgen', nom:'Réaction de Feulgen (Schiff après hydrolyse)', ref:'7.1', mode:'lame', cible:['adn'],
+  pos:{c:'#a3155f', obs:'Seuls les noyaux se colorent en rouge violacé.', ccl:'Présence d\'ADN, localisé dans le noyau des cellules.'},
+  neg:{c:'#f4ecea', obs:'Aucun noyau coloré.', ccl:'Pas d\'ADN décelable.'}}
+];
+
+(function biochimie(){
+  const cv = $('#bio-tube');
+  let ech = null, rea = null, mode = 'libre', chaud = false, journal = [], mystere = null, resultat = null;
+  let anim = 0;
+
+  /* ---------- listes ---------- */
+  function listeEch(){
+    $('#bio-echantillons').innerHTML = ECHANTILLONS.map(e =>
+      '<button class="btn" data-e="' + e.id + '" style="justify-content:space-between; text-align:left">' +
+      '<span>' + (mode === 'mystere' ? 'Échantillon inconnu' : e.nom) + '</span>' +
+      '<span class="badge">' + e.ind + '</span></button>').join('');
+    if(mode === 'mystere'){
+      $('#bio-echantillons').innerHTML =
+        '<button class="btn primaire" data-e="' + (mystere ? mystere.id : '') + '" style="justify-content:space-between">' +
+        '<span>Échantillon inconnu n° ' + (Labo.bioNum || 1) + '</span><span class="badge">' +
+        (mystere ? mystere.ind : '') + '</span></button>';
+    }
+  }
+  function listeRea(){
+    $('#bio-reactifs').innerHTML = REACTIFS.map(r =>
+      '<button class="btn" data-r="' + r.id + '" style="justify-content:space-between; text-align:left; gap:10px">' +
+      '<span>' + r.nom + '</span><span class="badge' + (r.chauffage ? ' orange' : '') + '">' +
+      (r.chauffage ? 'à chaud' : r.mode === 'lame' ? 'sur lame' : 'en tube') + '</span></button>').join('');
+  }
+  function surligne(){
+    $$('#bio-echantillons button').forEach(b => b.classList.toggle('primaire', !!ech && b.dataset.e === ech.id));
+    $$('#bio-reactifs button').forEach(b => b.classList.toggle('primaire', !!rea && b.dataset.r === rea.id));
+    $('#bio-legende').textContent = (ech ? (mode === 'mystere' ? 'Échantillon inconnu' : ech.nom) : 'Aucun échantillon') +
+      ' — ' + (rea ? rea.nom : 'aucun réactif');
+  }
+  $('#bio-echantillons').addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    ech = ECHANTILLONS.find(x => x.id === b.dataset.e) || mystere;
+    chaud = false; resultat = null; surligne(); dessine();
+  });
+  $('#bio-reactifs').addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    rea = REACTIFS.find(x => x.id === b.dataset.r);
+    chaud = false; resultat = null; surligne(); dessine();
+  });
+
+  /* ---------- réalisation du test ---------- */
+  function test(){
+    if(!ech || !rea){ alert('Choisissez un échantillon et un réactif.'); return; }
+    const positif = rea.cible.some(t => ech.tags.includes(t));
+    if(rea.chauffage && !chaud){
+      resultat = {statut:'attente', obs:'Rien ne se passe à froid.',
+        ccl:'Ce test exige un chauffage : portez le tube au bain-marie bouillant, puis observez.', c:'#dfe6ec'};
+    } else {
+      const r = positif ? rea.pos : rea.neg;
+      resultat = {statut: positif ? 'positif' : 'negatif', obs:r.obs, ccl:r.ccl, c:r.c};
+      journal.push({e: mode === 'mystere' ? 'Inconnu n° ' + (Labo.bioNum||1) : ech.nom,
+                    r: rea.nom, o: r.obs, c: (positif ? '➜ ' : '✗ ') + r.ccl});
+      majJournal();
+    }
+    afficheResultat(); dessine();
+  }
+  function afficheResultat(){
+    if(!resultat){ $('#bio-resultat').innerHTML = '<p style="font-size:13px; color:var(--gris)">Aucun test réalisé pour l\'instant.</p>'; return; }
+    const b = resultat.statut === 'positif' ? '<span class="badge vert">Test positif</span>'
+            : resultat.statut === 'negatif' ? '<span class="badge">Test négatif</span>'
+            : '<span class="badge orange">Incomplet</span>';
+    $('#bio-resultat').innerHTML = b +
+      '<p style="font-size:13.5px; margin-top:9px"><b>Observation.</b> ' + resultat.obs + '</p>' +
+      '<p style="font-size:13px; color:var(--gris); margin-top:6px"><b>Interprétation.</b> ' + resultat.ccl + '</p>' +
+      (rea ? '<p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px">Protocole de l\'ouvrage — § ' + rea.ref + '</p>' : '');
+  }
+  function majJournal(){
+    const tb = $('#bio-journal tbody');
+    tb.innerHTML = journal.length
+      ? journal.map(j => '<tr><td>' + j.e + '</td><td>' + j.r + '</td><td>' + j.o + '</td><td>' + j.c + '</td></tr>').join('')
+      : '<tr><td colspan="4" style="color:var(--gris-clair)">Vide pour le moment.</td></tr>';
+  }
+  $('#bio-lancer').addEventListener('click', test);
+  $('#bio-chauffe').addEventListener('click', () => {
+    if(!ech || !rea){ alert('Choisissez d\'abord un échantillon et un réactif.'); return; }
+    chaud = true; anim = performance.now();
+    const bulles = () => { dessine(); if(performance.now()-anim < 2200) requestAnimationFrame(bulles); else test(); };
+    bulles();
+  });
+  $('#bio-vider').addEventListener('click', () => { journal = []; majJournal(); });
+  $('#bio-imprimer').addEventListener('click', () => window.print());
+
+  /* ---------- dessin : tube ou champ du microscope ---------- */
+  function dessine(){
+    const ctx = cv.getContext('2d'), L = 180, H = 270;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = L*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,L,H);
+    const c = resultat ? resultat.c : '#eef0f0';
+
+    if(rea && rea.mode === 'lame'){
+      /* champ du microscope */
+      ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(90,120,86,0,7); ctx.fill();
+      ctx.save(); ctx.beginPath(); ctx.arc(90,120,84,0,7); ctx.clip();
+      ctx.fillStyle = resultat ? '#fbf8f3' : '#f2efe9'; ctx.fillRect(0,0,L,240);
+      if(resultat && rea.id === 'polarise' && resultat.statut === 'positif') { ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,L,240); }
+      /* cellules */
+      for(let i=-1;i<6;i++) for(let j=-1;j<6;j++){
+        const x = 20+i*30 + (j%2?15:0), y = 46+j*28;
+        ctx.beginPath();
+        ctx.ellipse(x, y, 15, 13, 0, 0, 7);
+        ctx.fillStyle = resultat && resultat.statut === 'positif'
+          ? (rea.id === 'feulgen' ? '#fbf5f2' : rea.id === 'carmin' ? '#f6dde6' : c + '55')
+          : '#f7f4ee';
+        ctx.fill();
+        ctx.strokeStyle = resultat && resultat.statut === 'positif' ? c : '#cfc7b8';
+        ctx.lineWidth = resultat && resultat.statut === 'positif' ? 2.4 : 1.2; ctx.stroke();
+        if(resultat && resultat.statut === 'positif'){
+          if(rea.id === 'lugol' || rea.id === 'aps'){
+            ctx.fillStyle = c; [[-5,-3],[5,2],[0,6]].forEach(([a,b]) => {
+              ctx.beginPath(); ctx.ellipse(x+a, y+b, 4, 3, .6, 0, 7); ctx.fill(); });
+          }
+          if(rea.id === 'feulgen'){ ctx.fillStyle = c; ctx.beginPath(); ctx.arc(x+2, y, 4.4, 0, 7); ctx.fill(); }
+          if(rea.id === 'soudan'){ ctx.fillStyle = c; [[-6,2],[4,-4],[6,5]].forEach(([a,b]) => {
+              ctx.beginPath(); ctx.arc(x+a, y+b, 3.4, 0, 7); ctx.fill(); }); }
+          if(rea.id === 'polarise'){ ctx.strokeStyle = '#e8eef6'; ctx.lineWidth = 1.6;
+            ctx.beginPath(); ctx.moveTo(x-7,y-6); ctx.lineTo(x+7,y+6); ctx.moveTo(x+7,y-6); ctx.lineTo(x-7,y+6); ctx.stroke(); }
+        }
+      }
+      ctx.restore();
+      ctx.fillStyle = '#7d776c'; ctx.font = '600 10px Onest, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('objectif ×40', 90, 226);
+    } else {
+      /* tube à essai */
+      ctx.strokeStyle = '#c9cfd3'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(62,18); ctx.lineTo(62,196); ctx.quadraticCurveTo(90,232,118,196); ctx.lineTo(118,18);
+      ctx.stroke();
+      ctx.save(); ctx.beginPath();
+      ctx.moveTo(64,20); ctx.lineTo(64,196); ctx.quadraticCurveTo(90,229,116,196); ctx.lineTo(116,20); ctx.closePath(); ctx.clip();
+      ctx.fillStyle = c; ctx.fillRect(60, 78, 60, 160);
+      /* précipité */
+      if(resultat && resultat.statut === 'positif' && (rea.id === 'fehling')){
+        ctx.fillStyle = '#8d2f13'; ctx.beginPath(); ctx.ellipse(90, 210, 26, 12, 0, 0, 7); ctx.fill();
+      }
+      if(resultat && resultat.statut === 'positif' && rea.id === 'argent'){
+        const g = ctx.createLinearGradient(64,80,116,80);
+        g.addColorStop(0,'#8f979d'); g.addColorStop(.4,'#f2f5f7'); g.addColorStop(1,'#8f979d');
+        ctx.fillStyle = g; ctx.fillRect(60,78,60,160);
+      }
+      if(resultat && resultat.statut === 'positif' && rea.id === 'molisch'){
+        ctx.fillStyle = '#f0e6cf'; ctx.fillRect(60,78,60,60);
+        ctx.fillStyle = c; ctx.fillRect(60,132,60,14);
+      }
+      /* chauffage : bulles */
+      if(chaud && performance.now()-anim < 2200){
+        ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.2;
+        for(let i=0;i<9;i++){
+          const ph = ((performance.now()/700)+i*0.4)%1;
+          ctx.beginPath(); ctx.arc(72+((i*13)%40), 205-ph*118, 1.6+2*(1-ph), 0, 7); ctx.stroke();
+        }
+      }
+      ctx.restore();
+      if(chaud){
+        ctx.fillStyle = '#c0392b'; ctx.font = '600 10px Onest, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('bain-marie 100 °C', 90, 252);
+      }
+    }
+  }
+
+  /* ---------- mode « échantillon mystère » ---------- */
+  segment($('#bio-mode'), d => {
+    mode = d.m;
+    $('#bio-mystere-carte').style.display = mode === 'mystere' ? '' : 'none';
+    $('#bio-tit-ech').textContent = mode === 'mystere' ? 'Échantillon à identifier' : 'Échantillon';
+    $('#bio-sous-ech').textContent = mode === 'mystere'
+      ? 'Sa nature est cachée : c\'est à vous de la retrouver en choisissant les bons tests.'
+      : 'Ce que l\'on dépose dans le tube ou sur la lame.';
+    if(mode === 'mystere') nouveauMystere(); else { ech = null; listeEch(); surligne(); }
+  });
+  function nouveauMystere(){
+    mystere = ECHANTILLONS[Math.floor(Math.random()*ECHANTILLONS.length)];
+    Labo.bioNum = (Labo.bioNum || 0) + 1;
+    ech = mystere; journal = []; resultat = null; chaud = false;
+    majJournal(); listeEch(); surligne(); afficheResultat(); dessine();
+    $('#bio-verdict').innerHTML = '';
+    $('#bio-proposition').innerHTML = '<option value="">— votre proposition —</option>' +
+      ECHANTILLONS.map(e => '<option value="' + e.id + '">' + e.nom + '</option>').join('');
+  }
+  $('#bio-nouveau').addEventListener('click', nouveauMystere);
+  $('#bio-valider').addEventListener('click', () => {
+    const v = $('#bio-proposition').value;
+    if(!v){ alert('Choisissez une proposition.'); return; }
+    const juste = v === mystere.id;
+    $('#bio-verdict').innerHTML = juste
+      ? '<span class="badge vert">Identification correcte</span><p style="font-size:13px; margin-top:8px">' +
+        'C\'était bien : <b>' + mystere.nom + '</b>. Vous avez utilisé ' + journal.length + ' test' + (journal.length>1?'s':'') + '. ' +
+        'Sauriez-vous conclure avec moins de tests ?</p>'
+      : '<span class="badge" style="background:#fbe4e0; color:var(--rouge)">Ce n\'est pas cela</span>' +
+        '<p style="font-size:13px; margin-top:8px">Reprenez vos résultats : un test négatif est aussi une information. ' +
+        'Ajoutez un test qui distingue les deux hypothèses restantes.</p>';
+  });
+
+  listeEch(); listeRea(); surligne(); dessine();
+  Labo.surAffichage.biochimie = dessine;
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PIGMENTS — chromatographie, spectres, fluorescence
+   ========================================================================== */
+const PIGMENTS = {
+  carotenes:  {nom:'Carotènes', teinte:'Jaune orangé', c:'#f2a03d',
+               rf:{rapide:0.95, moyen:0.90, lent:0.72}, pics:[[425,.62,22],[450,1,20],[478,.92,22]]},
+  pheophytine:{nom:'Phéophytine', teinte:'Gris', c:'#7f7c66',
+               rf:{rapide:0.86, moyen:0.78, lent:0.60}, pics:[[410,.9,18],[535,.25,20],[665,.5,16]]},
+  chla:       {nom:'Chlorophylle a', teinte:'Vert bleuté', c:'#2f7d3f',
+               rf:{rapide:0.68, moyen:0.60, lent:0.42}, pics:[[430,1,18],[662,.82,14]]},
+  chlb:       {nom:'Chlorophylle b', teinte:'Vert jaune', c:'#7cb342',
+               rf:{rapide:0.54, moyen:0.47, lent:0.33}, pics:[[453,1,18],[643,.58,14]]},
+  chlc:       {nom:'Chlorophylle c', teinte:'Vert pâle', c:'#5aa07a',
+               rf:{rapide:0.50, moyen:0.44, lent:0.30}, pics:[[447,1,16],[630,.45,14]]},
+  xantho:     {nom:'Xanthophylles', teinte:'Jaune', c:'#e8c53c',
+               rf:{rapide:0.34, moyen:0.29, lent:0.19}, pics:[[447,.92,20],[475,.86,20]]},
+  fuco:       {nom:'Fucoxanthine', teinte:'Brun doré', c:'#c8802a',
+               rf:{rapide:0.44, moyen:0.38, lent:0.25}, pics:[[450,.9,26],[500,.8,30]]},
+  phyco:      {nom:'Phycoérythrine', teinte:'Rose rouge', c:'#d6456a',
+               rf:{rapide:0.06, moyen:0.08, lent:0.12}, pics:[[498,.72,18],[545,1,16],[565,.9,14]]}
+};
+const EXTRAITS = {
+  epinard:        {nom:'Feuille d\'épinard', liste:['carotenes','pheophytine','chla','chlb','xantho'], couleur:'#2f7d3f'},
+  'lierre-panache':{nom:'Feuille panachée', liste:['carotenes','chla','chlb','xantho'], couleur:'#5c9a5a', faible:true},
+  'feuille-jaunie':{nom:'Feuille jaunie', liste:['carotenes','xantho','chla'], couleur:'#c8a13a'},
+  'algue-brune':  {nom:'Algue brune', liste:['carotenes','fuco','chla','chlc'], couleur:'#8a6a2f'},
+  'algue-rouge':  {nom:'Algue rouge', liste:['carotenes','phyco','chla'], couleur:'#a8434f'}
+};
+
+(function pigments(){
+  const cvC = $('#pi-chromo'), cvS = $('#pi-spectre'), cvF = $('#pi-fluo');
+  let front = 0, animId = 0, coches = {chla:true, chlb:true, xantho:true, carotenes:true};
+
+  const extrait = () => EXTRAITS[$('#pi-mat').value];
+  const solvant = () => $('#pi-solv').value;
+
+  /* ---------- chromatographie ---------- */
+  function dessineChromo(){
+    const ctx = cvC.getContext('2d'), L = 200, H = 400, dpr = window.devicePixelRatio || 1;
+    cvC.width = L*dpr; cvC.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,L,H);
+    /* cuve */
+    ctx.fillStyle = '#f2efe9'; ctx.strokeStyle = '#d3ccbe'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(18, 10, 164, 380, 10); ctx.fill(); ctx.stroke();
+    /* solvant au fond */
+    ctx.fillStyle = 'rgba(160,190,210,.35)'; ctx.fillRect(20, 344, 160, 44);
+    /* bande de papier */
+    const bx = 66, bl = 68, by = 26, bh = 330;
+    ctx.fillStyle = '#fffdf8'; ctx.strokeStyle = '#e4dfd5';
+    ctx.fillRect(bx, by, bl, bh); ctx.strokeRect(bx, by, bl, bh);
+    const yDepot = by + bh - 44;                    /* ligne de dépôt */
+    const hauteurMax = yDepot - by - 14;            /* course maximale */
+    ctx.strokeStyle = '#c8c1b3'; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(bx, yDepot); ctx.lineTo(bx+bl, yDepot); ctx.stroke(); ctx.setLineDash([]);
+    ctx.fillStyle = '#a9a294'; ctx.font = '9px Onest, sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText('dépôt', bx-4, yDepot+3);
+
+    if(front <= 0.01){        /* dépôt initial, non migré */
+      ctx.fillStyle = extrait().couleur; ctx.globalAlpha = .85;
+      ctx.beginPath(); ctx.ellipse(bx+bl/2, yDepot, 13, 5, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+    } else {
+      /* front du solvant */
+      const yFront = yDepot - front*hauteurMax;
+      ctx.fillStyle = 'rgba(150,180,205,.13)'; ctx.fillRect(bx, yFront, bl, yDepot-yFront+44);
+      ctx.strokeStyle = '#9fb6c8'; ctx.beginPath(); ctx.moveTo(bx, yFront); ctx.lineTo(bx+bl, yFront); ctx.stroke();
+      ctx.fillStyle = '#9fb6c8'; ctx.textAlign = 'left'; ctx.fillText('front', bx+bl+4, yFront+3);
+      /* taches */
+      extrait().liste.forEach(id => {
+        const p = PIGMENTS[id], y = yDepot - p.rf[solvant()]*front*hauteurMax;
+        ctx.fillStyle = p.c; ctx.globalAlpha = extrait().faible && (id === 'chla' || id === 'chlb') ? .5 : .85;
+        ctx.beginPath(); ctx.ellipse(bx+bl/2, y, 15, 6.5, 0, 0, 7); ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    }
+    ctx.fillStyle = '#7d776c'; ctx.font = '600 10px Onest, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText(extrait().nom, 100, 398);
+  }
+  function tableau(){
+    const tb = $('#pi-tableau tbody');
+    if(front < 0.99){ tb.innerHTML = '<tr><td colspan="4" style="color:var(--gris-clair)">Migration en cours…</td></tr>'; return; }
+    const course = 10.4;   /* cm parcourus par le front */
+    tb.innerHTML = extrait().liste
+      .slice().sort((a,b) => PIGMENTS[b].rf[solvant()] - PIGMENTS[a].rf[solvant()])
+      .map(id => { const p = PIGMENTS[id], rf = p.rf[solvant()];
+        return '<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' +
+          p.c + ';margin-right:6px"></span>' + p.nom + '</td><td>' + p.teinte + '</td><td>' +
+          fr(rf*course,1) + ' cm</td><td><b>' + fr(rf,2) + '</b></td></tr>'; }).join('');
+  }
+  function migre(){
+    cancelAnimationFrame(animId); front = 0;
+    const t0 = performance.now(), duree = 4200;
+    const pas = now => {
+      front = borne((now-t0)/duree, 0, 1);
+      dessineChromo();
+      if(front < 1) animId = requestAnimationFrame(pas); else tableau();
+    };
+    animId = requestAnimationFrame(pas);
+    $('#pi-chromo-sous').textContent = 'Migration dans le solvant — les pigments les plus solubles montent le plus haut.';
+  }
+  $('#pi-migrer').addEventListener('click', migre);
+  $('#pi-raz').addEventListener('click', () => { cancelAnimationFrame(animId); front = 0; dessineChromo(); tableau(); });
+  $('#pi-mat').addEventListener('change', () => { front = 0; dessineChromo(); tableau(); cases(); spectre(); fluo(); });
+  $('#pi-solv').addEventListener('change', () => { front = 0; dessineChromo(); tableau(); });
+
+  /* ---------- spectres d'absorption ---------- */
+  const brut = (id, lambda) => PIGMENTS[id].pics
+    .reduce((s,[c,a,w]) => s + a*Math.exp(-Math.pow(lambda-c,2)/(2*w*w)), 0);
+  const MAXI = {};                                  /* chaque spectre est ramené à 1 */
+  Object.keys(PIGMENTS).forEach(id => {
+    let m = 0; for(let l=380; l<=720; l++) m = Math.max(m, brut(id, l)); MAXI[id] = m || 1;
+  });
+  const absorption = (id, lambda) => brut(id, lambda)/MAXI[id];
+
+  function cases(){
+    const dispo = extrait().liste;
+    $('#pi-cases').innerHTML = dispo.map(id =>
+      '<label class="btn mini" style="gap:7px"><input type="checkbox" data-p="' + id + '"' +
+      (coches[id] ? ' checked' : '') + ' style="accent-color:' + PIGMENTS[id].c + '">' +
+      '<span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:' + PIGMENTS[id].c + '"></span>' +
+      PIGMENTS[id].nom + '</label>').join('') +
+      '<label class="btn mini" style="gap:7px"><input type="checkbox" id="pi-action" style="accent-color:#23201c">' +
+      "Spectre d'action (ExAO)</label>";
+    $$('#pi-cases input[data-p]').forEach(i => i.addEventListener('change', () => {
+      coches[i.dataset.p] = i.checked; spectre();
+    }));
+    $('#pi-action').addEventListener('change', spectre);
+  }
+  function spectre(){
+    const series = [];
+    extrait().liste.forEach(id => {
+      if(!coches[id]) return;
+      const pts = [];
+      for(let l=400; l<=700; l+=2) pts.push([l, absorption(id, l)]);
+      series.push({couleur:PIGMENTS[id].c, pts});
+    });
+    let note = '';
+    if($('#pi-action') && $('#pi-action').checked){
+      const sa = Labo.spectreAction;
+      if(sa){
+        const max = Math.max(sa.bleu, sa.vert, sa.rouge) || 1;
+        const pts = [[450, sa.bleu/max], [550, sa.vert/max], [660, sa.rouge/max]];
+        series.push({couleur:'#23201c', pts, pointille:true, marqueurs:true, largeur:2.4});
+        note = '<b>Comparaison.</b> Les trois points noirs sont les vitesses de photosynthèse mesurées à l\'ExAO ' +
+               'derrière les filtres bleu, vert et rouge (ramenées à 1 pour la valeur la plus forte). ' +
+               'Ils suivent la courbe d\'absorption des chlorophylles : la lumière absorbée est bien celle qui est utilisée.';
+      } else {
+        note = '<b>Spectre d\'action non mesuré.</b> Allez d\'abord dans l\'onglet ExAO et lancez le protocole ' +
+               '« Spectre d\'action » : les points de mesure apparaîtront ensuite ici.';
+      }
+    }
+    traceGraphe(cvS, {xmin:400, xmax:700, ymin:0, ymax:1.15, fondSpectre:true,
+      xtit:'longueur d\'onde (nm)', ytit:'absorption relative',
+      fmtX: x => String(Math.round(x)), series});
+    $('#pi-spectre-note').innerHTML = note ||
+      '<b>À observer.</b> Les chlorophylles absorbent surtout dans le bleu et le rouge, très peu dans le vert — ' +
+      'c\'est cette lumière verte, renvoyée, qui donne sa couleur à la feuille. Les caroténoïdes, eux, n\'absorbent que le bleu.';
+  }
+
+  /* ---------- fluorescence ---------- */
+  function fluo(){
+    const ctx = cvF.getContext('2d'), L = cvF.clientWidth || 300, H = 150, dpr = window.devicePixelRatio || 1;
+    cvF.width = L*dpr; cvF.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const uv = $('#pi-uv').checked, e = extrait();
+    ctx.clearRect(0,0,L,H);
+    ctx.fillStyle = uv ? '#131018' : '#f6f3ee'; ctx.fillRect(0,0,L,H);
+    const x = L/2 - 26;
+    if(uv){
+      const g = ctx.createRadialGradient(x+26, 75, 5, x+26, 75, 90);
+      g.addColorStop(0, e.liste.includes('chla') ? 'rgba(220,40,40,.75)' : 'rgba(120,60,160,.5)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.fillRect(0,0,L,H);
+    }
+    /* le tube */
+    ctx.strokeStyle = uv ? '#5c5470' : '#c9cfd3'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x, 18); ctx.lineTo(x, 108);
+    ctx.quadraticCurveTo(x+26, 138, x+52, 108); ctx.lineTo(x+52, 18); ctx.stroke();
+    ctx.save(); ctx.beginPath();
+    ctx.moveTo(x+2,20); ctx.lineTo(x+2,108); ctx.quadraticCurveTo(x+26,135,x+50,108); ctx.lineTo(x+50,20); ctx.closePath(); ctx.clip();
+    ctx.fillStyle = uv ? (e.liste.includes('chla') ? '#c0201f' : '#6a3fa0') : e.couleur;
+    ctx.fillRect(x, 44, 54, 100); ctx.restore();
+    $('#pi-fluo-txt').innerHTML = uv
+      ? (e.liste.includes('chla')
+        ? "Sous UV, l'extrait devient <b>rouge sang</b> : c'est la fluorescence de la chlorophylle. " +
+          "L'énergie absorbée n'est plus transmise à la chaîne photosynthétique — les pigments sont isolés de la membrane — " +
+          "elle est donc restituée sous forme de lumière rouge."
+        : "L'extrait ne contient pas de chlorophylle a : pas de fluorescence rouge.")
+      : 'En lumière blanche, l\'extrait a la teinte de ses pigments majoritaires.';
+  }
+  $('#pi-uv').addEventListener('change', fluo);
+
+  cases(); dessineChromo(); tableau(); spectre(); fluo();
+  Labo.surAffichage.pigments = () => { dessineChromo(); spectre(); fluo(); };
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE ENZYMES — cinétiques
+   ========================================================================== */
+const ENZYMES = {
+  amylase:   {nom:'Amylase', s:'Amidon', p:'Maltose', tOpt:37, tSig:13, tDenat:50,
+              phOpt:6.8, phSig:1.7, km:6, vmax:1.5, test:'lugol',
+              sous:'Amidon dosé au lugol, maltose dosé à la liqueur de Fehling.'},
+  saccharase:{nom:'Saccharase', s:'Saccharose', p:'Glucose + fructose', tOpt:55, tSig:14, tDenat:65,
+              phOpt:4.6, phSig:1.5, km:11, vmax:1.7, test:'fehling',
+              sous:'Le saccharose n\'est pas réducteur : la liqueur de Fehling ne vire que lorsque le produit apparaît.'},
+  peroxydase:{nom:'Peroxydase', s:'Eau oxygénée', p:'Dioxygène', tOpt:35, tSig:12, tDenat:48,
+              phOpt:6.0, phSig:1.8, km:4, vmax:2.2, test:'bulles',
+              sous:'La peroxydase du navet décompose l\'eau oxygénée : le dioxygène formé fait mousser le tube.'}
+};
+const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
+
+(function enzymes(){
+  const cvG = $('#en-graphe'), cvA = $('#en-gamme'), cvS = $('#en-serie');
+  const temp = $('#en-temp'), ph = $('#en-ph'), qe = $('#en-e'), qs = $('#en-s');
+
+  const etat = () => ({
+    e: ENZYMES[$('#en-enz').value],
+    T: +temp.value, pH: +ph.value/10, E: +qe.value/100, S0: +qs.value/10,
+    bouilli: $('#en-bouilli').checked
+  });
+  function vitesse(cfg, S){
+    const e = cfg.e;
+    if(cfg.bouilli) return 0;
+    let fT = Math.exp(-Math.pow(cfg.T-e.tOpt,2)/(2*e.tSig*e.tSig));
+    if(cfg.T > e.tDenat) fT *= Math.max(0, 1-(cfg.T-e.tDenat)/12);
+    const fpH = Math.exp(-Math.pow(cfg.pH-e.phOpt,2)/(2*e.phSig*e.phSig));
+    return e.vmax * cfg.E * (S/(S+e.km)) * fT * fpH;
+  }
+
+  const majLibelles = () => {
+    $('#en-temp-v').textContent = temp.value + ' °C';
+    $('#en-ph-v').textContent   = fr(+ph.value/10, 1);
+    $('#en-e-v').textContent    = qe.value + ' %';
+    $('#en-s-v').textContent    = fr(+qs.value/10, 1) + ' g·L⁻¹';
+  };
+  [temp, ph, qe, qs].forEach(el => el.addEventListener('input', () => { majLibelles(); if(!EN.marche) raz(); }));
+  $('#en-enz').addEventListener('change', () => {
+    const e = ENZYMES[$('#en-enz').value];
+    $('#en-sous').textContent = e.sous;
+    $('#en-lab-s').textContent = e.s; $('#en-lab-p').textContent = e.p;
+    $('#en-gamme-titre').textContent = e.test === 'lugol' ? 'Gamme de tubes testés au lugol'
+      : e.test === 'fehling' ? 'Gamme de tubes testés à la liqueur de Fehling' : 'Mousse observée dans les tubes';
+    raz();
+  });
+  $('#en-bouilli').addEventListener('change', () => { if(!EN.marche) raz(); });
+
+  function raz(){
+    const c = etat();
+    EN.t = 0; EN.s = c.S0; EN.p = 0; EN.hist = [[0, c.S0, 0]]; EN.gamme = [];
+    EN.v0 = vitesse(c, c.S0); EN.marche = false;
+    $('#en-play').textContent = 'Lancer la cinétique'; $('#en-play').classList.add('primaire');
+    maj(); trace(); dessineGamme();
+  }
+  function lance(){
+    if(EN.marche) return;
+    EN.marche = true; EN.last = performance.now();
+    $('#en-play').textContent = 'Pause'; $('#en-play').classList.remove('primaire');
+    requestAnimationFrame(boucle);
+  }
+  function boucle(now){
+    if(!EN.marche) return;
+    let dtr = Math.min((now-EN.last)/1000, 0.1); EN.last = now;
+    const dt = dtr*20;                                  /* 1 s réelle = 20 s simulées */
+    const c = etat(), v = vitesse(c, EN.s);
+    const d = Math.min(v*dt/60, EN.s);
+    EN.s -= d; EN.p += d; EN.t += dt;
+    const der = EN.hist[EN.hist.length-1];
+    if(EN.t - der[0]*60 >= 2) EN.hist.push([EN.t/60, EN.s, EN.p]);
+    while(EN.gamme.length < Math.floor(EN.t/60)+1) EN.gamme.push({s:EN.s, p:EN.p, s0:c.S0});
+    maj(); trace(); dessineGamme();
+    if(EN.t >= 600){ EN.marche = false; $('#en-play').textContent = 'Lancer la cinétique';
+      $('#en-play').classList.add('primaire'); return; }
+    requestAnimationFrame(boucle);
+  }
+  function maj(){
+    $('#en-t').textContent  = mmss(EN.t);
+    $('#en-vs').textContent = fr(EN.s, 1);
+    $('#en-vp').textContent = fr(EN.p, 1);
+    $('#en-vi').textContent = EN.v0 < 0.005 ? '0,00' : fr(EN.v0, 2);
+  }
+  function trace(){
+    const c = etat();
+    traceGraphe(cvG, {xmin:0, xmax:10, ymin:0, ymax:Math.max(4, Math.ceil(c.S0/5)*5),
+      xtit:'temps (min)', ytit:'concentration (g·L⁻¹)',
+      series:[{couleur:'#6e5fa8', pts:EN.hist.map(p => [p[0],p[1]])},
+              {couleur:'#3f7d5f', pts:EN.hist.map(p => [p[0],p[2]])}]});
+  }
+  /* ---------- gamme de godets ---------- */
+  function dessineGamme(){
+    const L = cvA.clientWidth || 400, H = 92, dpr = window.devicePixelRatio || 1;
+    const ctx = cvA.getContext('2d');
+    cvA.width = L*dpr; cvA.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,L,H);
+    const n = 11, pas = Math.min(46, (L-10)/n), r = Math.min(17, pas/2-3);
+    const e = ENZYMES[$('#en-enz').value];
+    for(let i=0;i<n;i++){
+      const x = 12+r+i*pas, y = 38, g = EN.gamme[i];
+      ctx.beginPath(); ctx.arc(x, y, r, 0, 7);
+      if(!g){ ctx.fillStyle = '#f2efe9'; ctx.fill(); ctx.strokeStyle = '#e4dfd5'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      else {
+        let coul;
+        if(e.test === 'lugol'){
+          const f = borne(g.s/(g.s0 || 1), 0, 1);       /* substrat restant */
+          coul = 'rgb(' + Math.round(200-170*f) + ',' + Math.round(150-115*f) + ',' + Math.round(40+65*f) + ')';
+        } else if(e.test === 'fehling'){
+          const f = borne(g.p/(g.s0 || 1), 0, 1);       /* produit formé */
+          coul = 'rgb(' + Math.round(31+150*f) + ',' + Math.round(111-47*f) + ',' + Math.round(181-150*f) + ')';
+        } else {
+          coul = '#dfe8ee';
+        }
+        ctx.fillStyle = coul; ctx.fill();
+        ctx.strokeStyle = '#c9c2b4'; ctx.lineWidth = 1.5; ctx.stroke();
+        if(e.test === 'bulles'){
+          const nb = Math.round(borne(g.p/(g.s0||1),0,1)*9);
+          ctx.strokeStyle = '#7fb2c8';
+          for(let k=0;k<nb;k++){ ctx.beginPath();
+            ctx.arc(x-r+4+((k*7)%(2*r-8)), y-4+((k*5)%12)-6, 2.2, 0, 7); ctx.stroke(); }
+        }
+      }
+      ctx.fillStyle = '#a9a294'; ctx.font = '9px Onest, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText(i + ' min', x, 72);
+    }
+  }
+
+  $('#en-play').addEventListener('click', () => {
+    if(EN.marche){ EN.marche = false; $('#en-play').textContent = 'Lancer la cinétique'; $('#en-play').classList.add('primaire'); }
+    else lance();
+  });
+  $('#en-raz').addEventListener('click', raz);
+
+  /* ---------- séries ---------- */
+  function serie(titre, sous, cfg, note){
+    $('#en-serie-carte').style.display = '';
+    $('#en-serie-titre').textContent = titre;
+    $('#en-serie-sous').textContent = sous;
+    $('#en-serie-note').innerHTML = note;
+    traceGraphe(cvS, cfg);
+    $('#en-serie-carte').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  const SERIES = {
+    temp(){
+      const c = etat(), pts = [];
+      for(let T=0; T<=100; T++) pts.push([T, vitesse({...c, T, bouilli:false}, c.S0)]);
+      let opt = 0; pts.forEach(p => { if(p[1] > pts[opt][1]) opt = p[0]; });
+      serie('Vitesse initiale en fonction de la température',
+        c.e.nom + ', pH ' + fr(c.pH,1) + ', substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
+        {xmin:0, xmax:100, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
+         xtit:'température (°C)', ytit:'v₀ (g·L⁻¹·min⁻¹)',
+         series:[{couleur:'#b15f2c', pts}], reperes:[{x:opt, texte:'optimum ≈ ' + opt + ' °C'}]},
+        '<b>Lecture.</b> La vitesse augmente d\'abord avec la température (les rencontres enzyme-substrat sont plus fréquentes), ' +
+        'passe par un <b>optimum</b> vers ' + opt + ' °C, puis chute brutalement : l\'enzyme, protéine, est <b>dénaturée</b> par la chaleur. ' +
+        'Cette destruction est irréversible — c\'est ce que montre le témoin « enzyme bouillie ».');
+    },
+    ph(){
+      const c = etat(), pts = [];
+      for(let x=10; x<=110; x++) pts.push([x/10, vitesse({...c, pH:x/10, bouilli:false}, c.S0)]);
+      serie('Vitesse initiale en fonction du pH',
+        c.e.nom + ', ' + c.T + ' °C, substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
+        {xmin:1, xmax:11, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
+         xtit:'pH', ytit:'v₀ (g·L⁻¹·min⁻¹)',
+         series:[{couleur:'#2f6ba8', pts}], reperes:[{x:c.e.phOpt, texte:'pH optimal ' + fr(c.e.phOpt,1)}]},
+        '<b>Lecture.</b> Chaque enzyme possède un pH optimal, lié à son milieu de fonctionnement : voisin de la neutralité ' +
+        'pour l\'amylase, nettement acide pour la saccharase de levure. En dehors de cette zone, la forme du site actif ' +
+        'est modifiée et l\'activité s\'effondre.');
+    },
+    subs(){
+      const c = etat(), pts = [];
+      for(let S=0; S<=40; S+=0.5) pts.push([S, vitesse({...c, bouilli:false}, S)]);
+      const vmaxObs = vitesse({...c, bouilli:false}, 1e6);
+      serie('Vitesse initiale en fonction de la concentration en substrat',
+        c.e.nom + ', ' + c.T + ' °C, pH ' + fr(c.pH,1) + '.',
+        {xmin:0, xmax:40, ymin:0, ymax:vmaxObs*1.2, xtit:'[substrat] (g·L⁻¹)', ytit:'v₀ (g·L⁻¹·min⁻¹)',
+         series:[{couleur:'#3f7d5f', pts}],
+         reperes:[{y:vmaxObs, texte:'Vmax', couleur:'#c0392b'},
+                  {x:c.e.km, texte:'Km = ' + c.e.km + ' g·L⁻¹', couleur:'#2f6ba8'}]},
+        '<b>Lecture.</b> La courbe est une <b>hyperbole</b> : la vitesse augmente puis plafonne à Vmax, quand toutes les ' +
+        'molécules d\'enzyme sont occupées — l\'enzyme est saturée. Le Km est la concentration en substrat pour laquelle ' +
+        'la vitesse vaut la moitié de Vmax : plus il est petit, plus l\'enzyme est affine pour son substrat.');
+    },
+    enz(){
+      const c = etat(), pts = [];
+      for(let E=0; E<=2; E+=0.05) pts.push([E*100, vitesse({...c, E, bouilli:false}, c.S0)]);
+      serie('Vitesse initiale en fonction de la quantité d\'enzyme',
+        c.e.nom + ', ' + c.T + ' °C, pH ' + fr(c.pH,1) + ', substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
+        {xmin:0, xmax:200, ymin:0, ymax:Math.max(0.1, pts[pts.length-1][1]*1.15),
+         xtit:'quantité d\'enzyme (%)', ytit:'v₀ (g·L⁻¹·min⁻¹)', series:[{couleur:'#6e5fa8', pts}]},
+        '<b>Lecture.</b> La relation est <b>proportionnelle</b> : doubler la quantité d\'enzyme double la vitesse, ' +
+        'tant que le substrat reste en excès. L\'enzyme n\'est pas consommée par la réaction, elle n\'en modifie que la vitesse.');
+    }
+  };
+  $$('[data-serie]').forEach(b => b.addEventListener('click', () => SERIES[b.dataset.serie]()));
+
+  majLibelles(); raz();
+  Labo.surAffichage.enzymes = () => { trace(); dessineGamme(); };
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE HISTOLOGIE — coupes schématiques cliquables
+   ========================================================================== */
+const TISSUS = {
+  epiderme:   {nom:'Épiderme', paroi:'cellulose', nuance:0.5,
+    role:"Tissu de revêtement, une seule assise de cellules jointives recouverte d'une cuticule imperméable. Il limite les pertes d'eau et porte les stomates."},
+  cuticule:   {nom:'Cuticule', paroi:'lignine', nuance:0.35,
+    role:"Fine pellicule de cutine déposée sur l'épiderme aérien : elle rend la surface imperméable."},
+  collenchyme:{nom:'Collenchyme', paroi:'cellulose', nuance:0.85,
+    role:"Tissu de soutien des organes jeunes. Ses parois cellulosiques sont épaissies dans les angles des cellules, ce qui laisse l'organe souple et capable de s'allonger."},
+  sclerenchyme:{nom:'Sclérenchyme (fibres)', paroi:'lignine', nuance:0.55,
+    role:"Tissu de soutien à parois fortement lignifiées ; les cellules sont mortes à maturité. Il rigidifie l'organe définitivement."},
+  cortical:   {nom:'Parenchyme cortical', paroi:'cellulose', nuance:0.35, chloro:true,
+    role:"Cellules vivantes peu spécialisées, souvent chlorophylliennes dans la tige : réserves, photosynthèse et échanges."},
+  medullaire: {nom:'Parenchyme médullaire (moelle)', paroi:'cellulose', nuance:0.08,
+    role:"Parenchyme central de la tige, à grandes cellules ; il assure surtout le stockage."},
+  fondamental:{nom:'Parenchyme fondamental', paroi:'cellulose', nuance:0.15,
+    role:"Parenchyme qui occupe tout l'intérieur de la tige de Monocotylédone, dans lequel les faisceaux sont dispersés."},
+  xyleme:     {nom:'Xylème (bois)', paroi:'lignine', nuance:0.3,
+    role:"Tissu conducteur de la sève brute — eau et sels minéraux — de la racine vers les feuilles. Ses vaisseaux ont des parois lignifiées et sont morts à maturité."},
+  phloeme:    {nom:'Phloème (liber)', paroi:'cellulose', nuance:0.6,
+    role:"Tissu conducteur de la sève élaborée, riche en sucres, dans les deux sens. Ses cellules sont vivantes, à parois cellulosiques."},
+  cambium:    {nom:'Cambium', paroi:'cellulose', nuance:0.95,
+    role:"Assise génératrice libéro-ligneuse : elle fabrique du xylème vers l'intérieur et du phloème vers l'extérieur. C'est elle qui permet la croissance en épaisseur."},
+  endoderme:  {nom:'Endoderme', paroi:'lignine', nuance:0.75,
+    role:"Assise la plus interne du cortex racinaire. Les cadres de Caspary, imperméables, obligent l'eau à traverser le cytoplasme : c'est un filtre."},
+  pericycle:  {nom:'Péricycle', paroi:'cellulose', nuance:0.5,
+    role:"Première assise du cylindre central ; c'est de lui que naissent les racines latérales."},
+  pilifere:   {nom:'Assise pilifère', paroi:'cellulose', nuance:0.45,
+    role:"Épiderme de la racine jeune, portant les poils absorbants : c'est la zone d'absorption de l'eau et des ions."},
+  palissadique:{nom:'Parenchyme palissadique', paroi:'cellulose', nuance:0.45, chloro:true,
+    role:"Cellules allongées, serrées, bourrées de chloroplastes, juste sous l'épiderme supérieur : c'est là que se fait l'essentiel de la photosynthèse."},
+  lacuneux:   {nom:'Parenchyme lacuneux', paroi:'cellulose', nuance:0.2, chloro:true,
+    role:"Cellules arrondies laissant de grandes lacunes remplies d'air : elles font circuler les gaz jusqu'aux stomates."},
+  stomate:    {nom:'Stomate', paroi:'cellulose', nuance:0.5,
+    role:"Deux cellules de garde en haricot délimitant un orifice, l'ostiole. Leur ouverture règle les échanges gazeux et la transpiration."},
+  conjonctif: {nom:'Parenchyme conjonctif', paroi:'cellulose', nuance:.15,
+    role:"Parenchyme du cylindre central de la racine : il sépare les faisceaux de xylème et de phloème, disposés en alternance."},
+  suber:      {nom:'Suber (liège)', paroi:'lignine', nuance:0.55,
+    role:"Tissu de revêtement secondaire dont les parois sont imprégnées de subérine ; les cellules sont mortes. Il remplace l'épiderme sur la tige âgée."}
+};
+const COULEURS = {
+  aucune:{cellulose:{f:'#f7f4ee', s:'#cfc7b8'}, lignine:{f:'#f0ece2', s:'#b0a591'}},
+  carmin:{cellulose:{f:'#fbe7ee', s:'#dd7fa0'}, lignine:{f:'#dcece2', s:'#3f7d5f'}},
+  phloro:{cellulose:{f:'#f9f6ef', s:'#cfc7b8'}, lignine:{f:'#f7dee0', s:'#b5182b'}}
+};
+
+/* --- description géométrique des coupes (repère virtuel 420 × 420) ---
+   Les zones sont listées dans l'ordre de dessin : le fond d'abord, les
+   structures fines ensuite. La détection du clic parcourt la liste à l'envers. */
+function coupe(nom){
+  const Z = [];
+  const anneau  = (r0,r1,t,o) => Z.push(Object.assign({type:'anneau', r0, r1, t}, o));
+  const secteur = (r0,r1,a0,a1,t,o) => Z.push(Object.assign({type:'secteur', r0, r1, a0, a1, t}, o));
+  const disque  = (x,y,r,t,o) => Z.push(Object.assign({type:'disque', x, y, r, t}, o));
+  const rect    = (x,y,w,h,t,o) => Z.push(Object.assign({type:'rect', x, y, w, h, t}, o));
+
+  if(nom === 'tige-dico'){
+    anneau(0, 92, 'medullaire');
+    anneau(92, 158, 'cortical');
+    const n = 8, d = 0.30;
+    for(let i=0;i<n;i++){
+      const a = i*2*Math.PI/n - Math.PI/2;
+      secteur(92, 128, a-d, a+d, 'xyleme');
+      secteur(128, 146, a-d, a+d, 'phloeme');
+      secteur(146, 158, a-d*0.7, a+d*0.7, 'sclerenchyme');
+    }
+    anneau(158, 178, 'collenchyme');
+    anneau(178, 190, 'epiderme');
+  }
+  else if(nom === 'tige-mono'){
+    anneau(0, 168, 'fondamental');
+    anneau(168, 180, 'sclerenchyme');
+    anneau(180, 190, 'epiderme');
+    let k = 0;
+    [[62,4],[108,7],[148,9]].forEach(([r,n]) => {
+      for(let i=0;i<n;i++){
+        const a = i*2*Math.PI/n + (k++)*0.45;
+        const x = 210+r*Math.cos(a), y = 210+r*Math.sin(a);
+        disque(x, y, 18, 'xyleme');                       /* deux gros vaisseaux */
+        disque(x+13*Math.cos(a), y+13*Math.sin(a), 9, 'phloeme');  /* phloème vers l'extérieur */
+      }
+    });
+  }
+  else if(nom === 'racine-dico'){
+    anneau(94, 178, 'cortical');
+    anneau(178, 190, 'pilifere', {poils:true});
+    anneau(84, 94, 'endoderme');
+    anneau(0, 84, 'conjonctif');
+    anneau(76, 84, 'pericycle');
+    for(let i=0;i<4;i++){
+      const a = i*Math.PI/2;
+      secteur(0, 76, a-0.34, a+0.34, 'xyleme');
+      secteur(40, 74, a+Math.PI/4-0.26, a+Math.PI/4+0.26, 'phloeme');
+    }
+  }
+  else if(nom === 'feuille-dico'){
+    rect(26, 138, 368, 84, 'palissadique', {colonnes:true});
+    rect(26, 222, 368, 78, 'lacuneux', {lacunes:true});
+    rect(26, 100, 368, 10, 'cuticule');
+    rect(26, 110, 368, 28, 'epiderme');
+    rect(26, 300, 368, 28, 'epiderme', {stomates:true});
+    rect(146, 132, 128, 160, 'sclerenchyme');
+    rect(158, 146, 104, 66, 'xyleme');
+    rect(158, 212, 104, 66, 'phloeme');
+  }
+  else if(nom === 'tige-ligneuse'){
+    anneau(0, 42, 'medullaire');
+    anneau(42, 132, 'xyleme', {cernes:true});
+    anneau(132, 140, 'cambium');
+    anneau(140, 160, 'phloeme');
+    anneau(160, 178, 'cortical');
+    anneau(178, 190, 'suber');
+  }
+  return {zones:Z};
+}
+
+(function histologie(){
+  const cv = $('#hi-coupe');
+  let organe = 'tige-dico', coloration = 'carmin', zoom = 1, mode = 'obs', selection = null, cible = null;
+
+  const zones = () => coupe(organe).zones;
+  const couleur = t => {
+    const ti = TISSUS[t], base = COULEURS[coloration][ti.paroi];
+    if(coloration === 'aucune' && ti.chloro) return {f:'#e9f1e5', s:'#b3c4ab'};
+    return base;
+  };
+
+  /* ---------- rendu ---------- */
+  function dessine(){
+    const T = cv.clientWidth || 420, dpr = window.devicePixelRatio || 1;
+    cv.width = T*dpr; cv.height = T*dpr;
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.clearRect(0,0,T,T);
+    const k = T/420;
+    ctx.save(); ctx.translate(T/2, T/2); ctx.scale(k*zoom, k*zoom); ctx.translate(-210,-210);
+
+    zones().forEach(z => {
+      const c = couleur(z.t), ti = TISSUS[z.t], actif = selection === z.t;
+      ctx.lineWidth = actif ? 3.2 : (z.t === 'epiderme' || z.t === 'pilifere' ? 2.4 : 1.8);
+      ctx.strokeStyle = actif ? '#23201c' : c.s;
+      ctx.fillStyle = c.f;
+      trace(ctx, z); ctx.fill();
+      if(ti.nuance){                       /* trame plus ou moins dense selon le tissu */
+        ctx.fillStyle = 'rgba(35,32,28,' + (ti.nuance*0.075).toFixed(3) + ')'; ctx.fill();
+      }
+      ctx.stroke();
+      motifs(ctx, z, c);
+    });
+    ctx.restore();
+
+    /* cadre du champ */
+    ctx.strokeStyle = '#e4dfd5'; ctx.lineWidth = 1; ctx.strokeRect(.5,.5,T-1,T-1);
+  }
+
+  function trace(ctx, z){
+    ctx.beginPath();
+    const TOUR = Math.PI*2;   /* exactement un tour : sinon le chevauchement
+                                 des arcs remplit un secteur en trop */
+    if(z.type === 'anneau'){
+      ctx.arc(210, 210, z.r1, 0, TOUR);
+      if(z.r0 > 0){ ctx.moveTo(210+z.r0, 210); ctx.arc(210, 210, z.r0, 0, TOUR, true); }
+    } else if(z.type === 'secteur'){
+      ctx.arc(210, 210, z.r1, z.a0, z.a1);
+      ctx.arc(210, 210, z.r0, z.a1, z.a0, true); ctx.closePath();
+    } else if(z.type === 'disque'){
+      ctx.arc(z.x, z.y, z.r, 0, TOUR);
+    } else {
+      ctx.rect(z.x, z.y, z.w, z.h);
+    }
+  }
+  function motifs(ctx, z, c){
+    ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = c.s;
+    if(z.type === 'anneau' && z.r1-z.r0 > 6){
+      const n = Math.max(14, Math.round(z.r1/6)), rd = Math.max(z.r0, 16);
+      for(let i=0;i<n;i++){
+        const a = i*2*Math.PI/n;
+        ctx.beginPath();
+        ctx.moveTo(210+rd*Math.cos(a), 210+rd*Math.sin(a));
+        ctx.lineTo(210+z.r1*Math.cos(a), 210+z.r1*Math.sin(a));
+        ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      if(z.r1-z.r0 > 28){
+        for(let r = z.r0+18; r < z.r1-6; r += 20){
+          ctx.beginPath(); ctx.arc(210,210,r,0,7); ctx.globalAlpha = .35; ctx.stroke(); ctx.globalAlpha = 1;
+        }
+      }
+    }
+    if(z.cernes) for(let r = z.r0+16; r < z.r1; r += 22){
+      ctx.beginPath(); ctx.arc(210,210,r,0,7); ctx.strokeStyle = c.s; ctx.lineWidth = 2.2;
+      ctx.globalAlpha = .8; ctx.stroke(); ctx.globalAlpha = 1;
+    }
+    if(z.poils){
+      ctx.strokeStyle = c.s; ctx.lineWidth = 1.6;
+      for(let i=0;i<46;i++){
+        const a = i*2*Math.PI/46;
+        ctx.beginPath();
+        ctx.moveTo(210+190*Math.cos(a), 210+190*Math.sin(a));
+        ctx.lineTo(210+(190+16+((i%3)*7))*Math.cos(a+0.02), 210+(190+16+((i%3)*7))*Math.sin(a+0.02));
+        ctx.stroke();
+      }
+    }
+    if(z.t === 'xyleme' && (z.type === 'secteur' || z.type === 'disque' || z.type === 'rect')){
+      ctx.fillStyle = coloration === 'phloro' ? '#e9b9bd' : coloration === 'carmin' ? '#bcd9c7' : '#e4ded0';
+      const pts = z.type === 'disque' ? [[z.x-7,z.y+6],[z.x+7,z.y+6]]
+        : z.type === 'rect' ? [[z.x+26,z.y+24],[z.x+52,z.y+18],[z.x+78,z.y+26],[z.x+40,z.y+46],[z.x+66,z.y+48]]
+        : [0,1,2].map(i => { const a = (z.a0+z.a1)/2 + (i-1)*0.16, r = z.r0 + (z.r1-z.r0)*(0.35+0.28*(i%2));
+            return [210+r*Math.cos(a), 210+r*Math.sin(a)]; });
+      pts.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x, y, z.type === 'disque' ? 5 : 7, 0, 7);
+        ctx.fill(); ctx.strokeStyle = c.s; ctx.lineWidth = 1.6; ctx.stroke(); });
+    }
+    if(z.colonnes) for(let x = z.x+9; x < z.x+z.w-6; x += 19){
+      ctx.beginPath(); ctx.moveTo(x, z.y+2); ctx.lineTo(x, z.y+z.h-2); ctx.globalAlpha = .6; ctx.stroke(); ctx.globalAlpha = 1;
+      ctx.fillStyle = coloration === 'aucune' ? '#6fa06f' : c.s;
+      for(let k=0;k<4;k++){
+        ctx.beginPath(); ctx.ellipse(x+9, z.y+16+k*18, 4.2, 2.6, .5, 0, 7);
+        ctx.globalAlpha = .65; ctx.fill(); ctx.globalAlpha = 1;
+      }
+    }
+    if(z.lacunes){
+      ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip();
+      for(let i=0;i<24;i++){
+        const x = z.x+16+((i*41)%(z.w-32)), y = z.y+16+((i*29)%(z.h-32));
+        ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
+        ctx.globalAlpha = .8; ctx.stroke(); ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+    }
+    if(z.stomates) [110, 250].forEach(x => {
+      ctx.lineWidth = 2.2; ctx.strokeStyle = c.s;
+      ctx.beginPath(); ctx.ellipse(x-9, z.y+11, 9, 5, 0, 0, 7); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(x+9, z.y+11, 9, 5, 0, 0, 7); ctx.stroke();
+    });
+    ctx.restore();
+  }
+
+  /* ---------- interaction ---------- */
+  function tissuAu(px, py){
+    const T = cv.clientWidth || 420, k = T/420;
+    const x = (px - T/2)/(k*zoom) + 210, y = (py - T/2)/(k*zoom) + 210;
+    const dx = x-210, dy = y-210, r = Math.hypot(dx,dy);
+    let a = Math.atan2(dy,dx);
+    const liste = zones();
+    for(let i = liste.length-1; i >= 0; i--){
+      const z = liste[i];
+      if(z.type === 'anneau' && r >= z.r0 && r <= z.r1) return z.t;
+      if(z.type === 'secteur' && r >= z.r0 && r <= z.r1){
+        for(const d of [-2*Math.PI, 0, 2*Math.PI]) if(a+d >= z.a0 && a+d <= z.a1) return z.t;
+      }
+      if(z.type === 'disque' && Math.hypot(x-z.x, y-z.y) <= z.r) return z.t;
+      if(z.type === 'rect' && x >= z.x && x <= z.x+z.w && y >= z.y && y <= z.y+z.h) return z.t;
+    }
+    return null;
+  }
+  cv.addEventListener('click', e => {
+    const b = cv.getBoundingClientRect();
+    const t = tissuAu(e.clientX-b.left, e.clientY-b.top);
+    selection = t; dessine();
+    if(mode === 'quiz') verifie(t); else info(t);
+  });
+  function info(t){
+    if(!t){ $('#hi-info').innerHTML = '<p style="font-size:13px; color:var(--gris)">Cliquez sur un tissu de la coupe.</p>'; return; }
+    const ti = TISSUS[t], c = couleur(t);
+    $('#hi-info').innerHTML =
+      '<span style="display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; ' +
+      'background:' + c.f + '; border:2px solid ' + c.s + '"></span> ' +
+      '<b style="font-size:15px">' + ti.nom + '</b>' +
+      '<p style="font-size:13px; color:var(--gris); margin-top:8px">' + ti.role + '</p>' +
+      '<p style="font-size:12px; margin-top:9px"><span class="badge ' + (ti.paroi === 'lignine' ? 'vert' : 'orange') + '">' +
+      (ti.paroi === 'lignine' ? 'paroi lignifiée' : 'paroi cellulosique') + '</span> ' +
+      '<span style="color:var(--gris-clair); font-size:11.5px">→ ' +
+      (coloration === 'carmin' ? (ti.paroi === 'lignine' ? 'colorée en vert par le vert d\'iode' : 'colorée en rose par le carmin')
+       : coloration === 'phloro' ? (ti.paroi === 'lignine' ? 'colorée en rouge cerise par la phloroglucine' : 'non colorée')
+       : 'aucune coloration : contraste faible') + '</span></p>';
+  }
+  /* --- mode « légender » --- */
+  function nouvelleQuestion(){
+    const dispo = [...new Set(zones().map(z => z.t))];
+    cible = dispo[Math.floor(Math.random()*dispo.length)];
+    $('#hi-info').innerHTML = '<span class="badge orange">Question</span>' +
+      '<p style="font-size:15px; font-weight:600; margin-top:9px">Cliquez sur : ' + TISSUS[cible].nom + '</p>' +
+      '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">' +
+      (coloration === 'aucune' ? 'Sans coloration, fiez-vous à la position et à la forme des cellules.'
+       : 'Aidez-vous de la coloration des parois.') + '</p>';
+  }
+  function verifie(t){
+    const juste = t === cible;
+    $('#hi-info').innerHTML = (juste
+      ? '<span class="badge vert">Exact</span><p style="font-size:14px; font-weight:600; margin-top:9px">' + TISSUS[cible].nom + '</p>' +
+        '<p style="font-size:13px; color:var(--gris); margin-top:6px">' + TISSUS[cible].role + '</p>'
+      : '<span class="badge" style="background:#fbe4e0; color:var(--rouge)">Pas tout à fait</span>' +
+        '<p style="font-size:13.5px; margin-top:9px">Vous avez désigné : <b>' + (t ? TISSUS[t].nom : 'le fond de la lame') + '</b>. ' +
+        'On cherchait : <b>' + TISSUS[cible].nom + '</b>.</p>' +
+        '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">' + TISSUS[cible].role + '</p>') +
+      '<button class="btn mini primaire" id="hi-suivant" style="margin-top:12px">Question suivante</button>';
+    $('#hi-suivant').addEventListener('click', nouvelleQuestion);
+  }
+
+  /* ---------- clé de lecture ---------- */
+  function cle(){
+    const dispo = [...new Set(zones().map(z => z.t))];
+    $('#hi-cle tbody').innerHTML = dispo.map(t => {
+      const ti = TISSUS[t], c = couleur(t);
+      return '<tr><td style="width:26px"><span style="display:inline-block;width:14px;height:14px;border-radius:4px;' +
+        'background:' + c.f + '; border:2px solid ' + c.s + '"></span></td>' +
+        '<td style="width:180px"><b>' + ti.nom + '</b></td><td style="color:var(--gris)">' + ti.role + '</td></tr>';
+    }).join('');
+  }
+
+  /* ---------- commandes ---------- */
+  $('#hi-org').addEventListener('change', () => {
+    organe = $('#hi-org').value; selection = null; dessine(); cle();
+    if(mode === 'quiz') nouvelleQuestion(); else info(null);
+  });
+  segment($('#hi-color'), d => { coloration = d.c; dessine(); cle(); if(mode === 'obs') info(selection); });
+  segment($('#hi-mode'), d => {
+    mode = d.m; selection = null; dessine();
+    if(mode === 'quiz') nouvelleQuestion(); else info(null);
+  });
+  $('#hi-zoom').addEventListener('input', () => {
+    zoom = +$('#hi-zoom').value/10;
+    $('#hi-zoom-v').textContent = '×' + fr(zoom,1);
+    dessine();
+  });
+
+  dessine(); cle();
+  Labo.surAffichage.histologie = dessine;
+})();
+
+/* ---------- ouverture directe d'un module via l'adresse (#exao, #pigments…) ---------- */
+(function depart(){
+  const h = location.hash.replace('#','');
+  if(h && $('#mod-'+h)) ouvreModule(h);
+})();
+</script>
+
+</body>
+</html>
