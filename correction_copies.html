@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.11 — export PDF de remédiation reconstruit depuis les données (styles inline) : fiable, plus de questions manquantes -->
+<!-- Correction·IA v9.12 — remédiation enrichie façon Ed.ai : ateliers (énoncé+consignes a/b+astuce), cours (méthode+exemples rédigés), 3 exercices progressifs (rappel+tableau) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -275,7 +275,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.11</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.12</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -773,36 +773,41 @@ function buildRemediationTool(type) {
     props.tableau_notions = { type: 'array', description: "Tableau comparatif des notions à distinguer (2 à 5 lignes).", items: { type: 'object', properties: {
       notion: { type: 'string' }, idee_essentielle: { type: 'string' }, indices_documents: { type: 'string', description: "Comment la repérer dans des documents." }, exemple_type: { type: 'string' }, contre_exemple: { type: 'string', description: "Confusion fréquente / ce que ce n'est PAS." }
     }, required: ['notion', 'idee_essentielle'] } };
-    props.methode = { type: 'array', items: { type: 'string' }, description: "3 à 6 étapes concrètes pour ne plus refaire l'erreur." };
+    props.methode = { type: 'array', items: { type: 'string' }, description: "Étapes pour bien argumenter dans une réponse longue (3 à 6)." };
     props.a_retenir = { type: 'array', items: { type: 'string' }, description: "Points clés à mémoriser." };
+    props.exemples = { type: 'array', description: "1 à 3 exemples de formulation rédigés et modélisants.", items: { type: 'object', properties: { intitule: { type: 'string' }, texte: { type: 'string' } }, required: ['intitule', 'texte'] } };
     req.push('introduction', 'tableau_notions');
   } else if (type === 'corriger') {
-    props.ateliers = { type: 'array', description: "Un atelier par savoir-faire fragile (2 à 4).", items: { type: 'object', properties: {
+    props.ateliers = { type: 'array', description: "Un atelier par savoir-faire fragile (2 à 3).", items: { type: 'object', properties: {
       savoir_faire: { type: 'string', description: "Le savoir-faire / la notion retravaillé(e)." },
-      supports: { type: 'array', items: { type: 'string' }, description: "1 à 3 extraits de documents du sujet utiles (cite le document)." },
+      supports: { type: 'array', items: { type: 'string' }, description: "1 à 3 extraits de documents du sujet, cités « Document N : « … » »." },
+      enonce_exercice: { type: 'string', description: "L'énoncé/la question réelle de l'évaluation à laquelle l'extrait répond." },
       extrait_copie: { type: 'string', description: "Un extrait de copie ERRONÉ (réel si fourni, sinon typique)." },
       erreur: { type: 'string', description: "Le diagnostic précis de l'erreur." },
-      consignes: { type: 'array', items: { type: 'string' }, description: "2 à 4 sous-questions scaffoldées et progressives." },
-      astuce: { type: 'string' },
-      corrige: { type: 'string', description: "La correction attendue de l'extrait." }
+      consignes: { type: 'array', description: "2 à 3 questions guidées, chacune avec des sous-questions (a),(b) qui font raisonner sans donner la réponse.", items: { type: 'object', properties: {
+        intitule: { type: 'string', description: "Ex : « Question 1 »." }, sous_questions: { type: 'array', items: { type: 'string' }, description: "Sous-questions (a), (b)…" }
+      }, required: ['intitule', 'sous_questions'] } },
+      astuce: { type: 'string', description: "Un repère CONCEPTUEL (pas la réponse)." },
+      corrige: { type: 'string', description: "La correction attendue (réservée au prof)." }
     }, required: ['savoir_faire', 'extrait_copie', 'erreur', 'consignes', 'corrige'] } };
     req.push('ateliers');
   } else { // entrainer
-    props.exercices = { type: 'array', description: "2 à 4 exercices de transfert (nouveaux contextes).", items: { type: 'object', properties: {
+    props.exercices = { type: 'array', description: "Exactement 3 exercices de transfert, difficulté progressive.", items: { type: 'object', properties: {
       enonce: { type: 'string', description: "Un nouveau contexte mobilisant le même savoir-faire." },
+      rappel: { type: 'string', description: "Optionnel : « Rappel utile » (formule, définition) avant un exercice exigeant." },
       tableau: { type: 'object', description: "Données chiffrées optionnelles.", properties: { colonnes: { type: 'array', items: { type: 'string' } }, lignes: { type: 'array', items: { type: 'array', items: { type: 'string' } } } } },
-      questions: { type: 'array', items: { type: 'string' }, description: "2 à 4 questions progressives et scaffoldées." },
-      corrige: { type: 'string', description: "Corrigé détaillé." }
+      questions: { type: 'array', items: { type: 'string' }, description: "2 à 3 questions progressives et précises." },
+      corrige: { type: 'string', description: "Corrigé détaillé (réservé au prof)." }
     }, required: ['enonce', 'questions', 'corrige'] } };
     req.push('exercices');
   }
   return { name: 'generer_activite', description: "Enregistre l'activité de remédiation.", input_schema: { type: 'object', properties: props, required: req } };
 }
 const ACT_PROMPTS = {
-  corriger: "Type : « Corriger ses erreurs ». Conçois UN ATELIER PAR savoir-faire/notion fragile (2 à 4 ateliers). Chaque atelier suit CE format précis, ancré sur le devoir réel : (1) le savoir-faire travaillé ; (2) supports = 1 à 3 extraits de documents du sujet réellement utiles (cite le document, ex « Document 3 : … ») ; (3) extrait_copie = un extrait de copie ERRONÉ — réutilise un vrai extrait erroné de l'élève si on t'en fournit, sinon un extrait typique ; (4) erreur = le diagnostic précis ; (5) consignes = 2 à 4 sous-questions SCAFFOLDÉES et progressives (ex : « (a) repère dans la consigne les attendus à traiter », « (b) à partir de l'extrait, dis ce qui est déjà traité et ce qui manque », « prépare un brouillon corrigé sous la forme … ») ; (6) une astuce ; (7) le corrigé attendu. Reste FIDÈLE au sujet et aux documents fournis.",
-  qcm: "Type : « Réviser avec un QCM ». Propose 6 à 10 questions à choix multiples ciblant PRÉCISÉMENT les notions fragiles et les confusions repérées (ex : distinguer sélection naturelle et dérive génétique), avec 3-4 propositions, la/les bonnes réponses (index) et une courte explication. Des questions qui cassent les confusions, pas du par-cœur.",
-  cours: "Type : « Revoir son cours ». Produis une fiche STRUCTURÉE (pas un simple pavé) : (1) introduction = pourquoi ces notions comptent + ce qui est attendu au niveau visé ; (2) tableau_notions = un TABLEAU COMPARATIF des notions à distinguer, avec pour chaque ligne : notion, idée essentielle, comment la repérer dans les documents, un exemple type, et un contre-exemple/confusion fréquente à éviter ; (3) methode = 3 à 6 étapes concrètes pour ne plus refaire l'erreur ; (4) a_retenir = points clés. Cible les confusions réellement repérées dans les copies.",
-  entrainer: "Type : « S'entraîner ». Propose 2 à 4 exercices de TRANSFERT : de NOUVEAUX contextes/scénarios (différents du sujet d'origine) mobilisant le MÊME savoir-faire fragile. Chaque exercice : un énoncé avec, si utile, un petit tableau de données chiffrées ; puis 2 à 4 questions progressives et scaffoldées (ex : choisir la bonne problématique parmi des formulations et justifier, puis exploiter les données, puis conclure) ; enfin un corrigé détaillé. Objectif : réinvestir la compétence dans un cas neuf."
+  corriger: "Type : « Corriger ses erreurs » — fiche d'auto-travail (l'élève cherche, on ne lui donne PAS la réponse dans les consignes). Conçois UN ATELIER PAR savoir-faire/notion fragile (2 à 3 ateliers). Format IMPÉRATIF de chaque atelier, ancré sur le devoir réel : (1) savoir_faire = le savoir-faire travaillé ; (2) supports = 1 à 3 extraits de documents du sujet réellement utiles, cités « Document N : « … » » ; (3) enonce_exercice = l'énoncé/la question réelle de l'évaluation à laquelle l'extrait répond ; (4) extrait_copie = un extrait de copie ERRONÉ (réutilise un vrai extrait erroné fourni, sinon un extrait typique très réaliste) ; (5) erreur = le diagnostic précis ; (6) consignes = 2 à 3 « questions » guidées, CHACUNE avec 2 sous-questions (a) et (b) qui font RAISONNER sans donner la réponse (ex : « (a) Quels éléments de la phrase s'appuient bien sur les documents ? », « (b) Quels mots sont scientifiquement discutables ? Justifie à l'aide du doc 1 ou du cours ») ; (7) astuce = un repère CONCEPTUEL (pas la réponse) ; (8) corrige = la correction attendue (réservée au prof). Reste FIDÈLE aux documents.",
+  qcm: "Type : « Réviser avec un QCM ». 6 à 10 questions à choix multiples ciblant PRÉCISÉMENT les notions fragiles et les confusions repérées (ex : distinguer sélection naturelle et dérive, nommer les 3 mécanismes). Ancre chaque question dans un mini-contexte ou un document quand c'est pertinent (« D'après le document 3… »). 3-4 propositions dont des distracteurs plausibles (les confusions typiques), la/les bonnes réponses (index) et une explication qui casse la confusion. Pas de par-cœur.",
+  cours: "Type : « Revoir son cours » — fiche méthodo RICHE et structurée (comme un vrai polycopié de révision), PAS un pavé. Produis : (1) introduction = pourquoi ces notions comptent + ce qui est attendu au niveau visé ; (2) tableau_notions = TABLEAU comparatif des notions à distinguer (notion / idée essentielle / comment la repérer dans les documents / exemple type / à ne pas confondre) ; (3) methode = les étapes pour bien argumenter dans une réponse longue (traiter toute la consigne, distinguer chaque cas, appuyer chaque idée sur une donnée, relier à une connaissance, conclure) ; (4) a_retenir = points clés ; (5) exemples = 1 à 3 EXEMPLES de formulation RÉDIGÉS et modélisants (ex : { intitule:'Structure d'un paragraphe argumenté', texte:'Observation : … / Connaissance : … / Interprétation : …' } ; ex : { intitule:'Exemple de problématique bien rédigée', texte:'…' }). Cible les confusions réellement repérées.",
+  entrainer: "Type : « S'entraîner ». Propose EXACTEMENT 3 exercices de TRANSFERT, de difficulté PROGRESSIVE, dans de NOUVEAUX contextes (différents du sujet d'origine) mobilisant les savoir-faire fragiles : ex 1 plutôt sur la problématique/l'analyse, ex 2 avec un tableau de données chiffrées et l'exploitation, ex 3 plus exigeant (modèle, Hardy-Weinberg, conclusion). Chaque exercice : un énoncé ; si utile un rappel (« Rappel utile : … » formule/définition) et un tableau de données ; puis 2 à 3 questions progressives et précises (choisir/rédiger une problématique, exploiter les données, distinguer les mécanismes, conclure) ; enfin un corrigé détaillé (réservé au prof). Réinvestir la compétence dans un cas neuf, exactement comme un sujet type bac."
 };
 
 let mammothPromise = null;
@@ -1569,6 +1574,14 @@ $('m-generer').onclick = async () => {
   finally { $('m-generer').disabled = false; $('m-loading').style.display = 'none'; }
 };
 function ctxt(s) { return esc(cleanText(s)); }
+function renderConsignes(consignes) {
+  if (!consignes || !consignes.length) return '';
+  // format structuré {intitule, sous_questions[]} ou ancien format [string]
+  if (typeof consignes[0] === 'object') {
+    return consignes.map(c => `<div style="margin-bottom:6px"><div style="font-weight:600;font-size:0.8rem">${ctxt(c.intitule)}</div><ul class="rlist" style="margin-top:2px">${(c.sous_questions || []).map(s => `<li>${ctxt(s)}</li>`).join('')}</ul></div>`).join('');
+  }
+  return `<ol class="rlist">${consignes.map(c => `<li>${ctxt(c)}</li>`).join('')}</ol>`;
+}
 function renderNotionsTable(rows) {
   if (!rows || !rows.length) return '';
   const cols = [['notion', 'Notion'], ['idee_essentielle', 'Idée essentielle'], ['indices_documents', 'Indices dans les documents'], ['exemple_type', 'Exemple type'], ['contre_exemple', 'Contre-exemple / à ne pas confondre']];
@@ -1595,8 +1608,9 @@ function renderActivite(result) {
     if (result.introduction) h += `<p style="margin:0 0 10px">${ctxt(result.introduction)}</p>`;
     if (result.resume) h += `<div style="white-space:pre-wrap">${ctxt(result.resume)}</div>`;
     if (result.tableau_notions && result.tableau_notions.length) h += `<div class="rsub">À retenir — distinguer les notions</div>` + renderNotionsTable(result.tableau_notions);
-    if (result.methode && result.methode.length) h += `<div class="rsub">Méthode pour ne plus se tromper</div><ol class="rlist">${result.methode.map(m => `<li>${ctxt(m)}</li>`).join('')}</ol>`;
+    if (result.methode && result.methode.length) h += `<div class="rsub">Bien argumenter dans une réponse longue</div><ol class="rlist">${result.methode.map(m => `<li>${ctxt(m)}</li>`).join('')}</ol>`;
     if (result.a_retenir && result.a_retenir.length) h += `<div class="rsub">À retenir</div><ul class="rlist">${result.a_retenir.map(m => `<li>${ctxt(m)}</li>`).join('')}</ul>`;
+    if (result.exemples && result.exemples.length) h += `<div class="rsub">Exemples de formulation</div>` + result.exemples.map(e => `<div class="rquote"><b>${ctxt(e.intitule)}</b><br>${ctxt(e.texte)}</div>`).join('');
     cours.innerHTML = h;
   }
   // QCM
@@ -1613,14 +1627,16 @@ function renderActivite(result) {
     ex.innerHTML = result.ateliers.map((a, i) => `<div class="ex">
       <div class="en"><b>Atelier ${i + 1} — ${ctxt(a.savoir_faire)}</b></div>
       ${(a.supports && a.supports.length) ? `<div class="rsub2">Supports</div><ul class="rlist">${a.supports.map(s => `<li>${ctxt(s)}</li>`).join('')}</ul>` : ''}
+      ${a.enonce_exercice ? `<div class="rsub2">Énoncé de l'exercice</div><div style="font-size:0.82rem;line-height:1.5">${ctxt(a.enonce_exercice)}</div>` : ''}
       <div class="rsub2">Extrait de copie à analyser</div><div class="rquote">« ${ctxt(a.extrait_copie)} »</div>
-      <div class="rsub2">Consignes</div><ol class="rlist">${(a.consignes || []).map(c => `<li>${ctxt(c)}</li>`).join('')}</ol>
+      <div class="rsub2">Consignes</div>${renderConsignes(a.consignes)}
       ${a.astuce ? `<div class="rtip">💡 ${ctxt(a.astuce)}</div>` : ''}
       <div class="corrige-block"><div class="corrige-tag">Corrigé</div>${a.erreur ? `<div style="font-size:0.8rem;margin-bottom:4px"><b>Erreur :</b> ${ctxt(a.erreur)}</div>` : ''}<div class="cor">${ctxt(a.corrige)}</div></div></div>`).join('');
   } else if (result.exercices && result.exercices.length) {
     // S'ENTRAÎNER (transfert, questions scaffoldées) ou ancien format {enonce, correction}
     ex.innerHTML = result.exercices.map((e, i) => `<div class="ex">
       <div class="en"><b>Exercice ${i + 1}.</b> ${ctxt(e.enonce)}</div>
+      ${e.rappel ? `<div class="rtip" style="background:#eef4ff;border-color:#c6d8f5;color:#2a4d8f">📌 Rappel utile : ${ctxt(e.rappel)}</div>` : ''}
       ${renderDataTable(e.tableau)}
       ${(e.questions && e.questions.length) ? `<div class="rsub2">Questions</div><ol class="rlist">${e.questions.map(q => `<li>${ctxt(q)}</li>`).join('')}</ol>` : ''}
       <div class="corrige-block"><div class="corrige-tag">Corrigé</div><div class="cor">${ctxt(e.corrige || e.correction)}</div></div></div>`).join('');
@@ -1647,8 +1663,9 @@ function buildRemedDoc() {
       const cols = [['notion', 'Notion'], ['idee_essentielle', 'Idée essentielle'], ['indices_documents', 'Indices dans les documents'], ['exemple_type', 'Exemple type'], ['contre_exemple', 'À ne pas confondre']].filter(([k]) => r.tableau_notions.some(x => (x[k] || '').trim()));
       body += `<div style="${SEC}">À retenir — distinguer les notions</div>` + table(cols.map(c => c[1]), r.tableau_notions.map(x => cols.map(c => cleanText(x[c[0]]))));
     }
-    if (r.methode && r.methode.length) body += `<div style="${SEC}">Méthode</div><ol style="${OL}">${r.methode.map(m => `<li style="${LI}">${esc(cleanText(m))}</li>`).join('')}</ol>`;
+    if (r.methode && r.methode.length) body += `<div style="${SEC}">Bien argumenter dans une réponse longue</div><ol style="${OL}">${r.methode.map(m => `<li style="${LI}">${esc(cleanText(m))}</li>`).join('')}</ol>`;
     if (r.a_retenir && r.a_retenir.length) body += `<div style="${SEC}">À retenir</div><ul style="${OL}">${r.a_retenir.map(m => `<li style="${LI}">${esc(cleanText(m))}</li>`).join('')}</ul>`;
+    if (r.exemples && r.exemples.length) body += `<div style="${SEC}">Exemples de formulation</div>` + r.exemples.map(e => `<div style="font-style:italic;font-size:9.5pt;border-left:2px solid #ccc;padding-left:9px;color:#444;margin:5px 0"><b style="font-style:normal">${esc(cleanText(e.intitule))} :</b> ${esc(cleanText(e.texte))}</div>`).join('');
   }
   // QCM
   if (r.qcm && r.qcm.length) {
@@ -1660,16 +1677,21 @@ function buildRemedDoc() {
   }
   // CORRIGER SES ERREURS
   if (r.ateliers && r.ateliers.length) {
+    const consPdf = (cons) => !cons || !cons.length ? '' : (typeof cons[0] === 'object'
+      ? cons.map(c => `<div style="margin-bottom:5px"><div style="font-weight:600;font-size:9.5pt">${esc(cleanText(c.intitule))}</div><ul style="${OL}">${(c.sous_questions || []).map(s => `<li style="${LI}">${esc(cleanText(s))}</li>`).join('')}</ul></div>`).join('')
+      : `<ol style="${OL}">${cons.map(c => `<li style="${LI}">${esc(cleanText(c))}</li>`).join('')}</ol>`);
     body += r.ateliers.map((a, i) => `<div style="${CARD}">
       <div style="font-size:10.5pt;font-weight:700;margin-bottom:4px">Atelier ${i + 1} — ${esc(cleanText(a.savoir_faire))}</div>
       ${(a.supports && a.supports.length) ? `<div style="${SUB}">Supports</div><ul style="${OL}">${a.supports.map(s => `<li style="${LI}">${esc(cleanText(s))}</li>`).join('')}</ul>` : ''}
+      ${a.enonce_exercice ? `<div style="${SUB}">Énoncé de l'exercice</div><div style="font-size:9.5pt;line-height:1.5">${esc(cleanText(a.enonce_exercice))}</div>` : ''}
       <div style="${SUB}">Extrait de copie à analyser</div><div style="font-style:italic;font-size:9.5pt;border-left:2px solid #ccc;padding-left:9px;color:#444">« ${esc(cleanText(a.extrait_copie))} »</div>
-      <div style="${SUB}">Consignes</div><ol style="${OL}">${(a.consignes || []).map(c => `<li style="${LI}">${esc(cleanText(c))}</li>`).join('')}</ol>
+      <div style="${SUB}">Consignes</div>${consPdf(a.consignes)}
       ${a.astuce ? `<div style="background:#fff7e8;border:1px solid #f0dcae;color:#9a6b12;font-size:9pt;padding:7px 10px;border-radius:8px;margin:6px 0">💡 ${esc(cleanText(a.astuce))}</div>` : ''}
       ${showCorr ? `${tag()}${a.erreur ? `<div style="font-size:9.5pt;margin-bottom:3px"><b>Erreur :</b> ${esc(cleanText(a.erreur))}</div>` : ''}<div style="font-size:9.5pt;color:${MUT};border-left:2px solid ${GRN};padding-left:9px">${esc(cleanText(a.corrige))}</div>` : ''}</div>`).join('');
   } else if (r.exercices && r.exercices.length) {
     body += r.exercices.map((e, i) => `<div style="${CARD}">
       <div style="font-size:10pt;margin-bottom:6px"><b>Exercice ${i + 1}.</b> ${esc(cleanText(e.enonce))}</div>
+      ${e.rappel ? `<div style="background:#eef4ff;border:1px solid #c6d8f5;color:#2a4d8f;font-size:9pt;padding:7px 10px;border-radius:8px;margin:6px 0">📌 Rappel utile : ${esc(cleanText(e.rappel))}</div>` : ''}
       ${(e.tableau && (e.tableau.colonnes || []).length && (e.tableau.lignes || []).length) ? table(e.tableau.colonnes.map(cleanText), e.tableau.lignes.map(l => (l || []).map(cleanText))) : ''}
       ${(e.questions && e.questions.length) ? `<div style="${SUB}">Questions</div><ol style="${OL}">${e.questions.map(q => `<li style="${LI}">${esc(cleanText(q))}</li>`).join('')}</ol>` : ''}
       ${showCorr ? `${tag()}<div style="font-size:9.5pt;color:${MUT};border-left:2px solid ${GRN};padding-left:9px">${esc(cleanText(e.corrige || e.correction))}</div>` : ''}</div>`).join('');
