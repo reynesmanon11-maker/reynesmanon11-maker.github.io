@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.12 — remédiation enrichie façon Ed.ai : ateliers (énoncé+consignes a/b+astuce), cours (méthode+exemples rédigés), 3 exercices progressifs (rappel+tableau) -->
+<!-- Correction·IA v9.13 — remédiation : sélecteur Élève toujours visible (« toute la classe » ou un élève), UX simplifiée -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -275,7 +275,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.12</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.13</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -446,11 +446,8 @@
       <h3>Générer une activité de remédiation</h3>
       <div class="sub">Basée sur les compétences fragiles mesurées — pour toute la classe ou pour un élève.</div>
       <div class="row">
-        <div class="col"><label>Pour</label><select id="m-mode"><option value="classe">Toute la classe</option><option value="eleve">Un élève</option></select></div>
         <div class="col"><label>Classe</label><select id="m-classe"></select></div>
-        <div class="col" id="m-elevecol" style="display:none"><label>Élève</label><select id="m-eleve"></select></div>
-      </div>
-      <div class="row" style="margin-top:10px">
+        <div class="col"><label>Élève</label><select id="m-eleve"></select></div>
         <div class="col"><label>Sur quel devoir remédier ?</label><select id="m-devoir"></select></div>
       </div>
       <div class="col" style="margin-top:10px">
@@ -1509,29 +1506,32 @@ function drawEleveDetail() {
 
 // ════════ REMÉDIATION ════════
 let actType = 'corriger';
-function renderRemediation() { fillClasseSelect($('m-classe'), $('m-classe').value); fillEleveSelect($('m-eleve'), $('m-classe').value, $('m-eleve').value); fillDevoirSelect($('m-devoir'), $('m-classe').value, $('m-devoir').value, true); prefillCible(); }
+// Sélecteur d'élève propre à la remédiation : « toute la classe » par défaut, puis chaque élève
+function fillRemedEleve(classeId, selected) {
+  const c = classeById(classeId), list = c ? (c.eleves || []) : [];
+  $('m-eleve').innerHTML = `<option value="">— toute la classe —</option>` + list.map(e => `<option value="${e.id}">${esc(e.nom)}</option>`).join('');
+  if (selected) $('m-eleve').value = selected;
+}
+function renderRemediation() { fillClasseSelect($('m-classe'), $('m-classe').value); fillRemedEleve($('m-classe').value, $('m-eleve').value); fillDevoirSelect($('m-devoir'), $('m-classe').value, $('m-devoir').value, true); prefillCible(); }
 document.querySelectorAll('#m-types .acttype').forEach(card => card.addEventListener('click', () => {
   actType = card.dataset.type;
   document.querySelectorAll('#m-types .acttype').forEach(c => c.classList.toggle('on', c === card));
 }));
 function launchRemediation(classeId, eleveId, devoirId) {
   switchTab('remediation');
-  $('m-mode').value = eleveId ? 'eleve' : 'classe';
-  $('m-elevecol').style.display = eleveId ? '' : 'none';
   fillClasseSelect($('m-classe'), classeId);
-  fillEleveSelect($('m-eleve'), classeId, eleveId);
+  fillRemedEleve(classeId, eleveId || '');
   fillDevoirSelect($('m-devoir'), classeId, devoirId || '', true);
   prefillCible();
   $('m-result').style.display = 'none';
 }
-$('m-mode').addEventListener('change', () => { $('m-elevecol').style.display = $('m-mode').value === 'eleve' ? '' : 'none'; prefillCible(); });
-$('m-classe').addEventListener('change', () => { fillEleveSelect($('m-eleve'), $('m-classe').value, null); fillDevoirSelect($('m-devoir'), $('m-classe').value, '', true); prefillCible(); });
+$('m-classe').addEventListener('change', () => { fillRemedEleve($('m-classe').value, ''); fillDevoirSelect($('m-devoir'), $('m-classe').value, '', true); prefillCible(); });
 $('m-eleve').addEventListener('change', prefillCible);
 $('m-devoir').addEventListener('change', prefillCible);
 function weakCompetences(copies) { return competenceAgg(copies).filter(c => c.taux < .7).slice(0, 6).map(c => `${c.nom} (réussite ${(c.taux * 100).toFixed(0)}%)`); }
 function remedCopies() {
   let copies = copiesFor($('m-classe').value, $('m-devoir').value);
-  if ($('m-mode').value === 'eleve') copies = copies.filter(c => c.eleveId === $('m-eleve').value);
+  if ($('m-eleve').value) copies = copies.filter(c => c.eleveId === $('m-eleve').value);
   return copies;
 }
 function prefillCible() {
@@ -1545,7 +1545,7 @@ $('m-generer').onclick = async () => {
   const errBox = $('m-error'); errBox.innerHTML = '';
   if (!API_KEY) { $('overlay').classList.remove('off'); return; }
   const cible = $('m-cible').value.trim(); if (!cible) { errBox.innerHTML = '<div class="err-msg">Indiquez au moins une compétence à cibler.</div>'; return; }
-  const isEleve = $('m-mode').value === 'eleve', classe = classeById($('m-classe').value), el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
+  const isEleve = !!$('m-eleve').value, classe = classeById($('m-classe').value), el = isEleve ? eleveById(classe, $('m-eleve').value) : null;
   const dv = devoirById($('m-devoir').value);
   const matiere = (dv && dv.matiere) || db.devoirs.filter(d => d.classeId === $('m-classe').value).map(d => d.matiere).filter(Boolean)[0] || '';
   const scopeTxt = dv ? `Ces notions fragiles proviennent du devoir « ${dv.nom} » : recentre l'activité sur les notions de CE devoir.` : `Ces notions fragiles sont un BILAN GLOBAL sur l'ensemble des devoirs de l'année : propose une remédiation transversale sur les non-acquis persistants.`;
