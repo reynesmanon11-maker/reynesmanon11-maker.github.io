@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.15 — remédiation : export PDF via impression native (fiable, fini les corps vides) ; un seul bouton Imprimer/Enregistrer en PDF -->
+<!-- Correction·IA v9.16 — impression : marges A4 maîtrisées + largeur fluide (fini la colonne étroite/coupée) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -222,8 +222,11 @@
 
   #printroot { display: none; }
   @media print {
+    @page { size: A4; margin: 14mm; }
     #overlay, #topbar, #modetabs, #main { display: none !important; }
-    #printroot { display: block !important; }
+    html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+    #printroot { display: block !important; width: 100% !important; }
+    #printroot > div { width: 100% !important; max-width: 100% !important; padding: 0 !important; box-sizing: border-box; }
     body { background: #fff; color: #1a1a2e; font-size: 11pt; }
     .pr-head { text-align: center; border-bottom: 2px solid #6c5ce7; padding-bottom: 10px; margin-bottom: 16px; }
     .pr-head .pr-title { font-size: 16pt; font-weight: 700; color: #5a4bd8; }
@@ -275,7 +278,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.15</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.16</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
