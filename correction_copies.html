@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.13 — remédiation : sélecteur Élève toujours visible (« toute la classe » ou un élève), UX simplifiée -->
+<!-- Correction·IA v9.14 — PDF de remédiation en style document épuré façon Ed.ai (titre court, Exercice N, pas de cartes colorées, préambule minimal) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -275,7 +275,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.13</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.14</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -1645,63 +1645,74 @@ function renderActivite(result) {
 $('m-showcorrige').addEventListener('change', e => $('m-result').classList.toggle('show-corrige', e.target.checked));
 // Construit le document imprimable/PDF À PARTIR DES DONNÉES avec des styles 100% en ligne
 // (couleurs hex explicites, aucune variable CSS) — html2canvas le rend de façon fiable.
+const REMED_LABEL = { corriger: 'Corriger ses erreurs', qcm: 'Réviser avec un QCM', cours: 'Revoir son cours', entrainer: "S'entraîner" };
 function buildRemedDoc() {
   const r = lastRemed || {}, showCorr = $('m-showcorrige').checked;
-  const P = "font-family:'Sora',Arial,sans-serif", MUT = '#555', PUR = '#5a4bd8', GRN = '#2a9d6a';
-  const SEC = `font-weight:700;color:${PUR};font-size:12pt;margin:16px 0 6px`;
-  const SUB = `font-weight:600;font-size:9pt;color:${MUT};text-transform:uppercase;letter-spacing:.02em;margin:11px 0 4px`;
-  const CARD = 'border:1px solid #e5e5f0;border-radius:10px;padding:12px 14px;margin-bottom:12px;background:#faf9ff;page-break-inside:avoid';
-  const OL = 'margin:4px 0 8px 18px;font-size:10pt;line-height:1.6', LI = 'margin-bottom:4px';
-  const tag = () => `<div style="font-size:8pt;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:${GRN};margin:8px 0 3px">Corrigé</div>`;
-  const table = (headers, rows) => `<table style="border-collapse:collapse;width:100%;font-size:9pt;margin:6px 0 10px"><thead><tr>${headers.map(h => `<th style="border:1px solid #d8d5f0;padding:6px 8px;text-align:left;background:#efedfe;color:${PUR};font-weight:600">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(c => `<td style="border:1px solid #d8d5f0;padding:6px 8px;vertical-align:top;line-height:1.4">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  // Style « document » épuré, à la Ed.ai : texte foncé sobre, aérations, pas de cartes colorées.
+  const INK = '#2d2d3a', MUT = '#666', GRN = '#2a7d55';
+  const EXO = `font-size:15pt;font-weight:700;color:${INK};margin:26px 0 8px;page-break-after:avoid`;
+  const H = `font-size:11.5pt;font-weight:700;color:${INK};margin:14px 0 5px;page-break-after:avoid`;
+  const LBL = `font-weight:700;font-size:10pt;color:${INK}`;
+  const P = 'font-size:10.5pt;line-height:1.6;margin:4px 0;color:#333';
+  const OL = 'margin:4px 0 10px 20px;font-size:10.5pt;line-height:1.6;color:#333', LI = 'margin-bottom:5px';
+  const QUOTE = 'font-size:10.5pt;line-height:1.55;margin:4px 0 8px;color:#333;padding-left:12px;border-left:3px solid #d5d0ea';
+  const ASTUCE = `font-style:italic;color:${MUT};font-size:10pt;margin:8px 0 4px`;
+  const corr = (h) => showCorr ? `<div style="margin:8px 0 4px;padding:9px 12px;background:#f3faf6;border:1px solid #c8e6d3;border-radius:8px"><div style="font-size:8.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:${GRN};margin-bottom:3px">Corrigé</div>${h}</div>` : '';
+  const table = (headers, rows) => `<table style="border-collapse:collapse;width:100%;font-size:9.5pt;margin:8px 0 12px"><thead><tr>${headers.map(h => `<th style="border:1px solid #d5d0ea;padding:7px 9px;text-align:left;background:#f3f1fb;color:${INK};font-weight:600">${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(row => `<tr>${row.map(c => `<td style="border:1px solid #d5d0ea;padding:7px 9px;vertical-align:top;line-height:1.45">${esc(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+  const bullets = (arr) => `<ul style="${OL}">${arr.map(s => `<li style="${LI}">${esc(cleanText(s))}</li>`).join('')}</ul>`;
   let body = '';
   // REVOIR SON COURS
   if (r.introduction || r.tableau_notions || r.resume) {
-    if (r.introduction) body += `<p style="font-size:10pt;line-height:1.6;margin:0 0 10px">${esc(cleanText(r.introduction))}</p>`;
-    if (r.resume) body += `<div style="font-size:10pt;line-height:1.6;white-space:pre-wrap">${esc(cleanText(r.resume))}</div>`;
+    if (r.introduction) body += `<p style="${P}">${esc(cleanText(r.introduction))}</p>`;
+    if (r.resume) body += `<div style="${P};white-space:pre-wrap">${esc(cleanText(r.resume))}</div>`;
     if (r.tableau_notions && r.tableau_notions.length) {
       const cols = [['notion', 'Notion'], ['idee_essentielle', 'Idée essentielle'], ['indices_documents', 'Indices dans les documents'], ['exemple_type', 'Exemple type'], ['contre_exemple', 'À ne pas confondre']].filter(([k]) => r.tableau_notions.some(x => (x[k] || '').trim()));
-      body += `<div style="${SEC}">À retenir — distinguer les notions</div>` + table(cols.map(c => c[1]), r.tableau_notions.map(x => cols.map(c => cleanText(x[c[0]]))));
+      body += `<div style="${H}">À retenir — distinguer les notions</div>` + table(cols.map(c => c[1]), r.tableau_notions.map(x => cols.map(c => cleanText(x[c[0]]))));
     }
-    if (r.methode && r.methode.length) body += `<div style="${SEC}">Bien argumenter dans une réponse longue</div><ol style="${OL}">${r.methode.map(m => `<li style="${LI}">${esc(cleanText(m))}</li>`).join('')}</ol>`;
-    if (r.a_retenir && r.a_retenir.length) body += `<div style="${SEC}">À retenir</div><ul style="${OL}">${r.a_retenir.map(m => `<li style="${LI}">${esc(cleanText(m))}</li>`).join('')}</ul>`;
-    if (r.exemples && r.exemples.length) body += `<div style="${SEC}">Exemples de formulation</div>` + r.exemples.map(e => `<div style="font-style:italic;font-size:9.5pt;border-left:2px solid #ccc;padding-left:9px;color:#444;margin:5px 0"><b style="font-style:normal">${esc(cleanText(e.intitule))} :</b> ${esc(cleanText(e.texte))}</div>`).join('');
+    if (r.methode && r.methode.length) body += `<div style="${H}">Bien argumenter dans une réponse longue</div>${bullets(r.methode)}`;
+    if (r.a_retenir && r.a_retenir.length) body += `<div style="${H}">À retenir</div>${bullets(r.a_retenir)}`;
+    if (r.exemples && r.exemples.length) body += `<div style="${H}">Exemples de formulation</div>` + r.exemples.map(e => `<div style="${QUOTE}"><b>${esc(cleanText(e.intitule))} :</b> ${esc(cleanText(e.texte))}</div>`).join('');
   }
   // QCM
   if (r.qcm && r.qcm.length) {
     body += r.qcm.map((q, qi) => {
       const bonnes = new Set((q.bonnes_reponses || []).map(Number));
-      const opts = (q.propositions || []).map((p, i) => { const good = showCorr && bonnes.has(i); return `<div style="border:1px solid ${good ? '#b8e6d1' : '#e0e0ec'};background:${good ? '#f2fbf7' : '#fff'};color:${good ? GRN : '#222'};font-weight:${good ? 600 : 400};border-radius:8px;padding:6px 10px;margin-bottom:5px;font-size:9.5pt">${good ? '✅' : '◯'}&nbsp; ${esc(cleanText(p))}</div>`; }).join('');
-      return `<div style="${CARD}"><div style="font-weight:600;font-size:10pt;margin-bottom:7px">${qi + 1}. ${esc(cleanText(q.question))}</div>${opts}${showCorr && q.explication ? `${tag()}<div style="font-size:9pt;color:${MUT};border-left:2px solid ${GRN};padding-left:9px">${esc(cleanText(q.explication))}</div>` : ''}</div>`;
+      const opts = (q.propositions || []).map((p, i) => { const good = showCorr && bonnes.has(i); return `<div style="border:1px solid ${good ? '#b8e6d1' : '#e0e0ec'};background:${good ? '#f2fbf7' : '#fff'};color:${good ? GRN : '#222'};font-weight:${good ? 600 : 400};border-radius:8px;padding:7px 11px;margin-bottom:5px;font-size:10pt">${good ? '✅' : '◯'}&nbsp; ${esc(cleanText(p))}</div>`; }).join('');
+      return `<div style="margin:0 0 16px;page-break-inside:avoid"><div style="font-weight:600;font-size:10.5pt;margin-bottom:7px;color:${INK}">${qi + 1}. ${esc(cleanText(q.question))}</div>${opts}${showCorr && q.explication ? corr(`<div style="font-size:9.5pt;color:#444">${esc(cleanText(q.explication))}</div>`) : ''}</div>`;
     }).join('');
   }
-  // CORRIGER SES ERREURS
+  // CORRIGER SES ERREURS — présentation « Exercice N » façon Ed.ai (document, pas de carte)
   if (r.ateliers && r.ateliers.length) {
     const consPdf = (cons) => !cons || !cons.length ? '' : (typeof cons[0] === 'object'
-      ? cons.map(c => `<div style="margin-bottom:5px"><div style="font-weight:600;font-size:9.5pt">${esc(cleanText(c.intitule))}</div><ul style="${OL}">${(c.sous_questions || []).map(s => `<li style="${LI}">${esc(cleanText(s))}</li>`).join('')}</ul></div>`).join('')
-      : `<ol style="${OL}">${cons.map(c => `<li style="${LI}">${esc(cleanText(c))}</li>`).join('')}</ol>`);
-    body += r.ateliers.map((a, i) => `<div style="${CARD}">
-      <div style="font-size:10.5pt;font-weight:700;margin-bottom:4px">Atelier ${i + 1} — ${esc(cleanText(a.savoir_faire))}</div>
-      ${(a.supports && a.supports.length) ? `<div style="${SUB}">Supports</div><ul style="${OL}">${a.supports.map(s => `<li style="${LI}">${esc(cleanText(s))}</li>`).join('')}</ul>` : ''}
-      ${a.enonce_exercice ? `<div style="${SUB}">Énoncé de l'exercice</div><div style="font-size:9.5pt;line-height:1.5">${esc(cleanText(a.enonce_exercice))}</div>` : ''}
-      <div style="${SUB}">Extrait de copie à analyser</div><div style="font-style:italic;font-size:9.5pt;border-left:2px solid #ccc;padding-left:9px;color:#444">« ${esc(cleanText(a.extrait_copie))} »</div>
-      <div style="${SUB}">Consignes</div>${consPdf(a.consignes)}
-      ${a.astuce ? `<div style="background:#fff7e8;border:1px solid #f0dcae;color:#9a6b12;font-size:9pt;padding:7px 10px;border-radius:8px;margin:6px 0">💡 ${esc(cleanText(a.astuce))}</div>` : ''}
-      ${showCorr ? `${tag()}${a.erreur ? `<div style="font-size:9.5pt;margin-bottom:3px"><b>Erreur :</b> ${esc(cleanText(a.erreur))}</div>` : ''}<div style="font-size:9.5pt;color:${MUT};border-left:2px solid ${GRN};padding-left:9px">${esc(cleanText(a.corrige))}</div>` : ''}</div>`).join('');
+      ? cons.map(c => `<div style="margin-bottom:7px"><div style="font-weight:600;font-size:10pt;color:${INK}">${esc(cleanText(c.intitule))}</div>${bullets(c.sous_questions || [])}</div>`).join('')
+      : bullets(cons));
+    body += r.ateliers.map((a, i) => `<div style="page-break-inside:avoid">
+      <div style="${EXO}">Exercice ${i + 1}</div>
+      <div style="${P}"><b>Savoir ou savoir-faire travaillé :</b> ${esc(cleanText(a.savoir_faire))}</div>
+      ${(a.supports && a.supports.length) ? `<div style="${H}">Support(s) de l'exercice</div>${bullets(a.supports)}` : ''}
+      <div style="${H}">Exemple à analyser</div>
+      ${a.enonce_exercice ? `<div style="${LBL}">Énoncé de l'exercice travaillé :</div><div style="${P}">${esc(cleanText(a.enonce_exercice))}</div>` : ''}
+      <div style="${LBL};margin-top:6px">Extrait d'une copie :</div><div style="${QUOTE};font-style:italic">« ${esc(cleanText(a.extrait_copie))} »</div>
+      <div style="${H}">Consignes</div>${consPdf(a.consignes)}
+      ${a.astuce ? `<div style="${ASTUCE}">Astuce : ${esc(cleanText(a.astuce))}</div>` : ''}
+      ${showCorr ? corr(`${a.erreur ? `<div style="font-size:9.5pt;margin-bottom:3px;color:#444"><b>Erreur :</b> ${esc(cleanText(a.erreur))}</div>` : ''}<div style="font-size:9.5pt;color:#444">${esc(cleanText(a.corrige))}</div>`) : ''}</div>`).join('');
   } else if (r.exercices && r.exercices.length) {
-    body += r.exercices.map((e, i) => `<div style="${CARD}">
-      <div style="font-size:10pt;margin-bottom:6px"><b>Exercice ${i + 1}.</b> ${esc(cleanText(e.enonce))}</div>
-      ${e.rappel ? `<div style="background:#eef4ff;border:1px solid #c6d8f5;color:#2a4d8f;font-size:9pt;padding:7px 10px;border-radius:8px;margin:6px 0">📌 Rappel utile : ${esc(cleanText(e.rappel))}</div>` : ''}
+    body += r.exercices.map((e, i) => `<div style="page-break-inside:avoid">
+      <div style="${EXO}">Exercice ${i + 1}</div>
+      <div style="${P}">${esc(cleanText(e.enonce))}</div>
+      ${e.rappel ? `<div style="${ASTUCE};font-style:normal;color:${INK}"><b>Rappel utile :</b> ${esc(cleanText(e.rappel))}</div>` : ''}
       ${(e.tableau && (e.tableau.colonnes || []).length && (e.tableau.lignes || []).length) ? table(e.tableau.colonnes.map(cleanText), e.tableau.lignes.map(l => (l || []).map(cleanText))) : ''}
-      ${(e.questions && e.questions.length) ? `<div style="${SUB}">Questions</div><ol style="${OL}">${e.questions.map(q => `<li style="${LI}">${esc(cleanText(q))}</li>`).join('')}</ol>` : ''}
-      ${showCorr ? `${tag()}<div style="font-size:9.5pt;color:${MUT};border-left:2px solid ${GRN};padding-left:9px">${esc(cleanText(e.corrige || e.correction))}</div>` : ''}</div>`).join('');
+      ${(e.questions && e.questions.length) ? e.questions.map((q, qi) => `<div style="${LBL};margin-top:8px">Question ${qi + 1}</div><div style="${P}">${esc(cleanText(q))}</div>`).join('') : ''}
+      ${showCorr ? corr(`<div style="font-size:9.5pt;color:#444;white-space:pre-wrap">${esc(cleanText(e.corrige || e.correction))}</div>`) : ''}</div>`).join('');
   }
+  const dateStr = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
   const el = document.createElement('div');
-  el.style.cssText = `width:760px;padding:26px 30px;background:#fff;color:#1a1a2e;${P};box-sizing:border-box`;
-  el.innerHTML = `<div style="border-bottom:2px solid #6c5ce7;padding-bottom:10px;margin-bottom:14px">
-      <div style="font-size:16pt;font-weight:700;color:${PUR}">${esc(cleanText(r.titre))}${showCorr ? ' <span style="font-size:10pt;color:#9a6b12">(corrigé prof)</span>' : ''}</div>
-      <div style="font-size:9.5pt;color:${MUT};margin-top:3px">${esc(cleanText(r.objectif))}</div></div>
-    <p style="font-size:10pt;line-height:1.6;margin-bottom:12px">${esc(cleanText(r.consignes))}</p>${body}`;
+  el.style.cssText = `width:760px;padding:30px 34px;background:#fff;color:${INK};font-family:'Sora',Arial,sans-serif;box-sizing:border-box`;
+  el.innerHTML = `<div style="margin-bottom:6px">
+      <div style="font-size:9pt;color:#999">${dateStr}</div>
+      <div style="font-size:21pt;font-weight:700;color:${INK};margin-top:8px">${esc(REMED_LABEL[actType] || 'Remédiation')}${showCorr ? ' <span style="font-size:11pt;color:#9a6b12">— corrigé</span>' : ''}</div>
+      ${r.objectif ? `<div style="font-size:10pt;color:${MUT};margin-top:5px;line-height:1.5">${esc(cleanText(r.objectif))}</div>` : ''}
+      <div style="border-bottom:1px solid #e2e0ee;margin:14px 0 4px"></div></div>${body}`;
   return el;
 }
 $('m-print').onclick = () => { $('printroot').innerHTML = ''; $('printroot').appendChild(buildRemedDoc()); window.print(); };
