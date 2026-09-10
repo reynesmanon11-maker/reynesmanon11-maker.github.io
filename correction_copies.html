@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.17 — remédiation : bouton Télécharger en PDF (1 clic) rétabli + impression ; anti-cache HTML -->
+<!-- Correction·IA v9.18 — impression : plus de page 1 vide (retrait du page-break-inside sur les exercices) -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -281,7 +281,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.17</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.18</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -1692,7 +1692,7 @@ function buildRemedDoc() {
     const consPdf = (cons) => !cons || !cons.length ? '' : (typeof cons[0] === 'object'
       ? cons.map(c => `<div style="margin-bottom:7px"><div style="font-weight:600;font-size:10pt;color:${INK}">${esc(cleanText(c.intitule))}</div>${bullets(c.sous_questions || [])}</div>`).join('')
       : bullets(cons));
-    body += r.ateliers.map((a, i) => `<div style="page-break-inside:avoid">
+    body += r.ateliers.map((a, i) => `<div>
       <div style="${EXO}">Exercice ${i + 1}</div>
       <div style="${P}"><b>Savoir ou savoir-faire travaillé :</b> ${esc(cleanText(a.savoir_faire))}</div>
       ${(a.supports && a.supports.length) ? `<div style="${H}">Support(s) de l'exercice</div>${bullets(a.supports)}` : ''}
@@ -1703,7 +1703,7 @@ function buildRemedDoc() {
       ${a.astuce ? `<div style="${ASTUCE}">Astuce : ${esc(cleanText(a.astuce))}</div>` : ''}
       ${showCorr ? corr(`${a.erreur ? `<div style="font-size:9.5pt;margin-bottom:3px;color:#444"><b>Erreur :</b> ${esc(cleanText(a.erreur))}</div>` : ''}<div style="font-size:9.5pt;color:#444">${esc(cleanText(a.corrige))}</div>`) : ''}</div>`).join('');
   } else if (r.exercices && r.exercices.length) {
-    body += r.exercices.map((e, i) => `<div style="page-break-inside:avoid">
+    body += r.exercices.map((e, i) => `<div>
       <div style="${EXO}">Exercice ${i + 1}</div>
       <div style="${P}">${esc(cleanText(e.enonce))}</div>
       ${e.rappel ? `<div style="${ASTUCE};font-style:normal;color:${INK}"><b>Rappel utile :</b> ${esc(cleanText(e.rappel))}</div>` : ''}
