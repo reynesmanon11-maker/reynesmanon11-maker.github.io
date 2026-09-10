@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.14 — PDF de remédiation en style document épuré façon Ed.ai (titre court, Exercice N, pas de cartes colorées, préambule minimal) -->
+<!-- Correction·IA v9.15 — remédiation : export PDF via impression native (fiable, fini les corps vides) ; un seul bouton Imprimer/Enregistrer en PDF -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -275,7 +275,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.14</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.15</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -475,7 +475,7 @@
       <div class="coursbox" id="m-cours" style="display:none"></div>
       <div id="m-qcm" style="display:none"></div>
       <div class="exlist" id="m-exercices"></div>
-      <div class="row noprint" style="margin-top:16px; gap:10px"><button class="btn" id="m-pdf">⬇️ Télécharger en PDF</button><button class="btn secondary" id="m-print">🖨️ Imprimer</button></div>
+      <div class="row noprint" style="margin-top:16px; gap:10px; align-items:center"><button class="btn" id="m-print">🖨️ Imprimer / Enregistrer en PDF</button><span class="sub" style="margin:0; font-size:0.72rem">Dans la fenêtre d'impression, choisissez « <b>Enregistrer au format PDF</b> » comme destination.</span></div>
     </div>
   </div>
 
@@ -1715,21 +1715,17 @@ function buildRemedDoc() {
       <div style="border-bottom:1px solid #e2e0ee;margin:14px 0 4px"></div></div>${body}`;
   return el;
 }
-$('m-print').onclick = () => { $('printroot').innerHTML = ''; $('printroot').appendChild(buildRemedDoc()); window.print(); };
-$('m-pdf').onclick = async () => {
-  const btn = $('m-pdf'), old = btn.textContent; btn.disabled = true; btn.textContent = '⏳ PDF…';
-  try {
-    await loadHtml2pdf();
-    const el = buildRemedDoc();
-    const holder = document.createElement('div'); holder.style.cssText = 'position:absolute;left:-10000px;top:0;width:800px;background:#fff'; holder.appendChild(el); document.body.appendChild(holder);
-    const prev = window.scrollY; window.scrollTo(0, 0);
-    const fn = `Remédiation ${$('m-showcorrige').checked ? '(corrigé prof)' : '(élève)'} - ${$('m-titre').textContent || 'activité'}.pdf`.replace(/[\\/:*?"<>|]/g, '-');
-    try { await window.html2pdf().set({ margin: [8, 8, 10, 8], filename: fn, image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff', windowWidth: 820, scrollX: 0, scrollY: 0, x: 0, y: 0 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: ['css', 'legacy'] } }).from(el).save(); }
-    finally { document.body.removeChild(holder); window.scrollTo(0, prev); }
-  } catch (e) {
-    alert("Export PDF direct indisponible (module ?). J'ouvre l'impression : choisissez « Enregistrer au format PDF ».");
-    $('printroot').innerHTML = ''; $('printroot').appendChild(buildRemedDoc()); window.print();
-  } finally { btn.disabled = false; btn.textContent = old; }
+// Impression native (rendu fiable par le navigateur) → l'utilisateur choisit « Enregistrer au format PDF ».
+// Le titre du document devient le nom de fichier proposé par défaut.
+$('m-print').onclick = () => {
+  const prev = document.title;
+  const nom = `Remédiation ${$('m-showcorrige').checked ? '(corrigé)' : '(élève)'} - ${(lastRemed && cleanText(lastRemed.titre)) || REMED_LABEL[actType] || 'activité'}`.replace(/[\\/:*?"<>|]/g, '-');
+  $('printroot').innerHTML = ''; $('printroot').appendChild(buildRemedDoc());
+  document.title = nom;
+  const restore = () => { document.title = prev; window.removeEventListener('afterprint', restore); };
+  window.addEventListener('afterprint', restore);
+  setTimeout(restore, 60000);
+  window.print();
 };
 
 // ════════ SYNCHRONISATION CLOUD (Supabase, optionnel) ════════
