@@ -141,6 +141,10 @@ table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; co
 .scroll-x{ overflow-x:auto }
 canvas{ display:block; max-width:100%; touch-action:pan-y }
 #ex-enceinte,#ex-graphe,#ex-serie,#pi-spectre,#pi-fluo,#en-graphe,#en-gamme,#en-serie,#hi-coupe{ width:100% }
+/* Ces deux-là ont une largeur fixe : elle doit venir du CSS, jamais de
+   l'attribut width, que le tracé réécrit. */
+#bio-tube{ width:180px; height:270px }
+#pi-chromo{ width:200px; height:400px }
 
 /* ---------- catalogue ---------- */
 .filtres{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px }
@@ -195,6 +199,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <button role="tab" data-mod="pigments"   aria-selected="false">Pigments</button>
     <button role="tab" data-mod="enzymes"    aria-selected="false">Cinétiques enzymatiques</button>
     <button role="tab" data-mod="histologie" aria-selected="false">Histologie</button>
+    <button role="tab" data-mod="preparer"   aria-selected="false">Préparer une manip</button>
   </nav>
 </header>
 
@@ -205,11 +210,13 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
      ========================================================= -->
 <section class="module actif" id="mod-accueil" role="tabpanel">
   <div class="intro-mod">
-    <h2>Cinq paillasses virtuelles</h2>
+    <h2>Cinq paillasses virtuelles, et de quoi préparer les vraies</h2>
     <p>Les élèves choisissent les conditions expérimentales, lancent la manipulation et observent
        le résultat : virage d'un réactif, migration des pigments, courbes ExAO qui se déforment
        selon l'éclairement, la température ou la teneur en CO<sub>2</sub>. Chaque module reprend
-       le protocole d'un TP de l'ouvrage de Roger Pratt, avec des questions d'exploitation.</p>
+       le protocole d'un TP de l'ouvrage de Roger Pratt, avec des questions d'exploitation.
+       Le dernier onglet, lui, prépare la séance réelle : il sort la liste de matériel de chaque
+       expérience, ou l'inverse.</p>
     <span class="ref">Expérimentation en biologie et physiologie végétales — R. Pratt</span>
   </div>
 
@@ -250,6 +257,15 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
          Colorations au carmin-vert d'iode ou à la phloroglucine, mode « légender la coupe ».</p>
       <button class="btn primaire" data-va="histologie">Ouvrir la paillasse</button>
     </div>
+    <div class="carte" style="border-color:var(--accent-clair)">
+      <span class="badge orange">Les huit parties</span>
+      <h3 style="margin-top:8px">Préparer une manip</h3>
+      <p class="sous">Comme une application de recettes, mais pour la paillasse : une expérience
+         donne la liste de matériel pour le nombre de postes voulu, et le panier réunit plusieurs
+         manipulations en une seule liste de courses imprimable. En sens inverse, votre placard
+         indique ce qui est réalisable dès aujourd'hui.</p>
+      <button class="btn primaire" data-va="preparer">Ouvrir l'assistant</button>
+    </div>
     <div class="carte" style="background:var(--encre); color:#fff; border-color:var(--encre)">
       <span class="badge" style="background:rgba(255,255,255,.14); color:#fff">Pour la classe</span>
       <h3 style="margin-top:8px">Comment s'en servir</h3>
@@ -270,13 +286,18 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
       <button aria-pressed="false" data-p="II">II. Histologie</button>
       <button aria-pressed="false" data-p="III">III. Respiration</button>
       <button aria-pressed="false" data-p="IV">IV. Photosynthèse</button>
+      <button aria-pressed="false" data-p="V">V. L'eau</button>
+      <button aria-pressed="false" data-p="VI">VI. Morphogenèse</button>
+      <button aria-pressed="false" data-p="VII">VII. Reproduction</button>
+      <button aria-pressed="false" data-p="VIII">VIII. Multiplication</button>
       <button aria-pressed="false" data-p="sim">Simulable ici</button>
     </div>
   </div>
   <div id="cat-liste"></div>
   <p style="font-size:11.5px; color:var(--gris-clair); margin-top:14px">
-    Les parties III et IV sont reprises à partir des extraits de sommaire disponibles : certains
-    intitulés y sont tronqués et les pages ne sont pas renseignées.
+    Sommaire complet des huit parties de l'ouvrage, avec les pages. Le bouton « Simuler » apparaît
+    sur les expériences reproduites dans le laboratoire virtuel ; l'onglet « Préparer une manip »
+    donne le matériel nécessaire pour les réaliser pour de vrai.
   </p>
 </section>
 
@@ -756,6 +777,109 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
   </div>
 </section>
 
+<!-- =========================================================
+     MODULE — PRÉPARER UNE MANIP (matériel ⇄ expérience)
+     ========================================================= -->
+<section class="module" id="mod-preparer" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Préparer une manip</h2>
+    <p>Le principe d'une application de recettes, appliqué à la paillasse : on choisit une
+       expérience et on obtient la liste complète de ce qu'il faut sortir du placard, calculée
+       pour le nombre de postes voulu. Dans l'autre sens, on coche ce dont on dispose et le
+       laboratoire propose les manipulations réalisables tout de suite.</p>
+    <span class="ref">49 fiches de manipulation · 138 références de matériel</span>
+  </div>
+
+  <div class="segment" id="pr-mode" style="max-width:520px; margin-bottom:16px">
+    <button aria-pressed="true"  data-m="recette">Une manip → ma liste de matériel</button>
+    <button aria-pressed="false" data-m="placard">Mon matériel → les manips possibles</button>
+  </div>
+
+  <!-- ============ mode « recette » ============ -->
+  <div id="pr-recette">
+    <div class="grille deux">
+      <div>
+        <div class="carte">
+          <h3>Choisir l'expérience</h3>
+          <p class="sous">Filtrez, puis cliquez sur une fiche.</p>
+          <div class="reglage">
+            <input type="text" id="pr-q" placeholder="Rechercher : amidon, stomates, fermentation…" aria-label="Rechercher une manipulation">
+          </div>
+          <div class="reglage">
+            <label for="pr-partie">Partie de l'ouvrage</label>
+            <select id="pr-partie">
+              <option value="">Toutes les parties</option>
+              <option value="I">I — Biochimie</option>
+              <option value="II">II — Histologie</option>
+              <option value="III">III — Respiration et fermentation</option>
+              <option value="IV">IV — Photosynthèse</option>
+              <option value="V">V — La plante et l'eau</option>
+              <option value="VI">VI — Morphogenèse</option>
+              <option value="VII">VII — Reproduction</option>
+              <option value="VIII">VIII — Multiplication végétative</option>
+            </select>
+          </div>
+          <div class="reglage">
+            <label for="pr-duree">Durée maximale <span class="val" id="pr-duree-v">2 h</span></label>
+            <input type="range" id="pr-duree" min="15" max="120" value="120" step="5">
+          </div>
+          <div id="pr-liste" style="display:grid; gap:6px; max-height:420px; overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="carte" id="pr-fiche">
+          <p style="font-size:13px; color:var(--gris)">Choisissez une manipulation dans la liste.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ mode « placard » ============ -->
+  <div id="pr-placard" style="display:none">
+    <div class="grille deux">
+      <div>
+        <div class="carte">
+          <h3>Mon placard</h3>
+          <p class="sous">Cochez ce dont vous disposez, matériel frais compris : c'est souvent lui
+             qui décide de ce qui est faisable. La sélection est gardée dans ce navigateur.</p>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px">
+            <button class="btn mini primaire" id="pr-preset">Placard type de lycée</button>
+            <button class="btn mini" id="pr-tout">Tout cocher</button>
+            <button class="btn mini" id="pr-rien">Tout décocher</button>
+          </div>
+          <div id="pr-inventaire" style="max-height:520px; overflow-y:auto"></div>
+        </div>
+      </div>
+      <div>
+        <div class="carte">
+          <h3>Ce que vous pouvez faire</h3>
+          <p class="sous" id="pr-bilan">Cochez du matériel pour voir apparaître les manipulations.</p>
+          <div id="pr-possibles"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ panier ============ -->
+  <div class="carte" id="pr-panier-carte" style="display:none; margin-top:16px">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:6px">
+      <h3 style="flex:1">Liste de courses de la séance</h3>
+      <label style="font-size:12.5px; display:flex; align-items:center; gap:8px">
+        Nombre de postes
+        <input type="number" id="pr-postes" value="8" min="1" max="20" style="width:72px">
+      </label>
+    </div>
+    <p class="sous" id="pr-panier-sous"></p>
+    <div id="pr-panier"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px" class="no-print">
+      <button class="btn primaire" id="pr-imprimer">Imprimer la liste</button>
+      <button class="btn" id="pr-txt">Télécharger (.txt)</button>
+      <button class="btn" id="pr-vider">Vider le panier</button>
+    </div>
+  </div>
+</section>
+
 </main>
 
 <!-- ---------- carnet de manip ---------- -->
@@ -824,12 +948,23 @@ function telecharge(nom, contenu, type='text/plain;charset=utf-8'){
 /* ==========================================================================
    GRAPHIQUES — petit moteur maison sur <canvas>
    ========================================================================== */
-function dimensionne(cv){
+/* Attention : écrire cv.width / cv.height met aussi à jour les ATTRIBUTS
+   width et height du canvas, donc sa taille de mise en page. Si on relit
+   ensuite ces attributs pour calculer la taille voulue, le canvas est
+   multiplié par le rapport de pixels à chaque tracé et la page s'allonge
+   sans fin (écran Retina, zoom à 125 %…). On mémorise donc une bonne fois
+   la taille d'affichage, et on impose la hauteur en CSS. */
+function dimensionne(cv, hauteurVoulue){
   const dpr = window.devicePixelRatio || 1;
-  const l = cv.clientWidth || cv.width;
-  const h = parseFloat(cv.getAttribute('height')) || cv.height;
-  cv.width = Math.round(l*dpr); cv.height = Math.round(h*dpr);
-  const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+  if(!cv.dataset.hcss) cv.dataset.hcss = hauteurVoulue || cv.getAttribute('height') || 150;
+  const h = Math.round(hauteurVoulue || parseFloat(cv.dataset.hcss));
+  const l = Math.max(1, Math.round(cv.clientWidth || parseFloat(cv.getAttribute('width')) || 300));
+  cv.style.height = h + 'px';                 /* la hauteur ne vient plus de l'attribut */
+  const pw = Math.round(l*dpr), ph = Math.round(h*dpr);
+  if(cv.width !== pw || cv.height !== ph){ cv.width = pw; cv.height = ph; }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,l,h);
   return {ctx, l, h};
 }
 /* graduations « rondes » */
@@ -1077,48 +1212,211 @@ const CATALOGUE = [
  {p:'II', n:'3.6', t:"Racine de Monocotylédone (iris)", pg:65},
  {p:'II', n:'3.7', t:"Tige de Dicotylédone ligneuse (bruyère)", pg:65, sim:'histologie'},
  {p:'II', n:'3.8', t:"Racine de Dicotylédone ligneuse", pg:66},
- {p:'II', n:'4',   t:'Cas particuliers', pg:null, titre:true, tronq:true},
- {p:'II', n:'4.1', t:"Interpréter la structure…", tronq:true},
- {p:'II', n:'4.2', t:"Structure micro…", tronq:true},
- {p:'II', n:'5',   t:'Quelques matériaux', pg:null, titre:true, tronq:true},
- {p:'II', n:'5.1', t:"Planches de bois…", tronq:true},
- {p:'II', n:'5.2', t:"Contreplaqué", tronq:true},
- {p:'II', n:'5.3', t:"Papyrus", tronq:true},
+ {p:'II', n:'4',   t:'Cas particulier du bois', pg:67, titre:true},
+ {p:'II', n:'4.1', t:"Interpréter la structure d'un tronc d'arbre", pg:67, sim:'histologie'},
+ {p:'II', n:'4.2', t:"Structure microscopique du bois", pg:69, sim:'histologie'},
+ {p:'II', n:'5',   t:'Quelques applications', pg:70, titre:true},
+ {p:'II', n:'5.1', t:"Planches de bois", pg:70},
+ {p:'II', n:'5.2', t:"Contreplaqué", pg:70},
+ {p:'II', n:'5.3', t:"Papyrus", pg:71},
 
- {p:'III', n:'1',   t:'Respiration', titre:true, tronq:true},
- {p:'III', n:'1.1', t:"Mise en évidence de la respiration…", sim:'exao', tronq:true},
- {p:'III', n:'1.2', t:"Nécessité d'…", sim:'exao', tronq:true},
- {p:'III', n:'1.3', t:"Nature du substrat…", sim:'exao', tronq:true},
- {p:'III', n:'1.4', t:"Concentration…", sim:'exao', tronq:true},
- {p:'III', n:'1.5', t:"Respiration…", sim:'exao', tronq:true},
- {p:'III', n:'2',   t:'Production de CO₂', titre:true, tronq:true},
- {p:'III', n:'2.1', t:"Mise en évidence…", sim:'exao', tronq:true},
- {p:'III', n:'2.2', t:"Cinétique…", sim:'exao', tronq:true},
- {p:'III', n:'3',   t:'Respiration mitochondriale', titre:true, tronq:true},
- {p:'III', n:'3.1', t:"Isolement des mitochondries…", tronq:true},
- {p:'III', n:'3.2', t:"Fonctionnement…", tronq:true},
- {p:'III', n:'4',   t:'Fermentation', titre:true, tronq:true},
- {p:'III', n:'4.1', t:"Mise en évidence…", sim:'exao', tronq:true},
- {p:'III', n:'4.2', t:"Mise en évidence…", sim:'exao', tronq:true},
- {p:'III', n:'4.3', t:"Sucres fermentescibles…", sim:'exao', tronq:true},
- {p:'III', n:'4.4', t:"Fermentation…", sim:'exao', tronq:true},
- {p:'III', n:'5',   t:'Applications', titre:true, tronq:true},
- {p:'III', n:'5.1', t:"Isolement…", tronq:true},
- {p:'III', n:'5.2', t:"Préparation…", tronq:true},
+ {p:'III', n:'1',   t:'Respiration : utilisation du dioxygène', pg:75, titre:true},
+ {p:'III', n:'1.1', t:"Mise en évidence", pg:75, sim:'exao'},
+ {p:'III', n:'1.2', t:"Nécessité d'un substrat (ExAO-oxygraphe)", pg:77, sim:'exao'},
+ {p:'III', n:'1.3', t:"Nature du substrat (ExAO-oxygraphe)", pg:79, sim:'exao'},
+ {p:'III', n:'1.4', t:"Concentration en substrat (ExAO-oxygraphe)", pg:80, sim:'exao'},
+ {p:'III', n:'1.5', t:"Respiration des plantes aériennes (ExAO-oxygraphe)", pg:81, sim:'exao'},
+ {p:'III', n:'2',   t:'Production de dioxyde de carbone', pg:81, titre:true},
+ {p:'III', n:'2.1', t:"Mise en évidence", pg:81, sim:'exao'},
+ {p:'III', n:'2.2', t:"Cinétique (ExAO-pHmètre)", pg:83, sim:'exao'},
+ {p:'III', n:'3',   t:'Respiration mitochondriale', pg:84, titre:true},
+ {p:'III', n:'3.1', t:"Isolement de mitochondries", pg:85},
+ {p:'III', n:'3.2', t:"Fonctionnement in vitro des mitochondries", pg:88},
+ {p:'III', n:'4',   t:'Fermentation alcoolique', pg:90, titre:true},
+ {p:'III', n:'4.1', t:"Mise en évidence", pg:90, sim:'exao'},
+ {p:'III', n:'4.2', t:"Mise en évidence des produits formés", pg:91, sim:'exao'},
+ {p:'III', n:'4.3', t:"Sucres fermentescibles", pg:92, sim:'exao'},
+ {p:'III', n:'4.4', t:"Fermentation propre des végétaux supérieurs", pg:93, sim:'exao'},
+ {p:'III', n:'5',   t:'Applications de la fermentation alcoolique', pg:95, titre:true},
+ {p:'III', n:'5.1', t:"Isolement du gluten à partir de farine de blé", pg:95},
+ {p:'III', n:'5.2', t:"Préparation d'une pâte à pain", pg:96},
 
- {p:'IV', n:'1',   t:'Formation de dioxygène et consommation de CO₂', titre:true, tronq:true},
- {p:'IV', n:'1.1', t:"Mise en évidence…", sim:'exao', tronq:true},
- {p:'IV', n:'1.2', t:"Mise en évidence…", sim:'exao', tronq:true},
- {p:'IV', n:'1.3', t:"Cinétique…", sim:'exao', tronq:true},
- {p:'IV', n:'1.4', t:"Effet de…", sim:'exao', tronq:true},
- {p:'IV', n:'1.5', t:"Rôle de…", sim:'exao', tronq:true},
- {p:'IV', n:'1.6', t:"Importance de…", sim:'exao', tronq:true},
- {p:'IV', n:'1.7', t:"Rôle de…", sim:'exao', tronq:true},
- {p:'IV', n:'1.8', t:"Rôle de…", sim:'exao', tronq:true},
- {p:'IV', n:'1.9', t:"Rôle de…", sim:'exao', tronq:true}
+ {p:'IV', n:'1',   t:'Formation de dioxygène', pg:99, titre:true},
+ {p:'IV', n:'1.1', t:"Mise en évidence (méthode des bulles)", pg:99, sim:'exao'},
+ {p:'IV', n:'1.2', t:"Mise en évidence (indicateur d'oxydation)", pg:102, sim:'exao'},
+ {p:'IV', n:'1.3', t:"Cinétique de la production de dioxygène", pg:103, sim:'exao'},
+ {p:'IV', n:'1.4', t:"Effet d'écran", pg:106, sim:'exao'},
+ {p:'IV', n:'1.5', t:"Rôle de l'éclairement", pg:106, sim:'exao'},
+ {p:'IV', n:'1.6', t:"Importance de l'orientation foliaire (ExAO-oxygraphe)", pg:107, sim:'exao'},
+ {p:'IV', n:'1.7', t:"Rôle de la chlorophylle", pg:108, sim:'pigments'},
+ {p:'IV', n:'1.8', t:"Rôle du dioxyde de carbone en milieu aquatique", pg:109, sim:'exao'},
+ {p:'IV', n:'1.9', t:"Rôle du dioxyde de carbone en milieu aérien", pg:110, sim:'exao'},
+ {p:'IV', n:'2',   t:'Consommation de dioxyde de carbone', pg:111, titre:true},
+ {p:'IV', n:'2.1', t:"Mise en évidence en milieu aquatique", pg:111, sim:'exao'},
+ {p:'IV', n:'2.2', t:"Cinétique de l'absorption de CO₂ (ExAO-pHmètre)", pg:112, sim:'exao'},
+ {p:'IV', n:'3',   t:'Synthèse de glucides', pg:113, titre:true},
+ {p:'IV', n:'3.1', t:"Rôle de la lumière et des pigments", pg:113, sim:'biochimie'},
+ {p:'IV', n:'3.2', t:"Localisation au niveau des chloroplastes", pg:114, sim:'biochimie'},
+ {p:'IV', n:'4',   t:"Spectre d'action", pg:115, titre:true},
+ {p:'IV', n:'4.1', t:"Protocole classique", pg:115, sim:'exao'},
+ {p:'IV', n:'4.2', t:"Analyse critique", pg:116, sim:'pigments'},
+ {p:'IV', n:'5',   t:'Réaction de Hill', pg:118, titre:true},
+ {p:'IV', n:'5.1', t:"Isolement des chloroplastes", pg:118},
+ {p:'IV', n:'5.2', t:"Mise en évidence d'une réduction", pg:119},
+ {p:'IV', n:'5.3', t:"Dégagement de dioxygène et réduction (ExAO-oxygraphe)", pg:121},
+ {p:'IV', n:'6',   t:'Plantes en C3 et en C4', pg:122, titre:true},
+
+ {p:'V', n:'1',   t:'Osmose', pg:125, titre:true},
+ {p:'V', n:'1.1', t:"Mise en évidence de la plasmolyse", pg:125},
+ {p:'V', n:'1.2', t:"Construction d'un osmomètre", pg:127},
+ {p:'V', n:'1.3', t:"Expérience de Traube", pg:128},
+ {p:'V', n:'1.4', t:"Turgescence et plasmolyse", pg:129},
+ {p:'V', n:'1.5', t:"Rôle de la paroi (protoplastes)", pg:131},
+ {p:'V', n:'2',   t:'Mesure des pressions cellulaires', pg:132, titre:true},
+ {p:'V', n:'2.1', t:"Pression osmotique et concentration cellulaire", pg:132},
+ {p:'V', n:'2.2', t:"Pression osmotique (méthode cryoscopique)", pg:134},
+ {p:'V', n:'2.3', t:"Pression osmotique (méthode densitométrique)", pg:135},
+ {p:'V', n:'2.4', t:"Pression osmotique (méthode réfractométrique)", pg:136},
+ {p:'V', n:'2.5', t:"Potentiel hydrique (méthode des frites)", pg:137},
+ {p:'V', n:'3',   t:'Perméabilité aux substances dissoutes', pg:139, titre:true},
+ {p:'V', n:'3.1', t:"Coloration vitale de la vacuole", pg:140},
+ {p:'V', n:'3.2', t:"Pénétration différentielle de substances", pg:140},
+ {p:'V', n:'3.3', t:"Pénétration des ions", pg:141},
+ {p:'V', n:'4',   t:"Absorption de l'eau", pg:141, titre:true},
+ {p:'V', n:'4.1', t:"Mise en évidence (potomètre)", pg:142},
+ {p:'V', n:'4.2', t:"Localisation", pg:143, sim:'histologie'},
+ {p:'V', n:'4.3', t:"Sécheresse du sol", pg:144},
+ {p:'V', n:'5',   t:'Transpiration', pg:145, titre:true},
+ {p:'V', n:'5.1', t:"Mise en évidence", pg:145},
+ {p:'V', n:'5.2', t:"Localisation par le chlorure de cobalt", pg:146},
+ {p:'V', n:'5.3', t:"Observation des stomates", pg:147, sim:'histologie'},
+ {p:'V', n:'5.4', t:"Réalisation d'empreintes stomatiques", pg:148, sim:'histologie'},
+ {p:'V', n:'5.5', t:"Fermeture des stomates en cas de stress hydrique", pg:149},
+ {p:'V', n:'5.6', t:"Réalisation d'un modèle de stomate", pg:150},
+ {p:'V', n:'6',   t:"Circulation de l'eau", pg:150, titre:true},
+ {p:'V', n:'6.1', t:"Mise en évidence", pg:150},
+ {p:'V', n:'6.2', t:"Expérience de Dixon", pg:152},
+ {p:'V', n:'6.3', t:"Structure du système conducteur", pg:153, sim:'histologie'},
+ {p:'V', n:'7',   t:'Mouvements de turgescence', pg:154, titre:true},
+ {p:'V', n:'7.1', t:"Observation de la séismonastie de la sensitive", pg:154},
+ {p:'V', n:'7.2', t:"Morphologie de la feuille de sensitive", pg:156},
+ {p:'V', n:'7.3', t:"Potentiel d'action de la sensitive (ExAO)", pg:156},
+ {p:'V', n:'7.4', t:"Mouvement de la dionée gobe-mouche", pg:158},
+ {p:'V', n:'7.5', t:"Repliement des feuilles d'oyat", pg:159},
+ {p:'V', n:'8',   t:'Adaptation des plantes aux milieux secs', pg:161, titre:true},
+ {p:'V', n:'8.1', t:"Laurier-rose : des cryptes pilifères", pg:161, sim:'histologie'},
+ {p:'V', n:'8.2', t:"Ptilotrichum : des poils-parasols", pg:162},
+ {p:'V', n:'8.3', t:"Plantes grasses : réduction de la surface foliaire", pg:163},
+ {p:'V', n:'9',   t:'Adaptation des plantes au milieu aquatique', pg:164, titre:true},
+ {p:'V', n:'9.1', t:"Une plante aquatique : le nénuphar", pg:164},
+ {p:'V', n:'9.2', t:"Une plante de milieu humide : le jonc", pg:165},
+ {p:'V', n:'9.3', t:"Cas particulier de l'élodée", pg:165},
+
+ {p:'VI', n:'1',   t:'Germination', pg:167, titre:true},
+ {p:'VI', n:'1.1', t:"Types de germinations", pg:167},
+ {p:'VI', n:'1.2', t:"Étapes de la germination", pg:168},
+ {p:'VI', n:'1.3', t:"Forces d'imbibition des graines", pg:169},
+ {p:'VI', n:'1.4', t:"Vie ralentie et vie active (ExAO-oxygraphe)", pg:170, sim:'exao'},
+ {p:'VI', n:'1.5', t:"Apparition de sucres réducteurs au cours de la germination", pg:170, sim:'biochimie'},
+ {p:'VI', n:'1.6', t:"Mise en évidence d'une activité amylasique", pg:171, sim:'enzymes'},
+ {p:'VI', n:'1.7', t:"Extraction d'une activité amylasique", pg:172, sim:'enzymes'},
+ {p:'VI', n:'2',   t:'Localisation de la croissance', pg:173, titre:true},
+ {p:'VI', n:'2.1', t:"Cinétique de la croissance d'un organe", pg:173},
+ {p:'VI', n:'2.2', t:"Expérience de Sachs", pg:174},
+ {p:'VI', n:'2.3', t:"Gradient de croissance d'une tige", pg:175},
+ {p:'VI', n:'2.4', t:"Mesure des longueurs cellulaires", pg:176, sim:'histologie'},
+ {p:'VI', n:'2.5', t:"Localisation des divisions cellulaires", pg:177, sim:'histologie'},
+ {p:'VI', n:'3',   t:'Régulation de la croissance', pg:178, titre:true},
+ {p:'VI', n:'3.1', t:"Test pisum de Went", pg:178},
+ {p:'VI', n:'3.2', t:"Test avena de Went", pg:180},
+ {p:'VI', n:'3.3', t:"Effet inhibiteur de la lumière et étiolement", pg:181},
+ {p:'VI', n:'3.4', t:"Rôle de l'étiolement", pg:182},
+ {p:'VI', n:'3.5', t:"Effet de l'éthylène sur le sens de croissance", pg:183},
+ {p:'VI', n:'3.6', t:"Effet de l'auxine sur l'élongation", pg:184},
+ {p:'VI', n:'4',   t:'Dominance apicale', pg:187, titre:true},
+ {p:'VI', n:'4.1', t:"Mise en évidence", pg:187},
+ {p:'VI', n:'4.2', t:"Rôle des cytokinines", pg:188},
+ {p:'VI', n:'4.3', t:"Rôle de l'auxine", pg:189},
+ {p:'VI', n:'5',   t:'Ramification', pg:191, titre:true},
+ {p:'VI', n:'5.1', t:"Acrotonie et basitonie", pg:191},
+ {p:'VI', n:'5.2', t:"Hypotonie", pg:192},
+ {p:'VI', n:'5.3', t:"Monopode et sympode", pg:193},
+ {p:'VI', n:'6',   t:'Croissance du système racinaire', pg:194, titre:true},
+ {p:'VI', n:'6.1', t:"Racines pivotantes et fasciculées", pg:194},
+ {p:'VI', n:'6.2', t:"Formation des racines secondaires", pg:194},
+ {p:'VI', n:'6.3', t:"Rhizogenèse et auxine", pg:195},
+ {p:'VI', n:'7',   t:'Mouvements de croissance', pg:195, titre:true},
+ {p:'VI', n:'7.1', t:"Mise en évidence du gravitropisme", pg:196},
+ {p:'VI', n:'7.2', t:"Annulation du gravitropisme", pg:197},
+ {p:'VI', n:'7.3', t:"Gravitropisme des racines", pg:197},
+ {p:'VI', n:'7.4', t:"Observation des cellules réceptrices de la coiffe", pg:199, sim:'histologie'},
+ {p:'VI', n:'7.5', t:"Mise en évidence et étude du phototropisme", pg:200},
+ {p:'VI', n:'7.6', t:"Étude en 3D d'un mouvement de circumnutation", pg:202},
+ {p:'VI', n:'7.7', t:"Circumnutation et thigmotropisme", pg:203},
+ {p:'VI', n:'7.8', t:"Mise en évidence d'une thermonastie", pg:205},
+
+ {p:'VII', n:'1',   t:'Fleurs et floraison', pg:207, titre:true},
+ {p:'VII', n:'1.1', t:"Fleur de renoncule", pg:207},
+ {p:'VII', n:'1.2', t:"Fleur de tulipe", pg:208},
+ {p:'VII', n:'1.3', t:"Fleur de genêt", pg:210},
+ {p:'VII', n:'1.4', t:"Fleur de moutarde", pg:211},
+ {p:'VII', n:'1.5', t:"Capitule de pissenlit", pg:212},
+ {p:'VII', n:'1.6', t:"Floraison", pg:212},
+ {p:'VII', n:'2',   t:'Méiose, pollinisation et fécondation', pg:213, titre:true},
+ {p:'VII', n:'2.1', t:"Androcée (étamines et pollen)", pg:213},
+ {p:'VII', n:'2.2', t:"Méiose", pg:214},
+ {p:'VII', n:'2.3', t:"Germination du grain de pollen", pg:216},
+ {p:'VII', n:'2.4', t:"Autopollinisation chez le pois", pg:217},
+ {p:'VII', n:'2.5', t:"Le Melandrium, plante dioïque", pg:218},
+ {p:'VII', n:'2.6', t:"Cas de la sauge", pg:218},
+ {p:'VII', n:'2.7', t:"Cas des primevères", pg:219},
+ {p:'VII', n:'3',   t:'Les fruits', pg:220, titre:true},
+ {p:'VII', n:'3.1', t:"La tomate, une baie", pg:220},
+ {p:'VII', n:'3.2', t:"Le petit pois, une gousse", pg:221},
+ {p:'VII', n:'3.3', t:"La pomme, un fruit complexe", pg:222},
+ {p:'VII', n:'3.4', t:"L'abricot, une drupe", pg:223},
+ {p:'VII', n:'4',   t:'Les graines', pg:223, titre:true},
+ {p:'VII', n:'4.1', t:"Graine de haricot", pg:223},
+ {p:'VII', n:'4.2', t:"Graine de ricin", pg:224},
+ {p:'VII', n:'4.3', t:"Caryopse de maïs", pg:225},
+ {p:'VII', n:'5',   t:'Génétique', pg:227, titre:true},
+ {p:'VII', n:'5.1', t:"Expérience de Mendel", pg:227},
+ {p:'VII', n:'5.2', t:"Observation d'épis de maïs hybride", pg:228},
+ {p:'VII', n:'5.3', t:"Utilisation d'ascomycètes à spores haploïdes orientées", pg:230},
+
+ {p:'VIII', n:'1',   t:'Bulbes', pg:234, titre:true},
+ {p:'VIII', n:'1.1', t:"Bulbe d'oignon", pg:234},
+ {p:'VIII', n:'1.2', t:"Bulbe d'ail", pg:235},
+ {p:'VIII', n:'1.3', t:"Bulbe de jacinthe", pg:236},
+ {p:'VIII', n:'1.4', t:"Bulbe de tulipe", pg:238},
+ {p:'VIII', n:'1.5', t:"Bulbe de crocus", pg:240},
+ {p:'VIII', n:'2',   t:'Tubercules et rhizomes', pg:242, titre:true},
+ {p:'VIII', n:'2.1', t:"Tubercule de carotte", pg:242},
+ {p:'VIII', n:'2.2', t:"Tubercule de dahlia", pg:243},
+ {p:'VIII', n:'2.3', t:"Tubercule de pomme de terre", pg:244},
+ {p:'VIII', n:'2.4', t:"Rhizome de sceau de Salomon", pg:244},
+ {p:'VIII', n:'3',   t:'Multiplication végétative naturelle', pg:245, titre:true},
+ {p:'VIII', n:'3.1', t:"Cas de l'élodée", pg:245},
+ {p:'VIII', n:'3.2', t:"Cas du fraisier", pg:246},
+ {p:'VIII', n:'3.3', t:"Cas du bryophyllum", pg:247},
+ {p:'VIII', n:'3.4', t:"Cas de la ficaire", pg:247},
+ {p:'VIII', n:'4',   t:'Multiplication végétative provoquée', pg:248, titre:true},
+ {p:'VIII', n:'4.1', t:"Boutures de pélargonium", pg:248},
+ {p:'VIII', n:'4.2', t:"Cas du tradescantia", pg:249},
+ {p:'VIII', n:'4.3', t:"Cas du bégonia", pg:249},
+ {p:'VIII', n:'4.4', t:"Cas du saintpaulia", pg:250},
+ {p:'VIII', n:'5',   t:'Cellules isolées et protoplastes', pg:251, titre:true},
+ {p:'VIII', n:'5.1', t:"Isolement mécanique de cellules", pg:251},
+ {p:'VIII', n:'5.2', t:"Isolement enzymatique de cellules", pg:252},
+ {p:'VIII', n:'5.3', t:"Isolement mécanique de protoplastes", pg:253},
+ {p:'VIII', n:'5.4', t:"Isolement enzymatique de protoplastes", pg:254},
+ {p:'VIII', n:'5.5', t:"Fusion de protoplastes", pg:255},
+ {p:'VIII', n:'5.6', t:"Régénération de paroi", pg:256}
 ];
 const NOM_PARTIE = {I:'I — Biochimie', II:'II — Histologie des plantes',
-                    III:'III — Respiration et fermentation', IV:'IV — Photosynthèse'};
+                    III:'III — Respiration et fermentation', IV:'IV — Photosynthèse',
+                    V:'V — La plante et l\'eau', VI:'VI — Morphogenèse',
+                    VII:'VII — Reproduction', VIII:'VIII — Multiplication végétative'};
 const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
                     enzymes:'Enzymes', histologie:'Histologie'};
 
@@ -1778,10 +2076,7 @@ const REACTIFS = [
 
   /* ---------- dessin : tube ou champ du microscope ---------- */
   function dessine(){
-    const ctx = cv.getContext('2d'), L = 180, H = 270;
-    const dpr = window.devicePixelRatio || 1;
-    cv.width = L*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.clearRect(0,0,L,H);
+    const {ctx, l:L, h:H} = dimensionne(cv);
     const c = resultat ? resultat.c : '#eef0f0';
 
     if(rea && rea.mode === 'lame'){
@@ -1931,9 +2226,7 @@ const EXTRAITS = {
 
   /* ---------- chromatographie ---------- */
   function dessineChromo(){
-    const ctx = cvC.getContext('2d'), L = 200, H = 400, dpr = window.devicePixelRatio || 1;
-    cvC.width = L*dpr; cvC.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.clearRect(0,0,L,H);
+    const {ctx, l:L, h:H} = dimensionne(cvC);
     /* cuve */
     ctx.fillStyle = '#f2efe9'; ctx.strokeStyle = '#d3ccbe'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(18, 10, 164, 380, 10); ctx.fill(); ctx.stroke();
@@ -2053,10 +2346,8 @@ const EXTRAITS = {
 
   /* ---------- fluorescence ---------- */
   function fluo(){
-    const ctx = cvF.getContext('2d'), L = cvF.clientWidth || 300, H = 150, dpr = window.devicePixelRatio || 1;
-    cvF.width = L*dpr; cvF.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+    const {ctx, l:L, h:H} = dimensionne(cvF);
     const uv = $('#pi-uv').checked, e = extrait();
-    ctx.clearRect(0,0,L,H);
     ctx.fillStyle = uv ? '#131018' : '#f6f3ee'; ctx.fillRect(0,0,L,H);
     const x = L/2 - 26;
     if(uv){
@@ -2183,10 +2474,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
   }
   /* ---------- gamme de godets ---------- */
   function dessineGamme(){
-    const L = cvA.clientWidth || 400, H = 92, dpr = window.devicePixelRatio || 1;
-    const ctx = cvA.getContext('2d');
-    cvA.width = L*dpr; cvA.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.clearRect(0,0,L,H);
+    const {ctx, l:L} = dimensionne(cvA);
     const n = 11, pas = Math.min(46, (L-10)/n), r = Math.min(17, pas/2-3);
     const e = ENZYMES[$('#en-enz').value];
     for(let i=0;i<n;i++){
@@ -2422,10 +2710,8 @@ function coupe(nom){
 
   /* ---------- rendu ---------- */
   function dessine(){
-    const T = cv.clientWidth || 420, dpr = window.devicePixelRatio || 1;
-    cv.width = T*dpr; cv.height = T*dpr;
-    const ctx = cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
-    ctx.clearRect(0,0,T,T);
+    const T = Math.max(240, Math.round(cv.clientWidth || 420));
+    const {ctx} = dimensionne(cv, T);          /* coupe carrée */
     const k = T/420;
     ctx.save(); ctx.translate(T/2, T/2); ctx.scale(k*zoom, k*zoom); ctx.translate(-210,-210);
 
@@ -2625,6 +2911,1012 @@ function coupe(nom){
 (function depart(){
   const h = location.hash.replace('#','');
   if(h && $('#mod-'+h)) ouvreModule(h);
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PRÉPARER UNE MANIP — dictionnaire du matériel
+   c : catégorie · u : unité · part : matériel partagé par la classe
+   ========================================================================== */
+const CAT = {verre:'Verrerie', instr:'Instruments', decoupe:'Découpe et petit matériel',
+             reactif:'Réactifs et solutions', bio:'Matériel biologique', conso:'Consommables'};
+const MATOS = {
+  /* --- verrerie --- */
+  tube:{n:"Tubes à essai", c:'verre'},
+  portoir:{n:"Portoir à tubes", c:'verre'},
+  hemolyse:{n:"Tubes à hémolyse", c:'verre'},
+  becher:{n:"Béchers 100 mL", c:'verre'},
+  becher250:{n:"Béchers 250 mL", c:'verre'},
+  erlen:{n:"Erlenmeyer 100 mL", c:'verre'},
+  eprouvette:{n:"Éprouvette graduée 50 mL", c:'verre'},
+  pipette:{n:"Pipettes plastique 3 mL", c:'verre'},
+  pipette_grad:{n:"Pipette graduée 10 mL", c:'verre'},
+  entonnoir:{n:"Entonnoir", c:'verre'},
+  cristallisoir:{n:"Cristallisoir", c:'verre'},
+  petri:{n:"Boîtes de Petri", c:'verre'},
+  lame:{n:"Lames de microscope", c:'verre'},
+  lamelle:{n:"Lamelles", c:'verre'},
+  verre_montre:{n:"Verre de montre", c:'verre'},
+  mortier:{n:"Mortier et pilon", c:'verre'},
+  baguette:{n:"Baguette de verre", c:'verre'},
+  godets:{n:"Plaque à godets (ou coupelles)", c:'verre'},
+  bouchon:{n:"Bouchons (dont un percé)", c:'verre'},
+  tube_souple:{n:"Tuyau souple", c:'verre'},
+  capillaire:{n:"Tube capillaire gradué", c:'verre'},
+  capillaire_depot:{n:"Tubes capillaires fins (dépôt)", c:'verre'},
+  seringue:{n:"Seringue 10 mL", c:'verre'},
+
+  /* --- instruments --- */
+  microscope:{n:"Microscope optique", c:'instr'},
+  loupe:{n:"Loupe binoculaire", c:'instr'},
+  balance:{n:"Balance au centigramme", c:'instr', part:true},
+  bain_marie:{n:"Bain-marie (ou bécher sur plaque)", c:'instr', part:true},
+  plaque:{n:"Plaque chauffante", c:'instr', part:true},
+  centri:{n:"Centrifugeuse", c:'instr', part:true},
+  frigo:{n:"Réfrigérateur ou bac de glace", c:'instr', part:true},
+  etuve:{n:"Étuve (ou enceinte à 25 °C)", c:'instr', part:true},
+  exao_o2:{n:"Chaîne ExAO + sonde à dioxygène", c:'instr'},
+  exao_co2:{n:"Chaîne ExAO + sonde à CO₂ ou pH-mètre", c:'instr'},
+  exao_pression:{n:"Chaîne ExAO + capteur de pression", c:'instr'},
+  enceinte:{n:"Enceinte de mesure étanche (bioréacteur)", c:'instr'},
+  spectro:{n:"Spectrophotomètre ou colorimètre", c:'instr', part:true},
+  lampe:{n:"Lampe de bureau (source lumineuse)", c:'instr'},
+  filtres:{n:"Filtres colorés (bleu, vert, rouge)", c:'instr'},
+  chrono:{n:"Chronomètre", c:'instr'},
+  thermo:{n:"Thermomètre", c:'instr'},
+  agitateur:{n:"Agitateur magnétique", c:'instr', part:true},
+  ph_metre:{n:"pH-mètre ou papier pH", c:'instr'},
+  refracto:{n:"Réfractomètre", c:'instr', part:true},
+  clinostat:{n:"Clinostat (ou plateau tournant lent)", c:'instr', part:true},
+  camera:{n:"Appareil photo / tablette (time-lapse)", c:'instr', part:true},
+
+  /* --- découpe et petit matériel --- */
+  rasoir:{n:"Lames de rasoir", c:'decoupe'},
+  scalpel:{n:"Scalpel", c:'decoupe'},
+  pince:{n:"Pince fine", c:'decoupe'},
+  aiguille:{n:"Aiguille lancéolée", c:'decoupe'},
+  ciseaux:{n:"Ciseaux", c:'decoupe'},
+  moelle:{n:"Moelle de sureau (ou carotte) pour l'inclusion", c:'decoupe'},
+  pinceau:{n:"Pinceau fin", c:'decoupe'},
+  regle:{n:"Règle graduée", c:'decoupe'},
+  marqueur:{n:"Marqueur pour verrerie", c:'decoupe'},
+  gants:{n:"Gants", c:'decoupe'},
+  lunettes:{n:"Lunettes de protection", c:'decoupe'},
+
+  /* --- réactifs --- */
+  lugol:{n:"Eau iodée (lugol)", c:'reactif', u:'mL'},
+  fehling:{n:"Liqueur de Fehling A + B", c:'reactif', u:'mL'},
+  biuret:{n:"Réactif du biuret", c:'reactif', u:'mL'},
+  soudan:{n:"Soudan III (ou rouge Soudan)", c:'reactif', u:'mL'},
+  phloro:{n:"Phloroglucine chlorhydrique", c:'reactif', u:'mL'},
+  carmin:{n:"Carmin-vert d'iode", c:'reactif', u:'mL'},
+  ruthenium:{n:"Rouge de ruthénium", c:'reactif', u:'mL'},
+  naphtol:{n:"α-naphtol (Molisch)", c:'reactif', u:'mL'},
+  schiff:{n:"Réactif de Schiff", c:'reactif', u:'mL'},
+  resorcine:{n:"Résorcine chlorhydrique (Sélivanoff)", c:'reactif', u:'mL'},
+  hcl:{n:"Acide chlorhydrique dilué", c:'reactif', u:'mL'},
+  naoh:{n:"Soude diluée", c:'reactif', u:'mL'},
+  h2so4:{n:"Acide sulfurique concentré", c:'reactif', u:'mL'},
+  ethanol:{n:"Éthanol 95°", c:'reactif', u:'mL'},
+  acetone:{n:"Acétone", c:'reactif', u:'mL'},
+  ether:{n:"Éther de pétrole", c:'reactif', u:'mL'},
+  eau_chaux:{n:"Eau de chaux", c:'reactif', u:'mL'},
+  bicarbonate:{n:"Hydrogénocarbonate de sodium", c:'reactif', u:'g'},
+  glucose_sol:{n:"Solution de glucose 10 g·L⁻¹", c:'reactif', u:'mL'},
+  saccharose_sol:{n:"Solution de saccharose 10 g·L⁻¹", c:'reactif', u:'mL'},
+  amidon_sol:{n:"Empois d'amidon 10 g·L⁻¹", c:'reactif', u:'mL'},
+  gamme_sacch:{n:"Gamme de saccharose (0,1 à 1 mol·L⁻¹)", c:'reactif', u:'mL'},
+  h2o2:{n:"Eau oxygénée 10 volumes", c:'reactif', u:'mL'},
+  dcpip:{n:"DCPIP (indicateur d'oxydoréduction)", c:'reactif', u:'mL'},
+  bleu_methylene:{n:"Bleu de méthylène", c:'reactif', u:'mL'},
+  rouge_neutre:{n:"Rouge neutre", c:'reactif', u:'mL'},
+  bbt:{n:"Bleu de bromothymol", c:'reactif', u:'mL'},
+  tampon:{n:"Tampon phosphate pH 7", c:'reactif', u:'mL'},
+  saccharose_iso:{n:"Milieu d'isolement (saccharose 0,4 mol·L⁻¹ tamponné)", c:'reactif', u:'mL'},
+  eau_distillee:{n:"Eau distillée", c:'reactif', u:'mL'},
+  eosine:{n:"Éosine ou encre rouge", c:'reactif', u:'mL'},
+  aia:{n:"Auxine (AIA) ou poudre d'hormone de bouturage", c:'reactif', u:'mL'},
+  cellulase:{n:"Cellulase + pectinase", c:'reactif', u:'mL'},
+  glycerine:{n:"Glycérine (montage)", c:'reactif', u:'mL'},
+  huile:{n:"Huile de table", c:'reactif', u:'mL'},
+  vaseline:{n:"Vaseline", c:'reactif', u:'g'},
+  salive:{n:"Salive diluée (ou amylase du commerce)", c:'reactif', u:'mL'},
+
+  /* --- consommables --- */
+  papier_filtre:{n:"Papier filtre", c:'conso'},
+  whatman:{n:"Bandes de papier Whatman", c:'conso'},
+  cuve_chromato:{n:"Cuve à chromatographie (ou éprouvette bouchée)", c:'conso'},
+  cocl2:{n:"Papier au chlorure de cobalt", c:'conso'},
+  alu:{n:"Papier aluminium", c:'conso'},
+  coton:{n:"Coton et papier absorbant", c:'conso'},
+  vernis:{n:"Vernis à ongles incolore", c:'conso'},
+  ruban:{n:"Ruban adhésif transparent", c:'conso'},
+  sac:{n:"Sacs plastique transparents", c:'conso'},
+  ficelle:{n:"Ficelle et élastiques", c:'conso'},
+  pots:{n:"Pots ou barquettes", c:'conso'},
+  terreau:{n:"Terreau ou coton de germination", c:'conso'},
+  boite_noire:{n:"Boîte opaque (obscurité)", c:'conso'},
+  epingles:{n:"Épingles", c:'conso'},
+  liege:{n:"Plaque de liège ou polystyrène", c:'conso'},
+
+  /* --- matériel biologique --- */
+  elodee:{n:"Élodée (rameaux frais)", c:'bio'},
+  epinard:{n:"Feuilles d'épinard", c:'bio'},
+  lierre:{n:"Feuilles de lierre", c:'bio'},
+  oignon:{n:"Bulbe d'oignon", c:'bio'},
+  poireau:{n:"Poireau (épiderme)", c:'bio'},
+  pdt:{n:"Pommes de terre", c:'bio'},
+  ble:{n:"Grains de blé", c:'bio'},
+  farine:{n:"Farine de blé", c:'bio'},
+  lentilles:{n:"Graines de lentille", c:'bio'},
+  haricot:{n:"Graines de haricot", c:'bio'},
+  mais:{n:"Grains ou épis de maïs", c:'bio'},
+  germes:{n:"Graines en germination", c:'bio'},
+  levure:{n:"Levure de boulanger", c:'bio'},
+  navet:{n:"Navet (peroxydase)", c:'bio'},
+  tomate:{n:"Tomates mûres", c:'bio'},
+  chou:{n:"Chou rouge", c:'bio'},
+  topinambour:{n:"Topinambour ou dahlia", c:'bio'},
+  lamier:{n:"Tige de lamier ou d'ortie blanche", c:'bio'},
+  iris:{n:"Tige ou racine d'iris", c:'bio'},
+  ficaire:{n:"Racine de ficaire", c:'bio'},
+  bruyere:{n:"Tige de bruyère", c:'bio'},
+  bois:{n:"Rondelle de tronc ou bûchette", c:'bio'},
+  pelargonium:{n:"Pied de pélargonium", c:'bio'},
+  avoine:{n:"Semis de coléoptiles d'avoine", c:'bio'},
+  cresson:{n:"Graines de cresson ou de moutarde", c:'bio'},
+  sensitive:{n:"Pied de sensitive", c:'bio'},
+  fleurs:{n:"Fleurs fraîches (renoncule, tulipe…)", c:'bio'},
+  anthere:{n:"Boutons floraux (anthères)", c:'bio'},
+  laurier:{n:"Feuille de laurier-rose", c:'bio'},
+  algue:{n:"Algue rouge ou algue brune", c:'bio'},
+  celeri:{n:"Branche de céleri ou fleur blanche", c:'bio'}
+};
+</script>
+
+<script>
+/* ==========================================================================
+   FICHES DE MANIPULATION — « recettes » de paillasse
+   mat : [identifiant du matériel, quantité PAR POSTE]
+   ========================================================================== */
+const FICHES = [
+/* ---------------- I — Biochimie ---------------- */
+{id:'amidon', t:"Mise en évidence et localisation de l'amidon", p:'I', ref:'I — 3.1', pg:18,
+ duree:25, niveau:'Seconde', sim:'biochimie',
+ principe:"L'eau iodée forme avec l'amylose un complexe bleu très foncé. Sur une coupe, la réaction se fait in situ : on voit directement dans quelles cellules l'amidon est stocké.",
+ mat:[['lame',2],['lamelle',2],['microscope',1],['rasoir',1],['pipette',1],['lugol',3],['pdt',1],['coton',1],['verre_montre',1]],
+ etapes:["Réaliser une coupe très fine dans le tubercule, ou gratter la surface fraîchement coupée avec la lame.",
+         "Déposer le fragment sur une lame dans une goutte d'eau.",
+         "Ajouter une goutte de lugol sur le bord de la lamelle, absorber de l'autre côté avec du papier.",
+         "Observer au faible puis au fort grossissement."],
+ resultat:"Les grains d'amidon, ovoïdes et stratifiés, se colorent en bleu-noir dans les cellules du parenchyme de réserve.",
+ secu:"Le lugol tache la peau et les vêtements : blouse et prudence avec le compte-gouttes."},
+
+{id:'fehling', t:"Mise en évidence des sucres réducteurs (Fehling)", p:'I', ref:'I — 1.2', pg:10,
+ duree:30, niveau:'Seconde', sim:'biochimie',
+ principe:"En milieu alcalin et à chaud, la fonction aldéhyde d'un ose réduit le cuivre II bleu en oxyde de cuivre I, précipité rouge brique.",
+ mat:[['tube',4],['portoir',1],['pipette',2],['bain_marie',1],['fehling',6],['glucose_sol',5],['saccharose_sol',5],['eau_distillee',5],['marqueur',1],['lunettes',1]],
+ etapes:["Préparer quatre tubes : glucose, saccharose, extrait à tester, eau distillée (témoin).",
+         "Ajouter 2 mL de liqueur de Fehling dans chaque tube.",
+         "Porter au bain-marie bouillant 3 à 5 minutes.",
+         "Comparer les tubes et conclure."],
+ resultat:"Précipité rouge brique avec le glucose, aucun virage avec le saccharose (non réducteur) ni avec l'eau.",
+ secu:"La liqueur de Fehling est corrosive (soude) : lunettes obligatoires, ne pas diriger l'ouverture du tube vers un voisin pendant le chauffage."},
+
+{id:'hydrolyse', t:"Hydrolyse acide du saccharose", p:'I', ref:'I — 1.4', pg:12,
+ duree:35, niveau:'Première', sim:'biochimie',
+ principe:"Le saccharose n'est pas réducteur. Chauffé en milieu acide, il est coupé en glucose et fructose, tous deux réducteurs : le test de Fehling devient positif.",
+ mat:[['tube',3],['portoir',1],['pipette',2],['bain_marie',1],['saccharose_sol',10],['hcl',2],['naoh',2],['fehling',6],['ph_metre',1],['lunettes',1]],
+ etapes:["Tube 1 : saccharose + Fehling, chauffer — témoin négatif.",
+         "Tube 2 : saccharose + quelques gouttes d'acide chlorhydrique, chauffer 10 minutes.",
+         "Neutraliser le tube 2 par la soude (contrôler au papier pH).",
+         "Ajouter la liqueur de Fehling au tube 2 et chauffer de nouveau."],
+ resultat:"Le tube hydrolysé donne un précipité rouge brique : l'hydrolyse a libéré des sucres réducteurs.",
+ secu:"Acide et soude dilués : lunettes et gants. Neutraliser avant de jeter."},
+
+{id:'parois', t:"Parois : cellulose et lignine", p:'I', ref:'I — 2.2 et 2.5', pg:14,
+ duree:35, niveau:'Première', sim:'biochimie',
+ principe:"La phloroglucine chlorhydrique colore en rouge cerise les parois lignifiées ; le carmin-vert d'iode distingue d'un coup d'œil parois cellulosiques (roses) et lignifiées (vertes).",
+ mat:[['lame',3],['lamelle',3],['microscope',1],['rasoir',1],['pince',1],['moelle',1],['verre_montre',2],['phloro',2],['carmin',2],['lamier',1],['bois',1],['papier_filtre',2]],
+ etapes:["Inclure la tige dans la moelle de sureau et réaliser des coupes minces.",
+         "Choisir les coupes les plus fines, les rincer à l'eau.",
+         "Traiter les unes à la phloroglucine chlorhydrique, les autres au carmin-vert d'iode (1 à 2 minutes).",
+         "Rincer, monter entre lame et lamelle, observer."],
+ resultat:"Vaisseaux du xylème, fibres et sclérenchyme rouges (phloroglucine) ou verts (vert d'iode) ; parenchymes et collenchyme roses au carmin.",
+ secu:"La phloroglucine chlorhydrique contient de l'acide : gants, travailler sur verre de montre."},
+
+{id:'proteines', t:"Caractérisation des protéines (biuret)", p:'I', ref:'I — 3.8', pg:25,
+ duree:20, niveau:'Seconde', sim:'biochimie',
+ principe:"En milieu alcalin, les ions cuivre II forment un complexe violet avec les liaisons peptidiques : la réaction révèle les protéines, quelles qu'elles soient.",
+ mat:[['tube',4],['portoir',1],['pipette',2],['biuret',8],['eau_distillee',5],['farine',1],['haricot',2],['mortier',1],['marqueur',1]],
+ etapes:["Broyer les graines dans un peu d'eau, filtrer grossièrement.",
+         "Répartir 2 mL d'extrait par tube, plus un témoin d'eau distillée.",
+         "Ajouter 2 mL de réactif du biuret, agiter.",
+         "Observer la teinte au bout d'une minute."],
+ resultat:"Coloration violette avec l'extrait de graines ; le témoin reste bleu clair.",
+ secu:"Le réactif contient de la soude : lunettes, rincer immédiatement toute projection."},
+
+{id:'lipides', t:"Mise en évidence des lipides", p:'I', ref:'I — 3.6', pg:23,
+ duree:20, niveau:'Seconde', sim:'biochimie',
+ principe:"Le Soudan III est un colorant liposoluble : il se concentre dans les gouttelettes lipidiques et les rend rouge orangé. Le test de la tache translucide complète l'observation.",
+ mat:[['lame',2],['lamelle',2],['microscope',1],['rasoir',1],['soudan',2],['huile',2],['papier_filtre',2],['haricot',1],['ble',1]],
+ etapes:["Écraser une graine oléagineuse entre lame et lamelle, ou frotter une graine sur du papier filtre.",
+         "Déposer une goutte de Soudan III, laisser agir 2 minutes, rincer.",
+         "Observer au microscope ; regarder le papier par transparence.",
+         "Comparer avec une goutte d'huile servant de témoin positif."],
+ resultat:"Gouttelettes sphériques rouge orangé dans les cellules ; tache translucide permanente sur le papier.",
+ secu:"Le Soudan III est dissous dans l'alcool : loin de toute flamme."},
+
+{id:'inuline', t:"Mise en évidence de l'inuline", p:'I', ref:'I — 3.5', pg:23,
+ duree:30, niveau:'Première', sim:'biochimie',
+ principe:"Le topinambour ne stocke pas d'amidon mais de l'inuline, polymère de fructose : le lugol reste négatif alors que la résorcine chlorhydrique vire au rouge.",
+ mat:[['tube',3],['lame',2],['lamelle',2],['microscope',1],['rasoir',1],['bain_marie',1],['lugol',2],['resorcine',3],['topinambour',1],['pdt',1]],
+ etapes:["Faire deux coupes : une de topinambour, une de pomme de terre.",
+         "Traiter les deux au lugol et comparer.",
+         "Broyer un fragment de topinambour dans l'eau chaude, filtrer.",
+         "Ajouter la résorcine chlorhydrique au filtrat et chauffer brièvement."],
+ resultat:"Lugol négatif sur le topinambour (positif sur la pomme de terre) ; coloration rouge à la résorcine : c'est bien un fructosane.",
+ secu:"Résorcine chlorhydrique corrosive : gants et lunettes."},
+
+{id:'chromato', t:"Extraction et chromatographie des pigments", p:'I', ref:'I — 4.1 et 4.2', pg:26,
+ duree:50, niveau:'Seconde', sim:'pigments',
+ principe:"Les pigments sont extraits par un solvant organique puis séparés selon leur solubilité : plus un pigment est soluble dans le solvant, plus il migre haut. Le rapport frontal identifie chaque tache.",
+ mat:[['mortier',1],['entonnoir',1],['papier_filtre',2],['whatman',1],['cuve_chromato',1],['capillaire_depot',2],['ethanol',20],['acetone',10],['ether',20],['epinard',3],['regle',1],['ciseaux',1],['lunettes',1]],
+ etapes:["Broyer les feuilles au mortier avec un peu de sable et d'éthanol, filtrer.",
+         "Concentrer l'extrait, déposer une tache fine à 2 cm du bas de la bande, sécher, recommencer 5 fois.",
+         "Placer la bande dans la cuve contenant 1 cm de solvant, sans que le dépôt y trempe.",
+         "Arrêter avant que le front n'atteigne le haut, marquer le front, mesurer les distances."],
+ resultat:"De haut en bas : carotènes (jaune orangé), phéophytine, chlorophylle a (vert bleuté), chlorophylle b (vert jaune), xanthophylles (jaune).",
+ secu:"Solvants très inflammables et volatils : hotte ou salle très aérée, aucune flamme, cuve fermée."},
+
+{id:'spectre-abs', t:"Spectre d'absorption des pigments", p:'I', ref:'I — 4.3 et 4.8', pg:29,
+ duree:30, niveau:'Première', sim:'pigments',
+ principe:"En intercalant l'extrait entre une source blanche et un spectroscope, on voit apparaître des bandes noires : les radiations absorbées. Au spectrophotomètre, on obtient la courbe complète.",
+ mat:[['spectro',1],['cuve_chromato',1],['tube',2],['pipette',1],['ethanol',15],['epinard',2],['mortier',1],['papier_filtre',1],['lampe',1]],
+ etapes:["Préparer un extrait alcoolique de feuilles, filtré et peu concentré.",
+         "Faire le zéro du spectrophotomètre avec de l'éthanol pur.",
+         "Mesurer l'absorbance tous les 20 nm entre 400 et 700 nm.",
+         "Tracer la courbe et repérer les maximums."],
+ resultat:"Deux bandes d'absorption marquées, l'une dans le bleu (430-450 nm), l'autre dans le rouge (640-665 nm) ; absorption très faible dans le vert.",
+ secu:"Éthanol inflammable."},
+
+{id:'fluo', t:"Fluorescence de la chlorophylle", p:'I', ref:'I — 4.5', pg:31,
+ duree:15, niveau:'Première', sim:'pigments',
+ principe:"Isolés de la membrane du thylakoïde, les pigments ne peuvent plus céder leur énergie : ils la restituent sous forme de lumière rouge.",
+ mat:[['tube',1],['lampe',1],['ethanol',10],['epinard',1],['mortier',1],['papier_filtre',1],['boite_noire',1]],
+ etapes:["Préparer un extrait alcoolique concentré.",
+         "Faire l'obscurité dans la salle.",
+         "Éclairer le tube latéralement avec une lampe UV ou une lampe puissante.",
+         "Observer la couleur de la lumière renvoyée par l'extrait."],
+ resultat:"L'extrait, vert par transparence, apparaît rouge sang par réflexion : c'est la fluorescence de la chlorophylle.",
+ secu:"Ne jamais regarder directement une lampe UV."},
+
+{id:'anthocyanes', t:"Anthocyanes : des indicateurs colorés", p:'I', ref:'I — 5.2 et 5.3', pg:39,
+ duree:25, niveau:'Seconde', sim:'biochimie',
+ principe:"Les anthocyanes des vacuoles changent de structure avec le pH : rouges en milieu acide, violettes à pH neutre, vert-jaune en milieu basique.",
+ mat:[['tube',5],['portoir',1],['becher',1],['mortier',1],['entonnoir',1],['papier_filtre',1],['hcl',3],['naoh',3],['chou',1],['ph_metre',1],['pipette',2]],
+ etapes:["Broyer le chou rouge dans l'eau chaude, filtrer : l'extrait est violet.",
+         "Répartir dans cinq tubes.",
+         "Ajouter progressivement de l'acide dans les uns, de la soude dans les autres.",
+         "Ranger les tubes par pH croissant."],
+ resultat:"Un dégradé du rouge au vert selon le pH : les anthocyanes se comportent comme un indicateur coloré naturel.",
+ secu:"Acide et base dilués : lunettes."},
+
+{id:'adn', t:"Extraction de l'ADN", p:'I', ref:'I — 7.2', pg:51,
+ duree:35, niveau:'Première', sim:'biochimie',
+ principe:"Le détergent détruit les membranes, le sel neutralise les charges de l'ADN et l'alcool froid, dans lequel l'ADN est insoluble, le fait précipiter en filaments visibles.",
+ mat:[['mortier',1],['becher250',1],['entonnoir',1],['papier_filtre',1],['tube',2],['pipette',2],['ethanol',20],['frigo',1],['oignon',1],['baguette',1],['eau_distillee',30]],
+ etapes:["Broyer l'oignon dans l'eau salée additionnée de liquide vaisselle, sans faire mousser.",
+         "Laisser reposer 15 minutes au bain-marie tiède, puis filtrer.",
+         "Verser doucement l'éthanol glacé le long de la paroi, sur le filtrat.",
+         "Enrouler les filaments blancs à l'interface autour d'une baguette."],
+ resultat:"Une méduse de filaments blanchâtres apparaît à la limite des deux liquides : c'est l'ADN précipité.",
+ secu:"Éthanol froid inflammable."},
+
+{id:'amylase', t:"Mise en évidence d'une activité amylasique", p:'I', ref:'I — 6.1 et 6.2', pg:42,
+ duree:45, niveau:'Seconde', sim:'enzymes',
+ principe:"L'amylase coupe l'amidon en maltose. On suit la disparition du substrat (lugol) et l'apparition du produit (Fehling) au cours du temps.",
+ mat:[['tube',6],['portoir',1],['godets',1],['pipette',3],['bain_marie',1],['chrono',1],['thermo',1],['amidon_sol',20],['salive',5],['lugol',6],['fehling',6],['marqueur',1]],
+ etapes:["Préparer le mélange amidon + amylase à 37 °C et déclencher le chronomètre.",
+         "Prélever une goutte toutes les minutes dans un godet contenant du lugol.",
+         "Préparer en parallèle un témoin avec de l'amylase préalablement bouillie.",
+         "Au bout de 10 minutes, tester le mélange à la liqueur de Fehling."],
+ resultat:"La gamme de godets passe du bleu-noir au jaune : l'amidon disparaît. Le test de Fehling devient positif. Le témoin bouilli reste bleu-noir.",
+ secu:"Manipulation de salive : chaque élève n'utilise que la sienne, verrerie désinfectée ensuite. On peut la remplacer par une amylase du commerce."},
+
+{id:'cinetique', t:"Cinétique enzymatique : température et pH", p:'I', ref:'I — 6.6', pg:48,
+ duree:60, niveau:'Terminale', sim:'enzymes',
+ principe:"En ne faisant varier qu'un facteur à la fois, on met en évidence l'optimum de fonctionnement de l'enzyme et sa dénaturation par la chaleur.",
+ mat:[['tube',12],['portoir',2],['godets',2],['pipette',4],['bain_marie',1],['thermo',2],['chrono',1],['ph_metre',1],['amidon_sol',40],['salive',10],['lugol',12],['tampon',20],['hcl',3],['naoh',3],['marqueur',1]],
+ etapes:["Préparer six mélanges identiques amidon + enzyme.",
+         "Les placer à 0, 20, 37, 50, 70 et 100 °C (ou à pH 3, 5, 7, 9 pour la seconde série).",
+         "Prélever une goutte toutes les minutes et la tester au lugol.",
+         "Relever le temps de disparition de l'amidon et en déduire la vitesse."],
+ resultat:"Courbe en cloche avec un optimum vers 37 °C et pH 7 ; au-delà de 60 °C l'activité est définitivement perdue.",
+ secu:"Bain-marie bouillant : pince à tubes."},
+
+{id:'peroxydase', t:"Mise en évidence d'une peroxydase", p:'I', ref:'I — 6.5', pg:47,
+ duree:25, niveau:'Seconde', sim:'enzymes',
+ principe:"La peroxydase des cellules végétales décompose l'eau oxygénée en eau et dioxygène : la mousse produite mesure l'activité enzymatique.",
+ mat:[['tube',4],['portoir',1],['eprouvette',1],['pipette',2],['h2o2',20],['navet',1],['pdt',1],['mortier',1],['bain_marie',1],['regle',1]],
+ etapes:["Râper le navet, en répartir la même quantité dans trois tubes.",
+         "Faire bouillir le contenu d'un tube (témoin dénaturé), laisser refroidir.",
+         "Ajouter simultanément 5 mL d'eau oxygénée dans chaque tube.",
+         "Mesurer la hauteur de mousse au bout d'une minute."],
+ resultat:"Effervescence vive avec le végétal frais, aucune avec le végétal bouilli : l'enzyme est une protéine dénaturée par la chaleur.",
+ secu:"L'eau oxygénée à 10 volumes irrite la peau et les yeux : gants et lunettes."},
+
+/* ---------------- II — Histologie ---------------- */
+{id:'coupes', t:"Réaliser des coupes fines et les colorer", p:'II', ref:'II — 1.1 à 1.4', pg:53,
+ duree:45, niveau:'Seconde', sim:'histologie',
+ principe:"Une bonne coupe est d'abord une coupe mince : l'inclusion dans la moelle de sureau permet de tenir l'organe et de couper régulièrement au rasoir.",
+ mat:[['rasoir',1],['moelle',1],['pince',1],['pinceau',1],['verre_montre',3],['lame',3],['lamelle',3],['microscope',1],['carmin',3],['papier_filtre',3],['lamier',1],['eau_distillee',10]],
+ etapes:["Fendre le bâtonnet de moelle, y glisser la tige, tenir l'ensemble entre pouce et index.",
+         "Mouiller la lame et couper par mouvements tangentiels rapides.",
+         "Récolter les coupes au pinceau dans un verre de montre d'eau, garder les plus fines.",
+         "Colorer 2 minutes au carmin-vert d'iode, rincer, monter dans l'eau."],
+ resultat:"Des coupes transparentes où les parois cellulosiques apparaissent roses et les parois lignifiées vertes.",
+ secu:"Lames de rasoir : couper toujours en éloignant la lame de soi, ramassage des lames usagées dans un récipient rigide."},
+
+{id:'tiges', t:"Tige de Dicotylédone et tige de Monocotylédone", p:'II', ref:'II — 3.1 et 3.2', pg:61,
+ duree:45, niveau:'Première', sim:'histologie',
+ principe:"La disposition des faisceaux conducteurs sépare les deux groupes : en couronne régulière chez la Dicotylédone, dispersés dans tout le parenchyme chez la Monocotylédone.",
+ mat:[['rasoir',1],['moelle',1],['pinceau',1],['verre_montre',2],['lame',4],['lamelle',4],['microscope',1],['carmin',3],['lamier',1],['iris',1],['regle',1]],
+ etapes:["Réaliser des coupes transversales des deux tiges.",
+         "Colorer au carmin-vert d'iode et monter.",
+         "Observer au faible grossissement l'organisation d'ensemble, puis un faisceau au fort grossissement.",
+         "Réaliser un dessin d'observation légendé de chaque coupe."],
+ resultat:"Lamier : faisceaux en couronne, xylème vers l'intérieur, phloème vers l'extérieur. Iris : faisceaux fermés dispersés dans le parenchyme fondamental.",
+ secu:"Lames de rasoir."},
+
+{id:'bois', t:"Structure microscopique du bois", p:'II', ref:'II — 4.1 et 4.2', pg:67,
+ duree:35, niveau:'Première', sim:'histologie',
+ principe:"Le cambium fabrique chaque année du bois nouveau : les cernes racontent l'âge de l'arbre et les conditions de chaque saison.",
+ mat:[['bois',1],['loupe',1],['microscope',1],['lame',2],['lamelle',2],['rasoir',1],['phloro',2],['regle',1],['camera',1]],
+ etapes:["Observer une rondelle de tronc poncée à la loupe, compter les cernes.",
+         "Repérer l'écorce, le liber, le cambium, l'aubier et le bois de cœur.",
+         "Réaliser une coupe très fine dans une bûchette, colorer à la phloroglucine.",
+         "Observer la différence entre bois de printemps et bois d'été."],
+ resultat:"Alternance de grands vaisseaux (bois de printemps) et de petits vaisseaux à parois épaisses (bois d'été) : chaque couple forme un cerne annuel.",
+ secu:"Poncer le bois hors de la salle de TP (poussières)."},
+
+/* ---------------- III — Respiration et fermentation ---------------- */
+{id:'respi-exao', t:"Respiration d'organes végétaux (ExAO-oxygraphe)", p:'III', ref:'III — 1.1 et 1.2', pg:75,
+ duree:40, niveau:'Seconde', sim:'exao',
+ principe:"Dans une enceinte fermée, la sonde à dioxygène enregistre la baisse de la teneur en O₂ : la pente de la courbe mesure l'intensité respiratoire.",
+ mat:[['exao_o2',1],['enceinte',1],['balance',1],['chrono',1],['thermo',1],['germes',1],['lentilles',1],['eau_distillee',50],['boite_noire',1],['marqueur',1]],
+ etapes:["Étalonner la sonde à dioxygène selon la notice.",
+         "Peser une même masse de graines germées et de graines sèches.",
+         "Enregistrer 5 minutes avec les graines germées, dans l'obscurité.",
+         "Recommencer avec les graines sèches, puis comparer les pentes."],
+ resultat:"Décroissance nette de l'O₂ avec les graines germées, courbe presque plate avec les graines sèches : la respiration accompagne la reprise de la vie active.",
+ secu:"Vérifier l'étanchéité de l'enceinte, ne pas forcer sur la sonde."},
+
+{id:'co2-chaux', t:"Production de dioxyde de carbone par la respiration", p:'III', ref:'III — 2.1 et 2.2', pg:81,
+ duree:30, niveau:'Seconde', sim:'exao',
+ principe:"Le CO₂ dégagé trouble l'eau de chaux et acidifie le milieu : deux façons de le mettre en évidence, l'une qualitative, l'autre continue à l'ExAO.",
+ mat:[['erlen',2],['bouchon',2],['tube_souple',2],['tube',2],['eau_chaux',20],['bbt',10],['germes',1],['exao_co2',1],['sac',1],['ficelle',1]],
+ etapes:["Enfermer les graines germées dans l'erlenmeyer fermé par un bouchon percé.",
+         "Relier par le tuyau à un tube contenant de l'eau de chaux limpide.",
+         "Monter un dispositif témoin sans graines.",
+         "Laisser 20 minutes, ou suivre le pH en continu à l'ExAO."],
+ resultat:"L'eau de chaux se trouble seulement du côté des graines vivantes ; le pH du milieu diminue régulièrement.",
+ secu:"L'eau de chaux est basique : éviter le contact avec les yeux."},
+
+{id:'mitochondries', t:"Isolement et fonctionnement des mitochondries", p:'III', ref:'III — 3.1 et 3.2', pg:85,
+ duree:90, niveau:'Terminale', sim:null,
+ principe:"Un broyage doux en milieu isotonique et froid, suivi de centrifugations différentielles, permet d'isoler les mitochondries et de mesurer leur consommation d'O₂ en présence de substrat.",
+ mat:[['mortier',1],['centri',1],['frigo',1],['hemolyse',6],['pipette_grad',2],['exao_o2',1],['enceinte',1],['saccharose_iso',60],['tampon',30],['germes',1],['balance',1],['papier_filtre',2],['seringue',1]],
+ etapes:["Broyer les germes de blé au froid dans le milieu isotonique tamponné.",
+         "Filtrer, puis centrifuger 10 minutes à faible vitesse : éliminer le culot (débris).",
+         "Centrifuger le surnageant plus vite : le culot contient les mitochondries.",
+         "Reprendre le culot dans le milieu, l'injecter dans l'enceinte ExAO et ajouter le substrat."],
+ resultat:"Consommation d'O₂ dès l'ajout du substrat, arrêtée par un inhibiteur : les mitochondries isolées respirent encore.",
+ secu:"Centrifugeuse : tubes équilibrés deux à deux, couvercle fermé, attendre l'arrêt complet."},
+
+{id:'fermentation', t:"Fermentation alcoolique des levures", p:'III', ref:'III — 4.1 et 4.2', pg:90,
+ duree:45, niveau:'Première', sim:'exao',
+ principe:"Privées de dioxygène, les levures dégradent le glucose en éthanol et CO₂. Le dégagement gazeux et la détection de l'alcool signent la fermentation.",
+ mat:[['erlen',2],['bouchon',2],['tube_souple',2],['tube',3],['eau_chaux',15],['glucose_sol',30],['levure',1],['huile',5],['bain_marie',1],['thermo',1],['exao_co2',1],['chrono',1]],
+ etapes:["Préparer une suspension de levures dans l'eau sucrée tiède (30 °C).",
+         "Recouvrir d'une couche d'huile pour isoler de l'air.",
+         "Relier le flacon à un tube d'eau de chaux, ou suivre le pH à l'ExAO.",
+         "Observer pendant 30 minutes, sentir prudemment le milieu en fin de séance."],
+ resultat:"Dégagement gazeux régulier, eau de chaux troublée, odeur d'alcool : la levure fermente sans dioxygène.",
+ secu:"Ne jamais boucher hermétiquement un montage où un gaz se dégage."},
+
+{id:'pain', t:"Préparation d'une pâte à pain", p:'III', ref:'III — 5.2', pg:96,
+ duree:60, niveau:'Seconde', sim:null,
+ principe:"Le CO₂ produit par la fermentation est retenu par le réseau de gluten : c'est ce qui fait lever la pâte.",
+ mat:[['becher250',3],['balance',1],['eprouvette',1],['thermo',1],['etuve',1],['farine',1],['levure',1],['regle',1],['marqueur',1],['sac',1]],
+ etapes:["Préparer trois pâtes identiques : avec levure, sans levure, avec levure bouillie.",
+         "Les placer dans des béchers gradués, marquer le niveau initial.",
+         "Laisser lever 45 minutes à 30 °C.",
+         "Mesurer l'augmentation de volume de chaque pâte."],
+ resultat:"Seule la pâte à la levure vivante double de volume : les bulles de CO₂ sont emprisonnées par le gluten.",
+ secu:"Hygiène : la pâte n'est pas consommée."},
+
+/* ---------------- IV — Photosynthèse ---------------- */
+{id:'bulles', t:"Méthode des bulles", p:'IV', ref:'IV — 1.1', pg:99,
+ duree:30, niveau:'Seconde', sim:'exao',
+ principe:"Un rameau d'élodée sectionné dégage à la lumière un chapelet de bulles : en les comptant, on obtient une mesure simple de l'activité photosynthétique.",
+ mat:[['becher250',1],['eprouvette',1],['entonnoir',1],['elodee',2],['bicarbonate',2],['lampe',1],['chrono',1],['regle',1],['thermo',1],['ciseaux',1]],
+ etapes:["Placer quelques rameaux d'élodée, section vers le haut, sous un entonnoir renversé.",
+         "Ajouter une pincée d'hydrogénocarbonate pour enrichir l'eau en CO₂.",
+         "Éclairer à 20 cm et attendre 5 minutes que le régime soit stable.",
+         "Compter les bulles pendant une minute, à trois distances de la lampe."],
+ resultat:"Le nombre de bulles par minute augmente quand la lampe se rapproche, puis plafonne : la lumière est facteur limitant jusqu'à un certain point.",
+ secu:"Lampe chaude : interposer un cristallisoir d'eau pour éviter d'échauffer le montage."},
+
+{id:'photo-exao', t:"Cinétique de la production de dioxygène (ExAO)", p:'IV', ref:'IV — 1.3', pg:103,
+ duree:45, niveau:'Première', sim:'exao',
+ principe:"Dans l'enceinte fermée, l'alternance lumière/obscurité fait apparaître successivement la photosynthèse nette et la respiration seule.",
+ mat:[['exao_o2',1],['enceinte',1],['lampe',1],['filtres',1],['elodee',2],['bicarbonate',2],['eau_distillee',60],['chrono',1],['thermo',1],['boite_noire',1],['agitateur',1]],
+ etapes:["Introduire l'élodée dans l'enceinte remplie d'eau enrichie en hydrogénocarbonate.",
+         "Enregistrer 5 minutes à la lumière.",
+         "Éteindre la lampe sans rien changer d'autre et poursuivre 5 minutes.",
+         "Rallumer, puis exploiter les pentes successives."],
+ resultat:"Pente positive à la lumière, négative à l'obscurité. Photosynthèse brute = photosynthèse nette + respiration.",
+ secu:"Rien de particulier ; veiller à la température de l'enceinte."},
+
+{id:'co2-photo', t:"Rôle du dioxyde de carbone en milieu aquatique", p:'IV', ref:'IV — 1.8', pg:109,
+ duree:40, niveau:'Première', sim:'exao',
+ principe:"En faisant varier la seule teneur en hydrogénocarbonate, on montre que le CO₂ est le substrat de la photosynthèse et peut devenir facteur limitant.",
+ mat:[['exao_o2',1],['enceinte',1],['lampe',1],['elodee',2],['bicarbonate',5],['balance',1],['eau_distillee',80],['eprouvette',1],['chrono',1],['marqueur',1]],
+ etapes:["Préparer trois eaux : sans hydrogénocarbonate, à 0,5 g·L⁻¹, à 2 g·L⁻¹.",
+         "Enregistrer la production d'O₂ à éclairement constant pour chacune.",
+         "Garder rigoureusement la même masse de végétal et la même distance de lampe.",
+         "Comparer les pentes obtenues."],
+ resultat:"Sans CO₂, presque aucune production d'O₂ malgré une lumière forte : le CO₂ est indispensable et limitant.",
+ secu:"Rien de particulier."},
+
+{id:'spectre-action', t:"Spectre d'action de la photosynthèse", p:'IV', ref:'IV — 4.1 et 4.2', pg:115,
+ duree:50, niveau:'Terminale', sim:'exao',
+ principe:"On mesure l'activité photosynthétique derrière des filtres colorés, à éclairement égal, puis on superpose le résultat au spectre d'absorption des pigments.",
+ mat:[['exao_o2',1],['enceinte',1],['lampe',1],['filtres',1],['elodee',2],['bicarbonate',2],['eau_distillee',60],['chrono',1],['spectro',1],['epinard',1],['ethanol',10]],
+ etapes:["Mesurer la production d'O₂ en lumière blanche : référence.",
+         "Recommencer derrière le filtre bleu, puis vert, puis rouge, sans rien changer d'autre.",
+         "Tracer l'histogramme des vitesses obtenues.",
+         "Superposer le spectre d'absorption d'un extrait de pigments."],
+ resultat:"Activité forte dans le bleu et le rouge, très faible dans le vert : le spectre d'action épouse le spectre d'absorption des chlorophylles.",
+ secu:"Attention : les filtres ne laissent pas passer la même quantité d'énergie, ce qui doit être discuté en classe."},
+
+{id:'hill', t:"Réaction de Hill", p:'IV', ref:'IV — 5.1 à 5.3', pg:118,
+ duree:90, niveau:'Terminale', sim:null,
+ principe:"Des chloroplastes isolés, éclairés en présence d'un accepteur artificiel d'électrons (DCPIP), le réduisent et dégagent de l'O₂ : la phase photochimique fonctionne sans CO₂.",
+ mat:[['mortier',1],['centri',1],['frigo',1],['hemolyse',6],['pipette_grad',2],['spectro',1],['lampe',1],['saccharose_iso',60],['dcpip',10],['epinard',3],['papier_filtre',2],['alu',1],['boite_noire',1]],
+ etapes:["Broyer les feuilles au froid en milieu isotonique, filtrer.",
+         "Centrifuger pour recueillir les chloroplastes, les reprendre dans le milieu.",
+         "Répartir en deux tubes avec le DCPIP bleu : l'un éclairé, l'autre enveloppé d'aluminium.",
+         "Suivre la décoloration au spectrophotomètre pendant 15 minutes."],
+ resultat:"Le tube éclairé se décolore, le tube à l'obscurité reste bleu : la réduction exige la lumière.",
+ secu:"Centrifugeuse équilibrée ; le DCPIP tache."},
+
+{id:'sachs', t:"Rôle de la lumière dans la synthèse d'amidon", p:'IV', ref:'IV — 3.1', pg:113,
+ duree:35, niveau:'Seconde', sim:'biochimie',
+ principe:"Une feuille dont une partie a été masquée ne fabrique de l'amidon que dans les zones éclairées : le lugol révèle la carte de la photosynthèse.",
+ mat:[['becher250',2],['plaque',1],['pince',1],['petri',2],['ethanol',40],['lugol',10],['alu',1],['lierre',2],['pots',1],['lampe',1],['ciseaux',1]],
+ etapes:["Masquer une partie d'une feuille avec de l'aluminium et laisser la plante 24 h à la lumière.",
+         "Décolorer la feuille dans l'éthanol bouillant au bain-marie (jamais sur flamme directe).",
+         "Rincer à l'eau chaude pour l'assouplir.",
+         "Recouvrir de lugol quelques minutes et rincer."],
+ resultat:"Les zones restées éclairées deviennent bleu-noir, la zone masquée reste beige : sans lumière, pas d'amidon.",
+ secu:"Éthanol bouillant : toujours au bain-marie, jamais sur une flamme."},
+
+/* ---------------- V — La plante et l'eau ---------------- */
+{id:'plasmolyse', t:"Plasmolyse et turgescence", p:'V', ref:'V — 1.1 et 1.4', pg:125,
+ duree:35, niveau:'Seconde', sim:null,
+ principe:"Placée dans une solution concentrée, la cellule perd de l'eau : le cytoplasme se décolle de la paroi. Le phénomène est réversible dans l'eau pure.",
+ mat:[['lame',3],['lamelle',3],['microscope',1],['pince',1],['pipette',2],['papier_filtre',3],['gamme_sacch',10],['eau_distillee',10],['oignon',1],['elodee',1],['chrono',1]],
+ etapes:["Prélever un épiderme d'oignon rouge (ou une feuille d'élodée) et le monter dans l'eau.",
+         "Observer l'état initial des cellules.",
+         "Remplacer l'eau par une solution de saccharose concentrée par appel avec du papier filtre.",
+         "Observer, puis repasser à l'eau distillée."],
+ resultat:"Le cytoplasme se rétracte en ballonnet coloré au centre de la cellule, puis reprend sa place : la paroi, elle, ne bouge pas.",
+ secu:"Rien de particulier."},
+
+{id:'po-densito', t:"Pression osmotique (méthode densitométrique)", p:'V', ref:'V — 2.3', pg:135,
+ duree:45, niveau:'Terminale', sim:null,
+ principe:"Un fragment de tissu placé dans une solution de même potentiel hydrique n'échange pas d'eau : la densité de cette solution ne change pas, ce qui se repère avec une goutte colorée.",
+ mat:[['hemolyse',8],['portoir',1],['pipette',3],['seringue',1],['gamme_sacch',40],['bleu_methylene',2],['pdt',1],['rasoir',1],['balance',1],['marqueur',1]],
+ etapes:["Préparer une gamme de solutions de saccharose et y plonger des fragments identiques de tubercule.",
+         "Attendre 30 minutes.",
+         "Colorer un peu de chaque solution au bleu de méthylène.",
+         "Déposer délicatement une goutte colorée dans la solution non colorée correspondante et observer si elle monte, descend ou reste."],
+ resultat:"La goutte reste en suspension pour la concentration isotonique : elle donne la pression osmotique du tissu.",
+ secu:"Rien de particulier."},
+
+{id:'frites', t:"Potentiel hydrique par la méthode des frites", p:'V', ref:'V — 2.5', pg:137,
+ duree:50, niveau:'Terminale', sim:null,
+ principe:"Selon la concentration du bain, le bâtonnet de pomme de terre gagne ou perd de l'eau : sa variation de longueur et de masse donne le point d'équilibre.",
+ mat:[['hemolyse',8],['portoir',1],['balance',1],['regle',1],['scalpel',1],['gamme_sacch',40],['pdt',2],['papier_filtre',3],['marqueur',1],['petri',4]],
+ etapes:["Tailler huit bâtonnets identiques, mesurer et peser chacun.",
+         "Les plonger dans les huit solutions de la gamme.",
+         "Attendre 45 minutes, égoutter, remesurer et repeser.",
+         "Tracer la variation relative en fonction de la concentration."],
+ resultat:"La courbe coupe l'axe des abscisses à la concentration isotonique : c'est le potentiel hydrique du tissu.",
+ secu:"Scalpel : couper sur une planche, jamais dans la main."},
+
+{id:'potometre', t:"Absorption de l'eau au potomètre", p:'V', ref:'V — 4.1', pg:142,
+ duree:40, niveau:'Première', sim:null,
+ principe:"Le déplacement d'une bulle d'air dans un tube capillaire mesure le volume d'eau absorbé par un rameau, donc l'intensité de sa transpiration.",
+ mat:[['capillaire',1],['tube_souple',1],['becher250',1],['seringue',1],['regle',1],['chrono',1],['vaseline',5],['celeri',1],['lampe',1],['sac',1],['ciseaux',1]],
+ etapes:["Couper le rameau sous l'eau et le raccorder au tube, joints étanchés à la vaseline.",
+         "Introduire une bulle d'air dans le capillaire.",
+         "Mesurer son déplacement sur 5 minutes, conditions normales.",
+         "Recommencer en modifiant un facteur : lampe, ventilateur, sac plastique."],
+ resultat:"La bulle avance plus vite sous la lampe ou au courant d'air, plus lentement dans l'atmosphère saturée du sac.",
+ secu:"Montage fragile : serrer sans forcer."},
+
+{id:'cobalt', t:"Localisation de la transpiration (chlorure de cobalt)", p:'V', ref:'V — 5.2', pg:146,
+ duree:25, niveau:'Seconde', sim:null,
+ principe:"Le papier au chlorure de cobalt est bleu à sec et rose humide : appliqué sur les deux faces d'une feuille, il révèle où l'eau sort.",
+ mat:[['cocl2',2],['lame',2],['ruban',1],['chrono',1],['pince',1],['lierre',1],['etuve',1],['regle',1]],
+ etapes:["Sécher les papiers à l'étuve jusqu'au bleu franc.",
+         "En appliquer un sur chaque face d'une même feuille, maintenus entre deux lames.",
+         "Déclencher le chronomètre.",
+         "Noter le temps de virage de chaque face."],
+ resultat:"La face inférieure rosit bien plus vite : c'est là que se trouvent la plupart des stomates.",
+ secu:"Les sels de cobalt sont toxiques : ne pas manipuler à mains nues, ne pas jeter à l'évier."},
+
+{id:'empreintes', t:"Empreintes stomatiques", p:'V', ref:'V — 5.3 et 5.4', pg:147,
+ duree:30, niveau:'Seconde', sim:'histologie',
+ principe:"Le vernis durci garde l'empreinte exacte de la surface de la feuille : on observe les stomates sans abîmer la plante et on peut les compter.",
+ mat:[['vernis',1],['ruban',1],['lame',3],['lamelle',3],['microscope',1],['pince',1],['lierre',1],['laurier',1],['regle',1]],
+ etapes:["Étaler une fine couche de vernis sur la face inférieure d'une feuille.",
+         "Laisser sécher 10 minutes.",
+         "Décoller le film avec du ruban adhésif et le coller sur une lame.",
+         "Observer et compter les stomates dans plusieurs champs."],
+ resultat:"Les stomates apparaissent en relief, chacun formé de deux cellules de garde en haricot ; leur densité varie selon l'espèce et la face.",
+ secu:"Vernis : salle aérée."},
+
+{id:'dixon', t:"Circulation de l'eau dans la plante", p:'V', ref:'V — 6.1 et 6.2', pg:150,
+ duree:30, niveau:'Seconde', sim:'histologie',
+ principe:"Un colorant ajouté à l'eau d'arrosage suit exactement le trajet de la sève brute : il marque les vaisseaux du xylème.",
+ mat:[['becher',2],['eosine',10],['celeri',1],['scalpel',1],['lame',2],['lamelle',2],['microscope',1],['loupe',1],['regle',1],['ciseaux',1]],
+ etapes:["Couper la base de la branche sous l'eau et la placer dans l'eau colorée.",
+         "Laisser 1 à 2 heures à la lumière.",
+         "Couper des tronçons à différentes hauteurs.",
+         "Observer les sections à la loupe puis au microscope."],
+ resultat:"Des points rouges alignés dans les faisceaux : seuls les vaisseaux du xylème conduisent la sève brute.",
+ secu:"Rien de particulier."},
+
+/* ---------------- VI — Morphogenèse ---------------- */
+{id:'germination-exao', t:"Vie ralentie et vie active (ExAO-oxygraphe)", p:'VI', ref:'VI — 1.4', pg:170,
+ duree:40, niveau:'Première', sim:'exao',
+ principe:"La graine sèche respire à peine ; l'imbibition réveille le métabolisme et la consommation d'O₂ devient mesurable.",
+ mat:[['exao_o2',1],['enceinte',1],['balance',1],['chrono',1],['lentilles',1],['germes',1],['petri',2],['coton',1],['eau_distillee',40],['boite_noire',1]],
+ etapes:["Mettre des graines à imbiber 24 h à l'avance, en garder des sèches.",
+         "Placer une masse connue de graines sèches dans l'enceinte, enregistrer 5 minutes.",
+         "Recommencer avec les graines imbibées, puis avec des graines germées.",
+         "Comparer les pentes rapportées à la masse."],
+ resultat:"La consommation d'O₂ augmente fortement de la graine sèche à la graine germée : la germination est une reprise de vie active.",
+ secu:"Rien de particulier."},
+
+{id:'sucres-germination', t:"Apparition de sucres réducteurs à la germination", p:'VI', ref:'VI — 1.5 et 1.6', pg:170,
+ duree:40, niveau:'Première', sim:'biochimie',
+ principe:"L'amidon de l'albumen est hydrolysé par les amylases fabriquées au cours de la germination : l'amidon disparaît, les sucres réducteurs apparaissent.",
+ mat:[['tube',6],['portoir',1],['mortier',1],['bain_marie',1],['pipette',3],['lugol',6],['fehling',8],['ble',1],['germes',1],['petri',2],['entonnoir',1],['papier_filtre',2]],
+ etapes:["Broyer séparément des grains secs et des grains germés depuis 3 jours.",
+         "Filtrer les deux broyats.",
+         "Tester chaque filtrat au lugol.",
+         "Tester chaque filtrat à la liqueur de Fehling, à chaud."],
+ resultat:"Grain sec : lugol positif, Fehling négatif. Grain germé : lugol de plus en plus faible, Fehling nettement positif.",
+ secu:"Liqueur de Fehling corrosive, bain-marie bouillant."},
+
+{id:'gravitropisme', t:"Mise en évidence du gravitropisme", p:'VI', ref:'VI — 7.1 à 7.3', pg:196,
+ duree:25, niveau:'Seconde', sim:null,
+ principe:"Quelle que soit leur orientation de départ, la tige pousse vers le haut et la racine vers le bas : la plante perçoit la pesanteur.",
+ mat:[['petri',4],['coton',1],['lentilles',1],['epingles',1],['liege',1],['boite_noire',1],['ruban',1],['marqueur',1],['camera',1],['clinostat',1]],
+ etapes:["Faire germer des graines sur coton humide jusqu'à 1 cm de racine.",
+         "Les fixer dans des boîtes en orientant les radicules dans quatre directions différentes.",
+         "Placer les boîtes à l'obscurité, à la verticale ; en monter une sur clinostat.",
+         "Observer après 24 et 48 heures, photographier."],
+ resultat:"Toutes les racines s'incurvent vers le bas et les tiges vers le haut, sauf sur le clinostat où la stimulation est annulée.",
+ secu:"Rien de particulier. Prévoir la mise en culture une semaine à l'avance."},
+
+{id:'phototropisme', t:"Mise en évidence du phototropisme", p:'VI', ref:'VI — 7.5', pg:200,
+ duree:25, niveau:'Seconde', sim:null,
+ principe:"Éclairé d'un seul côté, le coléoptile s'incurve vers la lumière ; la perception a lieu dans l'apex, la courbure plus bas.",
+ mat:[['pots',2],['terreau',1],['avoine',1],['boite_noire',1],['lampe',1],['alu',1],['ciseaux',1],['regle',1],['camera',1]],
+ etapes:["Semer l'avoine et laisser pousser les coléoptiles à l'obscurité.",
+         "Préparer trois lots : intact, apex coupé, apex coiffé d'aluminium.",
+         "Éclairer latéralement pendant 24 heures.",
+         "Mesurer l'angle de courbure de chaque lot."],
+ resultat:"Seuls les coléoptiles à apex intact et découvert s'incurvent : c'est l'apex qui perçoit la lumière.",
+ secu:"Rien de particulier. Semis à préparer 6 à 8 jours avant."},
+
+{id:'etiolement', t:"Étiolement et rôle de la lumière", p:'VI', ref:'VI — 3.3 et 3.4', pg:181,
+ duree:20, niveau:'Seconde', sim:null,
+ principe:"À l'obscurité, la tige s'allonge démesurément, reste pâle et les feuilles ne se développent pas : la lumière freine l'élongation et déclenche le verdissement.",
+ mat:[['pots',4],['terreau',1],['cresson',1],['boite_noire',1],['regle',1],['lampe',1],['marqueur',1],['camera',1]],
+ etapes:["Semer deux lots identiques de graines.",
+         "Placer l'un à la lumière, l'autre dans une boîte opaque.",
+         "Arroser de la même façon pendant une semaine.",
+         "Mesurer la longueur des tiges et comparer la couleur."],
+ resultat:"Les plants d'obscurité sont plus longs, grêles et jaunes ; exposés ensuite à la lumière, ils verdissent en quelques heures.",
+ secu:"Rien de particulier. Culture à lancer une semaine avant."},
+
+{id:'dominance', t:"Dominance apicale", p:'VI', ref:'VI — 4.1 à 4.3', pg:187,
+ duree:25, niveau:'Première', sim:null,
+ principe:"Le bourgeon terminal inhibe le développement des bourgeons axillaires. Sa suppression lève l'inhibition, sauf si on remplace l'auxine qu'il fournissait.",
+ mat:[['pots',3],['terreau',1],['pelargonium',3],['ciseaux',1],['aia',3],['vaseline',5],['regle',1],['marqueur',1],['camera',1]],
+ etapes:["Choisir trois plants comparables.",
+         "Plant 1 : témoin intact. Plant 2 : apex sectionné. Plant 3 : apex sectionné puis lanoline additionnée d'auxine sur la section.",
+         "Cultiver dans les mêmes conditions.",
+         "Mesurer le développement des bourgeons axillaires après 10 à 15 jours."],
+ resultat:"Les bourgeons axillaires ne démarrent que sur le plant décapité sans auxine : l'auxine de l'apex les inhibait.",
+ secu:"Manipuler l'auxine avec des gants. Expérience longue, à lancer très en avance."},
+
+/* ---------------- VII — Reproduction ---------------- */
+{id:'fleur', t:"Dissection florale", p:'VII', ref:'VII — 1.1 à 1.5', pg:207,
+ duree:40, niveau:'Seconde', sim:null,
+ principe:"Le diagramme floral traduit l'organisation en verticilles : sépales, pétales, étamines, carpelles, de l'extérieur vers le centre.",
+ mat:[['loupe',1],['pince',1],['aiguille',1],['scalpel',1],['ruban',1],['fleurs',2],['lame',2],['regle',1],['petri',2]],
+ etapes:["Détacher les pièces florales une à une, de l'extérieur vers l'intérieur.",
+         "Les coller dans l'ordre sur une feuille : c'est le diagramme étalé.",
+         "Compter les pièces de chaque verticille.",
+         "Couper l'ovaire en travers et observer les ovules à la loupe."],
+ resultat:"Chez la renoncule, pièces libres et nombreuses ; chez la tulipe, tépales par trois : l'organisation trahit le groupe.",
+ secu:"Objets pointus."},
+
+{id:'pollen', t:"Germination du grain de pollen", p:'VII', ref:'VII — 2.1 et 2.3', pg:213,
+ duree:45, niveau:'Première', sim:null,
+ principe:"Dans un milieu sucré convenable, le grain de pollen émet son tube pollinique : on assiste au début de la fécondation.",
+ mat:[['lame',3],['lamelle',3],['microscope',1],['pince',1],['pipette',2],['petri',2],['saccharose_sol',10],['anthere',2],['etuve',1],['coton',1],['chrono',1]],
+ etapes:["Préparer le milieu : saccharose à 10 % additionné d'une trace d'acide borique.",
+         "Déposer une goutte sur une lame et y secouer les anthères mûres.",
+         "Placer la lame en chambre humide à 25 °C.",
+         "Observer toutes les 15 minutes pendant une heure."],
+ resultat:"Les grains gonflent puis émettent un tube pollinique qui s'allonge visiblement d'une observation à l'autre.",
+ secu:"Rien de particulier ; attention aux allergies au pollen."},
+
+{id:'meiose', t:"Observation de la méiose dans les anthères", p:'VII', ref:'VII — 2.2', pg:214,
+ duree:45, niveau:'Terminale', sim:null,
+ principe:"Dans un jeune bouton floral, toutes les étapes de la méiose sont présentes simultanément : l'écrasement et la coloration des noyaux les rendent visibles.",
+ mat:[['lame',4],['lamelle',4],['microscope',1],['pince',1],['aiguille',1],['papier_filtre',4],['hcl',3],['carmin',3],['anthere',3],['bain_marie',1],['verre_montre',2]],
+ etapes:["Prélever de très jeunes anthères, les fixer si besoin.",
+         "Les hydrolyser brièvement à l'acide chlorhydrique tiède.",
+         "Colorer au carmin acétique, puis écraser doucement sous la lamelle.",
+         "Rechercher les différentes phases au fort grossissement."],
+ resultat:"On retrouve prophase, métaphase, anaphase et les tétrades de cellules filles : deux divisions successives pour une seule réplication.",
+ secu:"Acide dilué chaud : gants et lunettes."},
+
+/* ---------------- VIII — Multiplication végétative ---------------- */
+{id:'bulbe', t:"Anatomie d'un bulbe d'oignon", p:'VIII', ref:'VIII — 1.1', pg:234,
+ duree:30, niveau:'Seconde', sim:null,
+ principe:"Le bulbe est une tige très courte portant des feuilles de réserve : la coupe longitudinale rend l'organisation évidente.",
+ mat:[['scalpel',1],['loupe',1],['lame',2],['lamelle',2],['microscope',1],['pince',1],['lugol',3],['oignon',2],['petri',2],['regle',1]],
+ etapes:["Couper le bulbe en deux selon un plan longitudinal.",
+         "Repérer le plateau, les écailles charnues, le bourgeon central et les racines.",
+         "Prélever un épiderme d'écaille et le monter entre lame et lamelle.",
+         "Tester une écaille au lugol."],
+ resultat:"Les écailles sont des feuilles de réserve insérées sur un plateau qui est une tige ; les réserves y sont surtout des sucres solubles, non de l'amidon.",
+ secu:"Vapeurs irritantes : aérer."},
+
+{id:'bouture', t:"Boutures de pélargonium", p:'VIII', ref:'VIII — 4.1', pg:248,
+ duree:30, niveau:'Seconde', sim:null,
+ principe:"Un fragment de tige peut régénérer des racines : la multiplication végétative donne des individus génétiquement identiques au pied mère.",
+ mat:[['pelargonium',1],['ciseaux',1],['pots',4],['terreau',1],['aia',2],['sac',1],['marqueur',1],['regle',1],['becher',2]],
+ etapes:["Prélever des fragments de tige portant deux à trois nœuds.",
+         "Supprimer les feuilles du bas ; tremper la moitié des boutures dans l'hormone.",
+         "Planter dans le terreau humide, couvrir d'un sac pour limiter l'évaporation.",
+         "Comparer l'enracinement des deux lots au bout de trois semaines."],
+ resultat:"Les boutures traitées à l'auxine s'enracinent plus vite et plus abondamment : l'auxine favorise la rhizogenèse.",
+ secu:"Gants pour l'hormone de bouturage."},
+
+{id:'protoplastes', t:"Isolement enzymatique de protoplastes", p:'VIII', ref:'VIII — 5.2 et 5.4', pg:252,
+ duree:90, niveau:'Terminale', sim:null,
+ principe:"Cellulase et pectinase digèrent la paroi : il reste des cellules nues, sphériques, dont la survie dépend entièrement de l'équilibre osmotique du milieu.",
+ mat:[['petri',3],['pince',1],['rasoir',1],['etuve',1],['centri',1],['hemolyse',4],['pipette',3],['lame',3],['lamelle',3],['microscope',1],['cellulase',5],['gamme_sacch',20],['lierre',2],['eau_distillee',10]],
+ etapes:["Découper des fragments de limbe débarrassés de leur épiderme inférieur.",
+         "Les incuber dans le mélange d'enzymes en milieu osmotiquement protégé, 1 h à 30 °C.",
+         "Filtrer doucement, centrifuger lentement, laver le culot.",
+         "Observer, puis ajouter une goutte d'eau distillée sur la lame."],
+ resultat:"Des sphères vertes parfaitement rondes ; dans l'eau distillée, elles éclatent : c'est la paroi qui protège habituellement la cellule.",
+ secu:"Les enzymes sont allergisantes : gants, éviter les poussières."},
+
+{id:'multiplication', t:"Multiplication végétative naturelle", p:'VIII', ref:'VIII — 3.1 à 3.4', pg:245,
+ duree:35, niveau:'Seconde', sim:null,
+ principe:"Stolons, bulbilles, fragments de tige : de nombreuses plantes se reproduisent sans graine, en donnant des clones.",
+ mat:[['loupe',1],['petri',3],['pots',3],['terreau',1],['ciseaux',1],['elodee',1],['pelargonium',1],['oignon',1],['becher',2],['regle',1],['camera',1]],
+ etapes:["Observer les organes de multiplication de plusieurs espèces (stolon, bulbille, rhizome, fragment d'élodée).",
+         "Mettre chacun en culture dans les conditions adaptées.",
+         "Photographier chaque semaine.",
+         "Comparer les descendants au pied mère."],
+ resultat:"Chaque fragment donne un individu complet, strictement identique au pied d'origine : il s'agit d'un clone.",
+ secu:"Rien de particulier. Suivi sur plusieurs semaines."}
+];
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PRÉPARER UNE MANIP — interface
+   Deux sens de lecture : la manip donne le matériel, ou le matériel
+   disponible donne les manips possibles. Le panier agrège plusieurs fiches
+   en une seule liste de courses, comme une liste de courses de recettes.
+   ========================================================================== */
+const PLACARD_TYPE = ['tube','portoir','hemolyse','becher','becher250','erlen','eprouvette','pipette',
+ 'pipette_grad','entonnoir','petri','lame','lamelle','verre_montre','mortier','baguette','godets','bouchon',
+ 'microscope','loupe','balance','bain_marie','plaque','frigo','lampe','chrono','thermo','ph_metre',
+ 'rasoir','scalpel','pince','aiguille','ciseaux','pinceau','regle','marqueur','gants','lunettes',
+ 'lugol','fehling','biuret','soudan','ethanol','hcl','naoh','eau_chaux','bicarbonate','glucose_sol',
+ 'saccharose_sol','amidon_sol','h2o2','eau_distillee','bleu_methylene','huile',
+ 'papier_filtre','coton','alu','ruban','sac','ficelle','pots','terreau','boite_noire','epingles',
+ 'whatman','cuve_chromato','capillaire_depot','moelle','verre_montre',
+ 'oignon','pdt','lentilles','ble','farine','levure','elodee','epinard','lierre','haricot','navet','chou'];
+
+(function preparer(){
+  const CLE_PLACARD = 'labo-vegetal-placard', CLE_PANIER = 'labo-vegetal-panier';
+  let mode = 'recette', fiche = null, panier = [], inventaire = new Set(), postes = 8;
+  const sansAcc = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+
+  try { inventaire = new Set(JSON.parse(localStorage.getItem(CLE_PLACARD) || '[]')); } catch(e){}
+  try { panier = JSON.parse(localStorage.getItem(CLE_PANIER) || '[]'); } catch(e){}
+  try { postes = borne(+localStorage.getItem('labo-vegetal-postes') || 8, 1, 20); } catch(e){}
+  const garde = () => {
+    try {
+      localStorage.setItem(CLE_PLACARD, JSON.stringify([...inventaire]));
+      localStorage.setItem(CLE_PANIER, JSON.stringify(panier));
+      localStorage.setItem('labo-vegetal-postes', String(postes));
+    } catch(e){}
+  };
+
+  /* ---------- agrégation du matériel ---------- */
+  function agrege(ids, n){
+    const total = {};
+    ids.forEach(id => {
+      const f = FICHES.find(x => x.id === id); if(!f) return;
+      f.mat.forEach(([m,q]) => {
+        const it = MATOS[m]; if(!it) return;
+        const v = it.part ? 1 : q*n;
+        total[m] = it.part ? Math.max(total[m] || 0, 1) : (total[m] || 0) + v;
+      });
+    });
+    const parCat = {};
+    Object.keys(total).forEach(m => {
+      const it = MATOS[m];
+      (parCat[it.c] = parCat[it.c] || []).push({
+        nom: it.n, q: total[m], u: it.u || '', part: !!it.part
+      });
+    });
+    Object.values(parCat).forEach(l => l.sort((a,b) => a.nom.localeCompare(b.nom,'fr')));
+    return parCat;
+  }
+  const qte = o => o.part ? '1' :
+    (Math.round(o.q*10)/10).toLocaleString('fr-FR') + (o.u ? ' ' + o.u : ' ×');
+  const ligne = o => '<b>' + qte(o) + '</b> ' + o.nom +
+    (o.part ? ' <span style="color:var(--gris-clair)">(pour la classe)</span>' : '');
+  function htmlMateriel(ids, n){
+    const parCat = agrege(ids, n);
+    const ordre = ['bio','reactif','verre','instr','decoupe','conso'];
+    return ordre.filter(c => parCat[c]).map(c =>
+      '<div style="margin-bottom:12px"><div class="badge orange" style="margin-bottom:7px">' + CAT[c] + '</div>' +
+      '<ul style="display:grid; gap:4px; font-size:13px">' +
+      parCat[c].map(o => '<li style="display:flex; gap:8px"><span style="color:var(--accent-clair)">•</span><span>' +
+        ligne(o) + '</span></li>').join('') + '</ul></div>').join('');
+  }
+
+  /* ---------- liste des fiches ---------- */
+  function renduListe(){
+    const q = sansAcc($('#pr-q').value.trim()), pa = $('#pr-partie').value, dmax = +$('#pr-duree').value;
+    const l = FICHES.filter(f =>
+      (!pa || f.p === pa) && f.duree <= dmax &&
+      (!q || sansAcc(f.t + ' ' + f.principe + ' ' + f.ref).includes(q)));
+    $('#pr-liste').innerHTML = l.length ? l.map(f =>
+      '<div class="exp" style="padding:9px 12px; gap:8px">' +
+      '<button class="btn mini" data-fiche="' + f.id + '" style="flex:1; display:block; text-align:left; border:none; background:none; padding:0">' +
+      '<span style="font-size:13.5px; font-weight:500">' + f.t + '</span><br>' +
+      '<span style="font-size:11px; color:var(--gris-clair)">' + f.ref + ' · p. ' + f.pg + ' · ' +
+      f.duree + ' min · ' + f.niveau + '</span></button>' +
+      '<button class="btn mini" data-panier="' + f.id + '" title="Ajouter au panier">+</button></div>').join('')
+      : '<p style="font-size:13px; color:var(--gris)">Aucune manipulation ne correspond à ces filtres.</p>';
+  }
+
+  /* ---------- fiche détaillée ---------- */
+  function ouvre(id){
+    fiche = FICHES.find(f => f.id === id); if(!fiche) return;
+    const dansPanier = panier.includes(id);
+    $('#pr-fiche').innerHTML =
+      '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">' +
+        '<span class="badge orange">' + fiche.ref + ' · p. ' + fiche.pg + '</span>' +
+        '<span class="badge bleu">' + fiche.duree + ' min</span>' +
+        '<span class="badge vert">' + fiche.niveau + '</span>' +
+      '</div>' +
+      '<h3 style="font-size:19px">' + fiche.t + '</h3>' +
+      '<p style="font-size:13px; color:var(--gris); margin:8px 0 16px">' + fiche.principe + '</p>' +
+
+      '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px">' +
+        '<b style="font-size:14px">Matériel</b>' +
+        '<label style="font-size:12px; color:var(--gris)">pour ' +
+        '<input type="number" id="pr-postes-fiche" value="' + postes + '" min="1" max="20" style="width:64px; display:inline-block; padding:3px 6px"> postes</label>' +
+      '</div>' +
+      '<div id="pr-mat-fiche">' + htmlMateriel([id], postes) + '</div>' +
+
+      '<b style="font-size:14px">Protocole</b>' +
+      '<ol style="margin:8px 0 16px 18px; font-size:13px; display:grid; gap:6px">' +
+      fiche.etapes.map(e => '<li>' + e + '</li>').join('') + '</ol>' +
+
+      '<div class="note"><b>Résultat attendu.</b> ' + fiche.resultat + '</div>' +
+      '<div class="note" style="border-left-color:var(--rouge)"><b>Sécurité.</b> ' + fiche.secu + '</div>' +
+
+      '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px" class="no-print">' +
+        '<button class="btn ' + (dansPanier ? '' : 'primaire') + '" id="pr-add">' +
+        (dansPanier ? 'Déjà dans le panier' : 'Ajouter au panier') + '</button>' +
+        (fiche.sim ? '<button class="btn" data-va="' + fiche.sim + '">Simuler cette manip</button>' : '') +
+        '<button class="btn" id="pr-fiche-print">Imprimer la fiche</button>' +
+      '</div>';
+
+    $('#pr-postes-fiche').addEventListener('input', e => {
+      postes = borne(+e.target.value || 1, 1, 20);
+      $('#pr-postes').value = postes;
+      $('#pr-mat-fiche').innerHTML = htmlMateriel([id], postes);
+      renduPanier();
+    });
+    $('#pr-add').addEventListener('click', () => ajoute(id));
+    $('#pr-fiche-print').addEventListener('click', () => imprime([id], fiche.t));
+  }
+
+  /* ---------- panier ---------- */
+  function ajoute(id){
+    if(!panier.includes(id)) panier.push(id);
+    garde(); renduPanier(); if(fiche && fiche.id === id) ouvre(id);
+  }
+  function renduPanier(){
+    $('#pr-panier-carte').style.display = panier.length ? '' : 'none';
+    if(!panier.length) return;
+    $('#pr-panier-sous').textContent = panier.length + ' manipulation' + (panier.length>1?'s':'') +
+      ' · matériel calculé pour ' + postes + ' poste' + (postes>1?'s':'');
+    $('#pr-panier').innerHTML =
+      '<div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px">' +
+      panier.map(id => { const f = FICHES.find(x => x.id === id);
+        return '<span class="badge" style="background:var(--accent-pale); color:var(--accent); font-size:11.5px; ' +
+          'text-transform:none; letter-spacing:0; padding:5px 10px">' + f.t +
+          ' <button data-retire="' + id + '" style="border:none; background:none; color:var(--accent); font-weight:700; cursor:pointer" title="Retirer">×</button></span>';
+      }).join('') + '</div>' + htmlMateriel(panier, postes);
+  }
+  $('#pr-panier').addEventListener('click', e => {
+    const b = e.target.closest('[data-retire]'); if(!b) return;
+    panier = panier.filter(x => x !== b.dataset.retire); garde(); renduPanier();
+    if(fiche) ouvre(fiche.id);
+  });
+  $('#pr-postes').addEventListener('input', e => {
+    postes = borne(+e.target.value || 1, 1, 20);
+    renduPanier(); if(fiche) ouvre(fiche.id);
+  });
+  $('#pr-vider').addEventListener('click', () => { panier = []; garde(); renduPanier(); if(fiche) ouvre(fiche.id); });
+
+  /* ---------- impression et export ---------- */
+  function texte(ids){
+    const parCat = agrege(ids, postes), ordre = ['bio','reactif','verre','instr','decoupe','conso'];
+    const l = ['LISTE DE MATÉRIEL — laboratoire de SVT',
+               ids.map(id => FICHES.find(f => f.id === id).t).join(' + '),
+               'Pour ' + postes + ' poste(s)', ''];
+    ordre.filter(c => parCat[c]).forEach(c => {
+      l.push('— ' + CAT[c].toUpperCase() + ' —');
+      parCat[c].forEach(o => l.push('  [ ] ' + qte(o) + '  ' + o.nom + (o.part ? ' (classe)' : '')));
+      l.push('');
+    });
+    return l.join('\n');
+  }
+  function imprime(ids, titre){
+    const f = window.open('', '_blank');
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer."); return; }
+    const parCat = agrege(ids, postes), ordre = ['bio','reactif','verre','instr','decoupe','conso'];
+    const fiches = ids.map(id => FICHES.find(x => x.id === id));
+    f.document.write('<meta charset="utf-8"><title>' + titre + '</title>' +
+      '<style>body{font:13px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.6cm auto;color:#23201c}' +
+      'h1{font-size:18px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#b15f2c;' +
+      'text-transform:uppercase;letter-spacing:.05em} .s{color:#7d776c;font-size:12px}' +
+      'ul{margin:0;padding-left:0;list-style:none} li{padding:2px 0}' +
+      '.case{display:inline-block;width:11px;height:11px;border:1px solid #999;margin-right:8px;vertical-align:-1px}' +
+      'ol{padding-left:18px} .p{break-inside:avoid;margin-top:16px}</style>' +
+      '<h1>' + titre + '</h1><p class="s">Matériel pour ' + postes + ' poste(s) — ' +
+      fiches.map(x => x.ref + ' p. ' + x.pg).join(' · ') + '</p>' +
+      ordre.filter(c => parCat[c]).map(c => '<h2>' + CAT[c] + '</h2><ul>' +
+        parCat[c].map(o => '<li><span class="case"></span>' + qte(o) + ' &nbsp;' + o.nom +
+          (o.part ? ' (classe)' : '') + '</li>').join('') + '</ul>').join('') +
+      (fiches.length === 1 ? '<div class="p"><h2>Protocole</h2><ol>' +
+        fiches[0].etapes.map(e => '<li>' + e + '</li>').join('') + '</ol>' +
+        '<p><b>Résultat attendu.</b> ' + fiches[0].resultat + '</p>' +
+        '<p><b>Sécurité.</b> ' + fiches[0].secu + '</p></div>' : ''));
+    f.document.close(); f.focus(); setTimeout(() => f.print(), 250);
+  }
+  $('#pr-imprimer').addEventListener('click', () => imprime(panier, 'Liste de courses de la séance'));
+  $('#pr-txt').addEventListener('click', () => telecharge('liste-materiel.txt', texte(panier)));
+
+  /* ---------- inventaire ---------- */
+  const UTILISES = new Set(); FICHES.forEach(f => f.mat.forEach(([m]) => UTILISES.add(m)));
+  function renduInventaire(){
+    const ordre = ['bio','reactif','verre','instr','decoupe','conso'];
+    $('#pr-inventaire').innerHTML = ordre.map((c,i) => {
+      const items = Object.keys(MATOS).filter(m => MATOS[m].c === c && UTILISES.has(m))
+        .sort((a,b) => MATOS[a].n.localeCompare(MATOS[b].n,'fr'));
+      const n = items.filter(m => inventaire.has(m)).length;
+      return '<details' + (i < 2 ? ' open' : '') + ' style="border-bottom:1px solid var(--ligne); padding:8px 0">' +
+        '<summary style="cursor:pointer; font-size:13px; font-weight:600">' + CAT[c] +
+        ' <span style="color:var(--gris-clair); font-weight:400">(' + n + '/' + items.length + ')</span></summary>' +
+        '<div style="display:grid; gap:3px; margin-top:8px">' + items.map(m =>
+          '<label style="display:flex; gap:9px; align-items:center; font-size:12.5px; cursor:pointer">' +
+          '<input type="checkbox" data-item="' + m + '"' + (inventaire.has(m) ? ' checked' : '') +
+          ' style="accent-color:var(--accent)">' + MATOS[m].n + '</label>').join('') + '</div></details>';
+    }).join('');
+  }
+  $('#pr-inventaire').addEventListener('change', e => {
+    const c = e.target.closest('[data-item]'); if(!c) return;
+    if(c.checked) inventaire.add(c.dataset.item); else inventaire.delete(c.dataset.item);
+    garde(); renduPossibles();
+    $$('#pr-inventaire details').forEach(d => {           /* met à jour les compteurs sans tout redessiner */
+      const tot = $$('input[data-item]', d).length, n = $$('input[data-item]:checked', d).length;
+      $('summary span', d).textContent = '(' + n + '/' + tot + ')';
+    });
+  });
+  const majTout = val => { Object.keys(MATOS).forEach(m => val ? inventaire.add(m) : inventaire.delete(m));
+    garde(); renduInventaire(); renduPossibles(); };
+  $('#pr-tout').addEventListener('click', () => majTout(true));
+  $('#pr-rien').addEventListener('click', () => majTout(false));
+  $('#pr-preset').addEventListener('click', () => {
+    inventaire = new Set(PLACARD_TYPE); garde(); renduInventaire(); renduPossibles();
+  });
+
+  function renduPossibles(){
+    const avec = FICHES.map(f => ({f, manque: f.mat.map(([m]) => m).filter(m => !inventaire.has(m))}));
+    const pretes = avec.filter(x => !x.manque.length);
+    const presque = avec.filter(x => x.manque.length && x.manque.length <= 2)
+                        .sort((a,b) => a.manque.length - b.manque.length);
+    $('#pr-bilan').textContent = inventaire.size
+      ? pretes.length + ' manipulation' + (pretes.length>1?'s':'') + ' réalisable' + (pretes.length>1?'s':'') +
+        ' avec ' + inventaire.size + ' références cochées.'
+      : 'Cochez du matériel pour voir apparaître les manipulations.';
+    const carte = (x, manque) =>
+      '<div class="exp" style="padding:10px 12px; display:block">' +
+      '<button class="btn mini" data-fiche="' + x.f.id + '" style="display:block; border:none; background:none; padding:0; text-align:left">' +
+      '<span style="font-size:13.5px; font-weight:500">' + x.f.t + '</span></button>' +
+      '<div style="font-size:11px; color:var(--gris-clair); margin-top:2px">' + x.f.ref + ' · p. ' + x.f.pg +
+      ' · ' + x.f.duree + ' min · ' + x.f.niveau + '</div>' +
+      (manque ? '<div style="margin-top:7px; font-size:11.5px">Il manque : ' + x.manque.map(m =>
+        '<span class="badge" style="background:#fbe4e0; color:var(--rouge); text-transform:none; letter-spacing:0">' +
+        MATOS[m].n + '</span>').join(' ') + '</div>' : '') + '</div>';
+    $('#pr-possibles').innerHTML =
+      (pretes.length ? '<div class="partie-titre" style="margin-top:6px">Réalisables tout de suite</div>' +
+        '<div style="display:grid; gap:6px">' + pretes.map(x => carte(x,false)).join('') + '</div>' : '') +
+      (presque.length ? '<div class="partie-titre">À une ou deux références près</div>' +
+        '<div style="display:grid; gap:6px">' + presque.slice(0,12).map(x => carte(x,true)).join('') + '</div>' : '') +
+      (!pretes.length && !presque.length ? '<p style="font-size:13px; color:var(--gris)">' +
+        'Rien de réalisable pour l\'instant. Essayez le bouton « Placard type de lycée ».</p>' : '');
+  }
+
+  /* ---------- navigation interne ---------- */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-fiche]');
+    if(b){
+      if(mode !== 'recette'){ mode = 'recette'; majMode(); }
+      ouvre(b.dataset.fiche);
+      $('#pr-fiche').scrollIntoView({behavior:'smooth', block:'nearest'});
+      return;
+    }
+    const a = e.target.closest('[data-panier]');
+    if(a){ ajoute(a.dataset.panier); a.textContent = '✓'; setTimeout(() => a.textContent = '+', 900); }
+  });
+  function majMode(){
+    $$('#pr-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === mode)));
+    $('#pr-recette').style.display = mode === 'recette' ? '' : 'none';
+    $('#pr-placard').style.display = mode === 'placard' ? '' : 'none';
+    if(mode === 'placard'){ renduInventaire(); renduPossibles(); }
+  }
+  segment($('#pr-mode'), d => { mode = d.m; majMode(); });
+  $('#pr-q').addEventListener('input', renduListe);
+  $('#pr-partie').addEventListener('change', renduListe);
+  $('#pr-duree').addEventListener('input', () => {
+    const v = +$('#pr-duree').value;
+    $('#pr-duree-v').textContent = v >= 120 ? '2 h' : v >= 60 ? Math.floor(v/60) + ' h ' + (v%60 ? v%60 + ' min' : '') : v + ' min';
+    renduListe();
+  });
+
+  $('#pr-postes').value = postes;
+  renduListe(); renduPanier();
+  Labo.surAffichage.preparer = () => { renduListe(); renduPanier(); };
 })();
 </script>
 
