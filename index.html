@@ -102,6 +102,11 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 #hdr nav.primary{ display:none }
 #hdr nav.primary ul{ display:flex; gap:2rem; font-size:.875rem; font-weight:500 }
 #hdr nav.primary button > span{ display:inline-flex; align-items:center; gap:.25rem; opacity:.8 }
+#hdr nav.primary a > span{ display:inline-flex; align-items:center; gap:.25rem; opacity:.8 }
+/* L'onglet du laboratoire virtuel est signalé par un point accentué. */
+.labo-nav > span{ opacity:1 !important; color:#b15f2c; font-weight:600 }
+.labo-nav > span::before{ content:''; width:.375rem; height:.375rem; border-radius:9999px;
+  background:#b15f2c; display:inline-block; margin-right:.125rem }
 #hdr nav.primary .caret{ font-size:.75rem; opacity:.6 }
 .hdr-right{ display:flex; align-items:center; gap:.75rem }
 .clockchip{ display:none; align-items:center; gap:.75rem; border:1px solid rgba(230,229,226,.8); background:rgba(255,255,255,.4);
@@ -518,6 +523,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
             <li><button data-nav="contact">Me contacter</button></li>
           </ul>
         </li>
+        <li><a class="labo-nav" href="outils/labo_vegetal.html"><span>Labo</span></a></li>
         <li><button data-nav="works"><span>Ressources</span></button></li>
         <li><button data-nav="contact"><span>Contact</span></button></li>
       </ul>
@@ -1486,6 +1492,7 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 (function(){
   const NAV = [
     { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' },
+    { label:'Labo virtuel', href:'outils/labo_vegetal.html' }, 
     { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];
   const menu = document.getElementById('navmenu');
