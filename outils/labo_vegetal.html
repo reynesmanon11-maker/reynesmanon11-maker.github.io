@@ -173,8 +173,33 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 #en-graphe,#en-gamme,#en-serie,#en-defi,#hi-coupe{ width:100% }
 /* Ces deux-là ont une largeur fixe : elle doit venir du CSS, jamais de
    l'attribut width, que le tracé réécrit. */
+/* Hauteur explicite pour les graphiques des défis : tant qu'aucun défi n'a été
+   tracé, le canvas n'a pas d'attribut width et prendrait un format 300×270
+   étiré sur toute la largeur. */
+#ex-defi{ height:270px } #en-defi{ height:250px }
 #bio-tube{ width:180px; height:270px }
 #pi-chromo{ width:200px; height:400px }
+
+/* ---------- cartes et sections repliables ---------- */
+.pli > summary, .partie-pli > summary{ list-style:none; cursor:pointer; display:flex;
+  align-items:baseline; gap:10px }
+.pli > summary::-webkit-details-marker, .partie-pli > summary::-webkit-details-marker{ display:none }
+.pli > summary::after{ content:'▾'; margin-left:auto; color:var(--gris-clair); font-size:12px;
+  transition:transform .2s }
+.pli:not([open]) > summary::after{ transform:rotate(-90deg) }
+.pli:not([open]) > summary{ margin-bottom:0 }
+/* Le masquage natif d'un <details> fermé vient de la feuille de style du
+   navigateur : la règle d'auteur canvas{display:block} l'emportait et laissait
+   dépasser les graphiques. On masque donc explicitement. */
+.pli:not([open]) > *:not(summary){ display:none !important }
+.partie-pli{ border-bottom:1px solid var(--ligne) }
+.partie-pli > summary{ padding:11px 2px; font-size:13px; font-weight:600; color:var(--gris);
+  text-transform:uppercase; letter-spacing:.05em }
+.partie-pli > summary::after{ content:'▾'; margin-left:auto; font-size:11px; color:var(--gris-clair);
+  transition:transform .2s }
+.partie-pli:not([open]) > summary::after{ transform:rotate(-90deg) }
+.partie-pli > summary:hover{ color:var(--accent) }
+.partie-pli .compte{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--gris-clair) }
 
 /* ---------- catalogue ---------- */
 .filtres{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px }
@@ -350,6 +375,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        l'enregistrement : les deux courbes se construisent en direct. En inversant l'éclairement
        on fait apparaître la respiration seule, puis la photosynthèse nette.</p>
     <span class="ref">Partie III — respiration · Partie IV — photosynthèse</span>
+    <button class="btn mini no-print" id="ex-demarrer"
+            style="margin-left:8px; vertical-align:2px">Première fois ? Commencer par le TP guidé</button>
     <button class="btn mini no-print" data-va="preparer" data-fiche="photo-exao"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
@@ -422,8 +449,10 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
       </div>
 
       <div class="carte">
-        <h3>Protocoles guidés</h3>
-        <p class="sous">La manipulation se règle et se déroule toute seule.</p>
+        <h3>Démonstrations automatiques</h3>
+        <p class="sous">Le laboratoire se règle et déroule la manipulation tout seul — pour projeter
+           un résultat en classe. Pour faire manipuler l'élève pas à pas, voir le <b>TP guidé</b>
+           plus bas.</p>
         <div style="display:grid; gap:7px">
           <button class="btn" data-proto="alternance">Alternance lumière / obscurité</button>
           <button class="btn" data-proto="intensite">Courbe de réponse à la lumière</button>
@@ -1147,6 +1176,26 @@ const CFG_GRAPHE = new WeakMap();
 const GEOM_GRAPHE = new WeakMap();
 const MESURES = new WeakMap();
 const TABLES = [];
+
+/* Replie une carte : son titre devient un résumé cliquable. Les modules se
+   sont allongés au fil des ajouts ; les rubriques secondaires restent ainsi
+   accessibles sans imposer un défilement interminable, surtout sur téléphone. */
+function replieCarte(carte, ouvert){
+  if(!carte || carte.querySelector(':scope > .pli')) return;
+  const h3 = carte.querySelector('h3'); if(!h3) return;
+  const tete = h3.parentElement === carte ? h3 : h3.parentElement;
+  const det = document.createElement('details');
+  det.className = 'pli'; det.open = !!ouvert;
+  const sum = document.createElement('summary');
+  carte.insertBefore(det, tete);
+  sum.appendChild(tete);
+  det.appendChild(sum);
+  let n; while((n = det.nextSibling)) det.appendChild(n);
+  /* Un canvas replié a une largeur nulle : il faut le redessiner à l'ouverture. */
+  det.addEventListener('toggle', () => {
+    if(det.open && Labo.surAffichage[Labo.moduleActif]) Labo.surAffichage[Labo.moduleActif]();
+  });
+}
 
 /* questions d'exploitation : réponse masquée, à vérifier après coup */
 function blocQuestions(liste){
@@ -1883,33 +1932,46 @@ const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
 
   function rendu(){
     const q = sansAccent(texte.trim());
-    let html = '', partieCourante = null, rien = true;
+    /* Le sommaire compte 262 entrées : on le replie par partie, sinon la page
+       d'accueil dépasse vingt mille pixels de haut. Une recherche ouvre
+       d'office les parties qui contiennent une réponse. */
+    const parties = {};
     CATALOGUE.forEach(e => {
       if(filtre === 'sim' ? !e.sim : (filtre !== 'tout' && e.p !== filtre)) return;
       if(q && !sansAccent(e.t + ' ' + e.n).includes(q)) return;
-      rien = false;
-      if(e.p !== partieCourante){
-        partieCourante = e.p;
-        html += '<div class="partie-titre">' + NOM_PARTIE[e.p] + '</div><div class="liste-exp">';
-      }
-      if(e.titre){
-        html += '<div class="exp" style="background:var(--fond); border-style:dashed">' +
-                '<span class="num">' + e.n + '</span>' +
-                '<span class="titre" style="font-weight:600; text-transform:uppercase; font-size:12px; letter-spacing:.03em">' +
-                e.t + '</span>' + (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '') + '</div>';
-      } else {
-        const fiche = idxFiches && idxFiches[e.p + '|' + e.n];
-        html += '<div class="exp' + (e.sim ? ' simulable' : '') + '">' +
-                '<span class="num">' + e.n + '</span>' +
-                '<span class="titre">' + e.t + '</span>' +
-                (e.sim ? '<button class="btn mini primaire no-print" data-va="' + e.sim + '">Simuler — ' + NOM_MODULE[e.sim] + '</button>' : '') +
-                (fiche ? '<button class="btn mini no-print" data-va="preparer" data-fiche="' + fiche +
-                         '" title="Voir le matériel nécessaire pour la réaliser">Matériel</button>' : '') +
-                (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '<span class="page">—</span>') +
-                '</div>';
-      }
+      (parties[e.p] = parties[e.p] || []).push(e);
     });
-    liste.innerHTML = (rien ? '<p style="color:var(--gris); font-size:13px">Aucune expérience ne correspond.</p>' : html + '</div>');
+    const cles = Object.keys(parties);
+    if(!cles.length){
+      liste.innerHTML = '<p style="color:var(--gris); font-size:13px">Aucune expérience ne correspond.</p>';
+      return;
+    }
+    liste.innerHTML = cles.map(pt => {
+      const entrees = parties[pt], nExp = entrees.filter(e => !e.titre).length;
+      const ouvert = !!q || filtre !== 'tout' || cles.length === 1;
+      return '<details class="partie-pli"' + (ouvert ? ' open' : '') + '>' +
+        '<summary>' + NOM_PARTIE[pt] +
+        ' <span class="compte">' + nExp + ' expérience' + (nExp > 1 ? 's' : '') + '</span></summary>' +
+        '<div class="liste-exp" style="padding-bottom:12px">' +
+        entrees.map(e => {
+          if(e.titre)
+            return '<div class="exp" style="background:var(--fond); border-style:dashed">' +
+              '<span class="num">' + e.n + '</span>' +
+              '<span class="titre" style="font-weight:600; text-transform:uppercase; font-size:12px; ' +
+              'letter-spacing:.03em">' + e.t + '</span>' +
+              (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '') + '</div>';
+          const fiche = idxFiches && idxFiches[e.p + '|' + e.n];
+          return '<div class="exp' + (e.sim ? ' simulable' : '') + '">' +
+            '<span class="num">' + e.n + '</span>' +
+            '<span class="titre">' + e.t + '</span>' +
+            (e.sim ? '<button class="btn mini primaire no-print" data-va="' + e.sim + '">Simuler — ' +
+                     NOM_MODULE[e.sim] + '</button>' : '') +
+            (fiche ? '<button class="btn mini no-print" data-va="preparer" data-fiche="' + fiche +
+                     '" title="Voir le matériel nécessaire pour la réaliser">Matériel</button>' : '') +
+            (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '<span class="page">—</span>') +
+            '</div>';
+        }).join('') + '</div></details>';
+    }).join('');
   }
   champ.addEventListener('input', () => { texte = champ.value; rendu(); });
   segment($('#cat-filtre'), d => { filtre = d.p; rendu(); });
@@ -4147,6 +4209,24 @@ function coupe(nom){
   ]);
   dessine(); cle();
   Labo.surAffichage.histologie = dessine;
+})();
+
+/* ---------- rubriques secondaires repliées ---------- */
+(function pliage(){
+  const carte = id => { const e = $('#'+id); return e && e.closest('.carte'); };
+  [['ex-defi-carte', false], ['ex-questions', false], ['ex-tp-carte', true],
+   ['en-defi-carte', false], ['en-questions', false], ['en-tp-carte', true],
+   ['bio-questions', false], ['pi-questions', false],
+   ['hi-questions', false], ['hi-cle', false]].forEach(([id, ouvert]) => {
+    const c = $('#'+id) && ($('#'+id).classList.contains('carte') ? $('#'+id) : carte(id));
+    replieCarte(c, ouvert);
+  });
+  const b = $('#ex-demarrer');
+  if(b) b.addEventListener('click', () => {
+    const c = $('#ex-tp-carte'), d = c && c.querySelector('.pli');
+    if(d) d.open = true;
+    if(c) c.scrollIntoView({behavior:'smooth', block:'start'});
+  });
 })();
 
 /* ---------- ouverture directe d'un module via l'adresse (#exao, #pigments…) ---------- */
