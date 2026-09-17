@@ -485,6 +485,24 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <div class="note" id="ex-serie-note"></div>
       </div>
 
+      <div class="carte" id="ex-tp-carte">
+        <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap">
+          <h3 style="flex:1">TP guidé — la plante respire-t-elle en permanence ?</h3>
+          <span class="badge" id="ex-tp-avance">étape 1 / 6</span>
+        </div>
+        <div style="height:5px; background:var(--ligne); border-radius:99px; margin:10px 0 14px">
+          <div id="ex-tp-barre" style="height:100%; width:0%; background:var(--accent);
+               border-radius:99px; transition:width .35s"></div>
+        </div>
+        <div id="ex-tp-etape"></div>
+        <div id="ex-tp-retour"></div>
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap" class="no-print">
+          <button class="btn primaire" id="ex-tp-verif">Vérifier cette étape</button>
+          <button class="btn" id="ex-tp-passer">Passer</button>
+          <button class="btn" id="ex-tp-raz">Recommencer</button>
+        </div>
+      </div>
+
       <div class="carte" id="ex-defi-carte">
         <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap">
           <h3 style="flex:1">Défi — retrouver le facteur modifié</h3>
@@ -636,7 +654,9 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px">
           <button class="btn primaire" id="pi-migrer">Lancer la migration</button>
           <button class="btn" id="pi-raz">Nouvelle bande</button>
+          <button class="btn" id="pi-mesurer">Mesurer un R<sub>f</sub></button>
         </div>
+        <div id="pi-mesure-retour"></div>
         <div class="note">
           <b>Rappel.</b> R<sub>f</sub> = distance parcourue par le pigment ÷ distance parcourue par
           le front du solvant. Il ne dépend que du couple pigment / solvant : c'est ce qui permet
@@ -859,6 +879,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
           <div class="segment" id="hi-mode">
             <button aria-pressed="true"  data-m="obs">Observer</button>
             <button aria-pressed="false" data-m="quiz">Légender</button>
+            <button aria-pressed="false" data-m="mesure">Mesurer</button>
           </div>
         </div>
         <div class="note" id="hi-aide">
@@ -1127,6 +1148,9 @@ function outilPente(cv, bouton, unite, surMesure){
     bouton.classList.toggle('primaire', m.actif);
     bouton.textContent = m.actif ? 'Mesure en cours — cliquez 2 points' : 'Mesurer une pente';
     cv.style.cursor = m.actif ? 'crosshair' : '';
+    /* le graphique est amené en entier sous les yeux : sinon l'en-tête collant
+       recouvre son bord supérieur et les clics s'y perdent. */
+    if(m.actif) cv.scrollIntoView({block:'center', behavior:'smooth'});
     redessine(cv);
   });
   cv.addEventListener('click', e => {
@@ -2356,6 +2380,125 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
   });
 
   /* ==========================================================================
+     TP GUIDÉ
+     Une séance complète en six étapes, chacune vérifiée à partir de l'état
+     réel du laboratoire : le réglage, la durée enregistrée, la pente mesurée,
+     le témoin conservé. L'élève ne peut pas « cocher » une étape qu'il n'a
+     pas faite.
+     ========================================================================== */
+  let tpEtape = 0;
+  const obscuriteDepuis = () => {
+    const b = EX.bandes[EX.bandes.length-1];
+    return b && !b.fini ? b.x0 : null;
+  };
+  const mesureCourbe = () => {
+    const m = MESURES.get(cvG);
+    return m && m.a && m.b ? m : null;
+  };
+  const TP = [
+    {t:"Préparer le dispositif",
+     c:"Placez un rameau d'<b>élodée</b> dans l'enceinte, lampe allumée à <b>60 %</b>, filtre " +
+       "<b>blanc</b>, <b>20 °C</b>, hydrogénocarbonate à <b>50 %</b>. " +
+       "<button class='btn mini' data-tp-reglage>Appliquer ce réglage</button>",
+     v(){ const e = etat();
+       if($('#ex-mat').value !== 'elodee') return {ok:false, m:"Le matériel choisi n'est pas l'élodée."};
+       if(!e.lampe || e.I !== 60) return {ok:false, m:"La lampe doit être allumée à 60 %."};
+       if(e.filtre !== 'blanc') return {ok:false, m:"Le filtre doit être blanc."};
+       if(e.T !== 20) return {ok:false, m:"La température doit être de 20 °C."};
+       if(e.sub !== 50) return {ok:false, m:"L'hydrogénocarbonate doit être réglé sur 50 %."};
+       return {ok:true, m:"Dispositif conforme. Les conditions de départ sont fixées : " +
+         "c'est ce qui permettra d'attribuer plus tard une variation à un seul facteur."};
+     }},
+    {t:"Enregistrer trois minutes à la lumière",
+     c:"Lancez l'enregistrement et laissez tourner jusqu'à <b>3 minutes</b> de temps simulé " +
+       "(la vitesse ×10 ou ×40 accélère l'attente). Ne touchez à rien pendant ce temps.",
+     v(){ if(EX.t < 180) return {ok:false, m:"Il faut atteindre 3 minutes : l'enregistrement est à " + mmss(EX.t) + "."};
+       if(EX.bandes.length) return {ok:false, m:"La lampe a été éteinte pendant l'enregistrement. Réinitialisez et recommencez à la lumière."};
+       return {ok:true, m:"L'O₂ augmente et le CO₂ diminue. Attention : ce n'est pas la photosynthèse " +
+         "que vous mesurez, mais le <b>bilan</b> de la photosynthèse et de la respiration."};
+     }},
+    {t:"Mesurer la pente de la courbe d'O₂",
+     c:"Activez <b>Mesurer une pente</b> sous le graphique, puis cliquez deux points de la courbe " +
+       "bleue, au début et à la fin de la phase éclairée.",
+     v(){ const m = mesureCourbe();
+       if(!m) return {ok:false, m:"Aucune pente mesurée : activez l'outil et cliquez deux points."};
+       if(!/O₂/.test(m.a.nom)) return {ok:false, m:"La mesure porte sur la courbe « " + m.a.nom + " ». Reprenez sur la courbe d'O₂."};
+       const p = (m.b.pt[1]-m.a.pt[1])/(m.b.pt[0]-m.a.pt[0]);
+       return {ok:true, m:"Pente relevée : " + (p>0?'+':'') + fr(p,3) + " mg O₂·L⁻¹·min⁻¹. " +
+         "C'est la <b>photosynthèse nette</b>, déjà amputée de ce que la respiration consomme."};
+     }},
+    {t:"Garder cet enregistrement comme témoin",
+     c:"Cliquez sur <b>Garder comme témoin</b> : la courbe restera affichée en pointillé et servira " +
+       "de référence pour la suite.",
+     v(){ return EX.temoins.length ? {ok:true, m:"Témoin conservé. Toute différence observée ensuite " +
+       "sera imputable au seul facteur que vous aurez modifié."} :
+       {ok:false, m:"Aucun témoin gardé pour l'instant."};
+     }},
+    {t:"Éteindre la lampe et poursuivre",
+     c:"Sans rien changer d'autre, <b>éteignez la lampe</b>, relancez l'enregistrement pour environ " +
+       "trois minutes de plus, puis mesurez la pente de l'O₂ sur cette nouvelle phase.",
+     v(){ const e = etat(), d = obscuriteDepuis();
+       if(e.lampe && e.I > 0) return {ok:false, m:"La lampe est encore allumée."};
+       if(d === null) return {ok:false, m:"L'obscurité n'a pas encore été enregistrée."};
+       if(EX.t/60 - d < 2) return {ok:false, m:"Poursuivez l'enregistrement : il faut environ trois minutes d'obscurité."};
+       const m = mesureCourbe();
+       if(!m || !/O₂/.test(m.a.nom)) return {ok:false, m:"Mesurez maintenant la pente de l'O₂ pendant la phase sombre."};
+       if(m.a.pt[0] < d - 0.2) return {ok:false, m:"Votre mesure commence avant l'extinction de la lampe : elle mélange les deux phases. Reprenez à l'intérieur de la zone grise."};
+       const p = (m.b.pt[1]-m.a.pt[1])/(m.b.pt[0]-m.a.pt[0]);
+       return {ok:true, m:"Pente à l'obscurité : " + fr(p,3) + " mg O₂·L⁻¹·min⁻¹. " +
+         "Elle est <b>négative</b> : sans lumière, la plante ne fait que consommer de l'O₂."};
+     }},
+    {t:"Conclure",
+     c:"Rédigez votre conclusion dans le carnet : que montre la comparaison des deux pentes ? " +
+       "<textarea id='ex-tp-concl' placeholder='À la lumière… À l'obscurité… J'en déduis que…' " +
+       "style='margin-top:10px'></textarea>",
+     v(){ const t = ($('#ex-tp-concl') || {}).value || '';
+       return t.trim().length > 40 ? {ok:true, m:"<b>Conclusion attendue.</b> À l'obscurité, l'O₂ diminue : " +
+         "la plante respire. À la lumière, l'O₂ augmente : la photosynthèse produit plus d'O₂ que la " +
+         "respiration n'en consomme. Comme rien n'indique que la respiration s'arrête à la lumière, " +
+         "on admet qu'elle s'y poursuit : la pente mesurée à la lumière est donc une photosynthèse " +
+         "<b>nette</b>, et la photosynthèse brute vaut la somme des deux valeurs absolues."} :
+         {ok:false, m:"Rédigez quelques lignes avant de valider."};
+     }}
+  ];
+  function montreTP(){
+    const e = TP[tpEtape];
+    $('#ex-tp-avance').textContent = tpEtape >= TP.length ? 'terminé' : 'étape ' + (tpEtape+1) + ' / ' + TP.length;
+    $('#ex-tp-barre').style.width = Math.round(tpEtape/TP.length*100) + '%';
+    if(tpEtape >= TP.length){
+      $('#ex-tp-etape').innerHTML = '<p style="font-size:14px"><b>Séance terminée.</b> Vos relevés ' +
+        'sont dans la fiche de résultats : ouvrez le carnet pour l\'imprimer.</p>';
+      $('#ex-tp-verif').disabled = true;
+      Labo.note('ExAO — échanges gazeux', 'TP guidé', 'terminé (' + TP.length + ' / ' + TP.length + ')');
+      return;
+    }
+    $('#ex-tp-verif').disabled = false;
+    $('#ex-tp-etape').innerHTML = '<p style="font-size:14.5px; font-weight:600">' + (tpEtape+1) + '. ' + e.t + '</p>' +
+      '<p style="font-size:13px; color:#4a453d; margin-top:6px">' + e.c + '</p>';
+    $('#ex-tp-retour').innerHTML = '';
+  }
+  $('#ex-tp-carte').addEventListener('click', ev => {
+    if(!ev.target.closest('[data-tp-reglage]')) return;
+    $('#ex-mat').value = 'elodee'; lampe.checked = true; intens.value = 60;
+    temp.value = 20; sub.value = 50; segmentUI($('#ex-filtre'), 'blanc');
+    majLibelles(); raz();
+  });
+  $('#ex-tp-verif').addEventListener('click', () => {
+    const r = TP[tpEtape].v();
+    $('#ex-tp-retour').innerHTML = '<div class="note" style="border-left-color:' +
+      (r.ok ? 'var(--vert)' : 'var(--rouge)') + '">' + (r.ok ? '<b>Étape validée. </b>' : '<b>Pas encore. </b>') +
+      r.m + '</div>';
+    if(r.ok){
+      Labo.note('ExAO — échanges gazeux', 'TP guidé · étape ' + (tpEtape+1), TP[tpEtape].t);
+      setTimeout(() => { tpEtape++; const g = $('#ex-tp-retour').innerHTML; montreTP();
+        $('#ex-tp-retour').innerHTML = g; }, 1400);
+    }
+  });
+  $('#ex-tp-passer').addEventListener('click', () => { if(tpEtape < TP.length){ tpEtape++; montreTP(); } });
+  $('#ex-tp-raz').addEventListener('click', () => { tpEtape = 0; montreTP(); });
+  montreTP();
+
+  /* ==========================================================================
      DÉFI — quel facteur a été modifié ?
      Le protocole est choisi pour que la réponse soit réellement lisible :
        0-3 min à 60 % · 3-5 min d'obscurité · 5-8 min à pleine lumière.
@@ -2794,6 +2937,10 @@ const EXTRAITS = {
 (function pigments(){
   const cvC = $('#pi-chromo'), cvS = $('#pi-spectre'), cvF = $('#pi-fluo');
   let front = 0, animId = 0, coches = {chla:true, chlb:true, xantho:true, carotenes:true};
+  /* géométrie de la bande, partagée par le tracé et par la mesure */
+  const BX = 66, BL = 68, BY = 26, BH = 330;
+  const Y_DEPOT = BY + BH - 44, COURSE = Y_DEPOT - BY - 14;
+  let mesRf = [];
 
   const extrait = () => EXTRAITS[$('#pi-mat').value];
   const solvant = () => $('#pi-solv').value;
@@ -2801,17 +2948,16 @@ const EXTRAITS = {
   /* ---------- chromatographie ---------- */
   function dessineChromo(){
     const {ctx, l:L, h:H} = dimensionne(cvC);
+    const bx = BX, bl = BL, by = BY, bh = BH;
     /* cuve */
     ctx.fillStyle = '#f2efe9'; ctx.strokeStyle = '#d3ccbe'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.roundRect(18, 10, 164, 380, 10); ctx.fill(); ctx.stroke();
     /* solvant au fond */
     ctx.fillStyle = 'rgba(160,190,210,.35)'; ctx.fillRect(20, 344, 160, 44);
     /* bande de papier */
-    const bx = 66, bl = 68, by = 26, bh = 330;
     ctx.fillStyle = '#fffdf8'; ctx.strokeStyle = '#e4dfd5';
     ctx.fillRect(bx, by, bl, bh); ctx.strokeRect(bx, by, bl, bh);
-    const yDepot = by + bh - 44;                    /* ligne de dépôt */
-    const hauteurMax = yDepot - by - 14;            /* course maximale */
+    const yDepot = Y_DEPOT, hauteurMax = COURSE;
     ctx.strokeStyle = '#c8c1b3'; ctx.setLineDash([3,3]);
     ctx.beginPath(); ctx.moveTo(bx, yDepot); ctx.lineTo(bx+bl, yDepot); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = '#a9a294'; ctx.font = '9px Onest, sans-serif'; ctx.textAlign = 'right';
@@ -2834,6 +2980,14 @@ const EXTRAITS = {
         ctx.globalAlpha = 1;
       });
     }
+    /* repères posés par l'élève */
+    mesRf.forEach((y,i) => {
+      ctx.strokeStyle = '#23201c'; ctx.setLineDash([4,3]); ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(bx-14, y); ctx.lineTo(bx+bl+14, y); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#23201c'; ctx.font = '600 9px Onest, sans-serif'; ctx.textAlign = 'right';
+      ctx.fillText(['dépôt','front','tache'][i] || '', bx-17, y+3);
+    });
     ctx.fillStyle = '#7d776c'; ctx.font = '600 10px Onest, sans-serif'; ctx.textAlign = 'center';
     ctx.fillText(extrait().nom, 100, 398);
   }
@@ -2862,6 +3016,53 @@ const EXTRAITS = {
     animId = requestAnimationFrame(pas);
     $('#pi-chromo-sous').textContent = 'Migration dans le solvant — les pigments les plus solubles montent le plus haut.';
   }
+  let modeRf = false;
+  $('#pi-mesurer').addEventListener('click', () => {
+    if(front < 1){ alert("Lancez d'abord la migration jusqu'au bout : il n'y a rien à mesurer."); return; }
+    modeRf = !modeRf; mesRf = [];
+    $('#pi-mesurer').classList.toggle('primaire', modeRf);
+    cvC.style.cursor = modeRf ? 'crosshair' : '';
+    $('#pi-mesure-retour').innerHTML = modeRf
+      ? '<div class="note"><b>Mesure du R<sub>f</sub>.</b> Cliquez successivement sur trois hauteurs : ' +
+        'la <b>ligne de dépôt</b>, le <b>front du solvant</b>, puis la <b>tache</b> à identifier. ' +
+        'Le rapport frontal sera calculé à partir de vos trois repères.</div>'
+      : '';
+    dessineChromo();
+  });
+  cvC.addEventListener('click', e => {
+    if(!modeRf) return;
+    const r = cvC.getBoundingClientRect();
+    const y = (e.clientY - r.top) * (400 / r.height);
+    if(mesRf.length >= 3) mesRf = [];
+    mesRf.push(y);
+    if(mesRf.length === 3){
+      const [yd, yf, yt] = mesRf;
+      const rf = (yd - yt) / (yd - yf);
+      /* tache réellement la plus proche du repère posé */
+      let vraie = null;
+      extrait().liste.forEach(id => {
+        const yv = Y_DEPOT - PIGMENTS[id].rf[solvant()]*COURSE;
+        if(!vraie || Math.abs(yv - yt) < Math.abs(vraie.y - yt))
+          vraie = {id, y:yv, rf:PIGMENTS[id].rf[solvant()]};
+      });
+      const ecart = Math.abs(rf - vraie.rf)/vraie.rf*100;
+      Labo.note('Pigments', 'R' + 'f mesuré par l\'élève — ' + PIGMENTS[vraie.id].nom,
+                fr(rf,2) + ' (valeur attendue ' + fr(vraie.rf,2) + ')');
+      $('#pi-mesure-retour').innerHTML = '<div class="note" style="border-left-color:' +
+        (ecart < 8 ? 'var(--vert)' : ecart < 18 ? 'var(--or)' : 'var(--rouge)') + '">' +
+        '<b>Votre mesure : R<sub>f</sub> = ' + fr(rf,2) + '.</b> La tache visée est celle de la <b>' +
+        PIGMENTS[vraie.id].nom.toLowerCase() + '</b>, dont le R<sub>f</sub> vaut ' + fr(vraie.rf,2) +
+        ' dans ce solvant — soit un écart de ' + fr(ecart,0) + ' %. ' +
+        (ecart < 8 ? 'Mesure très correcte.' : ecart < 18 ?
+          'Acceptable : la précision du pointé se joue au millimètre.' :
+          'Reprenez : vérifiez que le premier clic est bien sur la ligne de dépôt et le deuxième sur le front.') +
+        '</div>';
+    } else {
+      $('#pi-mesure-retour').innerHTML = '<div class="note">Repère ' + mesRf.length + ' / 3 posé — ' +
+        'cliquez maintenant sur ' + ['le front du solvant', 'la tache à identifier'][mesRf.length-1] + '.</div>';
+    }
+    dessineChromo();
+  });
   $('#pi-migrer').addEventListener('click', migre);
   $('#pi-raz').addEventListener('click', () => { cancelAnimationFrame(animId); front = 0; dessineChromo(); tableau(); });
   $('#pi-mat').addEventListener('change', () => { front = 0; dessineChromo(); tableau(); cases(); spectre(); fluo(); });
@@ -3368,6 +3569,12 @@ const COULEURS = {
 /* --- description géométrique des coupes (repère virtuel 420 × 420) ---
    Les zones sont listées dans l'ordre de dessin : le fond d'abord, les
    structures fines ensuite. La détection du clic parcourt la liste à l'envers. */
+/* Échelle de chaque coupe : micromètres représentés par une unité du repère
+   virtuel. Elle donne la barre d'échelle et permet de mesurer une cellule. */
+const ECHELLE_UM = {
+  'tige-dico':5.3, 'tige-mono':8, 'racine-dico':3.2, 'racine-mono':5.3,
+  'feuille-dico':1.2, 'feuille-mono':1.1, 'tige-ligneuse':13
+};
 function coupe(nom){
   const Z = [];
   const anneau  = (r0,r1,t,o) => Z.push(Object.assign({type:'anneau', r0, r1, t}, o));
@@ -3470,6 +3677,7 @@ function coupe(nom){
   const cv = $('#hi-coupe');
   let organe = 'tige-dico', coloration = 'carmin', zoom = 1, mode = 'obs', selection = null, cible = null;
   const score = {ok:0, total:0};
+  let mesure = {a:null, b:null};
 
   const zones = () => coupe(organe).zones;
   const couleur = t => {
@@ -3497,7 +3705,47 @@ function coupe(nom){
       ctx.stroke();
       motifs(ctx, z, c);
     });
+    /* mesure en cours, tracée dans le repère de la coupe */
+    if(mesure.a){
+      ctx.strokeStyle = '#23201c'; ctx.fillStyle = '#23201c'; ctx.lineWidth = 2/(k*zoom);
+      [mesure.a, mesure.b].filter(Boolean).forEach(pt => {
+        ctx.beginPath(); ctx.arc(pt[0], pt[1], 3.5/(k*zoom), 0, Math.PI*2); ctx.fill();
+      });
+      if(mesure.b){
+        ctx.beginPath(); ctx.moveTo(mesure.a[0], mesure.a[1]);
+        ctx.lineTo(mesure.b[0], mesure.b[1]); ctx.stroke();
+      }
+    }
     ctx.restore();
+
+    /* barre d'échelle : une longueur ronde, lisible quel que soit le zoom */
+    const umParPx = ECHELLE_UM[organe] / (k*zoom);
+    const rondes = [5,10,20,50,100,200,500,1000,2000,5000];
+    const um = rondes.find(v => v/umParPx >= 55 && v/umParPx <= 130) ||
+               rondes.reduce((a,b) => Math.abs(b/umParPx-90) < Math.abs(a/umParPx-90) ? b : a);
+    const px = um/umParPx;
+    ctx.strokeStyle = '#23201c'; ctx.lineWidth = 2.5; ctx.lineCap = 'butt';
+    ctx.beginPath(); ctx.moveTo(16, T-18); ctx.lineTo(16+px, T-18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16, T-23); ctx.lineTo(16, T-13);
+    ctx.moveTo(16+px, T-23); ctx.lineTo(16+px, T-13); ctx.stroke();
+    ctx.fillStyle = '#23201c'; ctx.font = '600 11px Onest, sans-serif';
+    ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText(um >= 1000 ? (um/1000) + ' mm' : um + ' µm', 16, T-24);
+
+    /* étiquette de la mesure, en coordonnées d'écran */
+    if(mesure.a && mesure.b){
+      const d = Math.hypot(mesure.b[0]-mesure.a[0], mesure.b[1]-mesure.a[1]) * ECHELLE_UM[organe];
+      const mx = T/2 + ((mesure.a[0]+mesure.b[0])/2 - 210)*k*zoom;
+      const my = T/2 + ((mesure.a[1]+mesure.b[1])/2 - 210)*k*zoom - 16;
+      const txt = d >= 1000 ? fr(d/1000,2) + ' mm' : fr(d,1) + ' µm';
+      ctx.font = '600 11px Onest, sans-serif';
+      const larg = ctx.measureText(txt).width + 12;
+      ctx.fillStyle = 'rgba(255,255,255,.93)';
+      ctx.beginPath(); ctx.roundRect(Math.min(Math.max(mx-larg/2,4), T-larg-4), my, larg, 18, 5);
+      ctx.fill(); ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.fillStyle = '#23201c'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText(txt, Math.min(Math.max(mx-larg/2,4), T-larg-4) + 6, my+10);
+    }
 
     /* cadre du champ */
     ctx.strokeStyle = '#e4dfd5'; ctx.lineWidth = 1; ctx.strokeRect(.5,.5,T-1,T-1);
@@ -3621,9 +3869,27 @@ function coupe(nom){
   }
   cv.addEventListener('click', e => {
     const b = cv.getBoundingClientRect();
-    const t = tissuAu(e.clientX-b.left, e.clientY-b.top);
-    selection = t; dessine();
-    if(mode === 'quiz') verifie(t); else info(t);
+    const px = e.clientX-b.left, py = e.clientY-b.top;
+    if(mode === 'mesure'){
+      const T = Math.max(240, Math.round(cv.clientWidth || 420)), k = T/420;
+      const pt = [(px - T/2)/(k*zoom) + 210, (py - T/2)/(k*zoom) + 210];
+      if(!mesure.a || mesure.b) mesure = {a:pt, b:null};
+      else {
+        mesure.b = pt;
+        const d = Math.hypot(pt[0]-mesure.a[0], pt[1]-mesure.a[1]) * ECHELLE_UM[organe];
+        Labo.note('Histologie', 'Longueur mesurée — ' + $('#hi-org').selectedOptions[0].text,
+                  (d >= 1000 ? fr(d/1000,2) + ' mm' : fr(d,1) + ' µm'));
+        $('#hi-info').innerHTML = '<span class="badge vert">Mesure</span>' +
+          '<p style="font-size:15px; font-weight:600; margin-top:9px">' +
+          (d >= 1000 ? fr(d/1000,2) + ' mm' : fr(d,1) + ' µm') + '</p>' +
+          '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">Relevé ajouté à la fiche de ' +
+          'résultats. Cliquez à nouveau pour une autre mesure — par exemple le diamètre d\'un vaisseau, ' +
+          'l\'épaisseur de l\'épiderme ou la longueur d\'une cellule du parenchyme.</p>';
+      }
+      dessine(); return;
+    }
+    selection = tissuAu(px, py); dessine();
+    if(mode === 'quiz') verifie(selection); else info(selection);
   });
   function info(t){
     if(!t){ $('#hi-info').innerHTML = '<p style="font-size:13px; color:var(--gris)">Cliquez sur un tissu de la coupe.</p>'; return; }
@@ -3686,8 +3952,17 @@ function coupe(nom){
   });
   segment($('#hi-color'), d => { coloration = d.c; dessine(); cle(); if(mode === 'obs') info(selection); });
   segment($('#hi-mode'), d => {
-    mode = d.m; selection = null; dessine();
-    if(mode === 'quiz') nouvelleQuestion(); else info(null);
+    mode = d.m; selection = null; mesure = {a:null, b:null};
+    cv.style.cursor = mode === 'mesure' ? 'crosshair' : 'pointer';
+    dessine();
+    if(mode === 'quiz') nouvelleQuestion();
+    else if(mode === 'mesure') $('#hi-info').innerHTML =
+      '<span class="badge orange">Mesurer</span>' +
+      '<p style="font-size:13.5px; margin-top:9px">Cliquez deux points de la coupe : la distance ' +
+      'réelle s\'affiche en micromètres, calculée d\'après la barre d\'échelle.</p>' +
+      '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">Le grossissement ne change rien ' +
+      'à la mesure : la barre d\'échelle suit le zoom, comme au microscope.</p>';
+    else info(null);
   });
   $('#hi-zoom').addEventListener('input', () => {
     zoom = +$('#hi-zoom').value/10;
