@@ -147,6 +147,23 @@ textarea{ resize:vertical; line-height:1.5 }
 .mesure .t{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600 }
 .mesure .v{ font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.3 }
 .mesure .u{ font-size:11px; color:var(--gris); font-weight:500 }
+/* ---------- tableau des données sous un graphique ---------- */
+.donnees{ margin-top:10px; font-size:12px }
+.donnees summary{ cursor:pointer; color:var(--accent); font-weight:500; padding:5px 0;
+  list-style:none; display:flex; align-items:center; gap:6px }
+.donnees summary::-webkit-details-marker{ display:none }
+.donnees summary::before{ content:'▸'; font-size:10px; transition:transform .2s }
+.donnees[open] summary::before{ transform:rotate(90deg) }
+.donnees table{ width:100%; border-collapse:collapse; margin-top:4px }
+.donnees th, .donnees td{ text-align:right; padding:4px 8px; border-bottom:1px solid var(--ligne);
+  font-variant-numeric:tabular-nums; white-space:nowrap }
+.donnees th:first-child, .donnees td:first-child{ text-align:left }
+/* pas de capitales : elles déformeraient « pH » et « mg·L⁻¹ » */
+.donnees th{ font-size:11px; font-weight:600; color:var(--gris);
+  position:sticky; top:0; background:var(--papier) }
+.donnees .enveloppe{ max-height:260px; overflow:auto }
+.donnees .pied{ display:flex; gap:8px; align-items:center; margin-top:8px; color:var(--gris-clair); font-size:11px }
+
 table.tab{ width:100%; border-collapse:collapse; font-size:12.5px }
 table.tab th, table.tab td{ text-align:left; padding:7px 9px; border-bottom:1px solid var(--ligne) }
 table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair) }
@@ -1046,8 +1063,103 @@ function pas(etendue, cible=6){
   const brut = etendue/cible, ex = Math.pow(10, Math.floor(Math.log10(brut))), n = brut/ex;
   return (n<1.5?1:n<3?2:n<7?5:10)*ex;
 }
-/* cfg : {xmin,xmax,ymin,ymax,xtit,ytit,series,bandes,barres,reperes,fmtX,fmtY} */
+/* ==========================================================================
+   Tableau des données sous un graphique
+   Un graphique en <canvas> est muet pour un lecteur d'écran, et un élève ne
+   peut pas y relever de valeur précise. Chaque courbe peut donc être dépliée
+   sous forme de tableau, tenu à jour automatiquement.
+   ========================================================================== */
+const CFG_GRAPHE = new WeakMap();
+const TABLES = [];
+
+/* valeur d'une série à l'abscisse x (interpolation linéaire) */
+function valeurA(pts, x){
+  if(!pts || !pts.length) return null;
+  if(x < pts[0][0] || x > pts[pts.length-1][0]) return null;
+  for(let i = 1; i < pts.length; i++){
+    if(pts[i][0] >= x){
+      const [x0,y0] = pts[i-1], [x1,y1] = pts[i];
+      return x1 === x0 ? y1 : y0 + (y1-y0)*(x-x0)/(x1-x0);
+    }
+  }
+  return pts[pts.length-1][1];
+}
+function lignesDonnees(cfg, max = 24){
+  /* décimales choisies colonne par colonne, d'après l'ordre de grandeur */
+  const dec = vals => { const m = Math.max(...vals.map(v => Math.abs(v)).filter(v => isFinite(v)), 0);
+    return m >= 10 ? 1 : m >= 1 ? 2 : 3; };
+  const colonne = (vals, f) => { const d = f !== undefined ? f : dec(vals);
+    return vals.map(v => v === null || !isFinite(v) ? '—' : fr(v, d)); };
+
+  /* histogrammes : une ligne par catégorie */
+  if(cfg.barres && cfg.barres.length){
+    const xs = [...new Set(cfg.barres.map(b => b.x))].sort((a,b) => a-b);
+    const noms = [...new Set(cfg.barres.map(b => b.nom || 'valeur'))];
+    const cols = noms.map(n => colonne(xs.map(x => {
+      const b = cfg.barres.find(b => b.x === x && (b.nom || 'valeur') === n);
+      return b ? b.y : null;
+    })));
+    return {
+      entete: [cfg.xtit || '', ...noms],
+      lignes: xs.map((x,i) => [cfg.fmtX ? cfg.fmtX(x) : String(x), ...cols.map(c => c[i])])
+    };
+  }
+
+  const series = (cfg.series || []).filter(s => s.nom && s.pts && s.pts.length);
+  if(!series.length) return null;
+  /* abscisses : celles de la série la plus fournie, ramenées à max lignes */
+  const ref = series.reduce((a,b) => b.pts.length > a.pts.length ? b : a);
+  const n = ref.pts.length, saut = Math.max(1, Math.ceil(n/max));
+  const xs = [];
+  for(let i = 0; i < n; i += saut) xs.push(ref.pts[i][0]);
+  if(xs[xs.length-1] !== ref.pts[n-1][0]) xs.push(ref.pts[n-1][0]);
+  const colX = cfg.fmtX ? xs.map(cfg.fmtX) : colonne(xs);
+  const cols = series.map(s => colonne(xs.map(x => valeurA(s.pts, x))));
+  return {
+    entete: [cfg.xtit || 'x', ...series.map(s => s.nom)],
+    lignes: xs.map((x,i) => [colX[i], ...cols.map(c => c[i])])
+  };
+}
+function tableauHTML(cv){
+  const cfg = CFG_GRAPHE.get(cv);
+  const d = cfg && lignesDonnees(cfg);
+  if(!d) return '<p style="color:var(--gris); padding:6px 0">Aucune mesure pour l\'instant : ' +
+                'lancez d\'abord un enregistrement.</p>';
+  return '<div class="enveloppe"><table><thead><tr>' +
+    d.entete.map(e => '<th>' + e + '</th>').join('') + '</tr></thead><tbody>' +
+    d.lignes.map(l => '<tr>' + l.map(c => '<td>' + c + '</td>').join('') + '</tr>').join('') +
+    '</tbody></table></div>' +
+    '<div class="pied"><button class="btn mini" data-copie>Copier le tableau</button>' +
+    '<span>' + d.lignes.length + ' ligne' + (d.lignes.length > 1 ? 's' : '') +
+    (d.lignes.length >= 24 ? ' (échantillonnées)' : '') + '</span></div>';
+}
+function ajouteTable(cv, description, cible){
+  if(description){ cv.setAttribute('role', 'img'); cv.setAttribute('aria-label', description); }
+  const d = document.createElement('details');
+  d.className = 'donnees no-print';
+  d.innerHTML = '<summary>Voir les données</summary><div class="tbl"></div>';
+  (cible || cv).insertAdjacentElement('afterend', d);
+  TABLES.push({cv, d});
+  d.addEventListener('toggle', () => { if(d.open) d.querySelector('.tbl').innerHTML = tableauHTML(cv); });
+  d.addEventListener('click', e => {
+    if(!e.target.closest('[data-copie]')) return;
+    const cfg = CFG_GRAPHE.get(cv), t = cfg && lignesDonnees(cfg);
+    if(!t) return;
+    const tsv = [t.entete.join('\t'), ...t.lignes.map(l => l.join('\t'))].join('\n');
+    const b = e.target.closest('[data-copie]');
+    const ok = () => { b.textContent = 'Copié ✓'; setTimeout(() => b.textContent = 'Copier le tableau', 1600); };
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(tsv).then(ok, () => prompt('Copiez ces données :', tsv));
+    else prompt('Copiez ces données :', tsv);
+  });
+}
+function rafraichitTables(cv){
+  TABLES.forEach(t => { if(t.cv === cv && t.d.open) t.d.querySelector('.tbl').innerHTML = tableauHTML(cv); });
+}
+
+/* cfg : {xmin,xmax,ymin,ymax,xtit,ytit,series,bandes,barres,reperes,fmtX,fmtY,y2} */
 function traceGraphe(cv, cfg){
+  CFG_GRAPHE.set(cv, cfg);
   const {ctx, l, h} = dimensionne(cv);
   const mg = {g:46, d: cfg.y2 ? 46 : 12, ht:12, b:34};
   const X = x => mg.g + (x-cfg.xmin)/(cfg.xmax-cfg.xmin || 1)*(l-mg.g-mg.d);
@@ -1157,6 +1269,7 @@ function traceGraphe(cv, cfg){
   if(cfg.xtit) ctx.fillText(cfg.xtit, l-mg.d, h-2);
   if(cfg.ytit){ ctx.save(); ctx.translate(10, mg.ht); ctx.rotate(-Math.PI/2);
     ctx.textAlign = 'right'; ctx.textBaseline = 'top'; ctx.fillText(cfg.ytit, 0, 0); ctx.restore(); }
+  rafraichitTables(cv);
 }
 
 /* ==========================================================================
@@ -1761,14 +1874,14 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
     EX.temoins.forEach(t => { if(t.o2.length) xmax = Math.max(xmax, Math.ceil(t.o2[t.o2.length-1][0]/2)*2); });
     const series = [];
     /* les témoins d'abord : ils passent sous l'enregistrement en cours */
-    EX.temoins.forEach(t => {
-      series.push({couleur:t.couleur, pts:t.o2,  pointille:true, largeur:1.5, alpha:.9});
-      series.push({couleur:t.couleur, pts:t.co2, pointille:true, largeur:1.5, alpha:.5});
+    EX.temoins.forEach((t,i) => {
+      series.push({nom:'O₂ témoin ' + (i+1),  couleur:t.couleur, pts:t.o2,  pointille:true, largeur:1.5, alpha:.9});
+      series.push({nom:'CO₂ témoin ' + (i+1), couleur:t.couleur, pts:t.co2, pointille:true, largeur:1.5, alpha:.5});
     });
-    series.push({couleur:'#2f6ba8', pts: EX.hist.map(p => [p[0],p[1]])});
-    series.push({couleur:'#b15f2c', pts: EX.hist.map(p => [p[0],p[2]])});
+    series.push({nom:'O₂ (mg·L⁻¹)',  couleur:'#2f6ba8', pts: EX.hist.map(p => [p[0],p[1]])});
+    series.push({nom:'CO₂ (mg·L⁻¹)', couleur:'#b15f2c', pts: EX.hist.map(p => [p[0],p[2]])});
     if($('#ex-vph').checked)
-      series.push({couleur:'#6e5fa8', pointille:true, largeur:1.6, axe:'d',
+      series.push({nom:'pH', couleur:'#6e5fa8', pointille:true, largeur:1.6, axe:'d',
                    pts: EX.hist.map(p => [p[0],p[3]])});
     let ymin = 0, ymax = 16;
     if($('#ex-auto').checked){                 /* échelle resserrée sur les mesures */
@@ -1945,9 +2058,9 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
         'Échange net d\'O₂ mesuré à ' + e.T + ' °C, filtre ' + e.filtre + ', CO₂ à ' + fr(co2,1) + ' mg·L⁻¹.',
         {xmin:0, xmax:100, ymin:Math.min(-0.1, -R*1.4), ymax:Math.max(0.2, brut[brut.length-1][1]*1.25),
          xtit:'intensité lumineuse (%)', ytit:'mg O₂·L⁻¹·min⁻¹',
-         series:[{couleur:'#3f7d5f', pts, marqueurs:true},
-                 {couleur:'#a9a294', pts:brut, pointille:true},
-                 {couleur:'#c0392b', pts:resp, pointille:true}],
+         series:[{nom:'échange net', couleur:'#3f7d5f', pts, marqueurs:true},
+                 {nom:'photosynthèse brute', couleur:'#a9a294', pts:brut, pointille:true},
+                 {nom:'respiration', couleur:'#c0392b', pts:resp, pointille:true}],
          reperes: pc !== null ? [{x:pc, texte:'point de compensation ≈ ' + Math.round(pc) + ' %'}] : []},
         pc !== null
           ? '<b>Lecture.</b> En dessous de ' + Math.round(pc) + ' % d\'éclairement, la respiration l\'emporte : l\'échange net est négatif. ' +
@@ -1970,8 +2083,9 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
         {xmin:0, xmax:55, ymin:Math.min(-0.15, -Math.max(...resp.map(p=>p[1]))*1.2),
          ymax:Math.max(0.2, Math.max(...brut.map(p=>p[1]))*1.2),
          xtit:'température (°C)', ytit:'mg O₂·L⁻¹·min⁻¹',
-         series:[{couleur:'#3f7d5f', pts:net}, {couleur:'#a9a294', pts:brut, pointille:true},
-                 {couleur:'#c0392b', pts:resp, pointille:true}],
+         series:[{nom:'échange net', couleur:'#3f7d5f', pts:net},
+                 {nom:'photosynthèse brute', couleur:'#a9a294', pts:brut, pointille:true},
+                 {nom:'respiration', couleur:'#c0392b', pts:resp, pointille:true}],
          reperes:[{x:opt, texte:'optimum ≈ ' + opt + ' °C', couleur:'#2f6ba8'}]},
         '<b>Lecture.</b> La respiration (rouge) augmente régulièrement avec la température — elle double environ tous les 10 °C. ' +
         'La photosynthèse (gris) passe par un optimum puis s\'effondre : au-delà de 40-45 °C les enzymes sont dénaturées. ' +
@@ -1992,8 +2106,8 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
            qu'une fraction (§ IV — 4.2 de l'ouvrage). */
         const Pc = vPhoto(e.mat, I0/FILTRES[f].trans, f, e.T, co2);
         Labo.spectreAction[f] = P;
-        barres.push({x:i, dx:-0.19, larg:0.8, y:P-R,  couleur:coul[f]});
-        barres.push({x:i, dx: 0.19, larg:0.8, y:Pc-R, couleur:FILTRES[f].clair});
+        barres.push({x:i, dx:-0.19, larg:0.8, y:P-R,  couleur:coul[f], nom:'protocole classique'});
+        barres.push({x:i, dx: 0.19, larg:0.8, y:Pc-R, couleur:FILTRES[f].clair, nom:'à énergie égale'});
       });
       Labo.note('ExAO — échanges gazeux', "Spectre d'action (bleu / vert / rouge)",
         ['bleu','vert','rouge'].map(f => fr(Labo.spectreAction[f], 2)).join(' / ') + ' mg O₂·L⁻¹·min⁻¹');
@@ -2159,8 +2273,8 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
       xtit:'temps (min)', ytit:'O₂ dissous (mg·L⁻¹)',
       bandes:[{x0:3, x1:5}],
       reperes:[{x:5, texte:'pleine lumière', couleur:'#c9a227'}],
-      series:[{couleur:'#3f7d5f', pts:EX.defi.ref},
-              {couleur:'#b15f2c', pts:EX.defi.mys, pointille:true}]
+      series:[{nom:'référence', couleur:'#3f7d5f', pts:EX.defi.ref},
+              {nom:'mystère', couleur:'#b15f2c', pts:EX.defi.mys, pointille:true}]
     });
   }
   $('#ex-defi-choix').addEventListener('click', e => {
@@ -2181,6 +2295,10 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
   });
   $('#ex-defi-go').addEventListener('click', nouveauDefi);
 
+  ajouteTable(cvG, "Enregistrement des sondes à dioxygène et à dioxyde de carbone au cours du temps.",
+              $('#ex-temoins-lgd'));
+  ajouteTable(cvS, "Résultats de la série d'expériences.");
+  ajouteTable($('#ex-defi'), "Défi : deux enregistrements à comparer.");
   Labo.surAffichage.exao = () => {
     majLibelles(); traceCourbes(); dessineEnceinte(); majTemoins(); traceDefi();
   };
@@ -2621,7 +2739,7 @@ const EXTRAITS = {
       if(!coches[id]) return;
       const pts = [];
       for(let l=400; l<=700; l+=2) pts.push([l, absorption(id, l)]);
-      series.push({couleur:PIGMENTS[id].c, pts});
+      series.push({nom:PIGMENTS[id].nom, couleur:PIGMENTS[id].c, pts});
     });
     let note = '';
     if($('#pi-action') && $('#pi-action').checked){
@@ -2629,7 +2747,8 @@ const EXTRAITS = {
       if(sa){
         const max = Math.max(sa.bleu, sa.vert, sa.rouge) || 1;
         const pts = [[450, sa.bleu/max], [550, sa.vert/max], [660, sa.rouge/max]];
-        series.push({couleur:'#23201c', pts, pointille:true, marqueurs:true, largeur:2.4});
+        series.push({nom:"spectre d'action", couleur:'#23201c', pts, pointille:true,
+                     marqueurs:true, largeur:2.4});
         note = '<b>Comparaison.</b> Les trois points noirs sont les vitesses de photosynthèse mesurées à l\'ExAO ' +
                'derrière les filtres bleu, vert et rouge (ramenées à 1 pour la valeur la plus forte). ' +
                'Ils suivent la courbe d\'absorption des chlorophylles : la lumière absorbée est bien celle qui est utilisée.';
@@ -2676,6 +2795,7 @@ const EXTRAITS = {
   }
   $('#pi-uv').addEventListener('change', fluo);
 
+  ajouteTable(cvS, "Spectres d'absorption des pigments en fonction de la longueur d'onde.");
   cases(); dessineChromo(); tableau(); spectre(); fluo();
   Labo.surAffichage.pigments = () => { dessineChromo(); spectre(); fluo(); };
 })();
@@ -2784,11 +2904,13 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
     const series = [];
     EN.temoins.forEach(t => {
       haut = Math.max(haut, ...t.s.map(p => p[1]));
-      series.push({couleur:t.couleur, pts:t.s, pointille:true, largeur:1.5, alpha:.9});
-      series.push({couleur:t.couleur, pts:t.p, pointille:true, largeur:1.5, alpha:.5});
+      series.push({nom:'substrat témoin ' + (EN.temoins.indexOf(t)+1), couleur:t.couleur,
+                   pts:t.s, pointille:true, largeur:1.5, alpha:.9});
+      series.push({nom:'produit témoin ' + (EN.temoins.indexOf(t)+1), couleur:t.couleur,
+                   pts:t.p, pointille:true, largeur:1.5, alpha:.5});
     });
-    series.push({couleur:'#6e5fa8', pts:EN.hist.map(p => [p[0],p[1]])});
-    series.push({couleur:'#3f7d5f', pts:EN.hist.map(p => [p[0],p[2]])});
+    series.push({nom:'substrat (g·L⁻¹)', couleur:'#6e5fa8', pts:EN.hist.map(p => [p[0],p[1]])});
+    series.push({nom:'produit (g·L⁻¹)',  couleur:'#3f7d5f', pts:EN.hist.map(p => [p[0],p[2]])});
     traceGraphe(cvG, {xmin:0, xmax:10, ymin:0, ymax:Math.ceil(haut/5)*5,
       xtit:'temps (min)', ytit:'concentration (g·L⁻¹)', series});
   }
@@ -2876,7 +2998,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
         c.e.nom + ', pH ' + fr(c.pH,1) + ', substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
         {xmin:0, xmax:100, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
          xtit:'température (°C)', ytit:'v₀ (g·L⁻¹·min⁻¹)',
-         series:[{couleur:'#b15f2c', pts}], reperes:[{x:opt, texte:'optimum ≈ ' + opt + ' °C'}]},
+         series:[{nom:'v₀ (g·L⁻¹·min⁻¹)', couleur:'#b15f2c', pts}], reperes:[{x:opt, texte:'optimum ≈ ' + opt + ' °C'}]},
         '<b>Lecture.</b> La vitesse augmente d\'abord avec la température (les rencontres enzyme-substrat sont plus fréquentes), ' +
         'passe par un <b>optimum</b> vers ' + opt + ' °C, puis chute brutalement : l\'enzyme, protéine, est <b>dénaturée</b> par la chaleur. ' +
         'Cette destruction est irréversible — c\'est ce que montre le témoin « enzyme bouillie ».');
@@ -2889,7 +3011,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
         c.e.nom + ', ' + c.T + ' °C, substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
         {xmin:1, xmax:11, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
          xtit:'pH', ytit:'v₀ (g·L⁻¹·min⁻¹)',
-         series:[{couleur:'#2f6ba8', pts}], reperes:[{x:c.e.phOpt, texte:'pH optimal ' + fr(c.e.phOpt,1)}]},
+         series:[{nom:'v₀ (g·L⁻¹·min⁻¹)', couleur:'#2f6ba8', pts}], reperes:[{x:c.e.phOpt, texte:'pH optimal ' + fr(c.e.phOpt,1)}]},
         '<b>Lecture.</b> Chaque enzyme possède un pH optimal, lié à son milieu de fonctionnement : voisin de la neutralité ' +
         'pour l\'amylase, nettement acide pour la saccharase de levure. En dehors de cette zone, la forme du site actif ' +
         'est modifiée et l\'activité s\'effondre.');
@@ -2903,7 +3025,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
       serie('Vitesse initiale en fonction de la concentration en substrat',
         c.e.nom + ', ' + c.T + ' °C, pH ' + fr(c.pH,1) + '.',
         {xmin:0, xmax:40, ymin:0, ymax:vmaxObs*1.2, xtit:'[substrat] (g·L⁻¹)', ytit:'v₀ (g·L⁻¹·min⁻¹)',
-         series:[{couleur:'#3f7d5f', pts}],
+         series:[{nom:'v₀ (g·L⁻¹·min⁻¹)', couleur:'#3f7d5f', pts}],
          reperes:[{y:vmaxObs, texte:'Vmax', couleur:'#c0392b'},
                   {x:c.e.km, texte:'Km = ' + c.e.km + ' g·L⁻¹', couleur:'#2f6ba8'}]},
         '<b>Lecture.</b> La courbe est une <b>hyperbole</b> : la vitesse augmente puis plafonne à Vmax, quand toutes les ' +
@@ -2976,8 +3098,8 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
     traceGraphe($('#en-defi'), {
       xmin:0, xmax:10, ymin:0, ymax:11,
       xtit:'temps (min)', ytit:'produit formé (g·L⁻¹)',
-      series:[{couleur:'#3f7d5f', pts:EN.defi.ref},
-              {couleur:'#b15f2c', pts:EN.defi.mys, pointille:true}]
+      series:[{nom:'référence', couleur:'#3f7d5f', pts:EN.defi.ref},
+              {nom:'mystère', couleur:'#b15f2c', pts:EN.defi.mys, pointille:true}]
     });
   }
   $('#en-defi-choix').addEventListener('click', e => {
@@ -2997,6 +3119,10 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
   });
   $('#en-defi-go').addEventListener('click', nouveauDefiEn);
 
+  ajouteTable(cvG, "Disparition du substrat et apparition du produit au cours du temps.",
+              $('#en-temoins-lgd'));
+  ajouteTable(cvS, "Résultats de la série d'expériences.");
+  ajouteTable($('#en-defi'), "Défi : deux cinétiques à comparer.");
   majLibelles(); raz();
   Labo.surAffichage.enzymes = () => { trace(); dessineGamme(); traceDefiEn(); };
 })();
