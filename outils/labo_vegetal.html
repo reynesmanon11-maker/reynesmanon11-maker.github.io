@@ -467,6 +467,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
           <canvas id="ex-graphe" height="300"></canvas>
           <div id="ex-temoins-lgd" style="margin-top:8px; display:grid; gap:3px; font-size:11.5px"></div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+            <button class="btn mini" id="ex-pente">Mesurer une pente</button>
             <button class="btn mini primaire" id="ex-temoin">Garder comme témoin</button>
             <button class="btn mini" id="ex-temoin-raz">Effacer les témoins</button>
             <button class="btn mini" id="ex-csv">Exporter les mesures (CSV)</button>
@@ -575,6 +576,12 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         </div>
       </div>
 
+      <div class="carte">
+        <h3>Exploitation</h3>
+        <p class="sous">Réponses à cacher puis à vérifier.</p>
+        <div id="bio-questions"></div>
+      </div>
+
       <div class="carte" id="bio-mystere-carte" style="display:none">
         <h3>Votre identification</h3>
         <p class="sous">Après avoir réuni assez d'indices, proposez une réponse.</p>
@@ -675,6 +682,12 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
           dans le vert — c'est cette lumière verte, renvoyée, qui donne sa couleur à la feuille.
         </div>
       </div>
+
+      <div class="carte">
+        <h3>Exploitation</h3>
+        <p class="sous">Réponses à cacher puis à vérifier.</p>
+        <div id="pi-questions"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -757,6 +770,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         </div>
         <canvas id="en-graphe" height="290"></canvas>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+          <button class="btn mini" id="en-pente">Mesurer une pente</button>
           <button class="btn mini primaire" id="en-temoin">Garder comme témoin</button>
           <button class="btn mini" id="en-temoin-raz">Effacer les témoins</button>
         </div>
@@ -787,6 +801,13 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <canvas id="en-serie" height="280"></canvas>
         <div class="note" id="en-serie-note"></div>
       </div>
+
+      <div class="carte">
+        <h3>Exploitation</h3>
+        <p class="sous">Réponses à cacher puis à vérifier.</p>
+        <div id="en-questions"></div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -816,6 +837,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
             <option value="tige-mono">Tige de Monocotylédone (iris)</option>
             <option value="racine-dico">Racine jeune de Dicotylédone (ficaire)</option>
             <option value="feuille-dico">Feuille de Dicotylédone (lierre)</option>
+            <option value="feuille-mono">Feuille de Monocotylédone (brome)</option>
+            <option value="racine-mono">Racine de Monocotylédone (iris)</option>
             <option value="tige-ligneuse">Tige de Dicotylédone ligneuse (bruyère)</option>
           </select>
         </div>
@@ -861,6 +884,13 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <h3>Clé de lecture</h3>
         <div class="scroll-x"><table class="tab" id="hi-cle"><tbody></tbody></table></div>
       </div>
+
+      <div class="carte">
+        <h3>Exploitation</h3>
+        <p class="sous">Réponses à cacher puis à vérifier.</p>
+        <div id="hi-questions"></div>
+      </div>
+
     </div>
   </div>
 </section>
@@ -1070,7 +1100,93 @@ function pas(etendue, cible=6){
    sous forme de tableau, tenu à jour automatiquement.
    ========================================================================== */
 const CFG_GRAPHE = new WeakMap();
+const GEOM_GRAPHE = new WeakMap();
+const MESURES = new WeakMap();
 const TABLES = [];
+
+/* questions d'exploitation : réponse masquée, à vérifier après coup */
+function blocQuestions(liste){
+  return liste.map((q,i) =>
+    '<details style="border-bottom:1px solid var(--ligne); padding:9px 0">' +
+    '<summary style="cursor:pointer; font-size:13.5px; font-weight:500">' + (i+1) + '. ' + q[0] + '</summary>' +
+    '<p style="font-size:12.5px; color:var(--gris); margin-top:7px">' + q[1] + '</p></details>').join('');
+}
+
+/* ==========================================================================
+   Mesurer une pente sur une courbe
+   C'est le geste même de l'exploitation d'un enregistrement : choisir deux
+   points et calculer Δy/Δx. L'outil accroche les clics aux points réellement
+   tracés, pour qu'on mesure la courbe et non le pixel.
+   ========================================================================== */
+function outilPente(cv, bouton, unite, surMesure){
+  MESURES.set(cv, {actif:false, a:null, b:null, unite, surMesure});
+  const etat = () => MESURES.get(cv);
+  bouton.addEventListener('click', () => {
+    const m = etat();
+    m.actif = !m.actif; m.a = null; m.b = null;
+    bouton.classList.toggle('primaire', m.actif);
+    bouton.textContent = m.actif ? 'Mesure en cours — cliquez 2 points' : 'Mesurer une pente';
+    cv.style.cursor = m.actif ? 'crosshair' : '';
+    redessine(cv);
+  });
+  cv.addEventListener('click', e => {
+    const m = etat(); if(!m || !m.actif) return;
+    const g = GEOM_GRAPHE.get(cv), cfg = CFG_GRAPHE.get(cv);
+    if(!g || !cfg) return;
+    const r = cv.getBoundingClientRect();
+    const px = e.clientX - r.left, py = e.clientY - r.top;
+    /* point tracé le plus proche du clic, toutes courbes nommées confondues */
+    let best = null;
+    (cfg.series || []).filter(s => s.nom && s.pts && s.pts.length).forEach(s => {
+      s.pts.forEach(pt => {
+        const d = Math.hypot(g.X(pt[0])-px, g.Y(pt[1])-py);
+        if(!best || d < best.d) best = {d, pt, nom:s.nom, couleur:s.couleur};
+      });
+    });
+    if(!best || best.d > 60) return;
+    if(!m.a || m.b){ m.a = best; m.b = null; }
+    else if(best.pt[0] !== m.a.pt[0]){
+      m.b = best;
+      const dx = m.b.pt[0] - m.a.pt[0], dy = m.b.pt[1] - m.a.pt[1];
+      if(m.surMesure) m.surMesure(dy/dx, m.a, m.b);
+    }
+    redessine(cv);
+  });
+}
+/* redessine le graphique avec sa dernière configuration */
+function redessine(cv){ const cfg = CFG_GRAPHE.get(cv); if(cfg) traceGraphe(cv, cfg); }
+
+function dessineMesure(ctx, cv, X, Y){
+  const m = MESURES.get(cv); if(!m || (!m.a && !m.b)) return;
+  const pt = p => [X(p.pt[0]), Y(p.pt[1])];
+  ctx.save();
+  [m.a, m.b].filter(Boolean).forEach(p => {
+    const [x,y] = pt(p);
+    ctx.fillStyle = '#23201c'; ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+  });
+  if(m.a && m.b){
+    const [xa,ya] = pt(m.a), [xb,yb] = pt(m.b);
+    ctx.strokeStyle = '#23201c'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(xa,ya); ctx.lineTo(xb,yb); ctx.stroke();
+    ctx.setLineDash([3,3]); ctx.lineWidth = 1; ctx.strokeStyle = '#8d8880';
+    ctx.beginPath(); ctx.moveTo(xa,ya); ctx.lineTo(xb,ya); ctx.lineTo(xb,yb); ctx.stroke();
+    ctx.setLineDash([]);
+    const dx = m.b.pt[0]-m.a.pt[0], dy = m.b.pt[1]-m.a.pt[1], pente = dy/dx;
+    const nom = m.a.nom.replace(/\s*\(.*\)/, '');   /* « O₂ (mg·L⁻¹) » → « O₂ » */
+    const txt = nom + ' : ' + (pente > 0 ? '+' : '') + fr(pente, 3) + (m.unite ? ' ' + m.unite : '');
+    ctx.font = '600 11px Onest, sans-serif';
+    const larg = ctx.measureText(txt).width + 12;
+    const mx = Math.min(Math.max((xa+xb)/2 - larg/2, 4), cv.clientWidth - larg - 4);
+    const my = Math.min(ya, yb) - 22;
+    ctx.fillStyle = 'rgba(255,255,255,.92)';
+    ctx.beginPath(); ctx.roundRect(mx, my, larg, 18, 5); ctx.fill();
+    ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.fillStyle = '#23201c'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+    ctx.fillText(txt, mx+6, my+10);
+  }
+  ctx.restore();
+}
 
 /* valeur d'une série à l'abscisse x (interpolation linéaire) */
 function valeurA(pts, x){
@@ -1260,6 +1376,9 @@ function traceGraphe(cv, cfg){
       ctx.fillText(r.texte, r.x !== undefined ? X(r.x)+4 : l-mg.d-4, mg.ht+3);
     }
   });
+
+  GEOM_GRAPHE.set(cv, {X, Y, mg});
+  dessineMesure(ctx, cv, X, Y);
 
   /* cadre + titres */
   ctx.strokeStyle = '#d3ccbe'; ctx.lineWidth = 1;
@@ -1661,6 +1780,26 @@ const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
 
 (function catalogue(){
   const liste = $('#cat-liste'), champ = $('#cat-recherche');
+  /* Index des fiches de matériel, construit à partir de leur référence :
+     « I — 4.1 et 4.2 », « II — 1.1 à 1.4 »… Il permet d'accrocher un bouton
+     « Matériel » à chaque expérience du sommaire qui possède une fiche. */
+  let idxFiches = null;
+  function indexFiches(){
+    const idx = {};
+    if(typeof FICHES === 'undefined') return idx;
+    FICHES.forEach(f => {
+      const [partie, reste = ''] = f.ref.split('—').map(x => x.trim());
+      const nums = reste.match(/\d+(?:\.\d+)?/g) || [];
+      if(/\bà\b/.test(reste) && nums.length === 2){
+        const [a, b] = nums, [ma, sa] = a.split('.'), [mb, sb] = b.split('.');
+        if(ma === mb && sa !== undefined && sb !== undefined)
+          for(let i = +sa; i <= +sb; i++) idx[partie + '|' + ma + '.' + i] = f.id;
+        else if(sa === undefined && sb === undefined)
+          for(let i = +ma; i <= +mb; i++) idx[partie + '|' + i] = f.id;
+      } else nums.forEach(n => idx[partie + '|' + n] = f.id);
+    });
+    return idx;
+  }
   let filtre = 'tout', texte = '';
   const sansAccent = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
@@ -1681,10 +1820,13 @@ const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
                 '<span class="titre" style="font-weight:600; text-transform:uppercase; font-size:12px; letter-spacing:.03em">' +
                 e.t + '</span>' + (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '') + '</div>';
       } else {
+        const fiche = idxFiches && idxFiches[e.p + '|' + e.n];
         html += '<div class="exp' + (e.sim ? ' simulable' : '') + '">' +
                 '<span class="num">' + e.n + '</span>' +
                 '<span class="titre">' + e.t + '</span>' +
                 (e.sim ? '<button class="btn mini primaire no-print" data-va="' + e.sim + '">Simuler — ' + NOM_MODULE[e.sim] + '</button>' : '') +
+                (fiche ? '<button class="btn mini no-print" data-va="preparer" data-fiche="' + fiche +
+                         '" title="Voir le matériel nécessaire pour la réaliser">Matériel</button>' : '') +
                 (e.pg ? '<span class="page">p. ' + e.pg + '</span>' : '<span class="page">—</span>') +
                 '</div>';
       }
@@ -1693,6 +1835,8 @@ const NOM_MODULE = {exao:'ExAO', biochimie:'Biochimie', pigments:'Pigments',
   }
   champ.addEventListener('input', () => { texte = champ.value; rendu(); });
   segment($('#cat-filtre'), d => { filtre = d.p; rendu(); });
+  /* les fiches sont définies plus bas : le catalogue est redessiné à ce moment-là */
+  Labo.rendCatalogue = () => { idxFiches = indexFiches(); rendu(); };
   rendu();
 })();
 </script>
@@ -2185,10 +2329,7 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
     ['Chez les levures privées d\'O₂, le CO₂ continue d\'augmenter. Quelle voie métabolique ?',
      'La fermentation alcoolique : le glucose est dégradé sans dioxygène, en éthanol et CO₂. Le rendement énergétique est bien plus faible que celui de la respiration.']
   ];
-  $('#ex-questions').innerHTML = QUESTIONS.map((q,i) =>
-    '<details style="border-bottom:1px solid var(--ligne); padding:9px 0">' +
-    '<summary style="cursor:pointer; font-size:13.5px; font-weight:500">' + (i+1) + '. ' + q[0] + '</summary>' +
-    '<p style="font-size:12.5px; color:var(--gris); margin-top:7px">' + q[1] + '</p></details>').join('');
+  $('#ex-questions').innerHTML = blocQuestions(QUESTIONS);
 
   /* ---------- réglages transmis par l'adresse ----------
      #exao?mat=elodee&lum=1&i=70&f=vert&t=30&sub=40 rouvre le laboratoire
@@ -2295,6 +2436,10 @@ const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
   });
   $('#ex-defi-go').addEventListener('click', nouveauDefi);
 
+  outilPente(cvG, $('#ex-pente'), 'mg·L⁻¹·min⁻¹', (pente, a, b) =>
+    Labo.note('ExAO — échanges gazeux',
+      'Pente mesurée · ' + a.nom + ' (de ' + fr(a.pt[0],1) + ' à ' + fr(b.pt[0],1) + ' min)',
+      (pente > 0 ? '+' : '') + fr(pente,3) + ' mg·L⁻¹·min⁻¹'));
   ajouteTable(cvG, "Enregistrement des sondes à dioxygène et à dioxyde de carbone au cours du temps.",
               $('#ex-temoins-lgd'));
   ajouteTable(cvS, "Résultats de la série d'expériences.");
@@ -2599,6 +2744,18 @@ const REACTIFS = [
         'Ajoutez un test qui distingue les deux hypothèses restantes.</p>';
   });
 
+  $('#bio-questions').innerHTML = blocQuestions([
+    ["Le lugol est négatif sur le topinambour, pourtant riche en réserves. Qu'en conclure ?",
+     "Que ses réserves ne sont pas de l'amidon : le topinambour stocke de l'inuline, un polymère de fructose, révélé par la résorcine chlorhydrique. Un test négatif ne signifie pas « pas de réserve », mais « pas la molécule cherchée »."],
+    ["Pourquoi la liqueur de Fehling reste-t-elle bleue avec le saccharose ?",
+     "Parce que le saccharose n'est pas réducteur : sa fonction réductrice est engagée dans la liaison entre le glucose et le fructose. Après hydrolyse acide, les deux oses libérés font virer le réactif au rouge brique."],
+    ["Quel est l'intérêt du tube témoin à l'eau distillée ?",
+     "Il montre la couleur du réactif seul. Sans lui, on risque de prendre la teinte propre du réactif pour un résultat : le lugol est déjà brun, la liqueur de Fehling déjà bleue."],
+    ["Un échantillon donne un biuret positif et un lugol négatif. Quelles hypothèses restent ?",
+     "Un matériel riche en protéines et sans amidon : blanc d'œuf, gluten, ou graine oléagineuse. Un test au Soudan III départagerait la graine oléagineuse des deux autres — c'est le principe du test qui discrimine deux hypothèses restantes."],
+    ["Pourquoi la phloroglucine ne colore-t-elle qu'une partie des parois d'une coupe ?",
+     "Parce qu'elle ne révèle que la lignine. Les parois seulement cellulosiques — parenchymes, collenchyme, phloème — ne réagissent pas. C'est ce contraste qui permet de repérer d'un coup d'œil les tissus de soutien et le xylème."]
+  ]);
   listeEch(); listeRea(); surligne(); dessine();
   Labo.surAffichage.biochimie = dessine;
 })();
@@ -2795,6 +2952,18 @@ const EXTRAITS = {
   }
   $('#pi-uv').addEventListener('change', fluo);
 
+  $('#pi-questions').innerHTML = blocQuestions([
+    ["Pourquoi les carotènes migrent-ils le plus haut ?",
+     "Parce qu'ils sont les plus solubles dans le solvant de migration, apolaire. Les xanthophylles, plus polaires, restent retenues près du dépôt. Le R<sub>f</sub> traduit ce partage entre le solvant qui entraîne et le papier qui retient."],
+    ["Deux élèves trouvent des R<sub>f</sub> différents pour la chlorophylle a. Y a-t-il une erreur ?",
+     "Pas nécessairement : le R<sub>f</sub> dépend du solvant, du papier et de la température. Il n'est comparable qu'entre dépôts d'une même cuve. Ce qui doit être identique d'un groupe à l'autre, c'est l'ordre des taches."],
+    ["Une feuille jaunie d'automne donne-t-elle une chromatographie vide ?",
+     "Non : les carotènes et les xanthophylles y sont toujours présents, et c'est leur couleur qui apparaît une fois la chlorophylle dégradée. La feuille ne devient pas jaune, elle cesse d'être verte."],
+    ["L'extrait éclairé en UV émet une lumière rouge. Que montre cette fluorescence ?",
+     "Que l'énergie absorbée doit être évacuée d'une manière ou d'une autre. Dans la feuille intacte, elle est transmise à la chaîne photosynthétique ; isolés de la membrane, les pigments la restituent sous forme de lumière. La fluorescence est le signe d'une énergie captée mais non utilisée."],
+    ["Que conclure de la ressemblance entre spectre d'absorption et spectre d'action ?",
+     "Que les radiations absorbées par les pigments sont bien celles qui alimentent la photosynthèse. Une corrélation ne prouve jamais seule une causalité, mais l'écart observé sur la lumière verte est trop marqué pour être fortuit."]
+  ]);
   ajouteTable(cvS, "Spectres d'absorption des pigments en fonction de la longueur d'onde.");
   cases(); dessineChromo(); tableau(); spectre(); fluo();
   Labo.surAffichage.pigments = () => { dessineChromo(); spectre(); fluo(); };
@@ -3119,6 +3288,22 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
   });
   $('#en-defi-go').addEventListener('click', nouveauDefiEn);
 
+  $('#en-questions').innerHTML = blocQuestions([
+    ["À 0 °C rien ne se passe, à 70 °C non plus. Est-ce la même chose ?",
+     "Non. À 0 °C l'enzyme est intacte, seulement ralentie : réchauffée, elle fonctionne de nouveau. À 70 °C elle est dénaturée, détruite définitivement — l'indicateur « enzyme active » tombe et ne remonte jamais, même si l'on refroidit."],
+    ["Doubler l'enzyme double la vitesse ; doubler le substrat ne change presque rien. Pourquoi ?",
+     "Parce qu'à forte concentration l'enzyme est déjà saturée : tous ses sites actifs sont occupés. Ajouter du substrat ne trouve plus de site libre, alors qu'ajouter de l'enzyme ajoute des sites."],
+    ["À quoi sert le tube à enzyme bouillie ?",
+     "C'est le témoin négatif : il contient exactement la même chose, sauf une enzyme fonctionnelle. Si le substrat disparaissait quand même, c'est que sa disparition ne serait pas due à l'enzyme."],
+    ["Pourquoi mesure-t-on la vitesse <i>initiale</i> et non la vitesse moyenne ?",
+     "Parce que le substrat s'épuise au fil de la réaction : la vitesse diminue continuellement. Seule la vitesse initiale correspond aux conditions que l'on a réellement fixées au départ."],
+    ["Le Km de la saccharase est plus grand que celui de l'amylase. Qu'est-ce que cela signifie ?",
+     "Le Km est la concentration en substrat qui donne la moitié de Vmax. Plus il est grand, plus il faut de substrat pour occuper l'enzyme : son affinité pour son substrat est donc plus faible."]
+  ]);
+  outilPente(cvG, $('#en-pente'), 'g·L⁻¹·min⁻¹', (pente, a, b) =>
+    Labo.note('Cinétiques enzymatiques',
+      'Pente mesurée · ' + a.nom + ' (de ' + fr(a.pt[0],1) + ' à ' + fr(b.pt[0],1) + ' min)',
+      (pente > 0 ? '+' : '') + fr(pente,3) + ' g·L⁻¹·min⁻¹'));
   ajouteTable(cvG, "Disparition du substrat et apparition du produit au cours du temps.",
               $('#en-temoins-lgd'));
   ajouteTable(cvS, "Résultats de la série d'expériences.");
@@ -3165,6 +3350,10 @@ const TISSUS = {
     role:"Cellules arrondies laissant de grandes lacunes remplies d'air : elles font circuler les gaz jusqu'aux stomates."},
   stomate:    {nom:'Stomate', paroi:'cellulose', nuance:0.5,
     role:"Deux cellules de garde en haricot délimitant un orifice, l'ostiole. Leur ouverture règle les échanges gazeux et la transpiration."},
+  bulliforme: {nom:'Cellules bulliformes', paroi:'cellulose', nuance:.05,
+    role:"Grandes cellules claires de l'épiderme supérieur des Graminées. En perdant leur eau elles se dégonflent et la feuille s'enroule, ce qui limite la transpiration."},
+  mesophylle: {nom:'Mésophylle homogène', paroi:'cellulose', chloro:true, nuance:.35,
+    role:"Chez les Monocotylédones, le parenchyme chlorophyllien n'est pas séparé en palissade et lacunes : il est homogène, et les faisceaux y sont alignés parallèlement."},
   conjonctif: {nom:'Parenchyme conjonctif', paroi:'cellulose', nuance:.15,
     role:"Parenchyme du cylindre central de la racine : il sépare les faisceaux de xylème et de phloème, disposés en alternance."},
   suber:      {nom:'Suber (liège)', paroi:'lignine', nuance:0.55,
@@ -3234,6 +3423,37 @@ function coupe(nom){
     rect(146, 132, 128, 160, 'sclerenchyme');
     rect(158, 146, 104, 66, 'xyleme');
     rect(158, 212, 104, 66, 'phloeme');
+  }
+  else if(nom === 'feuille-mono'){
+    /* limbe de Graminée : mésophylle homogène, faisceaux alignés, cellules
+       bulliformes à la face supérieure, stomates sur les deux faces */
+    rect(26, 140, 368, 150, 'mesophylle', {cellules:true});
+    rect(26, 122, 368, 10, 'cuticule');
+    rect(26, 132, 368, 24, 'epiderme', {stomates:true});
+    rect(26, 290, 368, 24, 'epiderme', {stomates:true});
+    [70, 140, 210, 280, 350].forEach((x,i) => {
+      const grand = i % 2 === 0;
+      const l = grand ? 46 : 30, h = grand ? 74 : 50, y = 168 + (grand ? 0 : 12);
+      rect(x-l/2, y-8, l, 12, 'sclerenchyme');          /* calotte supérieure */
+      rect(x-l/2, y+h-4, l, 12, 'sclerenchyme');        /* calotte inférieure */
+      rect(x-l/2, y+4, l, h/2-4, 'xyleme');
+      rect(x-l/2, y+h/2, l, h/2-4, 'phloeme');
+    });
+    [52, 172, 292].forEach(x => rect(x, 132, 38, 24, 'bulliforme'));
+  }
+  else if(nom === 'racine-mono'){
+    /* racine polyarche : nombreux faisceaux alternes autour d'une moelle */
+    anneau(94, 178, 'cortical');
+    anneau(178, 190, 'pilifere', {poils:true});
+    anneau(84, 94, 'endoderme');
+    anneau(0, 84, 'medullaire');
+    anneau(76, 84, 'pericycle');
+    const n = 8;
+    for(let i = 0; i < n; i++){
+      const a = i*2*Math.PI/n;
+      secteur(40, 76, a-0.17, a+0.17, 'xyleme');
+      secteur(46, 74, a+Math.PI/n-0.15, a+Math.PI/n+0.15, 'phloeme');
+    }
   }
   else if(nom === 'tige-ligneuse'){
     anneau(0, 42, 'medullaire');
@@ -3333,10 +3553,13 @@ function coupe(nom){
     if(z.t === 'xyleme' && (z.type === 'secteur' || z.type === 'disque' || z.type === 'rect')){
       ctx.fillStyle = coloration === 'phloro' ? '#e9b9bd' : coloration === 'carmin' ? '#bcd9c7' : '#e4ded0';
       const pts = z.type === 'disque' ? [[z.x-7,z.y+6],[z.x+7,z.y+6]]
-        : z.type === 'rect' ? [[z.x+26,z.y+24],[z.x+52,z.y+18],[z.x+78,z.y+26],[z.x+40,z.y+46],[z.x+66,z.y+48]]
+        : z.type === 'rect' ? (z.w > 70
+            ? [[.25,.35],[.5,.25],[.75,.38],[.38,.68],[.62,.72]]
+            : [[.32,.4],[.68,.45],[.5,.75]]).map(([fx,fy]) => [z.x+z.w*fx, z.y+z.h*fy])
         : [0,1,2].map(i => { const a = (z.a0+z.a1)/2 + (i-1)*0.16, r = z.r0 + (z.r1-z.r0)*(0.35+0.28*(i%2));
             return [210+r*Math.cos(a), 210+r*Math.sin(a)]; });
-      pts.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x, y, z.type === 'disque' ? 5 : 7, 0, 7);
+      const rv = z.type === 'disque' ? 5 : z.type === 'rect' ? Math.max(3.5, Math.min(7, z.w/9)) : 7;
+      pts.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x, y, rv, 0, 7);
         ctx.fill(); ctx.strokeStyle = c.s; ctx.lineWidth = 1.6; ctx.stroke(); });
     }
     if(z.colonnes) for(let x = z.x+9; x < z.x+z.w-6; x += 19){
@@ -3346,6 +3569,20 @@ function coupe(nom){
         ctx.beginPath(); ctx.ellipse(x+9, z.y+16+k*18, 4.2, 2.6, .5, 0, 7);
         ctx.globalAlpha = .65; ctx.fill(); ctx.globalAlpha = 1;
       }
+    }
+    if(z.cellules){
+      ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip();
+      for(let y = z.y+11; y < z.y+z.h-4; y += 19)
+        for(let x = z.x+11; x < z.x+z.w-4; x += 19){
+          ctx.beginPath(); ctx.arc(x + (y % 38 ? 9 : 0), y, 7.5, 0, Math.PI*2);
+          ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
+          if(coloration === 'aucune'){ ctx.fillStyle = '#7fae7f'; }
+          else ctx.fillStyle = c.s;
+          ctx.globalAlpha = .5;
+          ctx.beginPath(); ctx.ellipse(x + (y % 38 ? 9 : 0), y, 3, 1.9, .5, 0, Math.PI*2);
+          ctx.fill(); ctx.globalAlpha = 1;
+        }
+      ctx.restore();
     }
     if(z.lacunes){
       ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip();
@@ -3458,6 +3695,18 @@ function coupe(nom){
     dessine();
   });
 
+  $('#hi-questions').innerHTML = blocQuestions([
+    ["Comment distinguer sans hésiter une tige de Dicotylédone d'une tige de Monocotylédone ?",
+     "Par la disposition des faisceaux : une couronne régulière chez la Dicotylédone, des faisceaux dispersés dans tout le parenchyme chez la Monocotylédone. La présence d'un cambium, donc d'une croissance en épaisseur, est un second critère."],
+    ["Le xylème est central en étoile dans la racine, périphérique dans la tige. Pourquoi ?",
+     "La racine subit surtout des tractions : un cylindre central plein résiste mieux à l'arrachement. La tige subit des flexions : des faisceaux périphériques, plus éloignés de l'axe, résistent mieux au pliage."],
+    ["Pourquoi les vaisseaux du xylème sont-ils morts, alors que le phloème est vivant ?",
+     "Le xylème conduit une sève tirée par la transpiration : un tube vide à parois lignifiées est le plus efficace. Le phloème, lui, charge et décharge activement des sucres tout au long du trajet : cela exige un cytoplasme vivant."],
+    ["Sur une coupe non colorée, comment repérer tout de même le xylème ?",
+     "Par sa position (vers l'intérieur du faisceau), par la taille de ses vaisseaux — les plus grandes sections de la coupe — et par l'épaisseur de ses parois. La coloration confirme une lecture de l'organisation, elle ne la remplace pas."],
+    ["À quoi servent les cellules bulliformes de la feuille de brome ?",
+     "En perdant leur eau, elles se dégonflent et la feuille s'enroule sur elle-même. Les stomates se retrouvent enfermés dans le cylindre ainsi formé, ce qui limite fortement la transpiration en cas de sécheresse."]
+  ]);
   dessine(); cle();
   Labo.surAffichage.histologie = dessine;
 })();
@@ -4475,6 +4724,7 @@ const PLACARD_TYPE = ['tube','portoir','hemolyse','becher','becher250','erlen','
 
   $('#pr-postes').value = postes;
   renduListe(); renduPanier();
+  if(Labo.rendCatalogue) Labo.rendCatalogue();
   Labo.surAffichage.preparer = () => { renduListe(); renduPanier(); };
 })();
 </script>
