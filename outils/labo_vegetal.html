@@ -152,7 +152,8 @@ table.tab th, table.tab td{ text-align:left; padding:7px 9px; border-bottom:1px 
 table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair) }
 .scroll-x{ overflow-x:auto }
 canvas{ display:block; max-width:100%; touch-action:pan-y }
-#ex-enceinte,#ex-graphe,#ex-serie,#pi-spectre,#pi-fluo,#en-graphe,#en-gamme,#en-serie,#hi-coupe{ width:100% }
+#ex-enceinte,#ex-graphe,#ex-serie,#ex-defi,#pi-spectre,#pi-fluo,
+#en-graphe,#en-gamme,#en-serie,#en-defi,#hi-coupe{ width:100% }
 /* Ces deux-là ont une largeur fixe : elle doit venir du CSS, jamais de
    l'attribut width, que le tracé réécrit. */
 #bio-tube{ width:180px; height:270px }
@@ -325,6 +326,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        l'enregistrement : les deux courbes se construisent en direct. En inversant l'éclairement
        on fait apparaître la respiration seule, puis la photosynthèse nette.</p>
     <span class="ref">Partie III — respiration · Partie IV — photosynthèse</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="photo-exao"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Les deux courbes ne sont pas enregistrées : elles sont recalculées à chaque instant. L'O₂ varie selon P − R, avec une photosynthèse P = Pmax × I/(I+25) × CO₂/(CO₂+1,5) × f(T) et une respiration R = R₂₀ × 2<sup>(T−20)/10</sup>.</p><p>Saturation par la lumière, facteurs limitants et Q₁₀ = 2 sont des lois de manuel ; Pmax et R₂₀ sont des constantes choisies pour l'illustration. Le signal n'a ni bruit de mesure ni temps de réponse de sonde : <b>une vraie courbe d'ExAO est bien moins lisse.</b></p></div></div>
 
@@ -390,6 +393,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:16px">
           <button class="btn primaire" id="ex-play">Lancer</button>
           <button class="btn" id="ex-raz">Réinitialiser</button>
+          <button class="btn mini no-print" id="ex-lien" title="Copier une adresse qui rouvrira le laboratoire avec exactement ces réglages">Lien de ce réglage</button>
         </div>
       </div>
 
@@ -440,7 +444,10 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
             </span>
           </div>
           <canvas id="ex-graphe" height="300"></canvas>
+          <div id="ex-temoins-lgd" style="margin-top:8px; display:grid; gap:3px; font-size:11.5px"></div>
           <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+            <button class="btn mini primaire" id="ex-temoin">Garder comme témoin</button>
+            <button class="btn mini" id="ex-temoin-raz">Effacer les témoins</button>
             <button class="btn mini" id="ex-csv">Exporter les mesures (CSV)</button>
             <button class="btn mini" id="ex-png">Enregistrer le graphique</button>
             <label class="btn mini" style="gap:6px"><input type="checkbox" id="ex-vph" style="accent-color:var(--violet)"> afficher le pH</label>
@@ -454,6 +461,20 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         <p class="sous" id="ex-serie-sous"></p>
         <canvas id="ex-serie" height="280"></canvas>
         <div class="note" id="ex-serie-note"></div>
+      </div>
+
+      <div class="carte" id="ex-defi-carte">
+        <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap">
+          <h3 style="flex:1">Défi — retrouver le facteur modifié</h3>
+          <span class="badge" id="ex-defi-score">0 / 0</span>
+        </div>
+        <p class="sous">Deux enregistrements réalisés dans le même protocole : trois minutes à
+           60 % d'éclairement, deux minutes d'obscurité, puis trois minutes à pleine lumière.
+           Une seule condition a changé entre les deux. Laquelle ?</p>
+        <canvas id="ex-defi" height="270"></canvas>
+        <div id="ex-defi-choix" style="display:flex; gap:7px; flex-wrap:wrap; margin-top:12px"></div>
+        <div id="ex-defi-retour"></div>
+        <button class="btn primaire" id="ex-defi-go" style="margin-top:12px">Lancer un défi</button>
       </div>
 
       <div class="carte">
@@ -476,6 +497,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        Le mode « échantillon mystère » demande à l'élève de choisir lui-même ses tests pour identifier
        un extrait inconnu.</p>
     <span class="ref">Partie I — oses, constituants pariétaux, substances de réserve, autres substances</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="amidon"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Résultats simulés.</b> Les virages de couleur, les conclusions et les conditions de chaque test reprennent les protocoles de l'ouvrage : ils sont fidèles sur le plan qualitatif, et c'est bien le raisonnement d'identification qui se travaille ici.</p><p>Mais aucun tube n'a été chauffé : le tube, le champ du microscope et la coloration sont <b>dessinés par le programme</b>.</p></div></div>
 
@@ -554,6 +577,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <p>Extraction, séparation par chromatographie, mesure des R<sub>f</sub>, spectres d'absorption
        et fluorescence : les quatre manipulations de la partie 4 de l'ouvrage, sur le même extrait.</p>
     <span class="ref">Partie I — 4.1 à 4.9</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="chromato"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Les maximums d'absorption (chlorophylle a à 430 et 662 nm, chlorophylle b à 453 et 643 nm) sont ceux des manuels, mais les courbes sont des gaussiennes reconstituées, <b>pas des spectres enregistrés au spectrophotomètre</b>.</p><p>Les R<sub>f</sub> respectent l'ordre de migration réel des pigments ; leurs valeurs exactes dépendent du solvant et du papier et ne sont ici qu'indicatives.</p></div></div>
 
@@ -642,8 +667,10 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <p>On suit la disparition du substrat et l'apparition du produit au cours du temps. Une gamme
        de tubes témoins est prélevée toutes les minutes et testée, comme sur une plaque à godets.</p>
     <span class="ref">Partie I — 6.1 à 6.6</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="amylase"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
-  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> La vitesse vient du calcul v₀ = Vmax × [E] × S/(S+Km) × f(T) × f(pH). La relation de Michaelis-Menten et l'existence d'un optimum sont des lois de manuel ; Vmax, Km et les optimums sont des constantes choisies pour l'illustration.</p><p><b>Une réserve à connaître :</b> ici la dénaturation par la chaleur redevient réversible si l'on redescend la température, alors qu'elle ne l'est pas dans la réalité. Seul le témoin « enzyme bouillie » rend correctement ce caractère définitif.</p></div></div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> La vitesse vient du calcul v₀ = Vmax × [E] × S/(S+Km) × f(T) × f(pH). La relation de Michaelis-Menten et l'existence d'un optimum sont des lois de manuel ; Vmax, Km et les optimums sont des constantes choisies pour l'illustration.</p><p>La dénaturation, elle, est traitée comme dans la réalité : au-delà de la température critique l'enzyme est détruite <b>définitivement</b> — l'indicateur « enzyme active » descend et ne remonte jamais, même si l'on refroidit le milieu.</p></div></div>
 
   <div class="grille deux">
     <div>
@@ -705,12 +732,32 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
           <div class="mesure"><div class="t" id="en-lab-s">Substrat</div><div class="v" id="en-vs" style="color:var(--violet)">10,0</div><div class="u">g·L⁻¹</div></div>
           <div class="mesure"><div class="t" id="en-lab-p">Produit</div><div class="v" id="en-vp" style="color:var(--vert)">0,0</div><div class="u">g·L⁻¹</div></div>
           <div class="mesure"><div class="t">Vitesse initiale</div><div class="v" id="en-vi">—</div><div class="u">g·L⁻¹·min⁻¹</div></div>
+          <div class="mesure"><div class="t">Enzyme active</div><div class="v" id="en-actif">100</div><div class="u">% du départ</div></div>
         </div>
         <canvas id="en-graphe" height="290"></canvas>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+          <button class="btn mini primaire" id="en-temoin">Garder comme témoin</button>
+          <button class="btn mini" id="en-temoin-raz">Effacer les témoins</button>
+        </div>
+        <div id="en-temoins-lgd" style="margin-top:8px; display:grid; gap:3px; font-size:11.5px"></div>
         <div style="margin-top:14px">
           <div class="lgd"><span id="en-gamme-titre">Gamme de tubes prélevés</span><span style="font-weight:400;color:var(--gris);font-size:11.5px">une goutte par minute</span></div>
           <canvas id="en-gamme" height="92"></canvas>
         </div>
+      </div>
+
+      <div class="carte" id="en-defi-carte">
+        <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap">
+          <h3 style="flex:1">Défi — lire une cinétique</h3>
+          <span class="badge" id="en-defi-score">0 / 0</span>
+        </div>
+        <p class="sous">En trait plein, la référence : amylase à 37 °C, pH 7, 10 g·L⁻¹ d'amidon.
+           En pointillé, une cinétique obtenue en changeant une seule chose. Comparez le palier
+           final et la pente de départ.</p>
+        <canvas id="en-defi" height="250"></canvas>
+        <div id="en-defi-choix" style="display:grid; gap:7px; margin-top:12px"></div>
+        <div id="en-defi-retour"></div>
+        <button class="btn primaire" id="en-defi-go" style="margin-top:12px">Lancer un défi</button>
       </div>
 
       <div class="carte" id="en-serie-carte" style="display:none">
@@ -732,6 +779,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <p>Coupes transversales schématiques. On choisit l'organe, la coloration, le grossissement,
        puis on clique sur un tissu pour l'identifier. Le mode « légender » interroge l'élève.</p>
     <span class="ref">Partie II — 1 à 3</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="coupes"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Schémas, non photographies.</b> Les coupes sont dessinées par le programme. L'agencement des tissus, leur position relative et l'effet des colorants sont fidèles — c'est ce qui permet d'apprendre à lire une coupe.</p><p>En revanche les proportions sont régularisées et les cellules simplifiées : <b>une coupe réelle au microscope est bien plus irrégulière.</b></p></div></div>
 
@@ -924,10 +973,12 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <label class="lgd" for="cn-5">Histologie</label>
     <textarea id="cn-5" placeholder="Tissus repérés sur la coupe…"></textarea>
     <p style="font-size:11.5px; color:var(--gris-clair)">
-      Le carnet est enregistré dans ce navigateur uniquement : rien n'est envoyé sur Internet.</p>
+      Les valeurs que vous trouvez dans les modules (pentes, point de compensation, R<sub>f</sub>,
+      optimums, scores) sont relevées automatiquement et s'ajoutent en tête de la fiche imprimée.
+      Tout reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
   </div>
   <div class="cn-pied">
-    <button class="btn primaire" id="cn-imprimer">Imprimer / PDF</button>
+    <button class="btn primaire" id="cn-imprimer">Fiche de résultats (imprimer / PDF)</button>
     <button class="btn" id="cn-txt">Télécharger (.txt)</button>
     <button class="btn" id="cn-effacer">Tout effacer</button>
   </div>
@@ -994,9 +1045,13 @@ function pas(etendue, cible=6){
 /* cfg : {xmin,xmax,ymin,ymax,xtit,ytit,series,bandes,barres,reperes,fmtX,fmtY} */
 function traceGraphe(cv, cfg){
   const {ctx, l, h} = dimensionne(cv);
-  const mg = {g:46, d:12, ht:12, b:34};
+  const mg = {g:46, d: cfg.y2 ? 46 : 12, ht:12, b:34};
   const X = x => mg.g + (x-cfg.xmin)/(cfg.xmax-cfg.xmin || 1)*(l-mg.g-mg.d);
   const Y = y => h-mg.b - (y-cfg.ymin)/(cfg.ymax-cfg.ymin || 1)*(h-mg.ht-mg.b);
+  /* axe de droite : une grandeur de nature différente (le pH) ne doit pas
+     partager l'échelle des concentrations. */
+  const Y2 = y => cfg.y2
+    ? h-mg.b - (y-cfg.y2.min)/(cfg.y2.max-cfg.y2.min || 1)*(h-mg.ht-mg.b) : Y(y);
   ctx.clearRect(0,0,l,h);
   ctx.fillStyle = '#fdfcfa'; ctx.fillRect(mg.g, mg.ht, l-mg.g-mg.d, h-mg.ht-mg.b);
   if(cfg.fondSpectre){                       /* bande des couleurs du visible */
@@ -1027,6 +1082,20 @@ function traceGraphe(cv, cfg){
     ctx.beginPath(); ctx.moveTo(mg.g, Y(y)); ctx.lineTo(l-mg.d, Y(y)); ctx.stroke();
     ctx.fillText(cfg.fmtY ? cfg.fmtY(y) : (Math.round(y*100)/100).toLocaleString('fr-FR'), mg.g-6, Y(y));
   }
+  if(cfg.y2){
+    const p2 = pas(cfg.y2.max-cfg.y2.min, 5);
+    ctx.textAlign = 'left'; ctx.fillStyle = cfg.y2.couleur || '#6e5fa8';
+    for(let y = Math.ceil(cfg.y2.min/p2)*p2; y <= cfg.y2.max+1e-9; y += p2){
+      ctx.fillText(cfg.y2.fmt ? cfg.y2.fmt(y) : (Math.round(y*100)/100).toLocaleString('fr-FR'),
+                   l-mg.d+6, Y2(y));
+    }
+    if(cfg.y2.titre){
+      ctx.save(); ctx.translate(l-6, (mg.ht + h-mg.b)/2); ctx.rotate(-Math.PI/2);
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.font = '500 10.5px Onest, sans-serif'; ctx.fillText(cfg.y2.titre, 0, 0); ctx.restore();
+    }
+    ctx.font = '10px Onest, sans-serif';
+  }
   if(cfg.ymin < 0 && cfg.ymax > 0){
     ctx.strokeStyle = '#c8c1b3'; ctx.lineWidth = 1.5;
     ctx.beginPath(); ctx.moveTo(mg.g, Y(0)); ctx.lineTo(l-mg.d, Y(0)); ctx.stroke();
@@ -1034,28 +1103,32 @@ function traceGraphe(cv, cfg){
 
   /* barres */
   (cfg.barres||[]).forEach(b => {
-    const larg = (l-mg.g-mg.d)/((cfg.barres.length)*1.7);
+    const larg = (l-mg.g-mg.d)/((cfg.barres.length)*1.7)*(b.larg || 1);
     ctx.fillStyle = b.couleur;
     const y0 = Y(Math.max(0,cfg.ymin)), y1 = Y(b.y);
-    ctx.fillRect(X(b.x)-larg/2, Math.min(y0,y1), larg, Math.abs(y1-y0));
+    const cx = X(b.x + (b.dx || 0));
+    ctx.fillRect(cx-larg/2, Math.min(y0,y1), larg, Math.abs(y1-y0));
     if(b.etiquette){
       ctx.fillStyle = '#7d776c'; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom';
-      ctx.fillText(b.etiquette, X(b.x), Math.min(y0,y1)-3);
+      ctx.fillText(b.etiquette, cx, Math.min(y0,y1)-3);
     }
   });
 
   /* courbes */
   (cfg.series||[]).forEach(s => {
     if(!s.pts || s.pts.length < 1) return;
+    const YY = s.axe === 'd' ? Y2 : Y;
     ctx.strokeStyle = s.couleur; ctx.lineWidth = s.largeur || 2;
+    ctx.globalAlpha = s.alpha || 1;
     ctx.setLineDash(s.pointille ? [5,4] : []);
     ctx.lineJoin = 'round'; ctx.beginPath();
-    s.pts.forEach((p,i) => i ? ctx.lineTo(X(p[0]),Y(p[1])) : ctx.moveTo(X(p[0]),Y(p[1])));
+    s.pts.forEach((p,i) => i ? ctx.lineTo(X(p[0]),YY(p[1])) : ctx.moveTo(X(p[0]),YY(p[1])));
     ctx.stroke(); ctx.setLineDash([]);
     if(s.marqueurs) s.pts.forEach(p => {
       ctx.fillStyle = s.couleur; ctx.beginPath();
-      ctx.arc(X(p[0]), Y(p[1]), 3.2, 0, 7); ctx.fill();
+      ctx.arc(X(p[0]), YY(p[1]), 3.2, 0, 7); ctx.fill();
     });
+    ctx.globalAlpha = 1;
   });
 
   /* repères annotés */
@@ -1085,7 +1158,18 @@ function traceGraphe(cv, cfg){
 /* ==========================================================================
    NAVIGATION ENTRE MODULES
    ========================================================================== */
-const Labo = { surAffichage:{}, moduleActif:'accueil' };
+const Labo = { surAffichage:{}, surURL:{}, moduleActif:'accueil', resultats:{} };
+/* Relevés automatiques : chaque module y dépose ce que l'élève a effectivement
+   trouvé, pour que la fiche de résultats se remplisse toute seule. */
+try { Labo.resultats = JSON.parse(localStorage.getItem('labo-vegetal-resultats') || '{}'); } catch(e){}
+Labo.note = (mod, cle, valeur) => {
+  (Labo.resultats[mod] = Labo.resultats[mod] || {})[cle] = valeur;
+  try { localStorage.setItem('labo-vegetal-resultats', JSON.stringify(Labo.resultats)); } catch(e){}
+};
+Labo.videResultats = () => {
+  Labo.resultats = {};
+  try { localStorage.removeItem('labo-vegetal-resultats'); } catch(e){}
+};
 function ouvreModule(nom){
   $$('.module').forEach(m => m.classList.toggle('actif', m.id === 'mod-'+nom));
   $$('nav.onglets button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mod === nom)));
@@ -1127,13 +1211,25 @@ window.addEventListener('resize', () => {
   $('#cn-fermer').addEventListener('click', () => pan.classList.remove('ouvert'));
   document.addEventListener('keydown', e => { if(e.key === 'Escape') pan.classList.remove('ouvert'); });
   $('#cn-effacer').addEventListener('click', () => {
-    if(!confirm('Effacer tout le carnet ?')) return;
+    if(!confirm('Effacer tout le carnet et les résultats relevés ?')) return;
+    Labo.videResultats();
     champs.forEach(id => { const el=$('#'+id); if(el) el.value=''; });
     sauv = {}; try { localStorage.removeItem(CLE); } catch(e){}
   });
+  const releves = () => {
+    const mods = Object.keys(Labo.resultats);
+    if(!mods.length) return null;
+    return mods.map(m => ({m, lignes: Object.entries(Labo.resultats[m])}));
+  };
   const texte = () => {
     const t = ['CARNET DE MANIPULATION — laboratoire virtuel de biologie végétale',
                $('#cn-nom').value, ''];
+    const r = releves();
+    if(r){
+      t.push('== RÉSULTATS RELEVÉS PENDANT LA SÉANCE ==', '');
+      r.forEach(({m, lignes}) => { t.push('— ' + m + ' —');
+        lignes.forEach(([c,v]) => t.push('  ' + c + ' : ' + v)); t.push(''); });
+    }
     [['ExAO','cn-1'],['Biochimie','cn-2'],['Pigments','cn-3'],['Enzymes','cn-4'],['Histologie','cn-5']]
       .forEach(([tit,id]) => { t.push('— ' + tit + ' —', $('#'+id).value || '(rien)', ''); });
     return t.join('\n');
@@ -1145,9 +1241,16 @@ window.addEventListener('resize', () => {
     f.document.write('<meta charset="utf-8"><title>Carnet de manipulation</title>' +
       '<style>body{font:14px/1.6 system-ui,sans-serif;max-width:19cm;margin:2cm auto;color:#23201c}' +
       'h1{font-size:19px} h2{font-size:14px;margin-top:22px;color:#b15f2c;border-bottom:1px solid #e4dfd5;padding-bottom:4px}' +
-      'p{white-space:pre-wrap;margin:6px 0 0}</style>' +
-      '<h1>Carnet de manipulation — biologie végétale</h1><p><b>' +
+      'p{white-space:pre-wrap;margin:6px 0 0}' +
+      'table{border-collapse:collapse;margin:4px 0 12px;width:100%}' +
+      'td{border-bottom:1px solid #eee;padding:3px 6px;font-size:13px}' +
+      'td:last-child{text-align:right;white-space:nowrap}</style>' +
+      '<h1>Fiche de résultats — biologie végétale</h1><p><b>' +
       $('#cn-nom').value.replace(/[<>]/g,'') + '</b></p>' +
+      ((r => r ? '<h2>Résultats relevés pendant la séance</h2>' + r.map(({m, lignes}) =>
+        '<p><b>' + m + '</b></p><table><tbody>' + lignes.map(([c,v]) =>
+          '<tr><td>' + c + '</td><td><b>' + String(v).replace(/[<>]/g,'') + '</b></td></tr>').join('') +
+        '</tbody></table>').join('') : '')(releves())) +
       [['ExAO — photosynthèse et respiration','cn-1'],['Paillasse de biochimie','cn-2'],
        ['Pigments photosynthétiques','cn-3'],['Cinétiques enzymatiques','cn-4'],['Histologie','cn-5']]
       .map(([t,id]) => '<h2>'+t+'</h2><p>'+($('#'+id).value.replace(/[<>]/g,'')||'—')+'</p>').join(''));
@@ -1499,8 +1602,10 @@ const MATERIEL = {
   levure:      {nom:'Levures',           pmax:0.00, r20:0.55, chloro:false, ferm:true,
                 sub:'Glucose disponible', teinte:'#d8b678'}
 };
-const FILTRES = {blanc:{eff:1.00, c:'#fff6d8'}, bleu:{eff:0.88, c:'#7fb2e8'},
-                 vert:{eff:0.12, c:'#8fd28f'}, rouge:{eff:0.82, c:'#e8877f'}};
+const FILTRES = {blanc:{eff:1.00, c:'#fff6d8', trans:1.00, clair:'#e2d5b4'},
+                 bleu: {eff:0.88, c:'#7fb2e8', trans:0.25, clair:'#9cc0e6'},
+                 vert: {eff:0.12, c:'#8fd28f', trans:0.60, clair:'#a9d6b6'},
+                 rouge:{eff:0.82, c:'#e8877f', trans:0.35, clair:'#eeb1aa'}};
 
 const fTphoto = T => {
   let f = Math.exp(-Math.pow(T-28,2)/(2*11*11));
@@ -1532,8 +1637,10 @@ const versPH   = co2 => borne(7.55 - 0.09*co2, 4.5, 9);
 
 const EX = {
   t:0, o2:8, co2:5, hist:[], bandes:[], marche:false, vitesse:10,
-  bulles:[], scenario:null, dernierNet:0, alcool:0, last:0
+  bulles:[], scenario:null, dernierNet:0, alcool:0, last:0,
+  temoins:[], nTemoin:0, defi:null, defiScore:{ok:0, total:0}
 };
+const COUL_TEMOIN = ['#7f9fb5','#c09a6b','#8aa87f'];
 
 (function exao(){
   const cvE = $('#ex-enceinte'), cvG = $('#ex-graphe'), cvS = $('#ex-serie');
@@ -1646,13 +1753,19 @@ const EX = {
 
   /* ---------- tracé des courbes ---------- */
   function traceCourbes(){
-    const xmax = Math.max(4, Math.ceil(EX.t/60/2)*2);
-    const series = [
-      {couleur:'#2f6ba8', pts: EX.hist.map(p => [p[0],p[1]])},
-      {couleur:'#b15f2c', pts: EX.hist.map(p => [p[0],p[2]])}
-    ];
+    let xmax = Math.max(4, Math.ceil(EX.t/60/2)*2);
+    EX.temoins.forEach(t => { if(t.o2.length) xmax = Math.max(xmax, Math.ceil(t.o2[t.o2.length-1][0]/2)*2); });
+    const series = [];
+    /* les témoins d'abord : ils passent sous l'enregistrement en cours */
+    EX.temoins.forEach(t => {
+      series.push({couleur:t.couleur, pts:t.o2,  pointille:true, largeur:1.5, alpha:.9});
+      series.push({couleur:t.couleur, pts:t.co2, pointille:true, largeur:1.5, alpha:.5});
+    });
+    series.push({couleur:'#2f6ba8', pts: EX.hist.map(p => [p[0],p[1]])});
+    series.push({couleur:'#b15f2c', pts: EX.hist.map(p => [p[0],p[2]])});
     if($('#ex-vph').checked)
-      series.push({couleur:'#6e5fa8', pointille:true, largeur:1.6, pts: EX.hist.map(p => [p[0],p[3]])});
+      series.push({couleur:'#6e5fa8', pointille:true, largeur:1.6, axe:'d',
+                   pts: EX.hist.map(p => [p[0],p[3]])});
     let ymin = 0, ymax = 16;
     if($('#ex-auto').checked){                 /* échelle resserrée sur les mesures */
       const v = series.flatMap(s => s.pts.map(p => p[1]));
@@ -1661,11 +1774,41 @@ const EX = {
     }
     traceGraphe(cvG, {
       xmin:0, xmax, ymin, ymax,
-      xtit:'temps (min)', ytit:'concentration (mg·L⁻¹) et pH',
+      y2: $('#ex-vph').checked ? {min:6, max:8.5, titre:'pH', couleur:'#6e5fa8'} : null,
+      xtit:'temps (min)', ytit:'concentration (mg·L⁻¹)',
       bandes: EX.bandes.map(b => ({x0:b.x0, x1:b.fini ? b.x1 : EX.t/60})),
       series
     });
   }
+
+  /* ---------- témoins superposés ---------- */
+  function libelle(){
+    const e = etat();
+    return e.mat.nom + ' · ' + (e.lampe && e.I > 0 ? e.I + ' % ' + e.filtre : 'obscurité') +
+           ' · ' + e.T + ' °C · ' + (e.mat.ferm ? 'glucose ' : 'HCO₃⁻ ') + e.sub + ' %';
+  }
+  function gardeTemoin(){
+    if(EX.hist.length < 3){ alert("Lancez d'abord un enregistrement : il n'y a rien à garder."); return; }
+    if(EX.temoins.length >= 3) EX.temoins.shift();
+    const lab = libelle();
+    EX.temoins.push({
+      o2:  EX.hist.map(p => [p[0],p[1]]),
+      co2: EX.hist.map(p => [p[0],p[2]]),
+      label: lab, couleur: COUL_TEMOIN[(EX.nTemoin++) % 3]
+    });
+    Labo.note('ExAO — échanges gazeux', 'Échange net · ' + lab,
+              (EX.dernierNet > 0 ? '+' : '') + fr(EX.dernierNet) + ' mg O₂·L⁻¹·min⁻¹');
+    majTemoins(); traceCourbes();
+  }
+  function majTemoins(){
+    $('#ex-temoins-lgd').innerHTML = EX.temoins.map(t =>
+      '<div style="display:flex; gap:8px; align-items:center; color:var(--gris)">' +
+      '<b style="color:' + t.couleur + '">- - -</b><span>' + t.label + '</span></div>').join('') ||
+      (EX.hist.length > 3 ? '<span style="color:var(--gris-clair)">Astuce : gardez cet enregistrement ' +
+       'comme témoin, changez un seul réglage, relancez — les deux courbes se superposeront.</span>' : '');
+  }
+  $('#ex-temoin').addEventListener('click', gardeTemoin);
+  $('#ex-temoin-raz').addEventListener('click', () => { EX.temoins = []; majTemoins(); traceCourbes(); });
 
   /* ---------- enceinte dessinée ---------- */
   function dessineEnceinte(){
@@ -1792,6 +1935,8 @@ const EX = {
         const a = pts[i-1], b = pts[i];
         pc = a[0] + (0-a[1])*(b[0]-a[0])/(b[1]-a[1]); break;
       }
+      if(pc !== null) Labo.note('ExAO — échanges gazeux', 'Point de compensation',
+        Math.round(pc) + " % d'éclairement (" + e.T + ' °C, filtre ' + e.filtre + ')');
       serie('Courbe de réponse à la lumière',
         'Échange net d\'O₂ mesuré à ' + e.T + ' °C, filtre ' + e.filtre + ', CO₂ à ' + fr(co2,1) + ' mg·L⁻¹.',
         {xmin:0, xmax:100, ymin:Math.min(-0.1, -R*1.4), ymax:Math.max(0.2, brut[brut.length-1][1]*1.25),
@@ -1815,6 +1960,7 @@ const EX = {
         brut.push([T,P]); resp.push([T,R]); net.push([T,P-R]);
       }
       let opt = 0; net.forEach(p => { if(p[1] > net[opt][1]) opt = p[0]; });
+      Labo.note('ExAO — échanges gazeux', 'Optimum de température', opt + ' °C');
       serie('Effet de la température',
         'Éclairement maintenu à ' + (e.I || 70) + ' %, filtre ' + e.filtre + '.',
         {xmin:0, xmax:55, ymin:Math.min(-0.15, -Math.max(...resp.map(p=>p[1]))*1.2),
@@ -1830,22 +1976,39 @@ const EX = {
     },
     spectre(){
       const e = etat(), co2 = cibleCO2(e.sub), R = vRespi(e.mat, e.T, 8, e.sub);
-      const noms = ['bleu','vert','rouge','blanc'], coul = {bleu:'#2f6ba8', vert:'#3f7d5f', rouge:'#c0392b', blanc:'#c9b98f'};
-      const barres = noms.map((f,i) => {
-        const P = vPhoto(e.mat, e.I || 80, f, e.T, co2);
-        Labo.spectreAction = Labo.spectreAction || {};
+      const noms = ['bleu','vert','rouge','blanc'];
+      const coul = {bleu:'#2f6ba8', vert:'#3f7d5f', rouge:'#c0392b', blanc:'#c9b98f'};
+      const I0 = e.I || 60, barres = [];
+      Labo.spectreAction = Labo.spectreAction || {};
+      noms.forEach((f,i) => {
+        /* protocole classique : même lampe pour tous les filtres */
+        const P = vPhoto(e.mat, I0, f, e.T, co2);
+        /* analyse critique : on remonte la lampe pour que chaque filtre
+           délivre la même énergie, puisqu'un gel coloré n'en transmet
+           qu'une fraction (§ IV — 4.2 de l'ouvrage). */
+        const Pc = vPhoto(e.mat, I0/FILTRES[f].trans, f, e.T, co2);
         Labo.spectreAction[f] = P;
-        return {x:i, y:P-R, couleur:coul[f], etiquette:f};
+        barres.push({x:i, dx:-0.19, larg:0.8, y:P-R,  couleur:coul[f]});
+        barres.push({x:i, dx: 0.19, larg:0.8, y:Pc-R, couleur:FILTRES[f].clair});
       });
+      Labo.note('ExAO — échanges gazeux', "Spectre d'action (bleu / vert / rouge)",
+        ['bleu','vert','rouge'].map(f => fr(Labo.spectreAction[f], 2)).join(' / ') + ' mg O₂·L⁻¹·min⁻¹');
       serie('Spectre d\'action de la photosynthèse',
-        'Même intensité lumineuse (' + (e.I || 80) + ' %) derrière quatre filtres différents.',
+        'À gauche de chaque paire, le protocole classique : même lampe (' + I0 + ' %) pour tous les ' +
+        'filtres. À droite, la même mesure après avoir égalisé l\'énergie reçue.',
         {xmin:-0.6, xmax:3.6, ymin:Math.min(-0.1, -R*1.5),
          ymax:Math.max(0.2, Math.max(...barres.map(b=>b.y))*1.3),
          xtit:'filtre coloré', ytit:'mg O₂·L⁻¹·min⁻¹',
          fmtX: x => ['bleu','vert','rouge','blanc'][Math.round(x)] || '', barres},
         '<b>Lecture.</b> La lumière verte est très peu efficace, le bleu et le rouge le sont beaucoup. ' +
         'Superposez ce spectre d\'action au spectre d\'absorption des pigments (onglet Pigments) : les deux courbes se ressemblent, ' +
-        'ce qui montre que ce sont bien les pigments chlorophylliens qui captent l\'énergie utilisée par la photosynthèse.');
+        'ce qui montre que ce sont bien les pigments chlorophylliens qui captent l\'énergie utilisée par la photosynthèse.' +
+        '<br><br><b>Analyse critique.</b> Un filtre coloré ne transmet qu\'une partie de l\'énergie de la lampe : ' +
+        'environ un quart pour le bleu, trois cinquièmes pour le vert. Le protocole classique compare donc des ' +
+        'éclairements qui ne sont pas égaux, et ses valeurs absolues ne sont pas comparables d\'un filtre à l\'autre. ' +
+        'Les barres claires montrent le résultat à énergie égale : toutes les vitesses montent, d\'autant plus que ' +
+        'la mesure était loin de la saturation. <b>La hiérarchie, elle, ne change pas</b> — la conclusion du TP tient, ' +
+        'mais elle mérite d\'être formulée en termes de comparaison, pas de valeurs.');
     },
     fermentation(){
       $('#ex-mat').value = 'levure'; sub.value = 80; temp.value = 30;
@@ -1909,8 +2072,115 @@ const EX = {
     '<summary style="cursor:pointer; font-size:13.5px; font-weight:500">' + (i+1) + '. ' + q[0] + '</summary>' +
     '<p style="font-size:12.5px; color:var(--gris); margin-top:7px">' + q[1] + '</p></details>').join('');
 
-  Labo.surAffichage.exao = () => { majLibelles(); traceCourbes(); dessineEnceinte(); };
-  raz();
+  /* ---------- réglages transmis par l'adresse ----------
+     #exao?mat=elodee&lum=1&i=70&f=vert&t=30&sub=40 rouvre le laboratoire
+     exactement dans cette configuration : de quoi dicter une consigne. */
+  Labo.surURL.exao = q => {
+    if(q.get('mat') && MATERIEL[q.get('mat')]) $('#ex-mat').value = q.get('mat');
+    if(q.get('i') !== null) intens.value = borne(+q.get('i'), 0, 100);
+    if(q.get('t') !== null) temp.value = borne(+q.get('t'), 0, 55);
+    if(q.get('sub') !== null) sub.value = borne(+q.get('sub'), 0, 100);
+    if(q.get('lum') !== null) lampe.checked = q.get('lum') !== '0';
+    if(q.get('f') && FILTRES[q.get('f')]) segmentUI($('#ex-filtre'), q.get('f'));
+    majLibelles(); raz();
+  };
+  $('#ex-lien').addEventListener('click', () => {
+    const e = etat();
+    const url = location.href.split('#')[0] + '#exao?mat=' + $('#ex-mat').value +
+      '&lum=' + (lampe.checked ? 1 : 0) + '&i=' + intens.value + '&f=' + e.filtre +
+      '&t=' + temp.value + '&sub=' + sub.value;
+    const ok = () => { $('#ex-lien').textContent = 'Lien copié ✓';
+      setTimeout(() => $('#ex-lien').textContent = 'Lien de ce réglage', 1800); };
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(url).then(ok, () => prompt('Copiez cette adresse :', url));
+    else prompt('Copiez cette adresse :', url);
+  });
+
+  /* ==========================================================================
+     DÉFI — quel facteur a été modifié ?
+     Le protocole est choisi pour que la réponse soit réellement lisible :
+       0-3 min à 60 % · 3-5 min d'obscurité · 5-8 min à pleine lumière.
+     La phase d'obscurité isole la respiration (donc la température), la phase
+     saturante distingue une limitation par la lumière d'une limitation par
+     le CO₂.
+     ========================================================================== */
+  function simuleExao(cfg){
+    let o2 = 8, co2 = cibleCO2(cfg.sub);
+    const mat = MATERIEL[cfg.mat], pts = [], dt = 2;
+    for(let t = 0; t <= 480; t += dt){
+      const I = t < 180 ? cfg.I : t < 300 ? 0 : 100;
+      const P = vPhoto(mat, I, cfg.filtre, cfg.T, co2);
+      const R = vRespi(mat, cfg.T, o2, cfg.sub);
+      o2  = borne(o2 + (P-R)*dt/60, 0, 22);
+      co2 = borne(co2 + (R-P)*dt/60 + 0.15*(cibleCO2(cfg.sub)-co2)*dt/60, 0, 24);
+      pts.push([t/60, o2]);
+    }
+    return pts;
+  }
+  const BASE_DEFI = {mat:'elodee', I:60, filtre:'blanc', T:20, sub:60};
+  const FACTEURS = {
+    lumiere: {n:"L'éclairement de la première phase", modif:() => ({I:22}),
+      expl:"À pleine lumière, les deux courbes remontent avec la même pente : une fois la lumière " +
+           "en excès, la plante mystère fait aussi bien que la référence. Et la descente à l'obscurité " +
+           "est identique, donc la respiration n'a pas bougé. Seul l'éclairement de la première phase différait."},
+    co2: {n:"La teneur en CO₂", modif:() => ({sub:4}),
+      expl:"Même à pleine lumière, la courbe mystère reste nettement en dessous : ajouter de la lumière " +
+           "ne change plus rien, un autre facteur est devenu limitant. Comme la pente à l'obscurité est " +
+           "intacte, la respiration n'est pas en cause : c'est le CO₂ disponible qui manque."},
+    temperature: {n:"La température", modif:() => ({T: Math.random() < .5 ? 8 : 33}),
+      expl:"Regardez la phase d'obscurité : la pente y est différente. Or à l'obscurité seule la " +
+           "respiration s'exprime, et elle double environ tous les 10 °C. C'est donc la température " +
+           "qui a changé — ce qui déplace du même coup la photosynthèse."},
+    materiel: {n:"La nature du végétal", modif:() => ({mat:'germination'}),
+      expl:"La courbe mystère ne monte à aucun moment, même sous un éclairement saturant : il n'y a " +
+           "aucune production d'O₂, seulement une consommation. Le matériel n'est pas chlorophyllien."}
+  };
+  function nouveauDefi(){
+    const cles = Object.keys(FACTEURS);
+    const cle = cles[Math.floor(Math.random()*cles.length)];
+    const cfg = Object.assign({}, BASE_DEFI, FACTEURS[cle].modif());
+    EX.defi = {cle, ref: simuleExao(BASE_DEFI), mys: simuleExao(cfg), repondu:false};
+    traceDefi();
+    $('#ex-defi-choix').innerHTML = cles.map(c =>
+      '<button class="btn" data-defi="' + c + '">' + FACTEURS[c].n + '</button>').join('');
+    $('#ex-defi-retour').innerHTML = '';
+    $('#ex-defi-go').textContent = 'Autre défi';
+  }
+  function traceDefi(){
+    if(!EX.defi) return;
+    const v = EX.defi.ref.concat(EX.defi.mys).map(p => p[1]);
+    const bas = Math.min(...v), haut = Math.max(...v), marge = Math.max(0.6, (haut-bas)*0.18);
+    traceGraphe($('#ex-defi'), {
+      xmin:0, xmax:8, ymin:bas-marge, ymax:haut+marge,
+      xtit:'temps (min)', ytit:'O₂ dissous (mg·L⁻¹)',
+      bandes:[{x0:3, x1:5}],
+      reperes:[{x:5, texte:'pleine lumière', couleur:'#c9a227'}],
+      series:[{couleur:'#3f7d5f', pts:EX.defi.ref},
+              {couleur:'#b15f2c', pts:EX.defi.mys, pointille:true}]
+    });
+  }
+  $('#ex-defi-choix').addEventListener('click', e => {
+    const b = e.target.closest('[data-defi]'); if(!b || !EX.defi || EX.defi.repondu) return;
+    EX.defi.repondu = true;
+    const juste = b.dataset.defi === EX.defi.cle;
+    EX.defiScore.total++; if(juste) EX.defiScore.ok++;
+    $('#ex-defi-score').textContent = EX.defiScore.ok + ' / ' + EX.defiScore.total;
+    Labo.note('ExAO — échanges gazeux', 'Défi « quel facteur a changé »',
+              EX.defiScore.ok + ' bonne(s) réponse(s) sur ' + EX.defiScore.total);
+    $$('#ex-defi-choix button').forEach(x => {
+      if(x.dataset.defi === EX.defi.cle) x.classList.add('primaire');
+      else x.style.opacity = .45;
+    });
+    $('#ex-defi-retour').innerHTML = '<div class="note" style="border-left-color:' +
+      (juste ? 'var(--vert)' : 'var(--rouge)') + '"><b>' +
+      (juste ? 'Exact. ' : 'Ce n\'est pas cela. ') + '</b>' + FACTEURS[EX.defi.cle].expl + '</div>';
+  });
+  $('#ex-defi-go').addEventListener('click', nouveauDefi);
+
+  Labo.surAffichage.exao = () => {
+    majLibelles(); traceCourbes(); dessineEnceinte(); majTemoins(); traceDefi();
+  };
+  raz(); majTemoins();
 })();
 </script>
 
@@ -2064,6 +2334,10 @@ const REACTIFS = [
       journal.push({e: mode === 'mystere' ? 'Inconnu n° ' + (Labo.bioNum||1) : ech.nom,
                     r: rea.nom, o: r.obs, c: (positif ? '➜ ' : '✗ ') + r.ccl});
       majJournal();
+      Labo.note('Paillasse biochimie', 'Tests réalisés', journal.length);
+      Labo.note('Paillasse biochimie', 'Dernier test',
+        (mode === 'mystere' ? 'échantillon inconnu' : ech.nom) + ' + ' + rea.nom +
+        ' → ' + (positif ? 'positif' : 'négatif'));
     }
     afficheResultat(); dessine();
   }
@@ -2192,6 +2466,8 @@ const REACTIFS = [
     const v = $('#bio-proposition').value;
     if(!v){ alert('Choisissez une proposition.'); return; }
     const juste = v === mystere.id;
+    Labo.note('Paillasse biochimie', 'Échantillon mystère n° ' + (Labo.bioNum||1),
+      (juste ? 'identifié' : 'non identifié') + ' après ' + journal.length + ' test(s)');
     $('#bio-verdict').innerHTML = juste
       ? '<span class="badge vert">Identification correcte</span><p style="font-size:13px; margin-top:8px">' +
         'C\'était bien : <b>' + mystere.nom + '</b>. Vous avez utilisé ' + journal.length + ' test' + (journal.length>1?'s':'') + '. ' +
@@ -2286,6 +2562,9 @@ const EXTRAITS = {
     const tb = $('#pi-tableau tbody');
     if(front < 0.99){ tb.innerHTML = '<tr><td colspan="4" style="color:var(--gris-clair)">Migration en cours…</td></tr>'; return; }
     const course = 10.4;   /* cm parcourus par le front */
+    Labo.note('Pigments', 'R' + 'f mesurés — ' + extrait().nom + ' (' + $('#pi-solv').selectedOptions[0].text + ')',
+      extrait().liste.slice().sort((a,b) => PIGMENTS[b].rf[solvant()] - PIGMENTS[a].rf[solvant()])
+        .map(id => PIGMENTS[id].nom + ' ' + fr(PIGMENTS[id].rf[solvant()],2)).join(' · '));
     tb.innerHTML = extrait().liste
       .slice().sort((a,b) => PIGMENTS[b].rf[solvant()] - PIGMENTS[a].rf[solvant()])
       .map(id => { const p = PIGMENTS[id], rf = p.rf[solvant()];
@@ -2413,7 +2692,8 @@ const ENZYMES = {
               phOpt:6.0, phSig:1.8, km:4, vmax:2.2, test:'bulles',
               sous:'La peroxydase du navet décompose l\'eau oxygénée : le dioxygène formé fait mousser le tube.'}
 };
-const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
+const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
+            actif:1, temoins:[], nTemoin:0, defi:null, defiScore:{ok:0, total:0}};
 
 (function enzymes(){
   const cvG = $('#en-graphe'), cvA = $('#en-gamme'), cvS = $('#en-serie');
@@ -2453,6 +2733,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
   function raz(){
     const c = etat();
     EN.t = 0; EN.s = c.S0; EN.p = 0; EN.hist = [[0, c.S0, 0]]; EN.gamme = [];
+    EN.actif = c.bouilli ? 0 : 1;
     EN.v0 = vitesse(c, c.S0); EN.marche = false;
     $('#en-play').textContent = 'Lancer la cinétique'; $('#en-play').classList.add('primaire');
     maj(); trace(); dessineGamme();
@@ -2467,7 +2748,13 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
     if(!EN.marche) return;
     let dtr = Math.min((now-EN.last)/1000, 0.1); EN.last = now;
     const dt = dtr*20;                                  /* 1 s réelle = 20 s simulées */
-    const c = etat(), v = vitesse(c, EN.s);
+    const c = etat();
+    /* Dénaturation : au-delà de la température critique, une fraction de
+       l'enzyme est détruite DÉFINITIVEMENT. Redescendre la température ne la
+       ramène pas — c'est ce que montre le témoin « enzyme bouillie ». */
+    if(!c.bouilli && c.T > c.e.tDenat)
+      EN.actif *= Math.exp(-0.28*(c.T - c.e.tDenat)*dt/60);
+    const v = vitesse(c, EN.s) * EN.actif;
     const d = Math.min(v*dt/60, EN.s);
     EN.s -= d; EN.p += d; EN.t += dt;
     const der = EN.hist[EN.hist.length-1];
@@ -2483,14 +2770,49 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
     $('#en-vs').textContent = fr(EN.s, 1);
     $('#en-vp').textContent = fr(EN.p, 1);
     $('#en-vi').textContent = EN.v0 < 0.005 ? '0,00' : fr(EN.v0, 2);
+    const a = Math.round(EN.actif*100);
+    $('#en-actif').textContent = a;
+    $('#en-actif').style.color = a > 66 ? 'var(--vert)' : a > 20 ? 'var(--or)' : 'var(--rouge)';
   }
   function trace(){
     const c = etat();
-    traceGraphe(cvG, {xmin:0, xmax:10, ymin:0, ymax:Math.max(4, Math.ceil(c.S0/5)*5),
-      xtit:'temps (min)', ytit:'concentration (g·L⁻¹)',
-      series:[{couleur:'#6e5fa8', pts:EN.hist.map(p => [p[0],p[1]])},
-              {couleur:'#3f7d5f', pts:EN.hist.map(p => [p[0],p[2]])}]});
+    let haut = Math.max(4, Math.ceil(c.S0/5)*5);
+    const series = [];
+    EN.temoins.forEach(t => {
+      haut = Math.max(haut, ...t.s.map(p => p[1]));
+      series.push({couleur:t.couleur, pts:t.s, pointille:true, largeur:1.5, alpha:.9});
+      series.push({couleur:t.couleur, pts:t.p, pointille:true, largeur:1.5, alpha:.5});
+    });
+    series.push({couleur:'#6e5fa8', pts:EN.hist.map(p => [p[0],p[1]])});
+    series.push({couleur:'#3f7d5f', pts:EN.hist.map(p => [p[0],p[2]])});
+    traceGraphe(cvG, {xmin:0, xmax:10, ymin:0, ymax:Math.ceil(haut/5)*5,
+      xtit:'temps (min)', ytit:'concentration (g·L⁻¹)', series});
   }
+  /* ---------- témoins superposés ---------- */
+  function libelleEn(){
+    const c = etat();
+    return c.e.nom + ' · ' + c.T + ' °C · pH ' + fr(c.pH,1) + ' · enzyme ' + Math.round(c.E*100) +
+           ' % · substrat ' + fr(c.S0,1) + ' g·L⁻¹' + (c.bouilli ? ' · bouillie' : '');
+  }
+  function gardeTemoinEn(){
+    if(EN.hist.length < 3){ alert("Lancez d'abord une cinétique : il n'y a rien à garder."); return; }
+    if(EN.temoins.length >= 3) EN.temoins.shift();
+    const lab = libelleEn();
+    EN.temoins.push({
+      s: EN.hist.map(p => [p[0],p[1]]), p: EN.hist.map(p => [p[0],p[2]]),
+      label: lab, couleur: COUL_TEMOIN[(EN.nTemoin++) % 3]
+    });
+    Labo.note('Cinétiques enzymatiques', 'Vitesse initiale · ' + lab, fr(EN.v0,2) + ' g·L⁻¹·min⁻¹');
+    majTemoinsEn(); trace();
+  }
+  function majTemoinsEn(){
+    $('#en-temoins-lgd').innerHTML = EN.temoins.map(t =>
+      '<div style="display:flex; gap:8px; align-items:center; color:var(--gris)">' +
+      '<b style="color:' + t.couleur + '">- - -</b><span>' + t.label + '</span></div>').join('');
+  }
+  $('#en-temoin').addEventListener('click', gardeTemoinEn);
+  $('#en-temoin-raz').addEventListener('click', () => { EN.temoins = []; majTemoinsEn(); trace(); });
+
   /* ---------- gamme de godets ---------- */
   function dessineGamme(){
     const {ctx, l:L} = dimensionne(cvA);
@@ -2545,6 +2867,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
       const c = etat(), pts = [];
       for(let T=0; T<=100; T++) pts.push([T, vitesse({...c, T, bouilli:false}, c.S0)]);
       let opt = 0; pts.forEach(p => { if(p[1] > pts[opt][1]) opt = p[0]; });
+      Labo.note('Cinétiques enzymatiques', 'Optimum de température — ' + c.e.nom, opt + ' °C');
       serie('Vitesse initiale en fonction de la température',
         c.e.nom + ', pH ' + fr(c.pH,1) + ', substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
         {xmin:0, xmax:100, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
@@ -2557,6 +2880,7 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
     ph(){
       const c = etat(), pts = [];
       for(let x=10; x<=110; x++) pts.push([x/10, vitesse({...c, pH:x/10, bouilli:false}, c.S0)]);
+      Labo.note('Cinétiques enzymatiques', 'pH optimal — ' + c.e.nom, fr(c.e.phOpt,1));
       serie('Vitesse initiale en fonction du pH',
         c.e.nom + ', ' + c.T + ' °C, substrat ' + fr(c.S0,1) + ' g·L⁻¹.',
         {xmin:1, xmax:11, ymin:0, ymax:Math.max(0.05, Math.max(...pts.map(p=>p[1]))*1.25),
@@ -2570,6 +2894,8 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
       const c = etat(), pts = [];
       for(let S=0; S<=40; S+=0.5) pts.push([S, vitesse({...c, bouilli:false}, S)]);
       const vmaxObs = vitesse({...c, bouilli:false}, 1e6);
+      Labo.note('Cinétiques enzymatiques', 'Km et Vmax — ' + c.e.nom,
+        'Km = ' + c.e.km + ' g·L⁻¹ · Vmax = ' + fr(vmaxObs,2) + ' g·L⁻¹·min⁻¹');
       serie('Vitesse initiale en fonction de la concentration en substrat',
         c.e.nom + ', ' + c.T + ' °C, pH ' + fr(c.pH,1) + '.',
         {xmin:0, xmax:40, ymin:0, ymax:vmaxObs*1.2, xtit:'[substrat] (g·L⁻¹)', ytit:'v₀ (g·L⁻¹·min⁻¹)',
@@ -2593,8 +2919,82 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[]};
   };
   $$('[data-serie]').forEach(b => b.addEventListener('click', () => SERIES[b.dataset.serie]()));
 
+  /* ==========================================================================
+     DÉFI — lire une cinétique
+     Le palier final dit la quantité de substrat de départ ; la pente dit
+     l'efficacité de l'enzyme. Une courbe seule ne permet pas de distinguer
+     « moins d'enzyme » d'un pH ou d'une température défavorables : le défi
+     l'assume et l'explique, c'est une leçon de méthode.
+     ========================================================================== */
+  function simuleEnz(cfg){
+    let S = cfg.S0, P = 0, actif = 1;
+    const pts = [], dt = 2;
+    for(let t = 0; t <= 600; t += dt){
+      if(cfg.T > cfg.e.tDenat) actif *= Math.exp(-0.28*(cfg.T - cfg.e.tDenat)*dt/60);
+      const d = Math.min(vitesse(cfg, S)*actif*dt/60, S);
+      S -= d; P += d;
+      pts.push([t/60, P]);
+    }
+    return pts;
+  }
+  const REF_ENZ = {e:ENZYMES.amylase, T:37, pH:7, E:1, S0:10, bouilli:false};
+  const CAS_ENZ = {
+    substrat: {n:"Il y avait moins de substrat au départ", modif:{S0:4},
+      expl:"Le palier final est plus bas. Or tout le substrat finit par être transformé : la quantité " +
+           "de produit ne peut pas dépasser la quantité de substrat disponible au départ. C'est donc " +
+           "[substrat] qui a été réduit, et non l'enzyme."},
+    denature: {n:"L'enzyme a été dénaturée par la chaleur", modif:{T:70},
+      expl:"La courbe ne décolle pratiquement pas : il ne se forme presque aucun produit. Au-delà de " +
+           "50-55 °C l'amylase est détruite en quelques secondes, et cette destruction est définitive — " +
+           "redescendre la température ne la ramène pas."},
+    ralenti: {n:"La réaction est seulement ralentie (moins d'enzyme, ou T / pH éloignés de l'optimum)",
+      modif:() => [{E:0.3}, {T:15}, {pH:4}][Math.floor(Math.random()*3)],
+      expl:"Le palier final est le même : tout le substrat a bien été transformé, l'enzyme est intacte. " +
+           "Seule la pente de départ est plus faible. Attention : avec cette seule courbe, on ne peut pas " +
+           "départager « moins d'enzyme », « température trop basse » et « pH défavorable » — les trois " +
+           "donnent exactement la même allure. Il faudrait une expérience supplémentaire pour trancher."}
+  };
+  function nouveauDefiEn(){
+    const cles = Object.keys(CAS_ENZ);
+    const cle = cles[Math.floor(Math.random()*cles.length)];
+    const m = CAS_ENZ[cle].modif;
+    const cfg = Object.assign({}, REF_ENZ, typeof m === 'function' ? m() : m);
+    EN.defi = {cle, ref:simuleEnz(REF_ENZ), mys:simuleEnz(cfg), repondu:false};
+    traceDefiEn();
+    $('#en-defi-choix').innerHTML = cles.map(c =>
+      '<button class="btn" data-defien="' + c + '" style="text-align:left; display:block">' +
+      CAS_ENZ[c].n + '</button>').join('');
+    $('#en-defi-retour').innerHTML = '';
+    $('#en-defi-go').textContent = 'Autre défi';
+  }
+  function traceDefiEn(){
+    if(!EN.defi) return;
+    traceGraphe($('#en-defi'), {
+      xmin:0, xmax:10, ymin:0, ymax:11,
+      xtit:'temps (min)', ytit:'produit formé (g·L⁻¹)',
+      series:[{couleur:'#3f7d5f', pts:EN.defi.ref},
+              {couleur:'#b15f2c', pts:EN.defi.mys, pointille:true}]
+    });
+  }
+  $('#en-defi-choix').addEventListener('click', e => {
+    const b = e.target.closest('[data-defien]'); if(!b || !EN.defi || EN.defi.repondu) return;
+    EN.defi.repondu = true;
+    const juste = b.dataset.defien === EN.defi.cle;
+    EN.defiScore.total++; if(juste) EN.defiScore.ok++;
+    $('#en-defi-score').textContent = EN.defiScore.ok + ' / ' + EN.defiScore.total;
+    Labo.note('Cinétiques enzymatiques', 'Défi « lire une cinétique »',
+              EN.defiScore.ok + ' bonne(s) réponse(s) sur ' + EN.defiScore.total);
+    $$('#en-defi-choix button').forEach(x => {
+      if(x.dataset.defien === EN.defi.cle) x.classList.add('primaire'); else x.style.opacity = .45;
+    });
+    $('#en-defi-retour').innerHTML = '<div class="note" style="border-left-color:' +
+      (juste ? 'var(--vert)' : 'var(--rouge)') + '"><b>' +
+      (juste ? 'Exact. ' : "Ce n'est pas cela. ") + '</b>' + CAS_ENZ[EN.defi.cle].expl + '</div>';
+  });
+  $('#en-defi-go').addEventListener('click', nouveauDefiEn);
+
   majLibelles(); raz();
-  Labo.surAffichage.enzymes = () => { trace(); dessineGamme(); };
+  Labo.surAffichage.enzymes = () => { trace(); dessineGamme(); traceDefiEn(); };
 })();
 </script>
 
@@ -2719,6 +3119,7 @@ function coupe(nom){
 (function histologie(){
   const cv = $('#hi-coupe');
   let organe = 'tige-dico', coloration = 'carmin', zoom = 1, mode = 'obs', selection = null, cible = null;
+  const score = {ok:0, total:0};
 
   const zones = () => coupe(organe).zones;
   const couleur = t => {
@@ -2876,7 +3277,8 @@ function coupe(nom){
   function nouvelleQuestion(){
     const dispo = [...new Set(zones().map(z => z.t))];
     cible = dispo[Math.floor(Math.random()*dispo.length)];
-    $('#hi-info').innerHTML = '<span class="badge orange">Question</span>' +
+    $('#hi-info').innerHTML = '<span class="badge orange">Question</span> ' +
+      (score.total ? '<span class="badge">' + score.ok + ' / ' + score.total + '</span>' : '') +
       '<p style="font-size:15px; font-weight:600; margin-top:9px">Cliquez sur : ' + TISSUS[cible].nom + '</p>' +
       '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">' +
       (coloration === 'aucune' ? 'Sans coloration, fiez-vous à la position et à la forme des cellules.'
@@ -2884,6 +3286,8 @@ function coupe(nom){
   }
   function verifie(t){
     const juste = t === cible;
+    score.total++; if(juste) score.ok++;
+    Labo.note('Histologie', 'Légender la coupe', score.ok + ' bonne(s) réponse(s) sur ' + score.total);
     $('#hi-info').innerHTML = (juste
       ? '<span class="badge vert">Exact</span><p style="font-size:14px; font-weight:600; margin-top:9px">' + TISSUS[cible].nom + '</p>' +
         '<p style="font-size:13px; color:var(--gris); margin-top:6px">' + TISSUS[cible].role + '</p>'
@@ -2891,6 +3295,8 @@ function coupe(nom){
         '<p style="font-size:13.5px; margin-top:9px">Vous avez désigné : <b>' + (t ? TISSUS[t].nom : 'le fond de la lame') + '</b>. ' +
         'On cherchait : <b>' + TISSUS[cible].nom + '</b>.</p>' +
         '<p style="font-size:12.5px; color:var(--gris); margin-top:6px">' + TISSUS[cible].role + '</p>') +
+      '<p style="font-size:12px; color:var(--gris-clair); margin-top:8px">Score : ' +
+      score.ok + ' / ' + score.total + '</p>' +
       '<button class="btn mini primaire" id="hi-suivant" style="margin-top:12px">Question suivante</button>';
     $('#hi-suivant').addEventListener('click', nouvelleQuestion);
   }
@@ -2928,8 +3334,12 @@ function coupe(nom){
 
 /* ---------- ouverture directe d'un module via l'adresse (#exao, #pigments…) ---------- */
 (function depart(){
-  const h = location.hash.replace('#','');
-  if(h && $('#mod-'+h)) ouvreModule(h);
+  const brut = location.hash.replace('#','');
+  if(!brut) return;
+  const [mod, requete] = brut.split('?');
+  if(!$('#mod-'+mod)) return;
+  if(requete && Labo.surURL[mod]) Labo.surURL[mod](new URLSearchParams(requete));
+  ouvreModule(mod);
 })();
 </script>
 
