@@ -308,7 +308,10 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
          avant le TP réel, ou en remédiation après. Les valeurs trouvées par l'élève — pentes,
          point de compensation, R<sub>f</sub>, optimums, scores des défis — sont relevées
          automatiquement et s'impriment en fiche de résultats à son nom.</p>
-      <button class="btn" id="btn-carnet-2" style="background:#fff; border-color:#fff">Voir le carnet</button>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <button class="btn" id="btn-carnet-2" style="background:#fff; border-color:#fff">Voir le carnet</button>
+        <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiche pédagogique</button>
+      </div>
     </div>
   </div>
 
@@ -801,6 +804,24 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
         </div>
       </div>
 
+      <div class="carte" id="en-tp-carte">
+        <div style="display:flex; gap:10px; align-items:baseline; flex-wrap:wrap">
+          <h3 style="flex:1">TP guidé — la chaleur détruit-elle l'enzyme ?</h3>
+          <span class="badge" id="en-tp-avance">étape 1 / 6</span>
+        </div>
+        <div style="height:5px; background:var(--ligne); border-radius:99px; margin:10px 0 14px">
+          <div id="en-tp-barre" style="height:100%; width:0%; background:var(--accent);
+               border-radius:99px; transition:width .35s"></div>
+        </div>
+        <div id="en-tp-etape"></div>
+        <div id="en-tp-retour"></div>
+        <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap" class="no-print">
+          <button class="btn primaire" id="en-tp-verif">Vérifier cette étape</button>
+          <button class="btn" id="en-tp-passer">Passer</button>
+          <button class="btn" id="en-tp-raz">Recommencer</button>
+        </div>
+      </div>
+
       <div class="carte" id="en-defi-carte">
         <div style="display:flex; align-items:baseline; gap:10px; flex-wrap:wrap">
           <h3 style="flex:1">Défi — lire une cinétique</h3>
@@ -1050,6 +1071,8 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
       Tout reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
   </div>
   <div class="cn-pied">
+    <label class="btn mini" style="gap:7px"><input type="checkbox" id="cn-graphiques" checked
+       style="accent-color:var(--accent)"> joindre les graphiques</label>
     <button class="btn primaire" id="cn-imprimer">Fiche de résultats (imprimer / PDF)</button>
     <button class="btn" id="cn-txt">Télécharger (.txt)</button>
     <button class="btn" id="cn-effacer">Tout effacer</button>
@@ -1476,6 +1499,33 @@ window.addEventListener('resize', () => {
     champs.forEach(id => { const el=$('#'+id); if(el) el.value=''; });
     sauv = {}; try { localStorage.removeItem(CLE); } catch(e){}
   });
+  /* Images des graphiques : on ne joint que ceux des modules où l'élève a
+     effectivement produit un résultat, pour ne pas imprimer des courbes vides. */
+  const graphiques = () => {
+    if(!$('#cn-graphiques').checked) return [];
+    const l = [];
+    const ajoute = (id, titre, module, exigeDonnees = true) => {
+      if(module && !Labo.resultats[module]) return;
+      const cv = document.getElementById(id); if(!cv) return;
+      const cfg = CFG_GRAPHE.get(cv);
+      if(exigeDonnees){
+        if(!cfg) return;
+        const plein = (cfg.series || []).some(s => s.nom && s.pts && s.pts.length > 3) ||
+                      (cfg.barres || []).length;
+        if(!plein) return;
+      }
+      try { l.push({titre, url: cv.toDataURL('image/png')}); } catch(e){}
+    };
+    const EX = 'ExAO — échanges gazeux', EN = 'Cinétiques enzymatiques';
+    ajoute('ex-graphe', 'ExAO — enregistrement des sondes', EX);
+    ajoute('ex-serie',  'ExAO — résultats de la série', EX);
+    ajoute('en-graphe', 'Cinétique enzymatique', EN);
+    ajoute('en-serie',  'Enzymes — résultats de la série', EN);
+    ajoute('pi-chromo', 'Chromatographie des pigments', 'Pigments', false);
+    ajoute('pi-spectre', "Spectres d'absorption", 'Pigments');
+    ajoute('hi-coupe',  'Coupe observée', 'Histologie', false);
+    return l;
+  };
   const releves = () => {
     const mods = Object.keys(Labo.resultats);
     if(!mods.length) return null;
@@ -1504,9 +1554,13 @@ window.addEventListener('resize', () => {
       'p{white-space:pre-wrap;margin:6px 0 0}' +
       'table{border-collapse:collapse;margin:4px 0 12px;width:100%}' +
       'td{border-bottom:1px solid #eee;padding:3px 6px;font-size:13px}' +
-      'td:last-child{text-align:right;white-space:nowrap}</style>' +
+      'td:last-child{text-align:right;white-space:nowrap}' +
+      'figure{margin:10px 0 16px;break-inside:avoid} figure img{width:100%;border:1px solid #e4dfd5;border-radius:6px}' +
+      'figcaption{font-size:11px;color:#7d776c;margin-top:4px;text-align:center}</style>' +
       '<h1>Fiche de résultats — biologie végétale</h1><p><b>' +
       $('#cn-nom').value.replace(/[<>]/g,'') + '</b></p>' +
+      ((g => g.length ? '<h2>Graphiques</h2>' + g.map(x =>
+        '<figure><img src="' + x.url + '"><figcaption>' + x.titre + '</figcaption></figure>').join('') : '')(graphiques())) +
       ((r => r ? '<h2>Résultats relevés pendant la séance</h2>' + r.map(({m, lignes}) =>
         '<p><b>' + m + '</b></p><table><tbody>' + lignes.map(([c,v]) =>
           '<tr><td>' + c + '</td><td><b>' + String(v).replace(/[<>]/g,'') + '</b></td></tr>').join('') +
@@ -3213,7 +3267,14 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
     $('#en-e-v').textContent    = qe.value + ' %';
     $('#en-s-v').textContent    = fr(+qs.value/10, 1) + ' g·L⁻¹';
   };
-  [temp, ph, qe, qs].forEach(el => el.addEventListener('input', () => { majLibelles(); if(!EN.marche) raz(); }));
+  /* Un réglage modifié ne remet à zéro que si rien n'a encore été enregistré :
+     sinon on effacerait l'expérience en cours — et il deviendrait impossible
+     de refroidir un milieu après l'avoir chauffé, donc de constater que la
+     dénaturation est définitive. */
+  [temp, ph, qe, qs].forEach(el => el.addEventListener('input', () => {
+    majLibelles();
+    if(!EN.marche && EN.t === 0) raz();
+  }));
   $('#en-enz').addEventListener('change', () => {
     const e = ENZYMES[$('#en-enz').value];
     $('#en-sous').textContent = e.sous;
@@ -3414,6 +3475,108 @@ const EN = {t:0, s:10, p:0, hist:[], marche:false, v0:0, last:0, gamme:[],
     }
   };
   $$('[data-serie]').forEach(b => b.addEventListener('click', () => SERIES[b.dataset.serie]()));
+
+  /* ==========================================================================
+     TP GUIDÉ — dénaturation par la chaleur
+     La séquence est construite pour que l'élève constate lui-même
+     l'irréversibilité : il chauffe, l'enzyme meurt, il refroidit, rien ne
+     repart. C'est la cinquième étape qui porte toute la leçon.
+     ========================================================================== */
+  let tpE = 0;
+  const mesureEn = () => { const m = MESURES.get(cvG); return m && m.a && m.b ? m : null; };
+  const TPE = [
+    {t:"Préparer le milieu réactionnel",
+     c:"Amylase, <b>37 °C</b>, <b>pH 7</b>, enzyme à <b>100 %</b>, substrat à <b>10 g·L⁻¹</b>, " +
+       "témoin bouilli décoché. <button class='btn mini' data-tpe-reglage>Appliquer ce réglage</button>",
+     v(){ const c = etat();
+       if($('#en-enz').value !== 'amylase') return {ok:false, m:"Choisissez l'amylase."};
+       if(c.bouilli) return {ok:false, m:"Décochez « enzyme préalablement bouillie » : ce sera le cas à étudier plus tard."};
+       if(c.T !== 37) return {ok:false, m:"La température doit être de 37 °C."};
+       if(Math.abs(c.pH - 7) > .05) return {ok:false, m:"Le pH doit être de 7."};
+       if(Math.abs(c.E - 1) > .01) return {ok:false, m:"La quantité d'enzyme doit être à 100 %."};
+       if(Math.abs(c.S0 - 10) > .05) return {ok:false, m:"Le substrat doit être à 10 g·L⁻¹."};
+       return {ok:true, m:"Conditions de référence posées : elles serviront de point de comparaison."};
+     }},
+    {t:"Enregistrer la cinétique de référence",
+     c:"Lancez la cinétique et laissez-la tourner au moins <b>3 minutes</b> de temps simulé.",
+     v(){ return EN.t >= 180 ? {ok:true, m:"Le substrat diminue, le produit apparaît. L'indicateur " +
+       "« enzyme active » reste à 100 % : à 37 °C l'enzyme ne subit aucun dommage."} :
+       {ok:false, m:"La cinétique est à " + mmss(EN.t) + " : poursuivez jusqu'à 3 minutes."};
+     }},
+    {t:"Garder cette cinétique comme témoin",
+     c:"Cliquez sur <b>Garder comme témoin</b> : la courbe de référence restera affichée en pointillé.",
+     v(){ return EN.temoins.length ? {ok:true, m:"Témoin conservé. Tout écart observé ensuite ne pourra " +
+       "venir que du facteur que vous aurez changé."} : {ok:false, m:"Aucun témoin gardé."};
+     }},
+    {t:"Recommencer à 70 °C",
+     c:"Réinitialisez, portez la température à <b>70 °C</b>, relancez et surveillez l'indicateur " +
+       "<b>enzyme active</b> pendant une minute.",
+     v(){ const c = etat();
+       if(c.T < 65) return {ok:false, m:"La température n'est qu'à " + c.T + " °C : montez à 70 °C."};
+       if(EN.t < 45) return {ok:false, m:"Laissez tourner au moins une minute pour voir l'effet."};
+       if(EN.actif > 0.2) return {ok:false, m:"L'enzyme est encore active à " + Math.round(EN.actif*100) +
+         " % : poursuivez l'enregistrement."};
+       return {ok:true, m:"L'indicateur est tombé à " + Math.round(EN.actif*100) + " % et la courbe ne " +
+         "décolle pas : l'enzyme a été détruite en quelques secondes."};
+     }},
+    {t:"Refroidir à 37 °C — la réaction repart-elle ?",
+     c:"<b>Sans réinitialiser</b>, ramenez la température à <b>37 °C</b> et poursuivez l'enregistrement. " +
+       "Observez l'indicateur et la courbe.",
+     v(){ const c = etat();
+       if(c.T > 45) return {ok:false, m:"Ramenez d'abord la température à 37 °C."};
+       if(EN.actif > 0.2) return {ok:false, m:"L'enzyme n'a pas été dénaturée : reprenez l'étape précédente " +
+         "sans réinitialiser entre les deux."};
+       return {ok:true, m:"Rien ne repart : l'indicateur reste à " + Math.round(EN.actif*100) + " %. " +
+         "La dénaturation est <b>irréversible</b> — refroidir ne reconstruit pas la protéine."};
+     }},
+    {t:"Conclure",
+     c:"Rédigez : quelle différence entre le froid, qui ralentit, et la chaleur, qui détruit ? " +
+       "<textarea id='en-tp-concl' placeholder='À 0 °C… à 70 °C… La différence tient à…' " +
+       "style='margin-top:10px'></textarea>",
+     v(){ const t = ($('#en-tp-concl') || {}).value || '';
+       return t.trim().length > 40 ? {ok:true, m:"<b>Conclusion attendue.</b> Le froid ralentit les " +
+         "rencontres entre l'enzyme et son substrat : l'effet est réversible, l'enzyme est intacte. " +
+         "La chaleur, au-delà d'un seuil, déforme la protéine et détruit son site actif : l'effet est " +
+         "définitif. C'est pourquoi le témoin « enzyme bouillie » ne réagit jamais, quelle que soit " +
+         "la température à laquelle on le place ensuite."} :
+         {ok:false, m:"Rédigez quelques lignes avant de valider."};
+     }}
+  ];
+  function montreTPE(){
+    $('#en-tp-avance').textContent = tpE >= TPE.length ? 'terminé' : 'étape ' + (tpE+1) + ' / ' + TPE.length;
+    $('#en-tp-barre').style.width = Math.round(tpE/TPE.length*100) + '%';
+    if(tpE >= TPE.length){
+      $('#en-tp-etape').innerHTML = '<p style="font-size:14px"><b>Séance terminée.</b> Vos relevés sont ' +
+        'dans la fiche de résultats.</p>';
+      $('#en-tp-verif').disabled = true;
+      Labo.note('Cinétiques enzymatiques', 'TP guidé', 'terminé (' + TPE.length + ' / ' + TPE.length + ')');
+      return;
+    }
+    $('#en-tp-verif').disabled = false;
+    const e = TPE[tpE];
+    $('#en-tp-etape').innerHTML = '<p style="font-size:14.5px; font-weight:600">' + (tpE+1) + '. ' + e.t + '</p>' +
+      '<p style="font-size:13px; color:#4a453d; margin-top:6px">' + e.c + '</p>';
+    $('#en-tp-retour').innerHTML = '';
+  }
+  $('#en-tp-carte').addEventListener('click', ev => {
+    if(!ev.target.closest('[data-tpe-reglage]')) return;
+    $('#en-enz').value = 'amylase'; temp.value = 37; ph.value = 70; qe.value = 100; qs.value = 100;
+    $('#en-bouilli').checked = false; majLibelles(); raz();
+  });
+  $('#en-tp-verif').addEventListener('click', () => {
+    const r = TPE[tpE].v();
+    $('#en-tp-retour').innerHTML = '<div class="note" style="border-left-color:' +
+      (r.ok ? 'var(--vert)' : 'var(--rouge)') + '">' + (r.ok ? '<b>Étape validée. </b>' : '<b>Pas encore. </b>') +
+      r.m + '</div>';
+    if(r.ok){
+      Labo.note('Cinétiques enzymatiques', 'TP guidé · étape ' + (tpE+1), TPE[tpE].t);
+      setTimeout(() => { tpE++; const g = $('#en-tp-retour').innerHTML; montreTPE();
+        $('#en-tp-retour').innerHTML = g; }, 1400);
+    }
+  });
+  $('#en-tp-passer').addEventListener('click', () => { if(tpE < TPE.length){ tpE++; montreTPE(); } });
+  $('#en-tp-raz').addEventListener('click', () => { tpE = 0; montreTPE(); });
+  montreTPE();
 
   /* ==========================================================================
      DÉFI — lire une cinétique
@@ -4711,6 +4874,89 @@ const FICHES = [
  resultat:"Chaque fragment donne un individu complet, strictement identique au pied d'origine : il s'agit d'un clone.",
  secu:"Rien de particulier. Suivi sur plusieurs semaines."}
 ];
+</script>
+
+<script>
+/* ==========================================================================
+   FICHE PÉDAGOGIQUE — un récapitulatif imprimable pour le professeur
+   ========================================================================== */
+(function fichePedago(){
+  const MODULES = [
+    {n:"ExAO — photosynthèse et respiration", ref:"Parties III et IV", niv:"2de → Terminale", d:"30 à 55 min",
+     o:"Établir que la plante respire en permanence et que la photosynthèse s'y superpose à la lumière ; identifier les facteurs limitants.",
+     r:"Pente positive à la lumière, négative à l'obscurité. Point de compensation vers 10-15 % d'éclairement à 20 °C. Photosynthèse brute = nette + respiration.",
+     v:"Faire distinguer photosynthèse nette et brute. La courbe simulée n'a ni bruit ni temps de réponse de sonde : le dire avant de passer à la paillasse."},
+    {n:"Paillasse de biochimie", ref:"Partie I — 1, 2, 3, 5", niv:"2de → 1re", d:"25 à 45 min",
+     o:"Associer un réactif à la molécule qu'il révèle ; construire une démarche d'identification.",
+     r:"Lugol bleu-noir sur l'amidon, Fehling rouge brique à chaud sur les sucres réducteurs, biuret violet sur les protéines, Soudan III orangé sur les lipides.",
+     v:"Le mode « échantillon mystère » est le plus formateur : demander de justifier chaque test AVANT de le lancer, et de compter les tests utilisés."},
+    {n:"Pigments photosynthétiques", ref:"Partie I — 4", niv:"2de → Terminale", d:"30 à 50 min",
+     o:"Séparer les pigments, mesurer un rapport frontal, relier absorption et activité photosynthétique.",
+     r:"Du haut vers le bas : carotènes, phéophytine, chlorophylle a, chlorophylle b, xanthophylles. Absorption forte dans le bleu et le rouge, faible dans le vert.",
+     v:"Faire mesurer les Rf avec l'outil à trois repères avant de montrer le tableau. Le Rf n'est comparable qu'à solvant identique."},
+    {n:"Cinétiques enzymatiques", ref:"Partie I — 6", niv:"1re → Terminale", d:"35 à 60 min",
+     o:"Établir l'effet de la température, du pH, des concentrations ; distinguer ralentissement et dénaturation.",
+     r:"Optimum vers 37 °C et pH 7 pour l'amylase. Vitesse proportionnelle à [enzyme], hyperbolique en [substrat] avec saturation.",
+     v:"Le point clé est l'irréversibilité : chauffer à 70 °C puis refroidir ne relance rien. Le TP guidé le fait constater en cinq étapes."},
+    {n:"Histologie des plantes", ref:"Partie II", niv:"2de → 1re", d:"30 à 45 min",
+     o:"Lire une coupe, reconnaître les tissus, mesurer à l'échelle.",
+     r:"Dicotylédone : faisceaux en couronne. Monocotylédone : faisceaux dispersés. Racine : xylème central en étoile.",
+     v:"Commencer sans coloration pour obliger à lire l'organisation, puis colorer pour vérifier. Le mode « Légender » garde un score."},
+    {n:"Préparer une manip", ref:"Les huit parties", niv:"pour le professeur", d:"—",
+     o:"Obtenir la liste de matériel d'une expérience pour le nombre de postes voulu, ou l'inverse.",
+     r:"Panier de plusieurs manipulations agrégé en une liste de courses imprimable, matériel partagé compté une fois.",
+     v:"Les protocoles sont des versions condensées et standard : les confronter à l'ouvrage avant la séance."}
+  ];
+  const html = () =>
+    '<meta charset="utf-8"><title>Laboratoire virtuel — fiche pédagogique</title>' +
+    '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#b15f2c}' +
+    '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
+    'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
+    'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
+    '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0}' +
+    'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
+    '<h1>Laboratoire virtuel de biologie végétale — fiche pédagogique</h1>' +
+    '<p class="s">D\'après R. Pratt, <i>Expérimentation en biologie et physiologie végétales</i>. ' +
+    'reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
+    '<div class="enc"><b>Statut des résultats.</b> Toutes les valeurs affichées sont calculées par un ' +
+    'modèle mathématique : les lois utilisées sont celles des manuels (Michaelis-Menten, Q₁₀ = 2, ' +
+    'saturation lumineuse, facteurs limitants), mais les constantes ont été choisies pour l\'illustration. ' +
+    'La forme et le sens des variations sont exploitables en classe ; <b>les nombres ne sont pas des ' +
+    'mesures</b> et ne doivent pas être relevés comme tels. Un bandeau le rappelle dans chaque module.</div>' +
+    MODULES.map(m => '<div class="mod"><h2>' + m.n + '</h2><table>' +
+      '<tr><th>Référence</th><td>' + m.ref + ' · ' + m.niv + ' · ' + m.d + '</td></tr>' +
+      '<tr><th>Objectif</th><td>' + m.o + '</td></tr>' +
+      '<tr><th>Résultat attendu</th><td>' + m.r + '</td></tr>' +
+      '<tr><th>Point de vigilance</th><td>' + m.v + '</td></tr></table></div>').join('') +
+    '<div class="mod"><h2>Deux TP guidés, vérifiés pas à pas</h2>' +
+    '<p><b>ExAO — la plante respire-t-elle en permanence ?</b> Six étapes : régler le dispositif, ' +
+    'enregistrer trois minutes à la lumière, mesurer la pente, garder le témoin, éteindre la lampe et ' +
+    'mesurer la nouvelle pente, conclure. Chaque étape est validée à partir de l\'état réel du ' +
+    'laboratoire : l\'élève ne peut pas cocher une étape qu\'il n\'a pas faite.</p>' +
+    '<p><b>Enzymes — la chaleur détruit-elle l\'enzyme ?</b> Six étapes menant au constat que le ' +
+    'refroidissement ne relance rien : la dénaturation est définitive.</p></div>' +
+    '<div class="mod"><h2>Ce que l\'élève rend</h2>' +
+    '<p>Les valeurs qu\'il trouve — pentes mesurées, point de compensation, optimums, Km, R<sub>f</sub>, ' +
+    'longueurs en micromètres, tests réalisés, scores des défis — sont relevées automatiquement. ' +
+    'Le bouton <b>Carnet</b> imprime une fiche de résultats à son nom, graphiques joints. ' +
+    'Rien n\'est envoyé sur Internet : tout reste dans le navigateur du poste.</p></div>' +
+    '<div class="mod"><h2>Liens directs</h2><ol>' +
+    ['#exao — ExAO','#biochimie — paillasse de biochimie','#pigments — pigments',
+     '#enzymes — cinétiques enzymatiques','#histologie — histologie','#preparer — matériel']
+      .map(x => '<li>' + x + '</li>').join('') + '</ol>' +
+    '<p class="s">Le bouton « Lien de ce réglage » de l\'ExAO produit une adresse qui rouvre le ' +
+    'laboratoire dans une configuration précise : pratique pour dicter une consigne à toute la classe.</p></div>';
+
+  const ouvre = () => {
+    const f = window.open('', '_blank');
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
+    f.document.write(html()); f.document.close(); f.focus();
+    setTimeout(() => f.print(), 300);
+  };
+  const b = $('#btn-fiche-prof');
+  if(b) b.addEventListener('click', ouvre);
+})();
 </script>
 
 <script>
