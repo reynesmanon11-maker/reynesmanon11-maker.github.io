@@ -85,6 +85,18 @@ main{ max-width:1180px; margin-inline:auto; padding:22px 18px 90px }
 .ref{ display:inline-block; margin-top:8px; font-size:11.5px; color:var(--accent);
   background:var(--accent-pale); border-radius:999px; padding:3px 10px; font-weight:500 }
 
+/* ---------- bandeau « valeurs simulées » ----------
+   Présent en tête de chaque module : l'élève doit savoir qu'il lit un modèle
+   et non un relevé de mesures. */
+.avert{ display:flex; gap:11px; align-items:flex-start; margin:16px 0 20px;
+  background:#fdf7f1; border:1px solid #efd9c4; border-left:3px solid var(--accent);
+  border-radius:0 12px 12px 0; padding:11px 15px; font-size:12.5px; line-height:1.5; color:#575046 }
+.avert .marque{ flex:none; width:19px; height:19px; border-radius:50%; background:var(--accent);
+  color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  line-height:1; margin-top:1px }
+.avert b{ color:var(--accent) }
+.avert p + p{ margin-top:5px }
+
 .carte{ background:var(--papier); border:1px solid var(--ligne); border-radius:var(--r); box-shadow:var(--ombre); padding:18px }
 .carte + .carte{ margin-top:16px }
 .carte h3{ font-size:16px; margin-bottom:4px }
@@ -219,6 +231,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        expérience, ou l'inverse.</p>
     <span class="ref">Expérimentation en biologie et physiologie végétales — R. Pratt</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Tout ce que calcule ce laboratoire — courbes, vitesses, R<sub>f</sub> — sort d'un modèle mathématique, jamais d'une expérience réelle. Les lois utilisées sont celles des manuels ; les constantes ont été choisies pour que les résultats aient la bonne allure.</p><p>La forme et le sens des variations sont fidèles et peuvent être exploités en classe. <b>Les nombres affichés ne doivent pas être relevés comme des mesures.</b></p></div></div>
 
   <div class="grille" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     <div class="carte">
@@ -313,6 +326,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        on fait apparaître la respiration seule, puis la photosynthèse nette.</p>
     <span class="ref">Partie III — respiration · Partie IV — photosynthèse</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Les deux courbes ne sont pas enregistrées : elles sont recalculées à chaque instant. L'O₂ varie selon P − R, avec une photosynthèse P = Pmax × I/(I+25) × CO₂/(CO₂+1,5) × f(T) et une respiration R = R₂₀ × 2<sup>(T−20)/10</sup>.</p><p>Saturation par la lumière, facteurs limitants et Q₁₀ = 2 sont des lois de manuel ; Pmax et R₂₀ sont des constantes choisies pour l'illustration. Le signal n'a ni bruit de mesure ni temps de réponse de sonde : <b>une vraie courbe d'ExAO est bien moins lisse.</b></p></div></div>
 
   <div class="grille deux">
     <!-- ----- colonne réglages ----- -->
@@ -463,6 +477,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        un extrait inconnu.</p>
     <span class="ref">Partie I — oses, constituants pariétaux, substances de réserve, autres substances</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Résultats simulés.</b> Les virages de couleur, les conclusions et les conditions de chaque test reprennent les protocoles de l'ouvrage : ils sont fidèles sur le plan qualitatif, et c'est bien le raisonnement d'identification qui se travaille ici.</p><p>Mais aucun tube n'a été chauffé : le tube, le champ du microscope et la coloration sont <b>dessinés par le programme</b>.</p></div></div>
 
   <div class="segment" id="bio-mode" style="max-width:340px; margin-bottom:16px">
     <button aria-pressed="true"  data-m="libre">Manipulation libre</button>
@@ -540,6 +555,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        et fluorescence : les quatre manipulations de la partie 4 de l'ouvrage, sur le même extrait.</p>
     <span class="ref">Partie I — 4.1 à 4.9</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Les maximums d'absorption (chlorophylle a à 430 et 662 nm, chlorophylle b à 453 et 643 nm) sont ceux des manuels, mais les courbes sont des gaussiennes reconstituées, <b>pas des spectres enregistrés au spectrophotomètre</b>.</p><p>Les R<sub>f</sub> respectent l'ordre de migration réel des pigments ; leurs valeurs exactes dépendent du solvant et du papier et ne sont ici qu'indicatives.</p></div></div>
 
   <div class="grille deux">
     <div>
@@ -627,6 +643,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        de tubes témoins est prélevée toutes les minutes et testée, comme sur une plaque à godets.</p>
     <span class="ref">Partie I — 6.1 à 6.6</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> La vitesse vient du calcul v₀ = Vmax × [E] × S/(S+Km) × f(T) × f(pH). La relation de Michaelis-Menten et l'existence d'un optimum sont des lois de manuel ; Vmax, Km et les optimums sont des constantes choisies pour l'illustration.</p><p><b>Une réserve à connaître :</b> ici la dénaturation par la chaleur redevient réversible si l'on redescend la température, alors qu'elle ne l'est pas dans la réalité. Seul le témoin « enzyme bouillie » rend correctement ce caractère définitif.</p></div></div>
 
   <div class="grille deux">
     <div>
@@ -716,6 +733,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        puis on clique sur un tissu pour l'identifier. Le mode « légender » interroge l'élève.</p>
     <span class="ref">Partie II — 1 à 3</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Schémas, non photographies.</b> Les coupes sont dessinées par le programme. L'agencement des tissus, leur position relative et l'effet des colorants sont fidèles — c'est ce qui permet d'apprendre à lire une coupe.</p><p>En revanche les proportions sont régularisées et les cellules simplifiées : <b>une coupe réelle au microscope est bien plus irrégulière.</b></p></div></div>
 
   <div class="grille deux">
     <div>
@@ -789,6 +807,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        laboratoire propose les manipulations réalisables tout de suite.</p>
     <span class="ref">49 fiches de manipulation · 138 références de matériel</span>
   </div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Quantités estimées, protocoles condensés.</b> Les fiches sont des versions courtes et standard de ces travaux pratiques ; elles ne sont pas recopiées de l'ouvrage. Les quantités sont des ordres de grandeur.</p><p><b>À vérifier dans le livre avant la séance</b>, et à ajuster à vos habitudes et à votre matériel.</p></div></div>
 
   <div class="segment" id="pr-mode" style="max-width:520px; margin-bottom:16px">
     <button aria-pressed="true"  data-m="recette">Une manip → ma liste de matériel</button>
