@@ -263,6 +263,7 @@ table.tab td{ vertical-align:top }
 #mod-accueil{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
 #mod-programme{ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
 #mod-sediment{ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
+#mod-alteration{ --pt:#b8862b; --ptbg:#f9f1de; --ptbd:#ecdcb4 }
 #mod-cristal{ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
 #mod-magma{ --pt:#c9542c; --ptbg:#fbeee7; --ptbd:#f0cfbd }
 #mod-roches{ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
@@ -290,6 +291,7 @@ table.tab td{ vertical-align:top }
 nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#b15f2c }
 nav.onglets button[data-mod="programme"][aria-selected="true"]{ background:#8f76cf }
 nav.onglets button[data-mod="sediment"][aria-selected="true"]{ background:#4f93d4 }
+nav.onglets button[data-mod="alteration"][aria-selected="true"]{ background:#b8862b }
 nav.onglets button[data-mod="cristal"][aria-selected="true"]{ background:#3faea6 }
 nav.onglets button[data-mod="magma"][aria-selected="true"]{ background:#c9542c }
 nav.onglets button[data-mod="roches"][aria-selected="true"]{ background:#4fae7a }
@@ -338,7 +340,7 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
    milieu du vide : c'est ce qui donnait une grille difforme. */
 #mod-accueil .grille{ grid-template-columns:minmax(0,1fr) !important; gap:14px }
 @media(min-width:660px){ #mod-accueil .grille{ grid-template-columns:repeat(2,minmax(0,1fr)) !important } }
-@media(min-width:1040px){ #mod-accueil .grille{ grid-template-columns:repeat(4,minmax(0,1fr)) !important } }
+@media(min-width:1040px){ #mod-accueil .grille{ grid-template-columns:repeat(3,minmax(0,1fr)) !important } }
 #mod-accueil .grille > .carte{ display:flex; flex-direction:column; padding:18px }
 /* .carte + .carte donne une marge haute aux suivantes : dans une grille,
    cela décale les cartes d'une même rangée de seize pixels les unes des autres */
@@ -446,6 +448,7 @@ header.top .marque b{ letter-spacing:-.015em }
     <button role="tab" data-mod="accueil"  aria-selected="true">Accueil &amp; catalogue</button>
     <button role="tab" data-mod="programme" aria-selected="false">Programmes du lycée</button>
     <button role="tab" data-mod="sediment" aria-selected="false">Érosion, transport &amp; dépôt</button>
+    <button role="tab" data-mod="alteration" aria-selected="false">Altération des roches</button>
     <button role="tab" data-mod="cristal"  aria-selected="false">Cristallisation &amp; texture</button>
     <button role="tab" data-mod="magma"    aria-selected="false">Viscosité &amp; style éruptif</button>
     <button role="tab" data-mod="roches"   aria-selected="false">Paillasse — identifier une roche</button>
@@ -460,12 +463,12 @@ header.top .marque b{ letter-spacing:-.015em }
      ========================================================= -->
 <section class="module actif" id="mod-accueil" role="tabpanel">
   <div class="intro-mod" data-wm="GÉOL">
-    <h2>Quatre paillasses de géologie, et de quoi préparer les vraies</h2>
-    <p>La gouttière hydraulique, la cristallisation, la viscosité des magmas et l'identification
-       des roches : les quatre manipulations que l'on refait chaque année et qui demandent
-       toujours du temps de montage. Ici on fait varier les paramètres en quelques secondes,
-       pour préparer la séance réelle ou pour l'exploiter après coup. Le dernier onglet sort la
-       liste de matériel.</p>
+    <h2>Cinq paillasses de géologie, et de quoi préparer les vraies</h2>
+    <p>La gouttière hydraulique, l'altération, la cristallisation, la viscosité des magmas et
+       l'identification des roches : les manipulations que l'on refait chaque année et qui
+       demandent toujours du temps de montage. Ici on fait varier les paramètres en quelques
+       secondes, pour préparer la séance réelle ou pour l'exploiter après coup. Les deux derniers
+       onglets partent du programme et sortent la liste de matériel.</p>
     <span class="ref">TP classiques du lycée · d'après la banque d'expériences de Planet-Terre (ENS Lyon)</span>
     <a class="btn mini no-print" style="margin-left:8px; vertical-align:2px"
        href="https://planet-terre.ens-lyon.fr/" target="_blank" rel="noopener">Planet-Terre ↗</a>
@@ -498,8 +501,17 @@ header.top .marque b{ letter-spacing:-.015em }
       <h3 style="margin-top:8px">La gouttière hydraulique</h3>
       <p class="sous">Débit, pente, mélange de sédiments, couvert végétal. Les grains sont érodés,
          transportés ou déposés selon leur taille et la vitesse du courant. Diagramme de Hjulström
-         en direct, tri granulométrique du dépôt, et un mode delta.</p>
+         en direct, tri granulométrique du dépôt, et un mode delta. Le sédiment qu'elle trie vient
+         de la paillasse d'altération.</p>
       <button class="btn primaire" data-va="sediment">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge orange">Altération</span>
+      <h3 style="margin-top:8px">Ce que l'eau fait aux roches</h3>
+      <p class="sous">Huit roches, cinq milieux, du bloc à la poudre. Perte de masse pesée,
+         effervescence, tests de l'eau de trempage — et le partage entre ce qui part en solution
+         et ce qui reste sur place et deviendra du sable.</p>
+      <button class="btn primaire" data-va="alteration">Ouvrir la paillasse</button>
     </div>
     <div class="carte">
       <span class="badge orange">Magmatisme</span>
@@ -524,6 +536,20 @@ header.top .marque b{ letter-spacing:-.015em }
          minéraux visibles, réaction à la lumière. Mode « roche mystère » avec le moins de tests
          possible, et classement magmatique / sédimentaire / métamorphique.</p>
       <button class="btn primaire" data-va="roches">Ouvrir la paillasse</button>
+    </div>
+  </div>
+
+  <div class="carte bandeau-classe" style="background:var(--encre); color:#fff; border-color:var(--encre); margin-top:16px">
+    <span class="badge" style="background:rgba(255,255,255,.14); color:#fff">Pour la classe</span>
+    <h3 style="margin-top:8px">Comment s'en servir</h3>
+    <p class="sous" style="color:rgba(255,255,255,.7)">
+       En démonstration au vidéoprojecteur pour formuler une hypothèse, en autonomie sur tablette
+       avant le TP réel, ou en remédiation après. Les valeurs trouvées par l'élève — masse exportée,
+       taille des cristaux, viscosité, perte à l'altération, identifications réussies — sont relevées
+       automatiquement et s'impriment en fiche de résultats à son nom.</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap">
+      <button class="btn" id="btn-carnet-3" style="background:#fff; border-color:#fff">Voir le carnet</button>
+      <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiche pédagogique</button>
     </div>
   </div>
 
@@ -676,6 +702,116 @@ header.top .marque b{ letter-spacing:-.015em }
       <div class="carte">
         <h3>Questions d'exploitation</h3>
         <div id="se-questions"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — ALTÉRATION DES ROCHES
+     ========================================================= -->
+<section class="module" id="mod-alteration" role="tabpanel">
+  <div class="intro-mod" data-wm="H⁺">
+    <h2>Altération — ce que l'eau fait aux roches</h2>
+    <p>On pèse un échantillon, on l'immerge, on attend, on rince, on sèche et on repèse. La perte
+       de masse mesure l'altération. Selon la roche et selon l'eau, elle va de rien du tout à la
+       disparition complète — et ce qui part en solution n'est pas ce qui reste sur place.</p>
+    <span class="ref">TP « altération d'une roche » · érosion, processus et conséquences</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="alteration"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Valeurs simulées, non mesurées — et calées sur la paillasse, pas sur la nature.</b>
+       La vitesse de dissolution suit une cinétique du premier ordre dont la constante dépend du
+       pH, calée sur deux repères de laboratoire : un calcaire qui perd environ 7 % de sa masse en
+       une heure dans du vinaigre, et qui ne perd presque rien dans de l'eau de pluie.</p>
+    <p>Dans la nature, l'eau se renouvelle lentement et se sature : <b>les vitesses réelles sont
+       bien plus faibles que celles d'un bécher agité</b>. Le panneau « à l'échelle géologique »,
+       plus bas, donne des ordres de grandeur mesurés sur le terrain — ceux-là ne sortent pas d'un
+       calcul de ce module.</p>
+  </div></div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Le dispositif</h3>
+        <div class="reglage">
+          <label for="al-roche">Échantillon</label>
+          <select id="al-roche"></select>
+        </div>
+        <div class="reglage">
+          <label for="al-agent">Milieu</label>
+          <select id="al-agent"></select>
+        </div>
+        <div class="reglage">
+          <label for="al-taille">Découpe de l'échantillon</label>
+          <div class="segment" id="al-taille">
+            <button aria-pressed="false" data-s="bloc">Bloc</button>
+            <button aria-pressed="true"  data-s="gravier">Gravillons</button>
+            <button aria-pressed="false" data-s="poudre">Poudre</button>
+          </div>
+        </div>
+        <div class="reglage">
+          <label for="al-temp">Température <span class="val" id="al-temp-v">20 °C</span></label>
+          <input type="range" id="al-temp" min="0" max="60" value="20" step="1">
+        </div>
+        <div class="reglage">
+          <label for="al-duree">Durée de l'immersion <span class="val" id="al-duree-v">1 h</span></label>
+          <input type="range" id="al-duree" min="0" max="100" value="0" step="1">
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap" class="no-print">
+          <button class="btn primaire" id="al-go">Lancer l'altération</button>
+          <button class="btn" id="al-raz">Nouvel échantillon</button>
+        </div>
+        <div class="note" id="al-note"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Test de l'eau de trempage</h3>
+        <p class="sous">Ce que le programme appelle « identifier par des tests chimiques les
+           éléments solubles issus de l'altération ».</p>
+        <div id="al-tests" style="display:grid; gap:7px"></div>
+        <div id="al-resultat-test"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>L'échantillon</h3>
+        <div class="mesures">
+          <div class="mesure"><div class="t">Masse restante</div><div class="v" id="al-m-m">100,0</div><div class="u">% de la masse initiale</div></div>
+          <div class="mesure"><div class="t">Perte</div><div class="v" id="al-m-p">0,0</div><div class="u">% en masse</div></div>
+          <div class="mesure"><div class="t">Durée écoulée</div><div class="v" id="al-m-t">0</div><div class="u" id="al-m-tu">h</div></div>
+          <div class="mesure"><div class="t">pH du milieu</div><div class="v" id="al-m-ph">7,0</div><div class="u">unité pH</div></div>
+        </div>
+        <canvas id="al-cv" height="240" style="width:100%; display:block"></canvas>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px" id="al-legende"></p>
+      </div>
+
+      <div class="carte">
+        <h3>Perte de masse au cours du temps</h3>
+        <canvas id="al-courbe" height="220" style="width:100%; display:block"></canvas>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px">
+          Échelle logarithmique des durées : de l'heure à l'année. Le point marque le réglage actuel.</p>
+      </div>
+
+      <div class="carte">
+        <h3>Ce qui part, ce qui reste</h3>
+        <p class="sous">C'est le partage qui fait le paysage : ce qui part en solution alimente les
+           rivières, ce qui reste sur place devient le sol, puis le sédiment.</p>
+        <div id="al-bilan"></div>
+      </div>
+
+      <div class="carte">
+        <h3>À l'échelle géologique</h3>
+        <p class="sous">Ces chiffres-là sont des mesures de terrain relevées dans la littérature,
+           pas des résultats de ce module.</p>
+        <div class="scroll-x"><table class="tab" id="al-terrain"></table></div>
+      </div>
+
+      <div class="carte">
+        <h3>Questions d'exploitation</h3>
+        <div id="al-questions"></div>
       </div>
     </div>
   </div>
@@ -1056,6 +1192,8 @@ header.top .marque b{ letter-spacing:-.015em }
     <textarea id="cn-3" placeholder="Ce qui rend une éruption explosive…"></textarea>
     <label class="lgd" for="cn-4">Identification des roches</label>
     <textarea id="cn-4" placeholder="Tests réalisés, conclusion, classement…"></textarea>
+    <label class="lgd" for="cn-5">Altération</label>
+    <textarea id="cn-5" placeholder="Perte de masse, tests de l'eau, ce qui part et ce qui reste…"></textarea>
     <p style="font-size:11.5px; color:var(--gris-clair)">
       Les valeurs que vous trouvez dans les modules sont relevées automatiquement et s'ajoutent en
       tête de la fiche imprimée. Tout reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
@@ -1176,7 +1314,7 @@ window.addEventListener('resize', () => {
    ========================================================================== */
 (function carnet(){
   const pan = $('#carnet');
-  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4'];
+  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4','cn-5'];
   const CLE = 'labo-geol-carnet';
   let sauv = {};
   try { sauv = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch(e){ sauv = {}; }
@@ -1189,7 +1327,7 @@ window.addEventListener('resize', () => {
     });
   });
   const ouvre = () => pan.classList.add('ouvert');
-  ['#btn-carnet','#btn-carnet-2'].forEach(s => { const b=$(s); if(b) b.addEventListener('click', ouvre); });
+  ['#btn-carnet','#btn-carnet-2','#btn-carnet-3'].forEach(s => { const b=$(s); if(b) b.addEventListener('click', ouvre); });
   $('#cn-fermer').addEventListener('click', () => pan.classList.remove('ouvert'));
   $('#cn-effacer').addEventListener('click', () => {
     if(!confirm('Effacer le carnet et tous les résultats relevés ?')) return;
@@ -1199,9 +1337,11 @@ window.addEventListener('resize', () => {
   });
 
   const TITRES = {sediment:'Gouttière hydraulique', cristal:'Cristallisation',
-                  magma:'Viscosité et style éruptif', roches:'Identification des roches'};
+                  magma:'Viscosité et style éruptif', roches:'Identification des roches',
+                  alteration:'Altération des roches'};
   const RUBRIQUES = [['cn-1','Gouttière'],['cn-2','Cristallisation'],
-                     ['cn-3','Viscosité et style éruptif'],['cn-4','Identification des roches']];
+                     ['cn-3','Viscosité et style éruptif'],['cn-4','Identification des roches'],
+                     ['cn-5','Altération']];
   $('#cn-imprimer').addEventListener('click', () => {
     const nom = ($('#cn-nom').value || '').trim();
     const releve = Object.keys(Labo.resultats).filter(m => Object.keys(Labo.resultats[m]||{}).length);
@@ -1238,18 +1378,20 @@ window.addEventListener('resize', () => {
    ========================================================================== */
 const NOM_PARTIE = {A:"A. Roches et minéraux", B:"B. La surface de la Terre",
                     C:"C. Magmatisme et volcanisme", D:"D. La Terre interne"};
-const NOM_MODULE = {sediment:'Gouttière', cristal:'Cristallisation', magma:'Viscosité', roches:'Paillasse roches'};
+const NOM_MODULE = {sediment:'Gouttière', alteration:'Altération', cristal:'Cristallisation',
+                    magma:'Viscosité', roches:'Paillasse roches'};
 
 const CATALOGUE = [
 {p:'A', n:'A1', t:"Reconnaissance des roches à l'œil nu et à la loupe binoculaire", sim:'roches', f:'roches'},
 {p:'A', n:'A2', t:"Test à l'acide chlorhydrique sur les roches carbonatées", sim:'roches', f:'hcl'},
+{p:'B', n:'B9', t:"Tests chimiques des éléments solubles d'une eau", sim:'alteration', f:'alteration'},
 {p:'A', n:'A3', t:"Test de dureté et échelle de Mohs", sim:'roches', f:'durete'},
 {p:'A', n:'A4', t:"Identification de minéraux à partir de leurs propriétés", sim:'roches', f:'mineraux'},
 {p:'A', n:'A5', t:"Texture et structure : observation comparée de trois roches", sim:'roches', f:'lames'},
 {p:'A', n:'A6', t:"Classer les roches : magmatiques, sédimentaires, métamorphiques", sim:'roches', f:'roches'},
 {p:'A', n:'A7', t:"Mesurer la masse volumique d'une roche", f:'densite'},
 
-{p:'B', n:'B1', t:"Altération d'une roche : eau, eau acidifiée, gel", f:'alteration'},
+{p:'B', n:'B1', t:"Altération d'une roche : eau, eau acidifiée, gel", sim:'alteration', f:'alteration'},
 {p:'B', n:'B2', t:"Érosion en bac : pente, débit, nature du matériau", sim:'sediment', f:'erosion'},
 {p:'B', n:'B3', t:"Influence de la végétation sur l'érosion", sim:'sediment', f:'erosion'},
 {p:'B', n:'B4', t:"Transport et dépôt en gouttière : le tri granulométrique", sim:'sediment', f:'gouttiere'},
@@ -2674,7 +2816,7 @@ const FICHES = [
  resultat:"Granite environ 2,7 g/cm³, basalte 2,9, calcaire 2,7, péridotite 3,3. La croûte continentale est plus légère : elle flotte plus haut.",
  secu:"Sans risque. Essuyer l'échantillon avant de le ranger pour ne pas altérer la collection."},
 
-{id:'alteration', t:"Altération d'une roche : eau, eau acidifiée, gel", p:'B', ref:'B1', duree:50, niveau:'Seconde',
+{id:'alteration', t:"Altération d'une roche : eau, eau acidifiée, gel", p:'B', ref:'B1', duree:50, niveau:'Seconde', sim:'alteration',
  principe:"L'altération chimique dissout, l'altération physique fragmente. Sur un calcaire, l'eau acidifiée agit en quelques minutes ; sur un granite, c'est l'eau qui transforme lentement les feldspaths en argiles.",
  mat:[['calcaire',2],['granite',2],['becher',3],['eau_distillee',150],['vinaigre',150],['hcl',10],['balance',1],['etuve',1],['frigo',1],['papier_filtre',3],['marqueur',1],['lunettes',1]],
  etapes:["Peser trois éclats de calcaire de masse voisine.",
@@ -3124,7 +3266,7 @@ const PROGRAMMES = [
    m:[
     {f:'gouttiere', sim:'sediment', r:"La capacité exigible, mot pour mot : relier la puissance du courant à ce qu'il transporte. Le curseur de vitesse fait exactement cela."},
     {f:'erosion', sim:'sediment', r:"Modéliser l'érosion en faisant varier pente, débit et couvert végétal — les trois paramètres que cite le programme."},
-    {f:'alteration', r:"L'altération chimique, pesée : la perte de masse d'un calcaire dans l'eau acidifiée."},
+    {f:'alteration', sim:'alteration', r:"L'altération chimique, pesée : la perte de masse d'un calcaire dans l'eau acidifiée — et les tests qui identifient les éléments passés en solution."},
     {f:'hcl', sim:'roches', r:"Le test chimique demandé : l'effervescence révèle le carbonate, donc ce que l'eau peut dissoudre."},
     {f:'roches', sim:'roches', r:"Relier la nature de la roche à sa résistance : un granite et une craie ne s'altèrent pas à la même vitesse."},
     {f:'durete', sim:'roches', r:"La dureté, une des raisons pour lesquelles une roche résiste ou non."}]},
@@ -3157,7 +3299,7 @@ const PROGRAMMES = [
    cap:["Comprendre (manipulation, extraction, organisation d'informations) les modalités de la formation des sols."],
    m:[
     {f:'sol', r:"Lire un profil : horizons, couleur, effervescence, roche mère à la base."},
-    {f:'alteration', r:"La première étape de la formation d'un sol : la roche mère qui se désagrège."},
+    {f:'alteration', sim:'alteration', r:"La première étape de la formation d'un sol : la roche mère qui se désagrège, et le résidu qu'elle laisse."},
     {f:'permeabilite', r:"Ce que le sol retient et ce qu'il laisse passer, donc sa réserve en eau."}]}]}],
  rien:"Le thème 1 (organisation du vivant, métabolisme, biodiversité) et le thème 3 (corps humain) relèvent de l'autre laboratoire.",
  lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=2de"}},
@@ -3308,7 +3450,7 @@ const PROGRAMMES = [
   {t:"Activité 3 : Le climat et l'Homme", type:'Act.',
    att:"Relier les flux de carbone actuels aux leviers longs du climat, et mesurer ce qui est mesurable en classe.",
    m:[
-    {f:'alteration', r:"L'altération des silicates consomme du CO₂ : c'est l'un des leviers longs du climat, et il se pèse à la paillasse."},
+    {f:'alteration', sim:'alteration', r:"L'altération des silicates consomme du CO₂ : c'est l'un des leviers longs du climat, et il se pèse à la paillasse."},
     {f:'hcl', sim:'roches', r:"Le carbonate, principal réservoir de carbone de la planète, révélé en une goutte."}]}]}],
  rien:"Vos chapitres 1, 2 et 3 — les Angiospermes, le contrôle du mouvement, la transmission de la vie — sont traités dans l'autre laboratoire, activité par activité.",
  lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=tspe"}}
@@ -3428,6 +3570,475 @@ const PROGRAMMES = [
   rendu();
   if(Labo.depart && Labo.depart.mod === 'programme' && Labo.depart.requete)
     choisit(new URLSearchParams(Labo.depart.requete).get('niveau'));
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE ALTÉRATION — dissolution chimique et fragmentation par le gel
+   Cinétique du premier ordre vers une perte maximale : perte = max × (1 − e^(−v t)).
+   La constante v dépend du pH selon v = k_roche × 10^(0,897 − 0,821 pH), calée
+   sur deux repères de paillasse — un calcaire qui perd environ 7 % de sa masse
+   en une heure dans du vinaigre, et presque rien dans de l'eau de pluie.
+   Les vitesses de terrain, elles, sont citées et non calculées.
+   ========================================================================== */
+const ROCHES_ALT = {
+  calcaire:{n:"Calcaire", k:1, max:100, poro:6, eff:'vive', c:['#e7ddc6','#d9cdb2','#f0e9d8'],
+    sol:"Ca²⁺ et HCO₃⁻", ca:true,
+    reste:"presque rien : un calcaire pur finit par disparaître entièrement",
+    part:100, argile:0, grains:0},
+  craie:{n:"Craie", k:1.7, max:100, poro:38, eff:'vive', c:['#f6f3ea','#eae5d8'],
+    sol:"Ca²⁺ et HCO₃⁻", ca:true,
+    reste:"presque rien, et elle se délite en plus de se dissoudre",
+    part:100, argile:0, grains:0},
+  marbre:{n:"Marbre", k:0.7, max:100, poro:1, eff:'vive', c:['#f2efe6','#e4ded0','#d8d0bd'],
+    sol:"Ca²⁺ et HCO₃⁻", ca:true,
+    reste:"presque rien, mais il résiste mieux qu'une craie : ses cristaux sont soudés",
+    part:100, argile:0, grains:0},
+  gres_c:{n:"Grès à ciment calcaire", k:0.30, max:18, poro:14, eff:'faible', c:['#dcc396','#c9ab77','#e6d3ad'],
+    sol:"Ca²⁺ et HCO₃⁻ — le ciment seul", ca:true,
+    reste:"les grains de quartz, désolidarisés : la roche redevient du sable",
+    part:18, argile:0, grains:82},
+  gres:{n:"Grès siliceux", k:0.002, max:6, poro:12, eff:false, c:['#dcc396','#e6d3ad','#c9ab77'],
+    sol:"un peu de silice dissoute", ca:false,
+    reste:"la roche entière, à peine entamée",
+    part:6, argile:0, grains:94},
+  granite:{n:"Granite", k:0.0015, max:100, poro:1, eff:false, c:['#e8cdc2','#e6e2da','#f4f1ea','#3a3129'],
+    sol:"K⁺, Na⁺, Ca²⁺ et silice dissoute", ca:true,
+    reste:"des grains de quartz — le sable — et des argiles nées des feldspaths",
+    part:40, argile:30, grains:30},
+  gneiss:{n:"Gneiss", k:0.0015, max:100, poro:1, eff:false, c:['#e6e2da','#e8cdc2','#3a3129'],
+    sol:"K⁺, Na⁺, Ca²⁺ et silice dissoute", ca:true,
+    reste:"quartz et argiles, comme un granite",
+    part:40, argile:30, grains:30},
+  basalte:{n:"Basalte", k:0.006, max:100, poro:8, eff:false, c:['#3b3a33','#56644a','#89a266'],
+    sol:"Ca²⁺, Mg²⁺, Fe²⁺ et silice", ca:true,
+    reste:"des argiles et des oxydes de fer : la terre rouge des pays chauds",
+    part:45, argile:40, grains:15}
+};
+const AGENTS = {
+  distillee:{n:"Eau distillée (pH 7,0)", pH:7.0, c:'rgba(150,190,215,.32)'},
+  pluie:    {n:"Eau de pluie, CO₂ dissous (pH 5,6)", pH:5.6, c:'rgba(150,190,215,.32)'},
+  vinaigre: {n:"Vinaigre blanc (pH 2,5)", pH:2.5, c:'rgba(205,195,140,.34)'},
+  hcl:      {n:"Acide chlorhydrique dilué (pH 1,0)", pH:1.0, c:'rgba(210,180,150,.34)'},
+  gel:      {n:"Cycles gel–dégel (un par jour)", pH:null, c:'rgba(175,205,225,.40)'}
+};
+const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1, n_frag:9},
+                 poudre:{n:"Poudre", s:3.4, n_frag:44}};
+
+(function alteration(){
+  const cv = $('#al-cv'), cvc = $('#al-courbe');
+  if(!cv) return;
+  let roche = 'calcaire', agent = 'vinaigre', taille = 'gravier', temp = 20, u = 0;
+  let tAff = 0, marche = false, anim = null, bulles = [], testsFaits = new Set();
+
+  const duree = uu => Math.pow(8760, uu/100);              /* de 1 h à un an */
+  const fT = () => Math.pow(1.6, (temp-20)/10);
+  /* vitesse spécifique, par heure */
+  function vitesse(){
+    const r = ROCHES_ALT[roche], a = AGENTS[agent];
+    if(a.pH === null)                                      /* gel–dégel : physique */
+      return r.poro * 0.0004 / 24;                         /* un cycle par jour */
+    return r.k * Math.pow(10, 0.897 - 0.821*a.pH) * TAILLES[taille].s * fT();
+  }
+  function perte(t){
+    const r = ROCHES_ALT[roche], a = AGENTS[agent];
+    const maxi = a.pH === null ? 95 : r.max;
+    return maxi * (1 - Math.exp(-vitesse()*t));
+  }
+  /* le carbonate consomme l'acide : le pH remonte vers la neutralité */
+  function pHfinal(t){
+    const a = AGENTS[agent], r = ROCHES_ALT[roche];
+    if(a.pH === null) return null;
+    if(!r.ca) return a.pH;
+    /* une roche dont 18 % seulement sont carbonatés ne neutralise qu'un peu */
+    const capacite = r.max/100;
+    const av = Math.min(1, perte(t)/Math.max(1, r.max*0.30)) * capacite;
+    return a.pH + (7.6 - a.pH)*av;
+  }
+  const dureeLisible = t =>
+    t < 24    ? [fr(t, t<10?1:0), 'h'] :
+    t < 720   ? [fr(t/24, t/24<10?1:0), 'jours'] :
+    t < 8400  ? [fr(t/720,1), 'mois'] : ['1', 'an'];
+
+  /* ---------- le bécher et l'échantillon ---------- */
+  function dessine(){
+    const {ctx, l, h} = dimensionne(cv, 240);
+    const r = ROCHES_ALT[roche], a = AGENTS[agent];
+    const p = perte(tAff), reste = 1 - p/100;
+    ctx.fillStyle = '#f4f1ea'; ctx.fillRect(0,0,l,h);
+    const bx = l*0.5 - 118, by = 18, bw = 236, bh = h-40;
+    /* bécher */
+    ctx.beginPath();
+    ctx.moveTo(bx, by); ctx.lineTo(bx, by+bh); ctx.lineTo(bx+bw, by+bh); ctx.lineTo(bx+bw, by);
+    ctx.strokeStyle = '#b9b2a6'; ctx.lineWidth = 2.4; ctx.stroke();
+    /* liquide */
+    const ly = by + bh*0.20;
+    ctx.fillStyle = a.c; ctx.fillRect(bx+2, ly, bw-4, by+bh-ly-2);
+    ctx.strokeStyle = 'rgba(120,150,175,.55)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(bx+2, ly); ctx.lineTo(bx+bw-2, ly); ctx.stroke();
+    /* graduations */
+    ctx.strokeStyle = 'rgba(150,145,135,.6)'; ctx.lineWidth = 1;
+    for(let i=1;i<=3;i++){
+      const y = by + bh*(0.25*i + 0.15);
+      ctx.beginPath(); ctx.moveTo(bx+bw-16, y); ctx.lineTo(bx+bw-2, y); ctx.stroke();
+    }
+    /* fragments : la taille linéaire varie comme la racine cubique de la masse */
+    const T = TAILLES[taille], rnd = graine(roche.length*31 + taille.length*7 + 5);
+    const base = T.n_frag === 1 ? 54 : T.n_frag < 12 ? 21 : 9;
+    const cote = base * Math.cbrt(Math.max(0.02, reste));
+    const sol = by + bh - 6;
+    for(let i=0;i<T.n_frag;i++){
+      if(reste < 0.03) break;
+      const rang = Math.floor(i/Math.ceil(Math.sqrt(T.n_frag)));
+      const col = i % Math.ceil(Math.sqrt(T.n_frag));
+      const nc = Math.ceil(Math.sqrt(T.n_frag));
+      const x = bx + bw/2 + (col - (nc-1)/2)*(cote*1.35) + (rnd()-0.5)*5;
+      const y = sol - rang*(cote*1.15) - cote/2;
+      ctx.beginPath();
+      const k = 5 + Math.floor(rnd()*3);
+      for(let s=0;s<k;s++){
+        const ang = s/k*Math.PI*2 + rnd()*0.25, rr = cote/2*(0.78+rnd()*0.42);
+        s ? ctx.lineTo(x+Math.cos(ang)*rr, y+Math.sin(ang)*rr)
+          : ctx.moveTo(x+Math.cos(ang)*rr, y+Math.sin(ang)*rr);
+      }
+      ctx.closePath();
+      ctx.fillStyle = r.c[Math.floor(rnd()*r.c.length)]; ctx.fill();
+      ctx.strokeStyle = 'rgba(60,54,46,.45)'; ctx.lineWidth = 1; ctx.stroke();
+      /* piqûres de dissolution, ou fissures de gel */
+      ctx.save(); ctx.clip();
+      if(AGENTS[agent].pH === null){
+        ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 1.4;
+        const nf = Math.round(p/12);
+        for(let f=0;f<nf;f++){
+          const a1 = rnd()*Math.PI*2;
+          ctx.beginPath();
+          ctx.moveTo(x+Math.cos(a1)*cote, y+Math.sin(a1)*cote);
+          ctx.lineTo(x-Math.cos(a1)*cote*0.6, y-Math.sin(a1)*cote*0.6);
+          ctx.stroke();
+        }
+      } else {
+        const np = Math.round(p/6);
+        for(let f=0;f<np;f++){
+          ctx.beginPath();
+          ctx.arc(x+(rnd()-0.5)*cote, y+(rnd()-0.5)*cote, 0.6+rnd()*cote*0.11, 0, Math.PI*2);
+          ctx.fillStyle = 'rgba(90,80,66,.30)'; ctx.fill();
+        }
+      }
+      ctx.restore();
+    }
+    if(reste < 0.03){
+      ctx.fillStyle = '#7d776c'; ctx.font = '12px system-ui,sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText("l'échantillon a entièrement disparu", bx+bw/2, sol-26);
+      ctx.textAlign = 'left';
+    }
+    /* effervescence */
+    bulles.forEach(b => {
+      ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(255,255,255,.8)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(120,150,180,.85)'; ctx.lineWidth = .8; ctx.stroke();
+    });
+    /* étiquettes */
+    ctx.fillStyle = '#6f6a60'; ctx.font = '11px system-ui,sans-serif';
+    ctx.fillText(AGENTS[agent].n.split(' (')[0], 10, 16);
+    ctx.textAlign = 'right';
+    ctx.fillText(ROCHES_ALT[roche].n + ' — ' + TAILLES[taille].n.toLowerCase(), l-10, 16);
+    ctx.textAlign = 'left';
+  }
+
+  /* ---------- courbe perte = f(durée) ---------- */
+  function dessineCourbe(){
+    const {ctx, l, h} = dimensionne(cvc, 220);
+    const mg = 42, md = 12, mh = 12, mb = 30;
+    const X = t => mg + Math.log10(Math.max(1,t))/Math.log10(8760)*(l-mg-md);
+    const Y = v => h-mb - v/100*(h-mh-mb);
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    fondGraphe(ctx, cvc, mg, mh, l-mg-md, h-mh-mb);
+    ctx.strokeStyle = '#eee8dd'; ctx.fillStyle = '#a9a294'; ctx.font = '10px system-ui,sans-serif';
+    [[1,'1 h'],[24,'1 j'],[168,'1 sem.'],[720,'1 mois'],[8760,'1 an']].forEach(([t,lab]) => {
+      const x = X(t);
+      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
+      ctx.textAlign='center'; ctx.fillText(lab, x, h-mb+13);
+    });
+    for(let v=0;v<=100;v+=25){
+      const y = Y(v);
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText(v + ' %', mg-6, y+3);
+    }
+    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
+    ctx.fillText('durée d’immersion', (mg+l-md)/2, h-5);
+    ctx.save(); ctx.translate(10,(mh+h-mb)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('perte de masse', 0, 0); ctx.restore();
+    ctx.beginPath();
+    for(let i=0;i<=160;i++){
+      const t = Math.pow(8760, i/160), x = X(t), y = Y(borne(perte(t),0,100));
+      i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+    }
+    ctx.strokeStyle = '#b8862b'; ctx.lineWidth = 2.4; ctx.stroke();
+    const t = duree(u);
+    ctx.beginPath(); ctx.arc(X(t), Y(borne(perte(t),0,100)), 5.5, 0, Math.PI*2);
+    ctx.fillStyle = '#b8862b'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  /* ---------- bilan de ce qui part et de ce qui reste ---------- */
+  function rendBilan(){
+    const r = ROCHES_ALT[roche];
+    const parts = [
+      {n:"Emporté en solution", v:r.part, c:'#4f93d4', d:r.sol},
+      {n:"Transformé en argiles", v:r.argile, c:'#a4744a', d:"minéraux nouveaux, nés sur place"},
+      {n:"Laissé en grains", v:r.grains, c:'#cfa95e', d:"surtout du quartz, qui ne se dissout pas"}
+    ].filter(p => p.v > 0);
+    $('#al-bilan').innerHTML =
+      '<p style="font-size:12.5px; color:var(--gris); margin-bottom:10px">' +
+      'Si l’altération allait jusqu’au bout, 100 g de ' + ROCHES_ALT[roche].n.toLowerCase() +
+      ' deviendraient :</p>' +
+      '<div style="display:flex; height:22px; border-radius:6px; overflow:hidden; margin-bottom:12px">' +
+      parts.map(p => '<div style="width:' + p.v + '%; background:' + p.c + '"></div>').join('') + '</div>' +
+      parts.map(p => '<div style="display:flex; gap:9px; align-items:baseline; margin-bottom:7px; font-size:13px">' +
+        '<span style="flex:none;width:11px;height:11px;border-radius:3px;background:' + p.c + '"></span>' +
+        '<span><b>' + p.v + ' g — ' + p.n + '.</b> <span style="color:var(--gris)">' + ech(p.d) +
+        '</span></span></div>').join('') +
+      (r.grains > 0
+        ? '<div class="note">Ces grains-là sont exactement ce que la gouttière trie ensuite : ' +
+          'l’altération fabrique le sédiment, l’érosion le déplace.' +
+          '<div style="margin-top:9px"><button class="btn mini no-print" data-va="sediment">' +
+          'Les envoyer dans la gouttière →</button></div></div>'
+        : '<div class="note">Un calcaire pur ne laisse pas de résidu : il part entièrement en ' +
+          'solution. C’est pourquoi les régions calcaires creusent des grottes au lieu de ' +
+          'produire du sable — et pourquoi les sols y sont si minces.</div>');
+  }
+
+  /* ---------- tests chimiques de l'eau de trempage ---------- */
+  const TESTS_EAU = [
+    {id:'oxalate', n:"Oxalate d'ammonium", q:"Révèle les ions calcium",
+     lit:(r,p) => p < 0.5 ? "Aucun précipité : rien de mesurable n'est passé en solution."
+       : r.ca ? "Précipité blanc abondant d'oxalate de calcium : l'eau s'est chargée en ions Ca²⁺."
+              : "Aucun précipité : cette roche ne libère pas de calcium."},
+    {id:'conduc', n:"Conductimètre", q:"Mesure la charge en ions",
+     lit:(r,p) => p < 0.5 ? "Conductivité inchangée, proche de celle du milieu de départ."
+       : "La conductivité a nettement augmenté : l'eau contient des ions qu'elle n'avait pas. " +
+         "Ce sont eux que les rivières transportent, invisibles."},
+    {id:'ph', n:"pH de la solution", q:"Avant et après",
+     lit:(r,p) => {
+       const ph = pHfinal(duree(u));
+       if(ph === null) return "Sans objet : le gel ne met rien en solution.";
+       return "pH initial " + fr(AGENTS[agent].pH,1) + " → pH final " + fr(ph,1) +
+         (ph - AGENTS[agent].pH > 0.4
+           ? ". L'acide a été consommé : c'est le carbonate qui l'a neutralisé en se dissolvant."
+           : ". Presque inchangé : la roche n'a pas consommé l'acide.");
+     }},
+    {id:'evapo', n:"Évaporation à sec", q:"Pèse le résidu dissous",
+     lit:(r,p) => p < 0.5 ? "Aucun résidu pesable."
+       : "Un résidu blanc reste au fond de la capsule : c'est la matière partie en solution, " +
+         "récupérée. Sa masse correspond à la perte de l'échantillon."}
+  ];
+  function rendTests(){
+    $('#al-tests').innerHTML = TESTS_EAU.map(t =>
+      '<button class="btn mini" data-testeau="' + t.id + '" style="text-align:left; display:block; width:100%"' +
+      (testsFaits.has(t.id) ? ' aria-pressed="true"' : '') + '><b>' + t.n + '</b><br>' +
+      '<span style="font-size:11px; color:var(--gris-clair)">' + t.q + '</span></button>').join('');
+    const r = ROCHES_ALT[roche], p = perte(tAff);
+    const l = TESTS_EAU.filter(t => testsFaits.has(t.id));
+    $('#al-resultat-test').innerHTML = l.length
+      ? '<div style="margin-top:12px">' + l.map(t =>
+          '<div style="border-left:3px solid var(--pt); padding:3px 0 3px 12px; margin-bottom:10px">' +
+          '<div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600">' +
+          t.n + '</div><div style="font-size:13px">' + ech(t.lit(r,p)) + '</div></div>').join('') + '</div>'
+      : '<p style="font-size:12.5px; color:var(--gris); margin-top:10px">Lancez d’abord l’altération, puis testez l’eau.</p>';
+  }
+  $('#al-tests').addEventListener('click', e => {
+    const b = e.target.closest('[data-testeau]'); if(!b) return;
+    testsFaits.has(b.dataset.testeau) ? testsFaits.delete(b.dataset.testeau)
+                                      : testsFaits.add(b.dataset.testeau);
+    rendTests();
+  });
+
+  /* ---------- vitesses mesurées sur le terrain ---------- */
+  $('#al-terrain').innerHTML =
+    '<thead><tr><th>Situation</th><th>Vitesse observée</th></tr></thead><tbody>' +
+    [["Dissolution d'un plateau calcaire, climat tempéré humide", "20 à 100 mm par millénaire"],
+     ["Recul d'une falaise de craie du littoral", "10 à 50 cm par an"],
+     ["Progression du front d'altération dans un granite", "5 à 50 mm par millénaire"],
+     ["Formation d'un sol sur roche dure", "quelques centimètres par millénaire"],
+     ["Gélifraction en haute montagne", "quelques millimètres par an sur les parois fissurées"]]
+      .map(([a,b]) => '<tr><td>' + a + '</td><td style="white-space:nowrap">' + b + '</td></tr>').join('') +
+    '</tbody>';
+
+  /* ---------- animation ---------- */
+  function pasAnim(){
+    const cible = duree(u);
+    tAff += Math.max(cible/90, cible*0.02);
+    if(tAff >= cible){ tAff = cible; marche = false; }
+    const eff = marche && ROCHES_ALT[roche].eff && AGENTS[agent].pH !== null && AGENTS[agent].pH < 6.5;
+    if(eff && perte(tAff) < ROCHES_ALT[roche].max - 1){
+      const n = ROCHES_ALT[roche].eff === 'vive' ? 3 : 1;
+      for(let i=0;i<n;i++)
+        bulles.push({x: cv.clientWidth/2 + (Math.random()-0.5)*150,
+                     y: 210, r: 1.4+Math.random()*3, v: 0.9+Math.random()*1.5});
+    }
+    bulles = bulles.filter(b => { b.y -= b.v; return b.y > 60; });
+    majMesures(); dessine();
+    if(marche || bulles.length) anim = requestAnimationFrame(pasAnim);
+    else $('#al-go').textContent = "Lancer l'altération";
+  }
+
+  function majMesures(){
+    const p = borne(perte(tAff), 0, 100), [tv,tu] = dureeLisible(tAff);
+    $('#al-m-m').textContent = fr(100-p,1);
+    $('#al-m-p').textContent = fr(p,1);
+    $('#al-m-t').textContent = tv; $('#al-m-tu').textContent = tu;
+    const ph = pHfinal(tAff);
+    $('#al-m-ph').textContent = ph === null ? '—' : fr(ph,1);
+    Labo.note('alteration', 'Échantillon', ROCHES_ALT[roche].n + ' — ' + TAILLES[taille].n.toLowerCase());
+    Labo.note('alteration', 'Milieu', AGENTS[agent].n);
+    Labo.note('alteration', 'Perte de masse', fr(p,1) + ' % après ' + tv + ' ' + tu);
+  }
+
+  function maj(){
+    const [tv,tu] = dureeLisible(duree(u));
+    $('#al-duree-v').textContent = tv + ' ' + tu;
+    $('#al-temp-v').textContent = temp + ' °C';
+    const r = ROCHES_ALT[roche], a = AGENTS[agent], v = vitesse();
+    const t1 = perte(1), t24 = perte(24), tan = perte(8760);
+    $('#al-note').innerHTML = a.pH === null
+      ? "<b>Gel–dégel.</b> L'eau gagne 9 % de volume en gelant : elle écarte les fissures de " +
+        "l'intérieur. Plus la roche est poreuse, plus elle en souffre — la craie (" + r.poro +
+        " % de vides ici) se délite bien avant un granite. Aucun ion ne passe en solution."
+      : "<b>" + r.n + " dans " + a.n.split(' (')[0].toLowerCase() + ".</b> " +
+        (t1 < 0.05 ? "Rien de mesurable en une heure ; " + (tan < 1 ? "ni même en un an."
+          : "il faut attendre pour voir quelque chose : " + fr(tan,1) + " % en un an.")
+         : "Environ " + fr(t1,1) + " % en une heure, " + fr(t24,1) + " % en un jour.") +
+        (r.max < 50 ? " La perte plafonne à " + r.max + " % : seul le ciment se dissout, les " +
+          "grains restent." : "");
+    $('#al-legende').textContent = a.pH === null
+      ? "Les traits clairs sont les fissures ouvertes par la glace."
+      : (r.eff ? "Les bulles sont du dioxyde de carbone : l'acide attaque le carbonate."
+               : "Pas d'effervescence : cette roche ne contient pas de carbonate.");
+    dessine(); dessineCourbe(); rendBilan(); rendTests(); majMesures();
+  }
+
+  /* ---------- interface ---------- */
+  $('#al-roche').innerHTML = Object.keys(ROCHES_ALT)
+    .map(k => '<option value="' + k + '">' + ROCHES_ALT[k].n + '</option>').join('');
+  $('#al-agent').innerHTML = Object.keys(AGENTS)
+    .map(k => '<option value="' + k + '">' + AGENTS[k].n + '</option>').join('');
+  $('#al-roche').value = roche; $('#al-agent').value = agent;
+  const raz = () => { tAff = 0; bulles = []; testsFaits.clear(); marche = false;
+                      cancelAnimationFrame(anim); $('#al-go').textContent = "Lancer l'altération"; };
+  $('#al-roche').addEventListener('change', e => { roche = e.target.value; raz(); maj(); });
+  $('#al-agent').addEventListener('change', e => { agent = e.target.value; raz(); maj(); });
+  segment($('#al-taille'), d => { taille = d.s; raz(); maj(); });
+  $('#al-temp').addEventListener('input', e => { temp = +e.target.value; maj(); });
+  $('#al-duree').addEventListener('input', e => { u = +e.target.value; if(!marche) tAff = duree(u); maj(); });
+  $('#al-go').addEventListener('click', () => {
+    if(marche) return;
+    marche = true; tAff = 0; bulles = []; $('#al-go').textContent = "Altération en cours…";
+    pasAnim();
+  });
+  $('#al-raz').addEventListener('click', () => { raz(); maj(); });
+
+  $('#al-questions').innerHTML = blocQuestions([
+    ["Comparez le calcaire et le granite dans le même vinaigre. Que conclure ?",
+     "Le calcaire perd plusieurs pour cent de sa masse en une heure, le granite rien de mesurable même en un an. C'est la capacité exigible du programme : relier la nature de la roche à sa résistance à l'altération. Un paysage où alternent calcaires et granites se creuse donc de façon très inégale — les calcaires en creux, les granites en relief."],
+    ["Passez d'un bloc à de la poudre sans rien changer d'autre. Pourquoi la perte est-elle bien plus rapide ?",
+     "Parce que la réaction se passe à la surface, et que broyer multiplie la surface sans changer la masse. C'est pour la même raison qu'une roche fissurée s'altère plus vite qu'une roche massive, et que la gélifraction, qui fissure, prépare le travail de l'altération chimique."],
+    ["Testez l'eau à l'oxalate après avoir dissous du calcaire. Où va ce calcium ensuite ?",
+     "Dans les rivières, invisible, puis à la mer. Une partie sera reprise par des organismes pour fabriquer leurs coquilles, qui formeront à leur tour un calcaire. Le calcium fait ainsi un cycle complet : roche → solution → coquille → roche."],
+    ["Un grès à ciment calcaire perd au maximum 18 % de sa masse. Que devient le reste ?",
+     "Il reste sur place sous forme de grains de quartz libres : la roche redevient le sable dont elle était faite. C'est le point de jonction entre ce module et la gouttière — l'altération fabrique le sédiment, l'érosion le transporte et le trie."],
+    ["Pourquoi les vitesses de ce module sont-elles si éloignées de celles du tableau de terrain ?",
+     "Parce qu'un bécher n'est pas un paysage. Ici l'eau est renouvelée, acide et agitée : la réaction va à sa vitesse maximale. Dans la nature, l'eau stagne, se sature en calcium et cesse de dissoudre ; elle ne se renouvelle qu'aux pluies. C'est une bonne occasion de faire dire aux élèves ce qu'un modèle de laboratoire représente — et ce qu'il ne représente pas."]
+  ]);
+
+  Labo.surAffichage.alteration = () => { dessine(); dessineCourbe(); };
+  maj();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   FICHE PÉDAGOGIQUE — un récapitulatif imprimable pour le professeur
+   ========================================================================== */
+(function fichePedago(){
+  const MODULES = [
+    {n:"Gouttière hydraulique — érosion, transport, dépôt", ref:"B2 à B5", niv:"2de → 1re", d:"45 à 50 min",
+     o:"Relier la vitesse d'un courant à ce qu'il arrache, transporte et abandonne ; faire apparaître le tri granulométrique.",
+     r:"Graviers déposés près de l'amont, sables plus loin, argiles exportées. Le diagramme de Hjulström montre qu'une argile est plus difficile à arracher qu'un sable fin.",
+     v:"Séparer explicitement les deux seuils, chute et arrachement : c'est là que se joue la compréhension, et l'élève les confond spontanément."},
+    {n:"Altération des roches", ref:"B1", niv:"2de", d:"50 min",
+     o:"Relier la nature d'une roche à sa résistance à l'altération, et identifier par des tests ce qui est passé en solution.",
+     r:"Un calcaire perd quelques pour cent de sa masse en une heure dans du vinaigre, un granite rien de mesurable en un an. L'oxalate révèle le calcium, le pH remonte quand le carbonate neutralise l'acide.",
+     v:"Les vitesses sont celles d'un bécher agité, pas d'un paysage. Le tableau « à l'échelle géologique » donne les ordres de grandeur mesurés sur le terrain : la comparaison des deux est un exercice en soi."},
+    {n:"Cristallisation et texture", ref:"C1, C2, C6", niv:"2de → Terminale", d:"45 min",
+     o:"Relier la vitesse de refroidissement à la taille des cristaux, puis la texture et la chimie au nom de la roche.",
+     r:"Pluton : cristaux millimétriques à centimétriques, texture grenue, granite. Coulée : microlites, rhyolite. Trempe : verre, obsidienne. Le tableau à double entrée s'allume sur la bonne case.",
+     v:"Le TP réel se fait au sulfate de cuivre ou à l'alun : c'est un modèle analogique, une cristallisation depuis une solution aqueuse et non depuis un magma. Le dire aux élèves."},
+    {n:"Viscosité et style éruptif", ref:"C3, C4, C5", niv:"2de → 1re", d:"40 min",
+     o:"Relier silice, température et eau dissoute à la viscosité, puis la viscosité à la forme du volcan et au style éruptif.",
+     r:"Dix ordres de grandeur entre un basalte à 1200 °C et une rhyolite à 850 °C. Cône plat et coulées d'un côté, dôme et nuées ardentes de l'autre.",
+     v:"L'eau a deux effets opposés — elle fluidifie en profondeur, elle fait exploser à la remontée — et le module ne calcule que le premier. C'est la limite à faire formuler."},
+    {n:"Paillasse — identifier une roche", ref:"A1 à A6", niv:"2de → Terminale", d:"55 min",
+     o:"Classer seize roches en trois familles à partir de tests simples : loupe, acide, dureté, densité.",
+     r:"Magmatiques : cristaux jointifs sans orientation, ou pâte sombre. Sédimentaires : grains déposés, souvent effervescence. Métamorphiques : minéraux orientés.",
+     v:"Ce module ne simule rien : les propriétés sont réelles. Le mode « roche mystère » compte les tests utilisés — c'est l'économie des tests qu'il faut valoriser, pas leur nombre."},
+    {n:"Programmes du lycée", ref:"Toutes les parties", niv:"pour le professeur", d:"—",
+     o:"Partir du chapitre à traiter et non du catalogue : chaque chapitre donne les manipulations qui s'y rattachent.",
+     r:"Quatre niveaux. Les deux niveaux de spécialité suivent votre programmation, activité par activité, avec le type de séance.",
+     v:"Les capacités entre guillemets sont citées du Bulletin officiel ; le rattachement des manipulations, lui, est une proposition."},
+    {n:"Préparer une manip", ref:"Les quatre parties", niv:"pour le professeur", d:"—",
+     o:"Obtenir la liste de matériel d'une expérience pour le nombre de postes voulu, ou l'inverse.",
+     r:"Vingt et une fiches, panier agrégé en une liste de courses imprimable, matériel partagé compté une fois.",
+     v:"Les protocoles sont condensés : les confronter aux règles de sécurité de l'établissement, en particulier pour l'acide chlorhydrique et la découpe des roches."}
+  ];
+  const html = () =>
+    '<meta charset="utf-8"><title>Laboratoire de géologie — fiche pédagogique</title>' +
+    '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#b15f2c}' +
+    '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
+    'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
+    'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
+    '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0}' +
+    'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
+    '<h1>Laboratoire virtuel de géologie — fiche pédagogique</h1>' +
+    '<p class="s">TP classiques du lycée · reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
+    '<div class="enc"><b>Deux statuts très différents dans ce laboratoire.</b> Les quatre premiers ' +
+    'modules calculent : vitesse de chute d\'un grain, taille des cristaux, viscosité d\'un magma, ' +
+    'perte de masse à l\'altération sortent d\'équations. Les lois sont celles des manuels — Stokes, ' +
+    'Hjulström, Arrhenius, cinétique du premier ordre — mais <b>les constantes sont ajustées pour ' +
+    'l\'illustration : les nombres ne sont pas des mesures</b>. La paillasse d\'identification, elle, ' +
+    'ne calcule rien : les propriétés des seize roches sont des faits. Un bandeau le rappelle dans ' +
+    'chaque module, et il ne dit pas la même chose selon le cas.</div>' +
+    MODULES.map(m => '<div class="mod"><h2>' + m.n + '</h2><table>' +
+      '<tr><th>Référence</th><td>' + m.ref + ' · ' + m.niv + ' · ' + m.d + '</td></tr>' +
+      '<tr><th>Objectif</th><td>' + m.o + '</td></tr>' +
+      '<tr><th>Résultat attendu</th><td>' + m.r + '</td></tr>' +
+      '<tr><th>Point de vigilance</th><td>' + m.v + '</td></tr></table></div>').join('') +
+    '<div class="mod"><h2>La boucle de la surface</h2>' +
+    '<p>Trois modules se suivent et racontent une seule histoire, qu\'il vaut la peine de traiter ' +
+    'dans cet ordre : <b>l\'altération</b> fabrique le sédiment en désagrégeant la roche, ' +
+    '<b>la gouttière</b> le transporte et le trie, et ce qui part en solution alimente les ' +
+    'rivières, puis les calcaires de demain. Le module d\'altération affiche explicitement ce ' +
+    'partage — ce qui s\'en va, ce qui reste sur place.</p></div>' +
+    '<div class="mod"><h2>Ce que l\'élève rend</h2>' +
+    '<p>Les valeurs qu\'il trouve — vitesse du courant et masse exportée, taille des cristaux et ' +
+    'nom de la roche, viscosité et style éruptif, perte de masse, identifications réussies et ' +
+    'nombre de tests utilisés — sont relevées automatiquement. Le bouton <b>Carnet</b> imprime une ' +
+    'fiche de résultats à son nom. Rien n\'est envoyé sur Internet : tout reste dans le navigateur ' +
+    'du poste.</p></div>' +
+    '<div class="mod"><h2>Liens directs</h2><ol>' +
+    ['#programme — entrée par le programme (#programme?niveau=2de, 1es, 1spe, tspe)',
+     '#sediment — gouttière, érosion, transport, dépôt','#alteration — altération des roches',
+     '#cristal — cristallisation et texture','#magma — viscosité et style éruptif',
+     '#roches — identifier une roche','#preparer — matériel']
+      .map(x => '<li>' + x + '</li>').join('') + '</ol></div>';
+
+  const b = $('#btn-fiche-prof');
+  if(b) b.addEventListener('click', () => {
+    const f = window.open('', '_blank');
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
+    f.document.write(html()); f.document.close(); f.focus();
+    setTimeout(() => f.print(), 300);
+  });
 })();
 </script>
 
