@@ -407,6 +407,23 @@ header.top .marque b{ letter-spacing:-.015em }
 @media print{ .intro-mod::before{ display:none } .intro-mod{ border:none; background:none; padding:0 } }
 
 </style>
+<!-- Apercu de partage : ce qui s'affiche quand le lien est colle -->
+<!--      dans l'ENT, Pronote, un mail ou une messagerie. -->
+<link rel="canonical" href="https://reynesmanon11-maker.github.io/outils/labo_vegetal.html" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mme Reynes — SVT" />
+<meta property="og:locale" content="fr_FR" />
+<meta property="og:url" content="https://reynesmanon11-maker.github.io/outils/labo_vegetal.html" />
+<meta property="og:title" content="Laboratoire de biologie végétale · SVT" />
+<meta property="og:description" content="Simulations de travaux pratiques de biologie végétale : ExAO photosynthèse et respiration, tests biochimiques, pigments, cinétiques enzymatiques, histologie. D'après R. Pratt, Expérimentation en biologie et physiologie végétales." />
+<meta property="og:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Mme Reynes — SVT : comprendre le vivant et notre planete" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Laboratoire de biologie végétale · SVT" />
+<meta name="twitter:description" content="Simulations de travaux pratiques de biologie végétale : ExAO photosynthèse et respiration, tests biochimiques, pigments, cinétiques enzymatiques, histologie. D'après R. Pratt, Expérimentation en biologie et physiologie végétales." />
+<meta name="twitter:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
 </head>
 <body>
 
@@ -1846,7 +1863,7 @@ window.addEventListener('resize', () => {
       '<h1>Fiche de résultats — biologie végétale</h1><p><b>' +
       $('#cn-nom').value.replace(/[<>]/g,'') + '</b></p>' +
       ((g => g.length ? '<h2>Graphiques</h2>' + g.map(x =>
-        '<figure><img src="' + x.url + '"><figcaption>' + x.titre + '</figcaption></figure>').join('') : '')(graphiques())) +
+        '<figure><img src="' + x.url + '" alt="Graphique : ' + x.titre + '"><figcaption>' + x.titre + '</figcaption></figure>').join('') : '')(graphiques())) +
       ((r => r ? '<h2>Résultats relevés pendant la séance</h2>' + r.map(({m, lignes}) =>
         '<p><b>' + m + '</b></p><table><tbody>' + lignes.map(([c,v]) =>
           '<tr><td>' + c + '</td><td><b>' + String(v).replace(/[<>]/g,'') + '</b></td></tr>').join('') +

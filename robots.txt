@@ -1,0 +1,17 @@
+# Site de Mme Reynes — SVT au lycée
+# Les pages utiles aux élèves sont ouvertes ; le reste ne l'est pas.
+
+User-agent: *
+Allow: /
+
+# Anciennes maquettes conservées pour archive : sans intérêt pour un moteur.
+Disallow: /archives/
+# Outils personnels et versions de travail (aussi marqués noindex dans la page).
+Disallow: /correction_copies.html
+Disallow: /essai-globe.html
+Disallow: /outils/chatbot_svt_TERM_test.html
+Disallow: /outils/defi3_photo_ferroul.html
+# Fichiers sources lourds, jamais affichés sur le site.
+Disallow: /images/planisphere
+
+Sitemap: https://reynesmanon11-maker.github.io/sitemap.xml

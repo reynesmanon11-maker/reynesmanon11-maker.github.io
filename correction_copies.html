@@ -263,6 +263,25 @@
      Le SVG suffit aux navigateurs recents ; le PNG couvre les autres. -->
 <!-- Favicon propre à Correction·IA : pingouin dessiné (formes vectorielles, fiable partout) — nouveau nom pour forcer le rechargement, ne touche pas au reste du site -->
 <link rel="icon" href="favicon-pingouin.svg?v=1" type="image/svg+xml" />
+<meta name="description" content="Outil personnel de correction de copies. Réservé à l'enseignante." />
+<!-- Apercu de partage : ce qui s'affiche quand le lien est colle -->
+<!--      dans l'ENT, Pronote, un mail ou une messagerie. -->
+<link rel="canonical" href="https://reynesmanon11-maker.github.io/correction_copies.html" />
+<meta name="robots" content="noindex, follow" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mme Reynes — SVT" />
+<meta property="og:locale" content="fr_FR" />
+<meta property="og:url" content="https://reynesmanon11-maker.github.io/correction_copies.html" />
+<meta property="og:title" content="Correction de copies" />
+<meta property="og:description" content="Outil personnel de correction de copies. Réservé à l'enseignante." />
+<meta property="og:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Mme Reynes — SVT : comprendre le vivant et notre planete" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Correction de copies" />
+<meta name="twitter:description" content="Outil personnel de correction de copies. Réservé à l'enseignante." />
+<meta name="twitter:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
 </head>
 <body>
 
@@ -1136,7 +1155,7 @@ $('c-dropzone').addEventListener('dragleave', () => $('c-dropzone').classList.re
 $('c-dropzone').addEventListener('drop', e => { e.preventDefault(); $('c-dropzone').classList.remove('drag'); ingestFiles(e.dataTransfer.files, pendingFiles, renderPendingFiles); });
 $('c-fileinput').addEventListener('change', e => { ingestFiles(e.target.files, pendingFiles, renderPendingFiles); e.target.value = ''; });
 function renderPendingFiles() {
-  $('c-filelist').innerHTML = pendingFiles.map((f, i) => `<span class="fileitem">${f.mediaType && f.mediaType.startsWith('image/') ? `<img src="data:${f.mediaType};base64,${f.base64}">` : (f.isPdf ? '📕' : '📄')} ${esc(f.name)}<button class="rm" data-i="${i}">✕</button></span>`).join('');
+  $('c-filelist').innerHTML = pendingFiles.map((f, i) => `<span class="fileitem">${f.mediaType && f.mediaType.startsWith('image/') ? `<img src="data:${f.mediaType};base64,${f.base64}" alt="Copie d\u0027élève déposée : ${f.name || 'image'}">` : (f.isPdf ? '📕' : '📄')} ${esc(f.name)}<button class="rm" data-i="${i}">✕</button></span>`).join('');
   $('c-filelist').querySelectorAll('.rm').forEach(b => b.addEventListener('click', () => { pendingFiles.splice(+b.dataset.i, 1); renderPendingFiles(); }));
 }
 $('c-addqueue').onclick = () => {
