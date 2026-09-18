@@ -893,8 +893,11 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
     <span class="ref">Partie II — 1 à 3</span>
     <button class="btn mini no-print" data-va="preparer" data-fiche="coupes"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+    <a class="btn mini no-print" style="margin-left:6px; vertical-align:2px"
+       href="https://biologie.ens-lyon.fr/collections/collections/FormRech/histo.php"
+       target="_blank" rel="noopener">Voir de vraies coupes (collection ENS Lyon) ↗</a>
   </div>
-  <div class="avert"><span class="marque">i</span><div><p><b>Schémas, non photographies.</b> Les coupes sont dessinées par le programme. L'agencement des tissus, leur position relative et l'effet des colorants sont fidèles — c'est ce qui permet d'apprendre à lire une coupe.</p><p>En revanche les proportions sont régularisées et les cellules simplifiées : <b>une coupe réelle au microscope est bien plus irrégulière.</b></p></div></div>
+  <div class="avert"><span class="marque">i</span><div><p><b>Dessins, non photographies.</b> Les coupes sont construites par le programme, tissu par tissu et cellule par cellule : chaque tissu a sa taille de cellule, l'épaisseur de ses parois et la taille de son lumen, et le contour de l'organe n'est jamais un cercle parfait.</p><p>L'agencement des tissus et l'effet des colorants sont fidèles, mais cela reste un dessin : <b>comparez avec de vraies photographies</b> — le lien ci-dessus mène à la collection de l'ENS Lyon.</p></div></div>
 
   <div class="grille deux">
     <div>
@@ -3911,25 +3914,277 @@ function coupe(nom){
     return base;
   };
 
-  /* ---------- rendu ---------- */
+  /* ==========================================================================
+     RENDU — les tissus sont dessinés cellule par cellule
+     Une coupe réelle n'est pas faite d'anneaux réguliers : chaque tissu a sa
+     taille de cellule, l'épaisseur de ses parois et la taille de son lumen.
+     Les cellules sont posées en quinconce dans un repère polaire (ou
+     cartésien pour les limbes), avec des sommets et des parois légèrement
+     irréguliers tirés d'un générateur pseudo-aléatoire à graine fixe : le
+     dessin est organique mais toujours identique d'un affichage à l'autre.
+     ========================================================================== */
+  const ASPECT = {
+    epiderme:    {t:10, ep:0.9},
+    cuticule:    {t:8,  ep:0.7},
+    pilifere:    {t:10, ep:0.9},
+    suber:       {t:9,  ep:0.8, lumen:.72},
+    collenchyme: {t:11, ep:1.5, lumen:.62},
+    sclerenchyme:{t:8,  ep:1.1, lumen:.42},
+    cortical:    {t:16, ep:0.7, grains:3},
+    medullaire:  {t:21, ep:0.6},
+    fondamental: {t:17, ep:0.6, grains:2},
+    conjonctif:  {t:10, ep:0.7},
+    xyleme:      {t:17, ep:1.4, lumen:.76, vide:true},
+    phloeme:     {t:8,  ep:0.8},
+    cambium:     {t:6,  ep:0.6, fy:.5},
+    endoderme:   {t:11, ep:1.3},
+    pericycle:   {t:9,  ep:0.7},
+    palissadique:{t:13, ep:0.8, fx:.45, fy:2.1, grains:6},
+    lacuneux:    {t:15, ep:0.8, grains:3, lacunes:true},
+    mesophylle:  {t:13, ep:0.8, grains:4},
+    bulliforme:  {t:19, ep:0.9},
+    stomate:     {t:9,  ep:1.2}
+  };
+  /* générateur à graine : même coupe, même dessin */
+  function graine(n){
+    return function(){
+      n |= 0; n = n + 0x6D2B79F5 | 0;
+      let t = Math.imul(n ^ n >>> 15, 1 | n);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  const CENTRE = 210;
+  /* Aucune coupe réelle n'est un disque parfait : le rayon est modulé par une
+     somme de sinusoïdes, appliquée partout — maillage, contours des tissus et
+     détection des clics — pour que tout reste cohérent. */
+  const DEF = ang => 1 + 0.030*Math.sin(3*ang + 0.7) + 0.020*Math.cos(5*ang - 1.2)
+                       + 0.012*Math.sin(7*ang + 2.1);
+
+  /* Maillage à sommets PARTAGÉS : deux cellules voisines s'appuient sur les
+     mêmes points, donc une seule paroi entre elles et aucun interstice — ce
+     qui distingue un tissu d'une mosaïque de carreaux. */
+  function maillePolaire(r0, r1, a0, a1, a, rnd, cernes){
+    const ferme = (a1 - a0) >= Math.PI*2 - 1e-6;
+    /* un anneau qui part du centre : on laisse un noyau, sinon toutes les
+       cellules convergent en un point */
+    if(ferme && r0 === 0) r0 = Math.min(a.t*0.9, r1*0.35);
+    const tr = a.t * (a.fy || 1), ta = a.t * (a.fx || 1);
+    const nR = Math.max(1, Math.round((r1 - r0) / tr));
+    const rm = (r0 + r1) / 2;
+    const nA = Math.max(3, Math.round((a1 - a0) * rm / ta));
+    const P = (r, ang) => [CENTRE + r*DEF(ang)*Math.cos(ang), CENTRE + r*DEF(ang)*Math.sin(ang)];
+    const V = [], largeur = ferme ? nA : nA + 1;
+    for(let i = 0; i <= nR; i++){
+      V[i] = [];
+      const bord = (i === 0 || i === nR);
+      for(let k = 0; k < largeur; k++){
+        /* le bois resserre ses cellules en fin de cerne : les cernes apparaissent */
+        const glis = cernes ? Math.cos(r0 + (r1-r0)*i/nR) * 1.5 : 0;
+        const r = r0 + (r1-r0)*i/nR + (bord ? (rnd()-.5)*0.6 : (rnd()-.5)*(r1-r0)/nR*0.5) + glis;
+        const ang = a0 + (a1-a0)*k/nA + (rnd()-.5)*(a1-a0)/nA*0.5;
+        V[i][k] = P(r, ang);
+      }
+    }
+    const cells = [];
+    for(let i = 0; i < nR; i++)
+      for(let k = 0; k < nA; k++){
+        const k2 = (k+1) % largeur;
+        cells.push([V[i][k], V[i][k2], V[i+1][k2], V[i+1][k]]);
+      }
+    return cells;
+  }
+  /* Le limbe n'est pas un rectangle : une même ondulation est appliquée à tous
+     ses tissus, de sorte qu'ils restent empilés sans interstice. */
+  const ONDE = x => 2.6*Math.sin(x/37 + 0.4) + 1.7*Math.cos(x/23 + 1.1);
+
+  /* même principe en coordonnées cartésiennes, pour les limbes */
+  function mailleRect(x, y, w, h, a, rnd){
+    const tw = a.t*(a.fx || 1), th = a.t*(a.fy || 1);
+    const nY = Math.max(1, Math.round(h/th)), nX = Math.max(1, Math.round(w/tw));
+    const V = [];
+    for(let i = 0; i <= nY; i++){
+      V[i] = [];
+      const bordY = (i === 0 || i === nY);
+      for(let k = 0; k <= nX; k++){
+        const bordX = (k === 0 || k === nX);
+        const px = x + w*k/nX + (bordX ? 0 : (rnd()-.5)*w/nX*0.5);
+        V[i][k] = [px, y + h*i/nY + ONDE(px) +
+                       (bordY ? (rnd()-.5)*0.6 : (rnd()-.5)*h/nY*0.5)];
+      }
+    }
+    const cells = [];
+    for(let i = 0; i < nY; i++)
+      for(let k = 0; k < nX; k++)
+        cells.push([V[i][k], V[i][k+1], V[i+1][k+1], V[i+1][k]]);
+    return cells;
+  }
+
+  /* contour d'une cellule : des quadratiques passant à côté du milieu de
+     chaque côté, ce qui donne des parois légèrement bombées */
+  function contourCell(ctx, pts, rnd, ondul){
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for(let i = 0; i < pts.length; i++){
+      const a = pts[i], b = pts[(i+1) % pts.length];
+      ctx.quadraticCurveTo((a[0]+b[0])/2 + (rnd()-0.5)*ondul,
+                           (a[1]+b[1])/2 + (rnd()-0.5)*ondul, b[0], b[1]);
+    }
+    ctx.closePath();
+  }
+  const versCentre = (pts, f) => {
+    const cx = pts.reduce((s,p) => s+p[0], 0)/pts.length;
+    const cy = pts.reduce((s,p) => s+p[1], 0)/pts.length;
+    return pts.map(p => [cx + (p[0]-cx)*f, cy + (p[1]-cy)*f]);
+  };
+
+  function dessineTissus(ctx){
+    let seed = 1;
+    zones().forEach((z, iz) => {
+      const c = couleur(z.t), ti = TISSUS[z.t], a = ASPECT[z.t] || {t:12, ep:1.2};
+      const rnd = graine(iz*7919 + (organe.length*131) + 17);
+      /* fond du tissu : il comble les interstices entre les cellules */
+      ctx.fillStyle = c.f; trace(ctx, z); ctx.fill();
+
+      let cells;
+      if(z.type === 'anneau')      cells = maillePolaire(z.r0, z.r1, 0, Math.PI*2, a, rnd, z.cernes);
+      else if(z.type === 'secteur')cells = maillePolaire(z.r0, z.r1, z.a0, z.a1, a, rnd);
+      else if(z.type === 'rect')   cells = mailleRect(z.x, z.y, z.w, z.h, a, rnd);
+      else { /* disque : anneaux concentriques autour de son centre */
+        cells = [];
+        const sav = CENTRE;
+        for(let i = 0; i < 2; i++){
+          const r0 = z.r*i/2, r1 = z.r*(i+1)/2, nA = Math.max(3, Math.round(2*Math.PI*(r0+r1)/2/a.t));
+          for(let k = 0; k < nA; k++){
+            const aa = k*2*Math.PI/nA, ab = (k+1)*2*Math.PI/nA, j = m => (rnd()-0.5)*m;
+            const P = (r, ang) => [z.x + r*Math.cos(ang), z.y + r*Math.sin(ang)];
+            cells.push([P(r0+j(2), aa+j(.1)), P(r0+j(2), ab+j(.1)),
+                        P(r1+j(2), ab+j(.1)), P(r1+j(2), aa+j(.1))]);
+          }
+        }
+      }
+
+      ctx.save(); trace(ctx, z); ctx.clip();      /* rien ne déborde du tissu */
+      const ondul = Math.max(1, a.t*0.13);
+      cells.forEach(pts => {
+        contourCell(ctx, pts, rnd, ondul);
+        /* une cellule à paroi épaisse se dessine pleine, puis creusée */
+        ctx.fillStyle = a.lumen ? c.s : c.f;
+        ctx.globalAlpha = a.lumen ? 0.4 : 0.55 + rnd()*0.3;
+        ctx.fill(); ctx.globalAlpha = 1;
+        ctx.strokeStyle = c.s; ctx.lineWidth = a.ep; ctx.stroke();
+        if(a.lumen){
+          /* un vaisseau est rond : le lumen est tracé comme une ellipse, et son
+             calibre varie d'une cellule à l'autre comme dans un vrai bois */
+          if(a.vide){
+            const cx = pts.reduce((s,q) => s+q[0],0)/4, cy = pts.reduce((s,q) => s+q[1],0)/4;
+            const rx = Math.hypot(pts[1][0]-pts[0][0], pts[1][1]-pts[0][1])/2;
+            const ry = Math.hypot(pts[3][0]-pts[0][0], pts[3][1]-pts[0][1])/2;
+            const f = a.lumen * (0.78 + rnd()*0.42);
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, Math.max(1, rx*f), Math.max(1, ry*f),
+                        Math.atan2(pts[1][1]-pts[0][1], pts[1][0]-pts[0][0]), 0, Math.PI*2);
+            ctx.fillStyle = '#fffdfa'; ctx.fill();
+            ctx.lineWidth = a.ep*0.5; ctx.stroke();
+            return;
+          }
+          contourCell(ctx, versCentre(pts, a.lumen), rnd, ondul*1.1);
+          ctx.fillStyle = a.vide ? '#fffdfa' : c.f;
+          ctx.fill();
+          ctx.lineWidth = a.ep*0.45; ctx.stroke();
+        }
+        /* pas de chloroplastes dans un organe souterrain */
+        if(a.grains && coloration !== 'phloro' && !organe.startsWith('racine')){
+          const cx = pts.reduce((s,p) => s+p[0],0)/4, cy = pts.reduce((s,p) => s+p[1],0)/4;
+          /* un chloroplaste est vert : aucun des colorants utilisés ne le teint
+             en rose, et c'est ainsi que l'élève le verra sur une lame fraîche */
+          ctx.fillStyle = '#5f9c6b';
+          for(let g = 0; g < a.grains; g++){
+            ctx.globalAlpha = .45 + rnd()*.25;
+            ctx.beginPath();
+            ctx.ellipse(cx + (rnd()-0.5)*a.t*0.6, cy + (rnd()-0.5)*a.t*0.9,
+                        a.t*0.13, a.t*0.09, rnd()*3, 0, Math.PI*2);
+            ctx.fill();
+          }
+          ctx.globalAlpha = 1;
+        }
+      });
+      /* lacunes du parenchyme lacuneux : des vides entre les cellules */
+      if(a.lacunes){
+        ctx.fillStyle = '#fffdfa';
+        for(let i = 0; i < 14; i++){
+          ctx.globalAlpha = .9;
+          ctx.beginPath();
+          const lx = z.x + 12 + rnd()*(z.w-24);
+          ctx.ellipse(lx, z.y + 10 + rnd()*(z.h-20) + ONDE(lx),
+                      a.t*0.5, a.t*0.38, rnd()*3, 0, Math.PI*2);
+          ctx.fill(); ctx.strokeStyle = c.s; ctx.lineWidth = 1; ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+
+      /* contour du tissu, un peu plus marqué */
+      ctx.strokeStyle = c.s; ctx.lineWidth = a.ep*1.3;
+      trace(ctx, z); ctx.stroke();
+      decor(ctx, z, c, rnd);
+    });
+  }
+
+  /* poils absorbants et stomates : ce qui dépasse du pavage */
+  function decor(ctx, z, c, rnd){
+    if(z.poils){
+      ctx.strokeStyle = c.s; ctx.lineWidth = 1.7;
+      for(let i = 0; i < 52; i++){
+        const ang = i*2*Math.PI/52 + (rnd()-0.5)*0.05, L = 14 + rnd()*16;
+        const r0 = (z.r1 - 2) * DEF(ang);          /* le contour est ondulé */
+        ctx.beginPath();
+        ctx.moveTo(CENTRE + r0*Math.cos(ang), CENTRE + r0*Math.sin(ang));
+        ctx.lineTo(CENTRE + (r0+L)*Math.cos(ang+0.02), CENTRE + (r0+L)*Math.sin(ang+0.02));
+        ctx.stroke();
+      }
+    }
+    if(z.stomates){
+      [z.x + z.w*0.25, z.x + z.w*0.62].forEach(x => {
+        const ys = z.y + z.h/2 + ONDE(x);
+        ctx.fillStyle = '#fffdfa'; ctx.strokeStyle = c.s; ctx.lineWidth = 2.4;
+        ctx.beginPath(); ctx.ellipse(x-9, ys, 9, 5.5, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(x+9, ys, 9, 5.5, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = 'rgba(35,32,28,.35)';
+        ctx.beginPath(); ctx.ellipse(x, ys, 2.6, 4.5, 0, 0, Math.PI*2); ctx.fill();
+      });
+    }
+  }
+
+  /* la coupe est dessinée une fois hors écran, puis simplement replacée :
+     le zoom reste fluide même avec un millier de cellules */
+  let cacheCv = null, cacheCle = '';
+  function bitmap(){
+    const cle = organe + '|' + coloration;
+    if(cacheCv && cacheCle === cle) return cacheCv;
+    const R = 3;
+    const off = document.createElement('canvas');
+    off.width = off.height = 420*R;
+    const c = off.getContext('2d');
+    c.scale(R, R);
+    c.lineJoin = 'round';
+    dessineTissus(c);
+    cacheCv = off; cacheCle = cle;
+    return off;
+  }
+
   function dessine(){
     const T = Math.max(240, Math.round(cv.clientWidth || 420));
     const {ctx} = dimensionne(cv, T);          /* coupe carrée */
     const k = T/420;
+    ctx.fillStyle = '#fbfaf7'; ctx.fillRect(0, 0, T, T);
     ctx.save(); ctx.translate(T/2, T/2); ctx.scale(k*zoom, k*zoom); ctx.translate(-210,-210);
+    ctx.drawImage(bitmap(), 0, 0, 420, 420);
 
-    zones().forEach(z => {
-      const c = couleur(z.t), ti = TISSUS[z.t], actif = selection === z.t;
-      ctx.lineWidth = actif ? 3.2 : (z.t === 'epiderme' || z.t === 'pilifere' ? 2.4 : 1.8);
-      ctx.strokeStyle = actif ? '#23201c' : c.s;
-      ctx.fillStyle = c.f;
-      trace(ctx, z); ctx.fill();
-      if(ti.nuance){                       /* trame plus ou moins dense selon le tissu */
-        ctx.fillStyle = 'rgba(35,32,28,' + (ti.nuance*0.075).toFixed(3) + ')'; ctx.fill();
-      }
-      ctx.stroke();
-      motifs(ctx, z, c);
-    });
+    /* tissu sélectionné : on repasse son contour */
+    if(selection){
+      ctx.lineWidth = 3/(k*zoom); ctx.strokeStyle = '#23201c';
+      zones().filter(z => z.t === selection).forEach(z => { trace(ctx, z); ctx.stroke(); });
+    }
     /* mesure en cours, tracée dans le repère de la coupe */
     if(mesure.a){
       ctx.strokeStyle = '#23201c'; ctx.fillStyle = '#23201c'; ctx.lineWidth = 2/(k*zoom);
@@ -3943,19 +4198,26 @@ function coupe(nom){
     }
     ctx.restore();
 
+    /* léger assombrissement des bords, comme dans un champ de microscope */
+    const vg = ctx.createRadialGradient(T/2, T/2, T*0.42, T/2, T/2, T*0.78);
+    vg.addColorStop(0, 'rgba(35,32,28,0)'); vg.addColorStop(1, 'rgba(35,32,28,.10)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, T, T);
+
     /* barre d'échelle : une longueur ronde, lisible quel que soit le zoom */
     const umParPx = ECHELLE_UM[organe] / (k*zoom);
     const rondes = [5,10,20,50,100,200,500,1000,2000,5000];
     const um = rondes.find(v => v/umParPx >= 55 && v/umParPx <= 130) ||
                rondes.reduce((a,b) => Math.abs(b/umParPx-90) < Math.abs(a/umParPx-90) ? b : a);
     const px = um/umParPx;
+    ctx.fillStyle = 'rgba(255,255,255,.78)';
+    ctx.beginPath(); ctx.roundRect(8, T-44, px+22, 36, 6); ctx.fill();
     ctx.strokeStyle = '#23201c'; ctx.lineWidth = 2.5; ctx.lineCap = 'butt';
-    ctx.beginPath(); ctx.moveTo(16, T-18); ctx.lineTo(16+px, T-18); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(16, T-23); ctx.lineTo(16, T-13);
-    ctx.moveTo(16+px, T-23); ctx.lineTo(16+px, T-13); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(19, T-18); ctx.lineTo(19+px, T-18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(19, T-23); ctx.lineTo(19, T-13);
+    ctx.moveTo(19+px, T-23); ctx.lineTo(19+px, T-13); ctx.stroke();
     ctx.fillStyle = '#23201c'; ctx.font = '600 11px Onest, sans-serif';
     ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
-    ctx.fillText(um >= 1000 ? (um/1000) + ' mm' : um + ' µm', 16, T-24);
+    ctx.fillText(um >= 1000 ? (um/1000) + ' mm' : um + ' µm', 19, T-26);
 
     /* étiquette de la mesure, en coordonnées d'écran */
     if(mesure.a && mesure.b){
@@ -3978,108 +4240,49 @@ function coupe(nom){
 
   function trace(ctx, z){
     ctx.beginPath();
-    const TOUR = Math.PI*2;   /* exactement un tour : sinon le chevauchement
-                                 des arcs remplit un secteur en trop */
+    const TOUR = Math.PI*2;
+    /* les arcs sont remplacés par des polylignes suivant la déformation */
+    const arcDef = (r, a0, a1, inverse) => {
+      const n = Math.max(24, Math.round(Math.abs(a1-a0)*40));
+      for(let i = 0; i <= n; i++){
+        const ang = a0 + (a1-a0)*(inverse ? 1 - i/n : i/n);
+        const rr = r*DEF(ang);
+        const x = 210 + rr*Math.cos(ang), y = 210 + rr*Math.sin(ang);
+        if(i === 0 && !inverse) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+    };
     if(z.type === 'anneau'){
-      ctx.arc(210, 210, z.r1, 0, TOUR);
-      if(z.r0 > 0){ ctx.moveTo(210+z.r0, 210); ctx.arc(210, 210, z.r0, 0, TOUR, true); }
+      arcDef(z.r1, 0, TOUR); ctx.closePath();
+      if(z.r0 > 0){
+        const r = z.r0*DEF(TOUR);
+        ctx.moveTo(210 + r*Math.cos(TOUR), 210 + r*Math.sin(TOUR));
+        arcDef(z.r0, 0, TOUR, true); ctx.closePath();
+      }
     } else if(z.type === 'secteur'){
-      ctx.arc(210, 210, z.r1, z.a0, z.a1);
-      ctx.arc(210, 210, z.r0, z.a1, z.a0, true); ctx.closePath();
+      arcDef(z.r1, z.a0, z.a1); arcDef(z.r0, z.a0, z.a1, true); ctx.closePath();
     } else if(z.type === 'disque'){
       ctx.arc(z.x, z.y, z.r, 0, TOUR);
     } else {
-      ctx.rect(z.x, z.y, z.w, z.h);
-    }
-  }
-  function motifs(ctx, z, c){
-    ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = c.s;
-    if(z.type === 'anneau' && z.r1-z.r0 > 6){
-      const n = Math.max(14, Math.round(z.r1/6)), rd = Math.max(z.r0, 16);
-      for(let i=0;i<n;i++){
-        const a = i*2*Math.PI/n;
-        ctx.beginPath();
-        ctx.moveTo(210+rd*Math.cos(a), 210+rd*Math.sin(a));
-        ctx.lineTo(210+z.r1*Math.cos(a), 210+z.r1*Math.sin(a));
-        ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
+      const n = Math.max(16, Math.round(z.w/12));
+      for(let i = 0; i <= n; i++){
+        const px = z.x + z.w*i/n;
+        if(i === 0) ctx.moveTo(px, z.y + ONDE(px)); else ctx.lineTo(px, z.y + ONDE(px));
       }
-      if(z.r1-z.r0 > 28){
-        for(let r = z.r0+18; r < z.r1-6; r += 20){
-          ctx.beginPath(); ctx.arc(210,210,r,0,7); ctx.globalAlpha = .35; ctx.stroke(); ctx.globalAlpha = 1;
-        }
+      for(let i = n; i >= 0; i--){
+        const px = z.x + z.w*i/n;
+        ctx.lineTo(px, z.y + z.h + ONDE(px));
       }
+      ctx.closePath();
     }
-    if(z.cernes) for(let r = z.r0+16; r < z.r1; r += 22){
-      ctx.beginPath(); ctx.arc(210,210,r,0,7); ctx.strokeStyle = c.s; ctx.lineWidth = 2.2;
-      ctx.globalAlpha = .8; ctx.stroke(); ctx.globalAlpha = 1;
-    }
-    if(z.poils){
-      ctx.strokeStyle = c.s; ctx.lineWidth = 1.6;
-      for(let i=0;i<46;i++){
-        const a = i*2*Math.PI/46;
-        ctx.beginPath();
-        ctx.moveTo(210+190*Math.cos(a), 210+190*Math.sin(a));
-        ctx.lineTo(210+(190+16+((i%3)*7))*Math.cos(a+0.02), 210+(190+16+((i%3)*7))*Math.sin(a+0.02));
-        ctx.stroke();
-      }
-    }
-    if(z.t === 'xyleme' && (z.type === 'secteur' || z.type === 'disque' || z.type === 'rect')){
-      ctx.fillStyle = coloration === 'phloro' ? '#e9b9bd' : coloration === 'carmin' ? '#bcd9c7' : '#e4ded0';
-      const pts = z.type === 'disque' ? [[z.x-7,z.y+6],[z.x+7,z.y+6]]
-        : z.type === 'rect' ? (z.w > 70
-            ? [[.25,.35],[.5,.25],[.75,.38],[.38,.68],[.62,.72]]
-            : [[.32,.4],[.68,.45],[.5,.75]]).map(([fx,fy]) => [z.x+z.w*fx, z.y+z.h*fy])
-        : [0,1,2].map(i => { const a = (z.a0+z.a1)/2 + (i-1)*0.16, r = z.r0 + (z.r1-z.r0)*(0.35+0.28*(i%2));
-            return [210+r*Math.cos(a), 210+r*Math.sin(a)]; });
-      const rv = z.type === 'disque' ? 5 : z.type === 'rect' ? Math.max(3.5, Math.min(7, z.w/9)) : 7;
-      pts.forEach(([x,y]) => { ctx.beginPath(); ctx.arc(x, y, rv, 0, 7);
-        ctx.fill(); ctx.strokeStyle = c.s; ctx.lineWidth = 1.6; ctx.stroke(); });
-    }
-    if(z.colonnes) for(let x = z.x+9; x < z.x+z.w-6; x += 19){
-      ctx.beginPath(); ctx.moveTo(x, z.y+2); ctx.lineTo(x, z.y+z.h-2); ctx.globalAlpha = .6; ctx.stroke(); ctx.globalAlpha = 1;
-      ctx.fillStyle = coloration === 'aucune' ? '#6fa06f' : c.s;
-      for(let k=0;k<4;k++){
-        ctx.beginPath(); ctx.ellipse(x+9, z.y+16+k*18, 4.2, 2.6, .5, 0, 7);
-        ctx.globalAlpha = .65; ctx.fill(); ctx.globalAlpha = 1;
-      }
-    }
-    if(z.cellules){
-      ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip();
-      for(let y = z.y+11; y < z.y+z.h-4; y += 19)
-        for(let x = z.x+11; x < z.x+z.w-4; x += 19){
-          ctx.beginPath(); ctx.arc(x + (y % 38 ? 9 : 0), y, 7.5, 0, Math.PI*2);
-          ctx.globalAlpha = .55; ctx.stroke(); ctx.globalAlpha = 1;
-          if(coloration === 'aucune'){ ctx.fillStyle = '#7fae7f'; }
-          else ctx.fillStyle = c.s;
-          ctx.globalAlpha = .5;
-          ctx.beginPath(); ctx.ellipse(x + (y % 38 ? 9 : 0), y, 3, 1.9, .5, 0, Math.PI*2);
-          ctx.fill(); ctx.globalAlpha = 1;
-        }
-      ctx.restore();
-    }
-    if(z.lacunes){
-      ctx.save(); ctx.beginPath(); ctx.rect(z.x, z.y, z.w, z.h); ctx.clip();
-      for(let i=0;i<24;i++){
-        const x = z.x+16+((i*41)%(z.w-32)), y = z.y+16+((i*29)%(z.h-32));
-        ctx.beginPath(); ctx.arc(x, y, 9, 0, Math.PI*2);
-        ctx.globalAlpha = .8; ctx.stroke(); ctx.globalAlpha = 1;
-      }
-      ctx.restore();
-    }
-    if(z.stomates) [110, 250].forEach(x => {
-      ctx.lineWidth = 2.2; ctx.strokeStyle = c.s;
-      ctx.beginPath(); ctx.ellipse(x-9, z.y+11, 9, 5, 0, 0, 7); ctx.stroke();
-      ctx.beginPath(); ctx.ellipse(x+9, z.y+11, 9, 5, 0, 0, 7); ctx.stroke();
-    });
-    ctx.restore();
   }
 
   /* ---------- interaction ---------- */
   function tissuAu(px, py){
     const T = cv.clientWidth || 420, k = T/420;
     const x = (px - T/2)/(k*zoom) + 210, y = (py - T/2)/(k*zoom) + 210;
-    const dx = x-210, dy = y-210, r = Math.hypot(dx,dy);
+    const dx = x-210, dy = y-210;
     let a = Math.atan2(dy,dx);
+    const r = Math.hypot(dx,dy) / DEF(a);   /* rayon ramené au cercle théorique */
     const liste = zones();
     for(let i = liste.length-1; i >= 0; i--){
       const z = liste[i];
@@ -4088,7 +4291,10 @@ function coupe(nom){
         for(const d of [-2*Math.PI, 0, 2*Math.PI]) if(a+d >= z.a0 && a+d <= z.a1) return z.t;
       }
       if(z.type === 'disque' && Math.hypot(x-z.x, y-z.y) <= z.r) return z.t;
-      if(z.type === 'rect' && x >= z.x && x <= z.x+z.w && y >= z.y && y <= z.y+z.h) return z.t;
+      if(z.type === 'rect' && x >= z.x && x <= z.x+z.w){
+        const o = ONDE(x);
+        if(y >= z.y + o && y <= z.y + z.h + o) return z.t;
+      }
     }
     return null;
   }
