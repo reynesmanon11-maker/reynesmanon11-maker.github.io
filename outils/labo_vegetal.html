@@ -249,6 +249,7 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
   </div>
   <nav class="onglets" role="tablist" aria-label="Modules du laboratoire">
     <button role="tab" data-mod="accueil"    aria-selected="true">Accueil &amp; catalogue</button>
+    <button role="tab" data-mod="programme"  aria-selected="false">Programmes du lycée</button>
     <button role="tab" data-mod="exao"       aria-selected="false">ExAO — photosynthèse &amp; respiration</button>
     <button role="tab" data-mod="biochimie"  aria-selected="false">Paillasse biochimie</button>
     <button role="tab" data-mod="pigments"   aria-selected="false">Pigments</button>
@@ -270,11 +271,23 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
        le résultat : virage d'un réactif, migration des pigments, courbes ExAO qui se déforment
        selon l'éclairement, la température ou la teneur en CO<sub>2</sub>. Chaque module reprend
        le protocole d'un TP de l'ouvrage de Roger Pratt, avec des questions d'exploitation.
-       Le dernier onglet, lui, prépare la séance réelle : il sort la liste de matériel de chaque
-       expérience, ou l'inverse.</p>
+       Deux onglets ne simulent rien : <b>Programmes du lycée</b> part du chapitre à traiter et
+       donne les manips qui s'y rattachent, <b>Préparer une manip</b> sort la liste de matériel de
+       chaque expérience — ou l'inverse.</p>
     <span class="ref">Expérimentation en biologie et physiologie végétales — R. Pratt</span>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Tout ce que calcule ce laboratoire — courbes, vitesses, R<sub>f</sub> — sort d'un modèle mathématique, jamais d'une expérience réelle. Les lois utilisées sont celles des manuels ; les constantes ont été choisies pour que les résultats aient la bonne allure.</p><p>La forme et le sens des variations sont fidèles et peuvent être exploités en classe. <b>Les nombres affichés ne doivent pas être relevés comme des mesures.</b></p></div></div>
+
+  <div class="carte" style="margin-bottom:16px">
+    <span class="badge orange">Entrée par le programme</span>
+    <h3 style="margin-top:8px">Quelle manip pour quel chapitre&nbsp;?</h3>
+    <p class="sous">Seconde, enseignement scientifique de première et de terminale, spécialité SVT :
+       chaque chapitre donne les manipulations qui s'y rattachent, à simuler ici ou à sortir en
+       liste de matériel. Un chapitre entier peut partir d'un coup dans le panier.</p>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:12px">
+      <button class="btn primaire" data-va="programme">Ouvrir par niveau</button>
+    </div>
+  </div>
 
   <div class="grille" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     <div class="carte">
@@ -367,6 +380,35 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 <!-- =========================================================
      MODULE — ExAO
      ========================================================= -->
+<section class="module" id="mod-programme" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Les manips, programme par programme</h2>
+    <p>Choisissez un niveau : les chapitres apparaissent, et sous chacun les manipulations du
+       laboratoire qui s'y rattachent — à simuler ici même, ou à sortir en liste de matériel
+       pour la paillasse. Un chapitre entier peut partir d'un coup dans le panier.</p>
+    <span class="ref">Lycée — 2de, enseignement scientifique, spécialité SVT</span>
+    <button class="btn mini no-print" id="pg-imprimer" style="margin-left:8px; vertical-align:2px">Imprimer ce niveau</button>
+  </div>
+
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Rattachements proposés, à vérifier.</b> Les chapitres ci-dessous suivent les programmes
+       de lycée en vigueur, mais les intitulés sont reformulés et le rattachement de chaque manip
+       est un choix — le mien, pas celui d'un texte officiel.</p>
+    <p>Prenez-le comme une proposition de collègue : <b>confrontez-le au Bulletin officiel et à
+       votre progression</b> avant de le recopier dans une fiche de séance.</p>
+  </div></div>
+
+  <div class="segment no-print" id="pg-niveau" style="margin-bottom:6px">
+    <button aria-pressed="true"  data-niv="2de">Seconde</button>
+    <button aria-pressed="false" data-niv="1es">1re — ens. scientifique</button>
+    <button aria-pressed="false" data-niv="tes">Term — ens. scientifique</button>
+    <button aria-pressed="false" data-niv="1spe">1re — spécialité SVT</button>
+    <button aria-pressed="false" data-niv="tspe">Term — spécialité SVT</button>
+  </div>
+  <p class="sous" id="pg-entete" style="font-size:12.5px; color:var(--gris); margin:10px 2px 4px"></p>
+  <div id="pg-corps"></div>
+</section>
+
 <section class="module" id="mod-exao" role="tabpanel">
   <div class="intro-mod">
     <h2>ExAO — échanges gazeux d'un végétal</h2>
@@ -4437,12 +4479,19 @@ function coupe(nom){
 
 /* ---------- ouverture directe d'un module via l'adresse (#exao, #pigments…) ---------- */
 (function depart(){
-  const brut = location.hash.replace('#','');
-  if(!brut) return;
-  const [mod, requete] = brut.split('?');
-  if(!$('#mod-'+mod)) return;
-  if(requete && Labo.surURL[mod]) Labo.surURL[mod](new URLSearchParams(requete));
-  ouvreModule(mod);
+  function route(premier){
+    const brut = location.hash.replace('#','');
+    if(!brut) return;
+    const [mod, requete] = brut.split('?');
+    if(!$('#mod-'+mod)) return;
+    /* ouvreModule réécrit l'adresse en « #module » : ne pas rejouer notre propre écriture */
+    if(!premier && mod === Labo.moduleActif && !requete) return;
+    if(premier) Labo.depart = {mod, requete};   /* les modules définis plus bas la reliront */
+    if(requete && Labo.surURL[mod]) Labo.surURL[mod](new URLSearchParams(requete));
+    ouvreModule(mod);
+  }
+  route(true);
+  window.addEventListener('hashchange', () => route(false));
 })();
 </script>
 
@@ -5188,6 +5237,10 @@ const FICHES = [
      o:"Lire une coupe, reconnaître les tissus, mesurer à l'échelle.",
      r:"Dicotylédone : faisceaux en couronne. Monocotylédone : faisceaux dispersés. Racine : xylème central en étoile.",
      v:"Commencer sans coloration pour obliger à lire l'organisation, puis colorer pour vérifier. Le mode « Légender » garde un score."},
+    {n:"Programmes du lycée", ref:"Toutes les parties", niv:"pour le professeur", d:"—",
+     o:"Partir du chapitre à traiter et non de l'ouvrage : chaque chapitre donne les manipulations qui s'y rattachent.",
+     r:"Cinq niveaux — 2de, enseignement scientifique de 1re et de terminale, spécialité SVT de 1re et de terminale. Un chapitre se verse d'un clic dans le panier de matériel.",
+     v:"Les rattachements sont reformulés et proposés, pas officiels : les confronter au Bulletin officiel avant de les recopier dans une fiche de séance."},
     {n:"Préparer une manip", ref:"Les huit parties", niv:"pour le professeur", d:"—",
      o:"Obtenir la liste de matériel d'une expérience pour le nombre de postes voulu, ou l'inverse.",
      r:"Panier de plusieurs manipulations agrégé en une liste de courses imprimable, matériel partagé compté une fois.",
@@ -5228,7 +5281,8 @@ const FICHES = [
     'Le bouton <b>Carnet</b> imprime une fiche de résultats à son nom, graphiques joints. ' +
     'Rien n\'est envoyé sur Internet : tout reste dans le navigateur du poste.</p></div>' +
     '<div class="mod"><h2>Liens directs</h2><ol>' +
-    ['#exao — ExAO','#biochimie — paillasse de biochimie','#pigments — pigments',
+    ['#programme — entrée par le programme (#programme?niveau=2de, 1es, tes, 1spe, tspe)',
+     '#exao — ExAO','#biochimie — paillasse de biochimie','#pigments — pigments',
      '#enzymes — cinétiques enzymatiques','#histologie — histologie','#preparer — matériel']
       .map(x => '<li>' + x + '</li>').join('') + '</ol>' +
     '<p class="s">Le bouton « Lien de ce réglage » de l\'ExAO produit une adresse qui rouvre le ' +
@@ -5512,7 +5566,12 @@ const PLACARD_TYPE = ['tube','portoir','hemolyse','becher','becher250','erlen','
       return;
     }
     const a = e.target.closest('[data-panier]');
-    if(a){ ajoute(a.dataset.panier); a.textContent = '✓'; setTimeout(() => a.textContent = '+', 900); }
+    if(a){
+      const avant = a.textContent;
+      a.dataset.panier.split(',').forEach(id => ajoute(id));
+      a.textContent = '✓ ajouté';
+      setTimeout(() => a.textContent = avant, 1200);
+    }
   });
   function majMode(){
     $$('#pr-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === mode)));
@@ -5533,6 +5592,339 @@ const PLACARD_TYPE = ['tube','portoir','hemolyse','becher','becher250','erlen','
   renduListe(); renduPanier();
   if(Labo.rendCatalogue) Labo.rendCatalogue();
   Labo.surAffichage.preparer = () => { renduListe(); renduPanier(); };
+})();
+</script>
+<script>
+/* ==========================================================================
+   MODULE PROGRAMMES — quelle manip pour quel chapitre
+   Chaque niveau décrit ses thèmes, ses chapitres, et les manipulations du
+   laboratoire qui s'y rattachent. Une manip cite l'identifiant de sa fiche
+   (f, pour la liste de matériel) et, quand elle existe, la simulation (sim).
+   cle : chapitre central du niveau · plus : au-delà du programme.
+   ========================================================================== */
+const PROGRAMMES = [
+
+/* ================================ SECONDE ================================ */
+{id:'2de', n:'Seconde', court:'2de', s:"programme de SVT, tronc commun", th:[
+ {t:"Thème 1 — La Terre, la vie et l'organisation du vivant", ch:[
+
+  {t:"Chapitre 1 — Comment sont organisés les êtres vivants ?",
+   att:"Retrouver l'unité cellulaire du vivant et les grandes familles de molécules de la matière organique, en changeant d'échelle de l'organe à la molécule.",
+   m:[
+    {f:'coupes', sim:'histologie', r:"Faire sa coupe, la colorer, et voir la cellule végétale : paroi, vacuole, chloroplastes."},
+    {f:'amidon', sim:'biochimie', r:"Localiser une réserve dans la cellule elle-même : le lugol réagit sur place."},
+    {f:'fehling', sim:'biochimie', r:"Les sucres réducteurs, et l'idée d'un test spécifique d'une famille de molécules."},
+    {f:'hydrolyse', sim:'biochimie', r:"Le saccharose n'est pas réducteur, mais coupé en deux il le devient : les molécules se transforment."},
+    {f:'proteines', sim:'biochimie', r:"Les protéines, deuxième grande famille de molécules du vivant."},
+    {f:'lipides', sim:'biochimie', r:"Les lipides, et la notion de réserve énergétique concentrée."},
+    {f:'adn', r:"L'ADN, la même molécule chez tous les êtres vivants — et visible à l'œil nu."},
+    {f:'inuline', sim:'biochimie', r:"Une autre réserve que l'amidon : de quoi montrer que le vivant varie.", plus:true}]},
+
+  {t:"Le métabolisme des cellules", cle:true,
+   att:"Établir que la cellule chlorophyllienne fabrique sa matière organique à la lumière, que toute cellule vivante respire, et qu'une voie de secours — la fermentation — prend le relais sans dioxygène.",
+   note:"Sur votre page de Seconde, ce point est rattaché au chapitre 1, à partir de l'activité « À la recherche du métabolisme des levures ». La fermentation et l'ExAO ci-dessous s'y branchent directement.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"La manip qui porte le chapitre : dioxygène produit et CO₂ consommé à la lumière, l'inverse à l'obscurité."},
+    {f:'respi-exao', sim:'exao', r:"La respiration ne s'arrête jamais — c'est pour cela que la photosynthèse brute n'est pas la nette."},
+    {f:'bulles', r:"La version sans matériel : compter les bulles d'une élodée selon la distance à la lampe."},
+    {f:'sachs', r:"La lumière est nécessaire à la fabrication d'amidon : la preuve par le cache posé sur la feuille."},
+    {f:'fermentation', r:"Sans dioxygène, la levure produit du CO₂ et de l'éthanol : une autre voie métabolique pour la même cellule."},
+    {f:'pain', r:"La même réaction, à la maison. Bonne entrée de séance."},
+    {f:'co2-chaux', r:"Le CO₂ rejeté par des graines en germination, révélé à l'eau de chaux."},
+    {f:'co2-photo', sim:'exao', r:"Le CO₂ dissous limite la photosynthèse : le premier facteur limitant rencontré."},
+    {f:'sucres-germination', sim:'biochimie', r:"La graine mobilise ses réserves : l'amidon devient sucres réducteurs."},
+    {f:'mitochondries', r:"Voir respirer un organite isolé. Exigeant, mais marquant pour un groupe rapide.", plus:true}]}]},
+
+ {t:"Thème 2 — Les enjeux contemporains de la planète", ch:[
+
+  {t:"Chapitre 6 — Nourrir l'humanité aujourd'hui et demain : un défi réalisable ?", cle:true,
+   att:"Comprendre ce qu'un agrosystème prélève et exporte — eau, éléments minéraux, énergie lumineuse — et relier ces besoins au rendement d'une culture.",
+   m:[
+    {f:'potometre', r:"Ce qu'un rameau absorbe vraiment en une heure : le besoin en eau devient un nombre."},
+    {f:'cobalt', r:"Par où l'eau s'échappe : le papier au chlorure de cobalt désigne la face inférieure des feuilles."},
+    {f:'dixon', r:"Suivre le trajet de l'eau dans la tige avec un colorant."},
+    {f:'etiolement', r:"Une plante privée de lumière s'étiole : la lumière est une ressource qu'on se dispute — densité de semis."},
+    {f:'germination-exao', sim:'exao', r:"La graine sèche ne respire presque pas ; elle s'éveille en s'imbibant."},
+    {f:'plasmolyse', sim:'histologie', r:"Ce qui arrive à une cellule dans un sol trop salé ou trop sec : l'irrigation a des limites."}]}]}],
+ rien:"Rien ici pour les chapitres 2 à 5 — biodiversité, sexualité, microorganismes, paysages : ce laboratoire ne couvre que la biologie végétale."},
+
+/* ==================== PREMIÈRE — ENSEIGNEMENT SCIENTIFIQUE ==================== */
+{id:'1es', n:'Première — enseignement scientifique', court:'1re ens. sc.', s:"tronc commun de première", th:[
+ {t:"Thème — Une longue histoire de la matière", ch:[
+
+  {t:"Une structure complexe : la cellule vivante",
+   att:"Situer la cellule dans l'histoire de la matière : une membrane qui sépare un dedans d'un dehors, des échelles emboîtées.",
+   m:[
+    {f:'coupes', sim:'histologie', r:"Passer de l'organe au tissu puis à la cellule sur une même préparation."},
+    {f:'plasmolyse', sim:'histologie', r:"La membrane se comporte comme un filtre : la cellule se rétracte dans une solution concentrée."}]}]},
+
+ {t:"Thème — Le Soleil, notre source d'énergie", ch:[
+
+  {t:"Une conversion biologique de l'énergie solaire : la photosynthèse", cle:true,
+   att:"Établir que la photosynthèse convertit une part de l'énergie solaire en énergie chimique, et comprendre pourquoi cette part reste faible.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"Faire varier l'éclairement et voir la production plafonner : la lumière reçue n'est pas convertie indéfiniment."},
+    {f:'spectre-abs', sim:'pigments', r:"Seuls le bleu et le rouge sont franchement absorbés : première raison du faible rendement."},
+    {f:'chromato', sim:'pigments', r:"Les pigments qui captent la lumière, séparés en un quart d'heure."},
+    {f:'spectre-action', sim:'pigments', r:"Superposer absorption et efficacité : ce qui est absorbé est bien ce qui sert."},
+    {f:'fluo', r:"L'énergie absorbée mais non utilisée repart en lumière rouge : le rendement se voit."},
+    {f:'sachs', r:"L'énergie convertie devient de la matière — de l'amidon, que l'on révèle."},
+    {f:'bulles', r:"Quantifier sans ExAO pour comparer deux éclairements."},
+    {f:'hill', r:"Isoler la phase photochimique : des chloroplastes seuls décolorent un réactif à la lumière.", plus:true}]}]}],
+ rien:"Les thèmes « La Terre, un astre singulier » et « Son et musique » sont hors du champ de ce laboratoire."},
+
+/* ==================== TERMINALE — ENSEIGNEMENT SCIENTIFIQUE ==================== */
+{id:'tes', n:'Terminale — enseignement scientifique', court:'Term ens. sc.', s:"tronc commun de terminale", th:[
+ {t:"Thème 1 — Science, climat et société", ch:[
+
+  {t:"L'atmosphère terrestre et la vie", cle:true,
+   att:"Le dioxygène de l'atmosphère est d'origine biologique. Les deux flux qui l'ont produit et qui le consomment — photosynthèse et respiration — se mesurent ici sur le même végétal, dans la même enceinte.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"Le flux producteur : dioxygène dégagé, CO₂ prélevé, à la lumière."},
+    {f:'respi-exao', sim:'exao', r:"Le flux inverse, permanent, jour et nuit. L'oublier, c'est surestimer le bilan."},
+    {f:'co2-photo', sim:'exao', r:"Plus de CO₂ disponible, plus de photosynthèse — jusqu'à un plafond : la rétroaction dont parle le chapitre."},
+    {f:'co2-chaux', r:"Le carbone rejeté par des graines en germination, rendu visible en cinq minutes."}]},
+
+  {t:"Énergie, choix de développement et futur climatique",
+   att:"Ce qu'une végétation absorbe comme carbone, et ce qu'on peut tirer de la biomasse comme carburant : rendement, ressource mobilisée, concurrence avec l'alimentation.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"Le rendement de départ : ce qu'une surface de feuille produit par heure. Tout le reste de la filière en découle."},
+    {f:'fermentation', r:"La réaction qui fabrique le bioéthanol, à l'échelle du tube à essai."},
+    {f:'pain', r:"Même réaction, autre usage : de quoi discuter de la concurrence des usages du sol."},
+    {f:'sachs', r:"La biomasse produite, sous forme d'amidon : la matière qu'on récolte."}]}]},
+
+ {t:"Thème 3 — Une histoire du vivant", ch:[
+
+  {t:"Les modèles démographiques — ce que vaut un modèle", cle:true,
+   att:"Le chapitre demande d'examiner un modèle : ses hypothèses, son domaine de validité, ce qu'il prédit et ce qu'il ne prédit pas. Ce laboratoire en est un — toutes ses courbes sortent d'équations.",
+   note:"Le bandeau « valeurs simulées, non mesurées » de chaque module devient ici le support du cours, et non plus un avertissement de service : faites-le lire, puis demandez ce qu'il faudrait mesurer pour le vérifier.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"Changer un paramètre à la fois et voir la courbe répondre : c'est le comportement du modèle que l'on étudie."},
+    {f:'cinetique', sim:'enzymes', r:"Michaelis-Menten : deux constantes suffisent à prédire une forme de courbe — pas des nombres justes."}]},
+
+  {t:"L'évolution comme grille de lecture du monde : la domestication",
+   att:"Lire les plantes cultivées comme le résultat d'une sélection humaine, et manipuler les techniques qui la prolongent.",
+   m:[
+    {f:'bouture', r:"Multiplier un individu à l'identique : le clone est la base de la sélection variétale."},
+    {f:'multiplication', r:"La plante le fait seule : stolons, rhizomes, bulbilles."},
+    {f:'protoplastes', r:"Ôter la paroi : la porte d'entrée des biotechnologies végétales.", plus:true}]}]}],
+ rien:"Le thème 2, « Le futur des énergies », porte sur l'électricité : rien de végétal, hormis la biomasse — rattachée ci-dessus au chapitre « Énergie, choix de développement et futur climatique »."},
+
+/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ======================== */
+{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"spécialité sciences de la vie et de la Terre", th:[
+ {t:"Thème 1 — La Terre, la vie et l'organisation du vivant", ch:[
+
+  {t:"L'expression du patrimoine génétique",
+   att:"Du gène à la protéine : constater que le produit de l'expression a une activité mesurable, et que sa structure conditionne cette activité.",
+   m:[
+    {f:'adn', r:"Extraire le support de l'information, avant de parler de ce qu'il code."},
+    {f:'amylase', sim:'enzymes', r:"Une enzyme est une protéine, donc un produit du génome — et son activité se chiffre."},
+    {f:'peroxydase', r:"Une autre enzyme, révélée en quelques secondes sur un tissu végétal."},
+    {f:'cinetique', sim:'enzymes', r:"Température et pH déforment la molécule, donc suppriment l'activité : le lien structure-fonction, en direct."}]}]},
+
+ {t:"Thème 2 — Enjeux contemporains de la planète", ch:[
+
+  {t:"Écosystèmes et services environnementaux", cle:true,
+   att:"Mesurer la production primaire, suivre les flux de matière et d'eau, et relier ces flux aux services que l'écosystème rend.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"La production primaire commence ici : du dioxygène produit par unité de temps."},
+    {f:'sachs', r:"La matière organique produite, stockée en amidon : la biomasse devient tangible."},
+    {f:'bulles', r:"Comparer deux conditions de milieu sans matériel lourd."},
+    {f:'potometre', r:"L'écosystème fait circuler l'eau : voici le débit d'un seul rameau."},
+    {f:'cobalt', r:"Et voici par où elle repart vers l'atmosphère."},
+    {f:'dixon', r:"Le trajet complet, du sol à la feuille."},
+    {f:'anthocyanes', sim:'biochimie', r:"Un indicateur coloré tiré du chou rouge : de quoi mesurer le pH d'un sol en classe."},
+    {f:'germination-exao', sim:'exao', r:"La reprise d'activité d'une graine : le point de départ d'une colonisation."},
+    {f:'multiplication', r:"Comment une espèce occupe le terrain sans passer par la graine."},
+    {f:'bouture', r:"La même capacité, mise au service de l'horticulture."}]}]}],
+ rien:"Le thème 3, « Corps humain et santé », ne mobilise pas de matériel végétal."},
+
+/* ======================== TERMINALE — SPÉCIALITÉ SVT ======================== */
+{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"spécialité sciences de la vie et de la Terre", th:[
+ {t:"Thème 1 — Génétique et évolution", ch:[
+
+  {t:"L'origine du génotype des individus",
+   att:"Observer la méiose sur du matériel réel et relier la formation des gamètes au brassage génétique.",
+   m:[
+    {f:'meiose', r:"Les anthères de lis : le grand classique des capacités expérimentales, toutes les phases sur une même lame."},
+    {f:'pollen', r:"Faire germer un grain de pollen : la suite de l'histoire, jusqu'à la fécondation."}]}]},
+
+ {t:"Thème 2 — Enjeux contemporains de la planète · De la plante sauvage à la plante domestiquée", ch:[
+
+  {t:"Des surfaces d'échange développées", cle:true,
+   att:"La vie fixée impose de prélever sur place : la plante déploie des surfaces d'échange avec le sol et avec l'air. Tout se lit sur une coupe.",
+   m:[
+    {f:'coupes', sim:'histologie', r:"La technique de base : couper mince, colorer, monter. Tout le chapitre en dépend."},
+    {f:'tiges', sim:'histologie', r:"Faisceaux en couronne ou dispersés : reconnaître l'organisation d'une tige."},
+    {f:'empreintes', r:"Compter les stomates au millimètre carré : la surface d'échange gazeux se chiffre."},
+    {f:'parois', sim:'histologie', r:"Cellulose et lignine : ce qui tient debout une plante qui ne peut pas s'appuyer."}]},
+
+  {t:"Produire sa matière organique", cle:true,
+   att:"La feuille comme organe de conversion : capter la lumière, fixer le carbone, stocker.",
+   m:[
+    {f:'photo-exao', sim:'exao', r:"Mesurer la production, trouver le point de compensation, identifier les facteurs limitants."},
+    {f:'chromato', sim:'pigments', r:"Les pigments de la feuille, séparés et nommés."},
+    {f:'spectre-abs', sim:'pigments', r:"Ce que chaque pigment absorbe — et ce qu'il laisse passer."},
+    {f:'sachs', r:"Le produit final : l'amidon, là où la lumière a frappé."},
+    {f:'hill', r:"La phase photochimique isolée, pour un groupe qui veut aller au fond.", plus:true}]},
+
+  {t:"Une circulation interne : les sèves",
+   att:"Relier la transpiration foliaire à la montée de la sève brute, et le potentiel hydrique au sens de la circulation.",
+   m:[
+    {f:'dixon', r:"La sève brute monte : le trajet se colore sous les yeux."},
+    {f:'cobalt', r:"La transpiration, moteur de cette montée."},
+    {f:'potometre', r:"Mesurer le débit absorbé, et le faire varier (vent, lumière, humidité)."},
+    {f:'bois', sim:'histologie', r:"Le xylème secondaire, conduit et charpente à la fois ; les cernes racontent les saisons."},
+    {f:'plasmolyse', sim:'histologie', r:"Le sens des échanges dépend des concentrations : la cellule le montre."},
+    {f:'frites', r:"Le potentiel hydrique d'un tissu, mesuré avec des pommes de terre et une règle."},
+    {f:'po-densito', r:"La même grandeur par une autre voie : de quoi croiser deux méthodes.", plus:true}]},
+
+  {t:"Croître sur place : répondre au milieu",
+   att:"Sans pouvoir fuir, la plante oriente sa croissance. Les tropismes et la dominance apicale s'observent en une semaine de germoir.",
+   m:[
+    {f:'phototropisme', r:"La tige va chercher la lumière : à monter en amont de la séance."},
+    {f:'gravitropisme', r:"Racine et tige lisent la verticale en sens inverse."},
+    {f:'dominance', r:"Ôter le bourgeon terminal libère les bourgeons axillaires : la plante est pilotée chimiquement."},
+    {f:'etiolement', r:"Ce que devient une plante sans lumière : le témoin indispensable des deux manips précédentes."}]},
+
+  {t:"Se reproduire fixé",
+   att:"Une plante fixée doit faire voyager ses gamètes et ses graines : l'organisation de la fleur est la réponse.",
+   m:[
+    {f:'fleur', r:"Disséquer et dessiner : le diagramme floral sort de la pince, pas du manuel."},
+    {f:'pollen', r:"Le grain germe in vitro : on voit le tube pollinique pousser."},
+    {f:'meiose', r:"Dans l'anthère, la fabrication des gamètes mâles, phase par phase."}]},
+
+  {t:"La plante domestiquée",
+   att:"Sélection, multiplication conforme, biotechnologies : ce que l'humain a fait des plantes, et comment il le fait encore.",
+   m:[
+    {f:'bouture', r:"Obtenir un clone : la multiplication conforme, en pot et sans matériel."},
+    {f:'multiplication', r:"Les organes que la plante utilise pour se cloner elle-même."},
+    {f:'bulbe', r:"Un organe de réserve sélectionné par l'humain : l'oignon, disséqué."},
+    {f:'amidon', sim:'biochimie', r:"La réserve sur laquelle a porté la sélection : la localiser dans le tubercule."},
+    {f:'protoplastes', r:"Ôter la paroi pour fusionner ou transformer : la porte d'entrée des biotechnologies.", plus:true},
+    {f:'pain', r:"De la plante cultivée au produit transformé : levure, gluten, fermentation."}]}]},
+
+ {t:"Thème 2 — Les climats de la Terre", ch:[
+
+  {t:"Lire les climats passés dans les pollens",
+   att:"La palynologie repose sur une observation que l'on peut faire en classe : les grains de pollen sont reconnaissables et se conservent.",
+   m:[
+    {f:'pollen', r:"Observer et dessiner des grains de pollen d'espèces différentes avant de lire un diagramme pollinique."}]}]}]}
+];
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PROGRAMMES — rendu
+   Un niveau à la fois : ses thèmes, ses chapitres, et sous chaque chapitre
+   les manipulations, avec le bouton qui simule et celui qui donne le
+   matériel. Un chapitre entier peut être versé au panier d'un seul clic.
+   ========================================================================== */
+(function programmes(){
+  const corps = $('#pg-corps'), entete = $('#pg-entete');
+  if(!corps) return;
+  let niv = '2de';
+  const F = {}; FICHES.forEach(f => F[f.id] = f);
+
+  const echappe = t => t.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+  /* --- une manipulation --- */
+  function ligneManip(m){
+    const f = F[m.f];
+    return '<div class="exp' + (m.sim ? ' simulable' : '') + '" style="align-items:flex-start">' +
+      '<span class="titre" style="min-width:200px">' +
+        '<span style="font-weight:600">' + echappe(f.t) + '</span>' +
+        (m.plus ? ' <span class="badge" style="vertical-align:1px">au-delà du programme</span>' : '') +
+        '<br><span style="font-size:12px; color:var(--gris)">' + echappe(m.r) + '</span></span>' +
+      '<span class="page" style="white-space:nowrap">' + f.ref + ' · ' + f.duree + ' min</span>' +
+      (m.sim ? '<button class="btn mini primaire no-print" data-va="' + m.sim + '">Simuler — ' +
+               NOM_MODULE[m.sim] + '</button>' : '') +
+      '<button class="btn mini no-print" data-va="preparer" data-fiche="' + m.f +
+      '" title="Voir le protocole et le matériel">Matériel</button>' +
+      '</div>';
+  }
+
+  /* --- un chapitre --- */
+  function carteChapitre(c){
+    const aPanier = c.m.filter(m => !m.plus).map(m => m.f);
+    const duree = c.m.filter(m => !m.plus).reduce((s,m) => s + F[m.f].duree, 0);
+    return '<div class="carte" style="margin-top:12px">' +
+      '<h3>' + echappe(c.t) +
+        (c.cle ? ' <span class="badge orange" style="vertical-align:3px">chapitre central</span>' : '') +
+      '</h3>' +
+      '<p style="font-size:13px; color:var(--gris); margin:6px 0 14px">' + echappe(c.att) + '</p>' +
+      (c.note ? '<div class="note" style="margin:0 0 14px">' + echappe(c.note) + '</div>' : '') +
+      '<div class="liste-exp">' + c.m.map(ligneManip).join('') + '</div>' +
+      '<div class="no-print" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px">' +
+        '<button class="btn mini" data-panier="' + aPanier.join(',') + '" ' +
+        'title="Verser ces manipulations au panier du module « Préparer une manip »">' +
+        'Ajouter les ' + aPanier.length + ' manips au panier</button>' +
+        '<span style="font-size:11.5px; color:var(--gris-clair)">≈ ' +
+        (duree >= 60 ? Math.floor(duree/60) + ' h ' + (duree%60 ? duree%60 + ' min' : '') : duree + ' min') +
+        ' de paillasse cumulées</span>' +
+      '</div></div>';
+  }
+
+  function rendu(){
+    const p = PROGRAMMES.find(x => x.id === niv);
+    let nCh = 0, nM = 0, nSim = 0;
+    p.th.forEach(t => t.ch.forEach(c => {
+      nCh++; nM += c.m.length; nSim += c.m.filter(m => m.sim).length;
+    }));
+    entete.innerHTML = '<b>' + echappe(p.n) + '</b> — ' + echappe(p.s) + ' · ' +
+      nCh + ' chapitre' + (nCh>1?'s':'') + ' · ' + nM + ' manipulation' + (nM>1?'s':'') +
+      ', dont ' + nSim + ' simulable' + (nSim>1?'s':'') + ' ici.';
+    corps.innerHTML = p.th.map(t =>
+      '<div class="partie-titre">' + echappe(t.t) + '</div>' + t.ch.map(carteChapitre).join('')
+    ).join('') +
+    (p.rien ? '<div class="note" style="margin-top:18px">' + echappe(p.rien) + '</div>' : '');
+  }
+
+  segment($('#pg-niveau'), d => { niv = d.niv; rendu(); });
+
+  /* --- impression du niveau affiché --- */
+  function imprime(){
+    const p = PROGRAMMES.find(x => x.id === niv);
+    const h = '<meta charset="utf-8"><title>Manips du labo — ' + p.n + '</title>' +
+      '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:20px 0 4px;color:#7d776c;' +
+      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#b15f2c}' +
+      '.s{color:#7d776c;font-size:12px} .att{font-size:12px;color:#4a453d;margin:2px 0 6px}' +
+      'table{border-collapse:collapse;width:100%} td{border-bottom:1px solid #e4dfd5;padding:4px 6px;' +
+      'vertical-align:top;font-size:11.5px} td.r{white-space:nowrap;color:#7d776c;text-align:right}' +
+      '.ch{break-inside:avoid} .enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
+      '<h1>Manipulations du laboratoire — ' + echappe(p.n) + '</h1>' +
+      '<p class="s">' + echappe(p.s) + ' · d\'après R. Pratt, <i>Expérimentation en biologie et ' +
+      'physiologie végétales</i> · reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
+      '<div class="enc">Rattachements proposés, reformulés : à confronter au Bulletin officiel et ' +
+      'à votre progression avant usage.</div>' +
+      p.th.map(t => '<h2>' + echappe(t.t) + '</h2>' + t.ch.map(c =>
+        '<div class="ch"><h3>' + echappe(c.t) + (c.cle ? ' — chapitre central' : '') + '</h3>' +
+        '<p class="att">' + echappe(c.att) + '</p><table>' +
+        c.m.map(m => '<tr><td><b>' + echappe(F[m.f].t) + '</b>' +
+          (m.plus ? ' (au-delà du programme)' : '') + '<br>' + echappe(m.r) + '</td>' +
+          '<td class="r">' + F[m.f].ref + '<br>p. ' + F[m.f].pg + ' · ' + F[m.f].duree + ' min</td></tr>').join('') +
+        '</table></div>').join('')).join('') +
+      (p.rien ? '<p class="s" style="margin-top:14px">' + echappe(p.rien) + '</p>' : '');
+    const f = window.open('', '_blank', 'width=900,height=700');
+    if(!f) return;
+    f.document.write(h); f.document.close(); f.focus();
+    setTimeout(() => f.print(), 300);
+  }
+  const bi = $('#pg-imprimer');
+  if(bi) bi.addEventListener('click', imprime);
+
+  /* --- ouverture sur un niveau précis : #programme?niveau=tspe --- */
+  function choisit(id){
+    if(!PROGRAMMES.some(x => x.id === id)) return;
+    niv = id;
+    $$('#pg-niveau button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.niv === id)));
+    rendu();
+  }
+  Labo.surURL.programme = q => choisit(q.get('niveau'));
+  rendu();
+  if(Labo.depart && Labo.depart.mod === 'programme' && Labo.depart.requete)
+    choisit(new URLSearchParams(Labo.depart.requete).get('niveau'));
 })();
 </script>
 
