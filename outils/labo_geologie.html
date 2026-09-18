@@ -243,7 +243,9 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 }
 select{ max-width:100% }
 #se-classes{ overflow-x:auto }
-#se-classes table{ min-width:360px }
+#se-classes table{ min-width:0; font-size:11.5px }
+#se-classes table th, #se-classes table td{ padding:6px 5px }
+#se-classes .badge{ font-size:9.5px; padding:2px 6px }
 input[type=search]{ font:inherit; font-size:13px; width:100%; padding:8px 10px;
   border:1px solid var(--ligne-forte); border-radius:10px; background:var(--papier); color:var(--encre) }
 .filtres input[type=search]{ max-width:260px }
@@ -273,7 +275,7 @@ table.tab td{ vertical-align:top }
   background:linear-gradient(152deg, var(--ptbg) 0%, var(--papier) 74%);
 }
 .intro-mod::before{
-  content:attr(data-wm); position:absolute; right:.04em; bottom:-.14em; z-index:0;
+  content:attr(data-wm); position:absolute; right:.04em; bottom:-.05em; z-index:0;
   pointer-events:none; user-select:none; font-weight:700; line-height:1;
   font-size:clamp(78px, 15vw, 152px); letter-spacing:-.05em; color:var(--pt); opacity:.13;
 }
@@ -358,6 +360,65 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
   .bandeau-classe .sous{ grid-column:1 }
   .bandeau-classe > div:last-child{ grid-column:2; grid-row:1 / span 3; align-self:center }
 }
+
+
+/* ======================================================================
+   LES PAILLASSES — habillage du dedans d'un module : tuiles de mesure,
+   titres, cadre des instruments, réglages. Décoratif, comme le bloc
+   précédent : rien ici ne touche à une valeur ni à un calcul.
+   ====================================================================== */
+
+/* ---------- tuiles de mesure : un afficheur, pas une case grise ---------- */
+/* auto-fill et non auto-fit : sans cela, une cinquième tuile seule sur sa
+   rangée s'étire sur toute la largeur et casse l'alignement de la série. */
+.module .mesures{ grid-template-columns:repeat(auto-fill,minmax(132px,1fr)); gap:10px; margin-bottom:16px }
+.module input[type=range]::-moz-range-thumb{ border-color:var(--pt) }
+.module .mesure{
+  position:relative; overflow:hidden; padding:11px 13px 10px 16px;
+  border-color:var(--ptbd);
+  background:linear-gradient(165deg, var(--ptbg) 0%, var(--papier) 76%);
+}
+.module .mesure::before{
+  content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--pt); opacity:.9;
+}
+.module .mesure .t{ color:var(--pt); opacity:.9 }
+.module .mesure .v{ font-size:22px; letter-spacing:-.02em; margin-top:1px }
+.module .mesure .u{ color:var(--gris) }
+
+/* ---------- titres de carte : une pastille de la couleur du module ---------- */
+.module .carte > h3, .module .carte > .pli > summary h3{ display:flex; align-items:center; gap:9px }
+.module .carte > h3::before, .module .carte > .pli > summary h3::before{
+  content:''; flex:none; width:7px; height:7px; border-radius:2px; background:var(--pt);
+}
+#mod-accueil .grille > .carte > h3::before{ display:none }
+.module .carte h3 + .sous{ margin-left:16px }
+
+/* ---------- les instruments : un cadre, comme un écran ---------- */
+.module .carte canvas{ border:1px solid var(--ptbd); border-radius:12px; background:var(--papier) }
+.module .carte canvas:not([height]){ border:none }
+
+/* ---------- réglages et commandes à la couleur du module ---------- */
+.module .reglage .val{ color:var(--pt) }
+.module .segment button[aria-pressed="true"]{
+  color:var(--pt); box-shadow:0 1px 3px rgba(0,0,0,.07), inset 0 0 0 1px var(--ptbd);
+}
+.module .btn[aria-pressed="true"]{ border-color:var(--ptbd); background:var(--ptbg); color:var(--pt) }
+.module .inter input:checked + .piste{ background:var(--pt) }
+.module .donnees summary{ color:var(--pt) }
+.module .pli > summary:hover h3{ color:var(--pt) }
+.module .exp{ transition:border-color .2s, background .2s }
+.module .exp:hover{ border-color:var(--ptbd) }
+
+
+/* Un bouton est une boîte flexible avec une gouttière : un <sub> ou un <sup>
+   y devient un élément flexible et se retrouve détaché du mot. On annule. */
+.btn sub, .btn sup{ margin-left:-7px }
+/* Le panneau d'information d'une coupe : un panneau, pas un blanc */
+#hi-info, #ro-resultats{ background:var(--ptbg); border:1px solid var(--ptbd);
+  border-radius:12px; padding:13px 15px; min-height:110px }
+
+/* ---------- la légende sous un graphique ---------- */
+.module .lgd{ color:#5f594f }
 
 /* ---------- en-tête : le trait terracotta du site ---------- */
 header.top{ border-bottom:none; box-shadow:0 1px 0 var(--ligne) }
@@ -1047,6 +1108,17 @@ function dimensionne(cv, hauteurVoulue){
   ctx.clearRect(0,0,l,h);
   return {ctx, l, h};
 }
+/* Fond d'un graphique : une teinte très diluée de la couleur du module, pour
+   que l'aire tracée se détache du papier de la carte. Purement décoratif. */
+function fondGraphe(ctx, cv, x, y, w, h){
+  const cs = getComputedStyle(cv);
+  const bg = (cs.getPropertyValue('--ptbg') || '#f7ece3').trim();
+  const g = ctx.createLinearGradient(0, y, 0, y + h);
+  g.addColorStop(0, bg); g.addColorStop(1, '#ffffff');
+  ctx.save(); ctx.globalAlpha = .6; ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h); ctx.restore();
+}
+
 /* graduations « rondes » */
 function pas(etendue, cible=6){
   const brut = etendue/cible, ex = Math.pow(10, Math.floor(Math.log10(brut))), n = brut/ex;
@@ -1296,28 +1368,30 @@ function vArrache(dmm){
   /* ---------- état de chaque classe ---------- */
   function etatClasse(i){
     const c = CLASSES[i], vc = vChute(c.d), va = vArrache(c.d);
-    if(v >= va) return {e:'arrache', t:"arrachée du fond", b:'orange'};
-    if(v > vc)  return {e:'transport', t:"transportée, pas arrachée", b:'bleu'};
+    if(v >= va) return {e:'arrache', t:"arrachée", b:'orange'};
+    if(v > vc)  return {e:'transport', t:"transportée", b:'bleu'};
     return {e:'depot', t:"déposée", b:'vert'};
   }
   function rendClasses(){
     const p = MELANGES[melange];
     $('#se-classes').innerHTML =
-      '<table class="tab"><thead><tr><th>Classe</th><th>Taille</th><th>Chute</th>' +
-      '<th>Arrachement</th><th>Ici</th></tr></thead><tbody>' +
+      '<table class="tab"><thead><tr><th>Classe</th><th>Taille</th>' +
+      '<th>Seuils<br><span style="font-weight:400;text-transform:none">chute · arrachement</span></th>' +
+      '<th>Ici</th></tr></thead><tbody>' +
       CLASSES.map((c,i) => {
         const et = etatClasse(i);
         return '<tr' + (p[i] ? '' : ' style="opacity:.4"') + '>' +
           '<td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' +
           c.c + ';margin-right:6px"></span>' + c.n + '</td>' +
-          '<td>' + (c.d < 1 ? fr(c.d,3) : fr(c.d,0)) + ' mm</td>' +
-          '<td>' + fr(vChute(c.d), vChute(c.d)<1?2:0) + '</td>' +
-          '<td>' + fr(vArrache(c.d),0) + '</td>' +
+          '<td>' + (c.d < 1 ? fr(c.d,3) : fr(c.d,0)) + '&nbsp;mm</td>' +
+          '<td style="white-space:nowrap">' + fr(vChute(c.d), vChute(c.d)<1?2:0) +
+          ' <span style="color:var(--gris-clair)">·</span> ' + fr(vArrache(c.d),0) + '</td>' +
           '<td><span class="badge ' + et.b + '">' + et.t + '</span></td></tr>';
       }).join('') + '</tbody></table>' +
       '<p style="font-size:11px; color:var(--gris-clair); margin-top:8px">' +
-      'Vitesses en cm/s. « Arrachée » veut dire que le courant suffit à la reprendre sur le fond ; ' +
-      '« déposée » qu\'elle tombe plus vite que le courant ne l\'emporte.</p>';
+      'Seuils en cm/s : vitesse de chute du grain, puis vitesse du courant qui l\'arrache du fond. ' +
+      '« Arrachée » veut dire que le courant suffit à la reprendre sur le fond ; « déposée » ' +
+      'qu\'elle tombe plus vite que le courant ne l\'emporte.</p>';
   }
 
   /* ---------- géométrie du dispositif ---------- */
@@ -1488,6 +1562,7 @@ function vArrache(dmm){
     const X = d => mg + (Math.log10(d)+3)/5*(l-mg-md);        /* 0,001 → 100 mm */
     const Y = w => h-mb - (Math.log10(w)+1)/4*(h-mh-mb);      /* 0,1 → 1000 cm/s */
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    fondGraphe(ctx, hj, mg, mh, l-mg-md, h-mh-mb);
     /* grille */
     ctx.strokeStyle = '#eee8dd'; ctx.lineWidth = 1;
     ctx.fillStyle = '#a9a294'; ctx.font = '10px system-ui,sans-serif';
@@ -1752,6 +1827,7 @@ const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafiq
     const X = R => mg + (Math.log10(R)+6)/11*(l-mg-md);     /* 1e-6 → 1e5 */
     const Y = d => h-mb - (Math.log10(d)+2)/3.2*(h-mh-mb);  /* 0,01 → ~16 mm */
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    fondGraphe(ctx, cvc, mg, mh, l-mg-md, h-mh-mb);
     ctx.strokeStyle = '#eee8dd'; ctx.fillStyle = '#a9a294'; ctx.font='10px system-ui,sans-serif';
     for(let e=-6;e<=5;e+=2){
       const x = X(Math.pow(10,e));
@@ -1975,6 +2051,7 @@ const STYLES = [
     const X = T => mg + (T-700)/600*(l-mg-md);
     const Y = le => h-mb - (le+1)/13*(h-mh-mb);       /* log η de −1 à 12 */
     ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    fondGraphe(ctx, cvc, mg, mh, l-mg-md, h-mh-mb);
     ctx.strokeStyle = '#eee8dd'; ctx.fillStyle = '#a9a294'; ctx.font='10px system-ui,sans-serif';
     for(let T=700;T<=1300;T+=100){
       const x = X(T);
@@ -2336,7 +2413,7 @@ const TESTS = [
     const r = courante();
     const l = TESTS.filter(t => faits.has(t.id));
     $('#ro-resultats').innerHTML = l.length
-      ? l.map(t => '<div style="border-left:3px solid var(--accent-clair); padding:4px 0 4px 12px; margin-bottom:10px">' +
+      ? l.map(t => '<div style="border-left:3px solid var(--pt); padding:4px 0 4px 12px; margin-bottom:10px">' +
           '<div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600">' +
           t.n + '</div><div style="font-size:13px">' + ech(t.lit(r)) + '</div></div>').join('') +
         (mode === 'libre' ? '<div class="note"><b>' + r.n + '</b> — ' + r.cat + '.</div>' : '')
