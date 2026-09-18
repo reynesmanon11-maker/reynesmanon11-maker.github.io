@@ -250,6 +250,91 @@ input[type=search]{ font:inherit; font-size:13px; width:100%; padding:8px 10px;
 .lgd{ display:block; font-size:12px; font-weight:500; color:var(--gris); margin-bottom:5px }
 .btn.mini[aria-pressed="true"]{ border-color:var(--accent-clair); background:var(--accent-pale) }
 table.tab td{ vertical-align:top }
+
+/* ======================================================================
+   HABILLAGE — le vocabulaire visuel du site : un bandeau de tête par
+   paillasse, une couleur et un filigrane par module, des cartes qui
+   répondent au survol. Tout ce bloc est décoratif : aucune règle n'y
+   change un comportement.
+   ====================================================================== */
+.module{ --pt:var(--accent); --ptbg:var(--accent-pale); --ptbd:#ecd5c3 }
+#mod-accueil{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+#mod-programme{ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
+#mod-sediment{ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
+#mod-cristal{ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
+#mod-magma{ --pt:#c9542c; --ptbg:#fbeee7; --ptbd:#f0cfbd }
+#mod-roches{ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
+#mod-preparer{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+
+/* ---------- bandeau de tête d'un module ---------- */
+.intro-mod{
+  position:relative; overflow:hidden; margin-bottom:24px; padding:28px 26px 24px;
+  border:1px solid var(--ptbd); border-radius:22px;
+  background:linear-gradient(152deg, var(--ptbg) 0%, var(--papier) 74%);
+}
+.intro-mod::before{
+  content:attr(data-wm); position:absolute; right:.04em; bottom:-.14em; z-index:0;
+  pointer-events:none; user-select:none; font-weight:700; line-height:1;
+  font-size:clamp(78px, 15vw, 152px); letter-spacing:-.05em; color:var(--pt); opacity:.13;
+}
+.intro-mod > *{ position:relative; z-index:1 }
+.intro-mod h2{ font-size:clamp(24px, 4vw, 36px); letter-spacing:-.025em; margin-bottom:9px }
+.intro-mod p{ font-size:14.5px; line-height:1.65; color:#5f594f; max-width:62ch }
+.intro-mod .ref{ background:var(--papier); color:var(--pt); border:1px solid var(--ptbd) }
+#mod-accueil .intro-mod{ padding:42px 30px 36px }
+#mod-accueil .intro-mod::before{ font-size:clamp(96px, 20vw, 210px) }
+
+/* ---------- l'onglet actif prend la couleur de son module ---------- */
+nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#b15f2c }
+nav.onglets button[data-mod="programme"][aria-selected="true"]{ background:#8f76cf }
+nav.onglets button[data-mod="sediment"][aria-selected="true"]{ background:#4f93d4 }
+nav.onglets button[data-mod="cristal"][aria-selected="true"]{ background:#3faea6 }
+nav.onglets button[data-mod="magma"][aria-selected="true"]{ background:#c9542c }
+nav.onglets button[data-mod="roches"][aria-selected="true"]{ background:#4fae7a }
+nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2c }
+
+/* ---------- la couleur du module traverse ses éléments ---------- */
+.module .avert{ background:var(--ptbg); border-color:var(--ptbd); border-left-color:var(--pt) }
+.module .avert .marque{ background:var(--pt) }
+.module .avert b{ color:var(--pt) }
+.module .note{ border-left-color:var(--pt) }
+.module .badge.orange{ background:var(--ptbg); color:var(--pt) }
+.module .btn.primaire{ background:var(--pt); border-color:var(--pt) }
+.module .btn.primaire:hover{ filter:brightness(1.12) }
+.module .exp.simulable{ border-color:var(--ptbd);
+  background:linear-gradient(90deg, var(--ptbg), var(--papier) 68%) }
+.module .segment button[aria-pressed="true"]{ color:var(--pt) }
+.module input[type=range]{ accent-color:var(--pt) }
+.module input[type=range]::-webkit-slider-thumb{ border-color:var(--pt) }
+
+/* ---------- titres de partie : un trait de couleur devant ---------- */
+.partie-titre{ color:var(--pt) }
+.partie-titre::before{ content:''; flex:none; width:18px; height:3px; border-radius:2px; background:var(--pt) }
+.partie-titre::after{ background:var(--ptbd) }
+
+/* ---------- cartes : elles se soulèvent au survol ---------- */
+.carte{ transition:box-shadow .25s ease, transform .25s ease, border-color .25s ease }
+.carte:hover{ border-color:var(--ptbd);
+  box-shadow:0 2px 4px rgba(35,32,28,.05), 0 16px 36px rgba(35,32,28,.10) }
+
+/* ---------- la grille d'accueil : une teinte par paillasse ---------- */
+#mod-accueil .grille > .carte{ border-top:3px solid var(--pt); padding-top:16px }
+#mod-accueil .grille > .carte:hover{ transform:translateY(-3px) }
+#mod-accueil .grille > .carte h3{ font-size:18px; letter-spacing:-.015em }
+#mod-accueil .grille > .carte:nth-child(6n+1){ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
+#mod-accueil .grille > .carte:nth-child(6n+2){ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 }
+#mod-accueil .grille > .carte:nth-child(6n+3){ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
+#mod-accueil .grille > .carte:nth-child(6n+4){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
+#mod-accueil .grille > .carte:nth-child(6n+5){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 }
+#mod-accueil .grille > .carte:nth-child(6n+6){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
+#mod-accueil .grille > .carte .badge{ background:var(--ptbg); color:var(--pt) }
+#mod-accueil .grille > .carte .btn.primaire{ background:var(--pt); border-color:var(--pt) }
+
+/* ---------- en-tête : le trait terracotta du site ---------- */
+header.top{ border-bottom:none; box-shadow:0 1px 0 var(--ligne) }
+header.top .marque b{ letter-spacing:-.015em }
+@media print{ .intro-mod::before{ display:none } .intro-mod{ border:none; background:none; padding:0 } }
+
 </style>
 </head>
 <body>
@@ -269,6 +354,7 @@ table.tab td{ vertical-align:top }
   </div>
   <nav class="onglets" role="tablist" aria-label="Modules du laboratoire">
     <button role="tab" data-mod="accueil"  aria-selected="true">Accueil &amp; catalogue</button>
+    <button role="tab" data-mod="programme" aria-selected="false">Programmes du lycée</button>
     <button role="tab" data-mod="sediment" aria-selected="false">Érosion, transport &amp; dépôt</button>
     <button role="tab" data-mod="cristal"  aria-selected="false">Cristallisation &amp; texture</button>
     <button role="tab" data-mod="magma"    aria-selected="false">Viscosité &amp; style éruptif</button>
@@ -283,7 +369,7 @@ table.tab td{ vertical-align:top }
      MODULE — ACCUEIL & CATALOGUE
      ========================================================= -->
 <section class="module actif" id="mod-accueil" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="GÉOL">
     <h2>Quatre paillasses de géologie, et de quoi préparer les vraies</h2>
     <p>La gouttière hydraulique, la cristallisation, la viscosité des magmas et l'identification
        des roches : les quatre manipulations que l'on refait chaque année et qui demandent
@@ -304,6 +390,17 @@ table.tab td{ vertical-align:top }
        (effervescence à l'acide, dureté, texture, minéraux) sont des <b>faits</b>, pas un modèle.
        Chaque module le rappelle en tête.</p>
   </div></div>
+
+  <div class="carte" style="margin-bottom:16px">
+    <span class="badge orange">Entrée par le programme</span>
+    <h3 style="margin-top:8px">Quelle manip pour quel chapitre&nbsp;?</h3>
+    <p class="sous">Géosciences de seconde, cristaux en enseignement scientifique, dynamique interne
+       en première de spécialité, temps et roches en terminale : chaque chapitre donne ce que le
+       programme demande d'y faire, et les manipulations qui s'y rattachent.</p>
+    <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:12px">
+      <button class="btn primaire" data-va="programme">Ouvrir par niveau</button>
+    </div>
+  </div>
 
   <div class="grille" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
     <div class="carte">
@@ -361,8 +458,37 @@ table.tab td{ vertical-align:top }
 <!-- =========================================================
      MODULE — ÉROSION, TRANSPORT & DÉPÔT
      ========================================================= -->
+<section class="module" id="mod-programme" role="tabpanel">
+  <div class="intro-mod" data-wm="LYCÉE">
+    <h2>Les manips, programme par programme</h2>
+    <p>Choisissez un niveau : les chapitres de géosciences apparaissent avec ce que le programme
+       demande d'y faire, et sous chacun les manipulations qui s'y rattachent — à simuler ici ou à
+       sortir en liste de matériel. Un chapitre entier peut partir d'un coup dans le panier.</p>
+    <span class="ref">Lycée — 2de, enseignement scientifique, spécialité SVT</span>
+    <button class="btn mini no-print" id="pg-imprimer" style="margin-left:8px; vertical-align:2px">Imprimer ce niveau</button>
+  </div>
+
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Les intitulés et les capacités viennent du Bulletin officiel</b> : seconde et spécialité
+       SVT (2019), enseignement scientifique de première (22 juin 2023). Les passages entre
+       guillemets sont cités du texte ; là où je ne cite pas, je le signale.</p>
+    <p>Ce qui reste un choix, c'est <b>le rattachement de chaque manipulation</b> à un chapitre, et
+       la mention « au-delà du programme » quand elle dépasse l'attendu. Confrontez-le à votre
+       progression.</p>
+  </div></div>
+
+  <div class="segment no-print" id="pg-niveau" style="margin-bottom:6px">
+    <button aria-pressed="true"  data-niv="2de">Seconde</button>
+    <button aria-pressed="false" data-niv="1es">1re — ens. scientifique</button>
+    <button aria-pressed="false" data-niv="1spe">1re — spécialité SVT</button>
+    <button aria-pressed="false" data-niv="tspe">Term — spécialité SVT</button>
+  </div>
+  <p id="pg-entete" style="font-size:12.5px; color:var(--gris); margin:10px 2px 4px"></p>
+  <div id="pg-corps"></div>
+</section>
+
 <section class="module" id="mod-sediment" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="TRI">
     <h2>Gouttière hydraulique — érosion, transport, dépôt</h2>
     <p>On verse un mélange de sédiments en haut de la gouttière et on ouvre l'eau. Selon la
        vitesse du courant, chaque classe de grains est arrachée, emportée, ou abandonnée sur le
@@ -468,7 +594,7 @@ table.tab td{ vertical-align:top }
      MODULE — CRISTALLISATION & TEXTURE
      ========================================================= -->
 <section class="module" id="mod-cristal" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="mm">
     <h2>Cristallisation — la vitesse de refroidissement fait la texture</h2>
     <p>En classe on le montre au sulfate de cuivre ou à l'alun : une solution refroidie lentement
        donne de gros cristaux, refroidie brutalement de la poudre. Un magma fait exactement
@@ -556,7 +682,7 @@ table.tab td{ vertical-align:top }
      MODULE — VISCOSITÉ & STYLE ÉRUPTIF
      ========================================================= -->
 <section class="module" id="mod-magma" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="η">
     <h2>Viscosité des magmas et style éruptif</h2>
     <p>En classe on compare l'eau, l'huile, le miel et le sirop sur un plan incliné. Un magma
        couvre un domaine bien plus large : entre une lave basaltique à 1200 °C et une rhyolite à
@@ -649,7 +775,7 @@ table.tab td{ vertical-align:top }
      MODULE — PAILLASSE : IDENTIFIER UNE ROCHE
      ========================================================= -->
 <section class="module" id="mod-roches" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="HCl">
     <h2>Paillasse — identifier une roche</h2>
     <p>Seize échantillons et six tests. On choisit une roche, on lui fait subir les tests que l'on
        veut, et on conclut. En mode « roche mystère », l'échantillon est caché : il faut le
@@ -731,7 +857,7 @@ table.tab td{ vertical-align:top }
      MODULE — PRÉPARER UNE MANIP
      ========================================================= -->
 <section class="module" id="mod-preparer" role="tabpanel">
-  <div class="intro-mod">
+  <div class="intro-mod" data-wm="LISTE">
     <h2>Préparer une manip</h2>
     <p>Chaque expérience donne sa liste de matériel pour le nombre de postes voulu. Le panier
        réunit plusieurs manipulations en une seule liste de courses, le matériel partagé compté
@@ -2851,15 +2977,302 @@ const PLACARD_TYPE = ['collection','granite','basalte','calcaire','craie','gres'
 
 /* ---------- ouverture directe d'un module via l'adresse (#cristal, #roches…) ---------- */
 (function depart(){
-  function route(){
+  function route(premier){
     const brut = location.hash.replace('#','');
     if(!brut) return;
-    const [mod] = brut.split('?');
-    if(!$('#mod-'+mod) || mod === Labo.moduleActif) return;
+    const [mod, requete] = brut.split('?');
+    if(!$('#mod-'+mod)) return;
+    /* ouvreModule réécrit l'adresse en « #module » : ne pas rejouer notre propre écriture */
+    if(!premier && mod === Labo.moduleActif && !requete) return;
+    if(premier) Labo.depart = {mod, requete};   /* les modules définis plus bas la reliront */
+    if(requete && Labo.surURL[mod]) Labo.surURL[mod](new URLSearchParams(requete));
     ouvreModule(mod);
   }
-  route();
-  window.addEventListener('hashchange', route);
+  route(true);
+  window.addEventListener('hashchange', () => route(false));
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PROGRAMMES — quelle manip de géologie pour quel chapitre
+   Les intitulés et les capacités entre guillemets sont cités du Bulletin
+   officiel. cle : chapitre central · plus : au-delà de l'attendu.
+   ========================================================================== */
+const PROGRAMMES = [
+
+/* ================================ SECONDE ================================ */
+{id:'2de', n:'Seconde', court:'2de', s:"SVT, tronc commun — BO 2019", th:[
+ {t:"Thème 2 — Les enjeux contemporains de la planète · Géosciences et dynamique des paysages", ch:[
+
+  {t:"L'érosion, processus et conséquences", cle:true,
+   att:"Comprendre qu'un paysage change inexorablement : la roche est altérée, les débris sont transportés, et l'intensité du phénomène dépend de la roche, du relief, du climat et du vivant.",
+   cap:["Relier la nature de la roche à sa résistance à l'altération.",
+        "Relier l'intensité de l'altération avec l'importance du relief et les conditions climatiques.",
+        "Étudier et modéliser les mécanismes de l'érosion des paysages (altération physico-chimique, transport).",
+        "Relier la puissance d'un cours d'eau à sa capacité de transport des éléments solides.",
+        "Identifier par des tests chimiques des éléments solubles issus de l'altération.",
+        "Relier l'intensité de l'érosion avec la dynamique du vivant et des sols."],
+   note:"Le programme annonce que « par de nombreuses manipulations, les élèves abordent également, dans une première approche, l'étude pétrologique ». C'est le chapitre le plus expérimental des géosciences de seconde.",
+   m:[
+    {f:'gouttiere', sim:'sediment', r:"La capacité exigible, mot pour mot : relier la puissance du courant à ce qu'il transporte. Le curseur de vitesse fait exactement cela."},
+    {f:'erosion', sim:'sediment', r:"Modéliser l'érosion en faisant varier pente, débit et couvert végétal — les trois paramètres que cite le programme."},
+    {f:'alteration', r:"L'altération chimique, pesée : la perte de masse d'un calcaire dans l'eau acidifiée."},
+    {f:'hcl', sim:'roches', r:"Le test chimique demandé : l'effervescence révèle le carbonate, donc ce que l'eau peut dissoudre."},
+    {f:'roches', sim:'roches', r:"Relier la nature de la roche à sa résistance : un granite et une craie ne s'altèrent pas à la même vitesse."},
+    {f:'durete', sim:'roches', r:"La dureté, une des raisons pour lesquelles une roche résiste ou non."}]},
+
+  {t:"Sédimentation et milieux de sédimentation", cle:true,
+   att:"Passer du sédiment à la roche : reconnaître les particules, leur forme et leur liant, puis remonter au milieu de dépôt par l'actualisme.",
+   cap:["Étudier, notamment en microscopie, quelques roches sédimentaires détritiques pour en déduire la nature des particules sédimentaires, leur morphologie et la nature du liant.",
+        "Reconstituer un paléo-environnement de sédimentation à partir de l'étude d'une roche sédimentaire, en appliquant le principe d'actualisme."],
+   note:"C'est l'actualisme qui fait le lien entre les deux manipulations : le tri que l'on obtient dans la gouttière est celui que l'on lit, figé, dans un grès ou un conglomérat.",
+   m:[
+    {f:'gouttiere', sim:'sediment', r:"Le tri granulométrique obtenu sous les yeux : ce que l'on retrouvera cimenté dans la roche."},
+    {f:'delta', sim:'sediment', r:"Un milieu de sédimentation construit en une séance, avec ses couches inclinées."},
+    {f:'roches', sim:'roches', r:"Grès et conglomérat : grains arrondis, calibre, ciment — les trois choses que demande le programme."},
+    {f:'granulometrie', r:"Chiffrer le classement d'un sédiment au tamis : un sable de dune et une moraine ne donnent pas la même courbe."},
+    {f:'lames', sim:'cristal', r:"L'observation en microscopie que cite la capacité.", plus:true}]},
+
+  {t:"Érosion et activité humaine",
+   att:"Identifier les zones où l'érosion menace, les risques associés et les moyens de prévention — et les produits que l'humanité tire de l'érosion.",
+   cap:["Identifier des zones d'érosion (déserts, littoraux, sols, éboulements) et les risques associés, comme les moyens de prévention mis en œuvre.",
+        "Identifier les produits d'érosion/sédimentation utilisés par l'humanité pour répondre à ses besoins dans les matériaux du quotidien."],
+   m:[
+    {f:'erosion', sim:'sediment', r:"Le moyen de prévention le plus simple à démontrer : le couvert végétal, qui retient le sol."},
+    {f:'permeabilite', r:"Pourquoi l'eau ruisselle ici et s'infiltre là : la première clé du ruissellement."},
+    {f:'sol', r:"Le sol, mince et lent à se former : ce que l'érosion emporte en quelques orages."}]}]},
+
+ {t:"Thème 2 — Les enjeux contemporains de la planète · Agrosystèmes et développement durable", ch:[
+
+  {t:"Caractéristiques des sols et production de biomasse",
+   att:"Comprendre comment un sol se forme, à la rencontre de la roche mère altérée et de la matière organique recyclée.",
+   cap:["Comprendre (manipulation, extraction, organisation d'informations) les modalités de la formation des sols."],
+   m:[
+    {f:'sol', r:"Lire un profil : horizons, couleur, effervescence, roche mère à la base."},
+    {f:'alteration', r:"La première étape de la formation d'un sol : la roche mère qui se désagrège."},
+    {f:'permeabilite', r:"Ce que le sol retient et ce qu'il laisse passer, donc sa réserve en eau."}]}]}],
+ rien:"Le thème 1 (organisation du vivant, métabolisme, biodiversité) et le thème 3 (corps humain) relèvent de l'autre laboratoire.",
+ lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=2de"}},
+
+/* ==================== PREMIÈRE — ENSEIGNEMENT SCIENTIFIQUE ==================== */
+{id:'1es', n:'Première — enseignement scientifique', court:'1re ens. sc.', s:"tronc commun — BO du 22 juin 2023", th:[
+ {t:"Thème 1 — Une longue histoire de la matière", ch:[
+
+  {t:"1.2 — Des édifices ordonnés : les cristaux", cle:true,
+   att:"Aborder l'état cristallin comme une forme d'organisation de la matière, et l'opposer à l'état amorphe du verre — dont l'origine est une question de vitesse de refroidissement.",
+   cap:["Identifier des structures cristallines sur un échantillon ou une image.",
+        "Mettre en relation la structure amorphe ou cristalline d'une roche et les conditions de son refroidissement.",
+        "Distinguer, en matière d'échelle et d'organisation spatiale, atome ou molécule, maille, cristal, minéral, roche.",
+        "Relier l'organisation de la maille au niveau microscopique à la structure du cristal au niveau macroscopique."],
+   note:"Le programme dit : « dans le cas des solides amorphes, l'empilement d'entités se fait sans ordre géométrique. C'est le cas du verre. Certaines roches volcaniques contiennent du verre, issu de la solidification très rapide d'une lave. » C'est très exactement ce que fait le module Cristallisation en passant du pluton à la trempe.",
+   m:[
+    {f:'cristallisation', sim:'cristal', r:"La capacité centrale : relier structure cristalline ou amorphe aux conditions de refroidissement. Le module va du granite à l'obsidienne."},
+    {f:'roches', sim:'roches', r:"Identifier des structures cristallines sur un échantillon : le sel gemme, cité par le programme, y figure avec ses cubes."},
+    {f:'mineraux', sim:'roches', r:"Un composé donné peut cristalliser sous plusieurs formes : c'est ce qui distingue un minéral d'une roche."},
+    {f:'lames', sim:'cristal', r:"Voir les cristaux jointifs au microscope polarisant.", plus:true}]}]},
+
+ {t:"Thème 3 — La Terre, un astre singulier", ch:[
+
+  {t:"3.2 — L'histoire de l'âge de la Terre",
+   att:"Suivre la controverse : temps de refroidissement, empilements sédimentaires, évolution biologique, puis radioactivité — quatre arguments, un seul a tranché.",
+   cap:["Interpréter des documents présentant des arguments historiques utilisés pour comprendre l'âge de la Terre.",
+        "Identifier diverses théories impliquées dans la controverse scientifique de l'âge de la Terre."],
+   note:"Le programme cite Buffon, Darwin, Kelvin et Rutherford, et propose comme projet expérimental le « refroidissement d'un corps » — l'argument de Kelvin, précisément celui qui s'est révélé faux.",
+   m:[
+    {f:'datation', r:"Les principes de la chronologie relative : l'argument des empilements sédimentaires, celui de Steno, avant la radioactivité."}]}]}],
+ rien:"Le chapitre 2.3, sur la photosynthèse, et le chapitre 1.3, sur la cellule, relèvent de l'autre laboratoire.",
+ lien:{t:"Voir ces chapitres dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=1es"}},
+
+/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ======================== */
+{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"programme de spécialité, BO 2019", th:[
+ {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · La dynamique interne de la Terre", ch:[
+
+  {t:"Des contrastes entre les continents et les océans", cle:true,
+   att:"Établir que les deux croûtes diffèrent par leur composition, leur structure et leur masse volumique — et que c'est de là que vient la distribution bimodale des reliefs.",
+   cap:["Effectuer des mesures de densité sur des roches continentales et océaniques.",
+        "Mener une observation comparative des roches des croûtes océanique et continentale (composition, structure, etc.).",
+        "Utiliser la carte de France au millionième pour identifier la répartition des principaux types de roches sur le territoire."],
+   note:"Précision du programme : « les différences de relief ne sont pas, à ce niveau, expliquées par les mécanismes de l'isostasie. L'étude pétrographique se limite à l'étude des principales caractéristiques des roches citées. » La manipulation d'isostasie ci-dessous est donc un complément, pas l'attendu.",
+   m:[
+    {f:'densite', r:"La capacité exigible, mot pour mot : mesurer la masse volumique d'un granite et d'un basalte. L'écart fait tout le chapitre."},
+    {f:'roches', sim:'roches', r:"L'observation comparative demandée : granite et gabbro côte à côte, composition et structure."},
+    {f:'lames', sim:'cristal', r:"La même comparaison au microscope, si le lycée possède les lames."},
+    {f:'isostasie', r:"Pourquoi la croûte légère flotte plus haut. Explicitement au-delà de ce niveau selon le programme.", plus:true}]},
+
+  {t:"L'apport des études sismologiques et thermiques à la connaissance du globe terrestre", cle:true,
+   att:"Reconstituer la structure du globe à partir des ondes sismiques, et comprendre comment la chaleur interne s'évacue par conduction et par convection.",
+   cap:["Concevoir une modélisation analogique et réaliser des mesures à l'aide de dispositifs.",
+        "Étudier la propagation profonde des ondes (zone d'ombre).",
+        "Réaliser des modèles analogiques pour appréhender la conduction et la convection.",
+        "Analyser des courbes d'augmentation de la température en fonction de la profondeur."],
+   m:[
+    {f:'sismo', r:"La modélisation analogique demandée : un ressort long donne à voir la différence entre ondes de compression et de cisaillement."},
+    {f:'convection', r:"Le modèle analogique de convection que cite la capacité, avec ses cellules visibles à la semoule."}]},
+
+  {t:"La dynamique des zones de divergence et de convergence",
+   att:"Relier la production de lithosphère océanique aux dorsales, sa disparition aux zones de subduction, et le magmatisme des arcs à l'hydratation du manteau.",
+   cap:["Études de l'affleurement à la roche des basaltes, gabbros et péridotites.",
+        "Calcul de la densité moyenne de l'ensemble croûte – manteau lithosphérique.",
+        "En considérant la densité moyenne de la lithosphère et celle de l'asthénosphère, discuter de la subduction."],
+   m:[
+    {f:'roches', sim:'roches', r:"Basalte et gabbro : deux roches de même chimie, deux refroidissements, deux places dans la croûte océanique."},
+    {f:'densite', r:"Le calcul demandé repose sur des masses volumiques mesurées : voici comment les obtenir."},
+    {f:'cristallisation', sim:'cristal', r:"Pourquoi le gabbro est grenu et le basalte microlithique, alors qu'ils sortent du même magma."},
+    {f:'viscosite', sim:'magma', r:"Le magmatisme de subduction est plus visqueux et plus explosif que celui des dorsales : la silice et l'eau en sont la cause."},
+    {f:'eruption', sim:'magma', r:"Et voilà ce que cela donne en surface, sur la plaque chevauchante.", plus:true}]},
+
+  {t:"Les zones de collision",
+   att:"Lire dans les roches et les structures les indices d'un raccourcissement : plis, failles inverses, nappes de charriage.",
+   cap:["Repérer à différentes échelles des indices simples de modifications tectoniques.",
+        "Recenser, extraire et organiser des données de terrain, entre autres lors d'une sortie."],
+   m:[
+    {f:'tectonique', r:"Plis et failles obtenus dans un bac : le sable casse, la mousse se plisse — les deux comportements d'une chaîne."},
+    {f:'roches', sim:'roches', r:"Gneiss et micaschiste : les roches que produit un enfouissement en collision."}]}]}],
+ rien:"La partie 1A (patrimoine génétique, enzymes), la partie 2A (écosystèmes) et le thème 3 relèvent de l'autre laboratoire.",
+ lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=1spe"}},
+
+/* ======================== TERMINALE — SPÉCIALITÉ SVT ======================== */
+{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"programme de spécialité, BO 2019", th:[
+ {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · À la recherche du passé géologique de notre planète", ch:[
+
+  {t:"Le temps et les roches", cle:true,
+   att:"Dater, d'abord les uns par rapport aux autres — superposition, recoupement, inclusion, identité paléontologique — puis en années, par la désintégration radioactive.",
+   cap:["Le programme demande d'utiliser les relations géométriques entre objets géologiques pour établir une chronologie relative, d'observer une succession de strates et la carte géologique, puis de mobiliser les bases physiques de la radiochronologie.",
+        "Les intitulés officiels de ce chapitre sont « La chronologie relative » et « La chronologie absolue »."],
+   note:"Les capacités ci-dessus sont reformulées, non citées : le texte de ce chapitre se présente en colonnes serrées et je préfère ne pas mettre entre guillemets ce que je n'ai pas lu d'un seul tenant.",
+   m:[
+    {f:'datation', r:"Les quatre principes appliqués à un bloc-diagramme : c'est l'exercice même du chapitre."},
+    {f:'tectonique', r:"Construire la succession avec des couches de sable et de mousse, puis la dater : le recoupement devient évident."},
+    {f:'roches', sim:'roches', r:"Reconnaître les roches d'une coupe avant de les ordonner."}]},
+
+  {t:"Les traces du passé mouvementé de la Terre",
+   att:"Retrouver dans les roches actuelles les marques d'une fragmentation continentale ancienne et d'un océan disparu : marges passives, ophiolites.",
+   m:[
+    {f:'roches', sim:'roches', r:"Les roches d'une ophiolite sont celles de la lithosphère océanique : basalte, gabbro, et la péridotite qui les porte."},
+    {f:'lames', sim:'cristal', r:"Leur texture en lame mince, qui signe la profondeur de mise en place."},
+    {f:'densite', r:"La masse volumique d'une péridotite, qui explique pourquoi elle plonge — ou pourquoi son émergence demande une explication."},
+    {f:'tectonique', r:"Les structures de la fragmentation : failles normales d'une marge, puis structures compressives."}]}]},
+
+ {t:"Thème 2 — Enjeux planétaires contemporains · Les climats de la Terre", ch:[
+
+  {t:"Reconstituer et comprendre les variations climatiques passées",
+   att:"Lire les climats anciens dans les roches et les fossiles, et relier les variations à l'orbite, aux gaz et au cycle du carbone.",
+   m:[
+    {f:'roches', sim:'roches', r:"Un calcaire à fossiles, une craie, un sel gemme : trois roches, trois milieux, trois climats."},
+    {f:'alteration', r:"L'altération des silicates consomme du CO₂ : c'est l'un des leviers longs du climat, et il se mesure à la paillasse."},
+    {f:'granulometrie', r:"Un dépôt glaciaire ne se trie pas comme un dépôt fluviatile : la courbe granulométrique distingue les deux.", plus:true}]}]}],
+ rien:"La partie « De la plante sauvage à la plante domestiquée », la génétique et le thème 3 relèvent de l'autre laboratoire.",
+ lien:{t:"Voir la partie sur les plantes dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=tspe"}}
+];
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PROGRAMMES — rendu
+   Un niveau à la fois : ses thèmes, ses chapitres, ce que le programme
+   demande d'y faire, et les manipulations qui s'y rattachent.
+   ========================================================================== */
+(function programmes(){
+  const corps = $('#pg-corps'), entete = $('#pg-entete');
+  if(!corps) return;
+  let niv = '2de';
+  const F = {}; FICHES.forEach(f => F[f.id] = f);
+
+  function ligneManip(m){
+    const f = F[m.f];
+    return '<div class="exp' + (m.sim ? ' simulable' : '') + '" style="align-items:flex-start">' +
+      '<span class="titre" style="min-width:200px">' +
+        '<span style="font-weight:600">' + ech(f.t) + '</span>' +
+        (m.plus ? ' <span class="badge" style="vertical-align:1px">au-delà du programme</span>' : '') +
+        '<br><span style="font-size:12px; color:var(--gris)">' + ech(m.r) + '</span></span>' +
+      '<span class="page" style="white-space:nowrap">' + f.ref + ' · ' + f.duree + ' min</span>' +
+      (m.sim ? '<button class="btn mini primaire no-print" data-va="' + m.sim + '">Simuler — ' +
+               NOM_MODULE[m.sim] + '</button>' : '') +
+      '<button class="btn mini no-print" data-va="preparer" data-fiche="' + m.f +
+      '" title="Voir le protocole et le matériel">Matériel</button></div>';
+  }
+
+  function carteChapitre(c){
+    const aPanier = c.m.filter(m => !m.plus).map(m => m.f);
+    const duree = c.m.filter(m => !m.plus).reduce((s,m) => s + F[m.f].duree, 0);
+    return '<div class="carte" style="margin-top:12px">' +
+      '<h3>' + ech(c.t) +
+        (c.cle ? ' <span class="badge orange" style="vertical-align:3px">chapitre central</span>' : '') + '</h3>' +
+      '<p style="font-size:13px; color:var(--gris); margin:6px 0 14px">' + ech(c.att) + '</p>' +
+      (c.cap ? '<div class="note" style="margin:0 0 14px; border-left-color:var(--bleu)">' +
+        '<b>Ce que demande le programme</b><ul style="display:grid; gap:5px; margin-top:7px">' +
+        c.cap.map(x => '<li style="display:flex; gap:8px"><span style="color:var(--bleu)">›</span>' +
+          '<span>' + ech(x) + '</span></li>').join('') + '</ul></div>' : '') +
+      (c.note ? '<div class="note" style="margin:0 0 14px">' + ech(c.note) + '</div>' : '') +
+      '<div class="liste-exp">' + c.m.map(ligneManip).join('') + '</div>' +
+      '<div class="no-print" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:12px">' +
+        '<button class="btn mini" data-panier="' + aPanier.join(',') + '" ' +
+        'title="Verser ces manipulations au panier du module « Préparer une manip »">' +
+        'Ajouter les ' + aPanier.length + ' manips au panier</button>' +
+        '<span style="font-size:11.5px; color:var(--gris-clair)">≈ ' +
+        (duree >= 60 ? Math.floor(duree/60) + ' h ' + (duree%60 ? duree%60 + ' min' : '') : duree + ' min') +
+        ' de paillasse cumulées</span></div></div>';
+  }
+
+  function rendu(){
+    const p = PROGRAMMES.find(x => x.id === niv);
+    let nCh = 0, nM = 0, nSim = 0;
+    p.th.forEach(t => t.ch.forEach(c => { nCh++; nM += c.m.length; nSim += c.m.filter(m => m.sim).length; }));
+    entete.innerHTML = '<b>' + ech(p.n) + '</b> — ' + ech(p.s) + ' · ' + nCh + ' chapitre' + (nCh>1?'s':'') +
+      ' · ' + nM + ' manipulation' + (nM>1?'s':'') + ', dont ' + nSim + ' simulable' + (nSim>1?'s':'') + ' ici.';
+    corps.innerHTML = p.th.map(t =>
+      '<div class="partie-titre">' + ech(t.t) + '</div>' + t.ch.map(carteChapitre).join('')).join('') +
+      (p.rien ? '<div class="note" style="margin-top:18px">' + ech(p.rien) +
+        (p.lien ? '<div style="margin-top:9px"><a class="btn mini no-print" href="' + p.lien.href + '">' +
+          ech(p.lien.t) + ' →</a></div>' : '') + '</div>' : '');
+  }
+
+  segment($('#pg-niveau'), d => { niv = d.niv; rendu(); });
+
+  function imprime(){
+    const p = PROGRAMMES.find(x => x.id === niv);
+    const h = '<meta charset="utf-8"><title>Manips de géologie — ' + p.n + '</title>' +
+      '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:20px 0 4px;color:#7d776c;' +
+      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#b15f2c}' +
+      '.s{color:#7d776c;font-size:12px} .att{font-size:12px;color:#4a453d;margin:2px 0 6px}' +
+      'table{border-collapse:collapse;width:100%} td{border-bottom:1px solid #e4dfd5;padding:4px 6px;' +
+      'vertical-align:top;font-size:11.5px} td.r{white-space:nowrap;color:#7d776c;text-align:right}' +
+      '.ch{break-inside:avoid} ul{padding-left:16px;margin:4px 0}' +
+      '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:8px 0;font-size:11.5px}</style>' +
+      '<h1>Manipulations de géologie — ' + ech(p.n) + '</h1>' +
+      '<p class="s">' + ech(p.s) + ' · reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
+      '<div class="enc">Intitulés et capacités cités du Bulletin officiel. Le rattachement de chaque ' +
+      'manipulation à un chapitre est une proposition, à confronter à votre progression.</div>' +
+      p.th.map(t => '<h2>' + ech(t.t) + '</h2>' + t.ch.map(c =>
+        '<div class="ch"><h3>' + ech(c.t) + (c.cle ? ' — chapitre central' : '') + '</h3>' +
+        '<p class="att">' + ech(c.att) + '</p>' +
+        (c.cap ? '<div class="enc"><b>Ce que demande le programme.</b><ul>' +
+          c.cap.map(x => '<li>' + ech(x) + '</li>').join('') + '</ul></div>' : '') +
+        '<table>' + c.m.map(m => '<tr><td><b>' + ech(F[m.f].t) + '</b>' +
+          (m.plus ? ' (au-delà du programme)' : '') + '<br>' + ech(m.r) + '</td>' +
+          '<td class="r">' + F[m.f].ref + '<br>' + F[m.f].duree + ' min</td></tr>').join('') +
+        '</table></div>').join('')).join('') +
+      (p.rien ? '<p class="s" style="margin-top:14px">' + ech(p.rien) + '</p>' : '');
+    const f = window.open('', '_blank', 'width=900,height=700');
+    if(!f) return;
+    f.document.write(h); f.document.close(); f.focus();
+    setTimeout(() => f.print(), 300);
+  }
+  const bi = $('#pg-imprimer');
+  if(bi) bi.addEventListener('click', imprime);
+
+  function choisit(id){
+    if(!PROGRAMMES.some(x => x.id === id)) return;
+    niv = id;
+    $$('#pg-niveau button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.niv === id)));
+    rendu();
+  }
+  Labo.surURL.programme = q => choisit(q.get('niveau'));
+  rendu();
+  if(Labo.depart && Labo.depart.mod === 'programme' && Labo.depart.requete)
+    choisit(new URLSearchParams(Labo.depart.requete).get('niveau'));
 })();
 </script>
 
