@@ -19,6 +19,7 @@ minutes avant que GitHub Pages ne reconstruise le site.
 | `index.html` | accueil |
 | `2nde.html`, `1ere.html`, `terminale.html` | pages de niveau |
 | `outils/labo_vegetal.html` | laboratoire virtuel de biologie végétale (d'après R. Pratt) |
+| `outils/labo_geologie.html` | laboratoire virtuel de géologie (TP classiques du lycée) |
 | `outils/` | autres outils interactifs autonomes |
 | `TODO.md` | file d'idées, pilotée par les tâches automatiques |
 

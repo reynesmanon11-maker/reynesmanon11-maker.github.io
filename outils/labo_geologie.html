@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laboratoire virtuel — Géologie au lycée</title>
+<meta name="description" content="Simulations de travaux pratiques de géologie au lycée : tri granulométrique et sédimentation, cristallisation et texture des roches magmatiques, viscosité des magmas et style éruptif, paillasse d'identification des roches, liste de matériel.">
+<meta name="theme-color" content="#b15f2c">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Laboratoire virtuel de géologie
+   Page autonome : aucune bibliothèque externe, tout est en JS natif.
+   ============================================================ */
+*{ box-sizing:border-box; margin:0; padding:0 }
+:root{
+  --fond:#f5f2ed; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
+  --ligne:#e4dfd5; --ligne-forte:#d3ccbe;
+  --accent:#b15f2c; --accent-clair:#cf8047; --accent-pale:#f6e9df;
+  --vert:#3f7d5f; --vert-pale:#e6f1ea;
+  --bleu:#2f6ba8; --bleu-pale:#e5eef7;
+  --violet:#6e5fa8; --or:#c08a1e; --rouge:#c0392b; --rose:#d46a8b;
+  --ombre:0 1px 2px rgba(35,32,28,.05), 0 8px 24px rgba(35,32,28,.06);
+  --r:14px;
+}
+html{ scroll-behavior:smooth }
+body{
+  font-family:'Onest',system-ui,-apple-system,'Segoe UI',sans-serif;
+  background:var(--fond); color:var(--encre); line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+a{ color:var(--accent); text-decoration:none }
+a:hover{ text-decoration:underline }
+button{ font:inherit; color:inherit; cursor:pointer }
+ul{ list-style:none }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:2px }
+h1,h2,h3,h4{ line-height:1.25; font-weight:700; letter-spacing:-.01em }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0) }
+
+/* ---------- en-tête ---------- */
+header.top{
+  position:sticky; top:0; z-index:60; background:rgba(255,255,255,.94);
+  backdrop-filter:blur(10px); border-bottom:1px solid var(--ligne);
+}
+.top-bar{ max-width:1180px; margin-inline:auto; padding:10px 18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap }
+.marque{ display:flex; align-items:baseline; gap:10px; min-width:0 }
+.marque b{ font-size:15px }
+.marque i{ font-style:normal; font-size:11px; color:var(--gris-clair); white-space:nowrap }
+.top-spacer{ flex:1 }
+.top-actions{ display:flex; gap:8px; flex-wrap:wrap }
+nav.onglets{ max-width:1180px; margin-inline:auto; padding:0 12px 8px; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin }
+nav.onglets button{
+  border:1px solid transparent; background:none; padding:7px 13px; border-radius:999px;
+  font-size:13px; font-weight:500; color:var(--gris); white-space:nowrap;
+}
+nav.onglets button:hover{ background:var(--fond); color:var(--encre) }
+nav.onglets button[aria-selected="true"]{ background:var(--encre); color:#fff }
+
+/* ---------- boutons ---------- */
+.btn{
+  border:1px solid var(--ligne-forte); background:var(--papier); border-radius:10px;
+  padding:7px 13px; font-size:12.5px; font-weight:500; color:var(--encre);
+  display:inline-flex; align-items:center; gap:7px; transition:background .15s, border-color .15s, transform .1s;
+}
+.btn:hover{ background:var(--fond); border-color:var(--gris-clair) }
+.btn:active{ transform:translateY(1px) }
+.btn.primaire{ background:var(--accent); border-color:var(--accent); color:#fff }
+.btn.primaire:hover{ background:var(--accent-clair); border-color:var(--accent-clair) }
+.btn.sombre{ background:var(--encre); border-color:var(--encre); color:#fff }
+.btn.sombre:hover{ background:#3a352e }
+.btn[disabled]{ opacity:.45; cursor:not-allowed }
+.btn.mini{ padding:4px 9px; font-size:11.5px; border-radius:8px }
+
+/* ---------- structure ---------- */
+main{ max-width:1180px; margin-inline:auto; padding:22px 18px 90px }
+.module{ display:none }
+.module.actif{ display:block; animation:apparait .35s ease both }
+@keyframes apparait{ from{ opacity:0; transform:translateY(8px) } to{ opacity:1; transform:none } }
+.intro-mod{ margin-bottom:20px }
+.intro-mod h2{ font-size:26px; margin-bottom:6px }
+.intro-mod p{ color:var(--gris); font-size:14px; max-width:70ch }
+.ref{ display:inline-block; margin-top:8px; font-size:11.5px; color:var(--accent);
+  background:var(--accent-pale); border-radius:999px; padding:3px 10px; font-weight:500 }
+
+/* ---------- bandeau « valeurs simulées » ----------
+   Présent en tête de chaque module : l'élève doit savoir qu'il lit un modèle
+   et non un relevé de mesures. */
+.avert{ display:flex; gap:11px; align-items:flex-start; margin:16px 0 20px;
+  background:#fdf7f1; border:1px solid #efd9c4; border-left:3px solid var(--accent);
+  border-radius:0 12px 12px 0; padding:11px 15px; font-size:12.5px; line-height:1.5; color:#575046 }
+.avert .marque{ flex:none; width:19px; height:19px; border-radius:50%; background:var(--accent);
+  color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
+  line-height:1; margin-top:1px }
+.avert b{ color:var(--accent) }
+.avert p + p{ margin-top:5px }
+
+.carte{ background:var(--papier); border:1px solid var(--ligne); border-radius:var(--r); box-shadow:var(--ombre); padding:18px }
+.carte + .carte{ margin-top:16px }
+.carte h3{ font-size:16px; margin-bottom:4px }
+.carte h3 + .sous{ color:var(--gris); font-size:12.5px; margin-bottom:14px }
+.grille{ display:grid; gap:16px }
+@media(min-width:900px){ .grille.deux{ grid-template-columns:minmax(0,340px) minmax(0,1fr) } .grille.deux-eg{ grid-template-columns:1fr 1fr } }
+
+/* ---------- réglages ---------- */
+.reglage{ margin-bottom:14px }
+.reglage > label, .lgd{ display:flex; justify-content:space-between; align-items:baseline; gap:10px;
+  font-size:12.5px; font-weight:500; margin-bottom:6px }
+.reglage .val{ font-variant-numeric:tabular-nums; color:var(--accent); font-weight:600; font-size:12.5px }
+input[type=range]{ -webkit-appearance:none; appearance:none; width:100%; height:4px; border-radius:99px;
+  background:var(--ligne-forte); outline:none }
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:17px; height:17px; border-radius:50%;
+  background:var(--papier); border:2px solid var(--accent); box-shadow:0 1px 3px rgba(0,0,0,.2); cursor:pointer }
+input[type=range]::-moz-range-thumb{ width:15px; height:15px; border-radius:50%; background:var(--papier);
+  border:2px solid var(--accent); cursor:pointer }
+select, input[type=text], textarea{
+  font:inherit; font-size:13px; width:100%; padding:8px 10px; border:1px solid var(--ligne-forte);
+  border-radius:10px; background:var(--papier); color:var(--encre)
+}
+textarea{ resize:vertical; line-height:1.5 }
+.segment{ display:flex; gap:4px; flex-wrap:wrap; background:var(--fond); padding:4px; border-radius:11px; border:1px solid var(--ligne) }
+.segment button{ flex:1 1 auto; border:none; background:none; padding:6px 10px; border-radius:8px;
+  font-size:12px; font-weight:500; color:var(--gris); white-space:nowrap }
+.segment button[aria-pressed="true"]{ background:var(--papier); color:var(--encre); box-shadow:0 1px 3px rgba(0,0,0,.08) }
+.inter{ display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500; cursor:pointer;
+  padding:9px 12px; border:1px solid var(--ligne-forte); border-radius:11px; background:var(--papier) }
+.inter input{ display:none }
+.piste{ width:38px; height:21px; border-radius:99px; background:var(--ligne-forte); position:relative; transition:background .2s; flex:none }
+.piste::after{ content:''; position:absolute; top:2px; left:2px; width:17px; height:17px; border-radius:50%;
+  background:#fff; transition:transform .2s; box-shadow:0 1px 2px rgba(0,0,0,.25) }
+.inter input:checked + .piste{ background:var(--or) }
+.inter input:checked + .piste::after{ transform:translateX(17px) }
+
+/* ---------- divers ---------- */
+.note{ background:var(--fond); border-left:3px solid var(--accent-clair); border-radius:0 10px 10px 0;
+  padding:11px 14px; font-size:12.5px; color:#4a453d; margin-top:14px }
+.note b{ color:var(--encre) }
+.badge{ display:inline-block; font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:.04em;
+  padding:3px 8px; border-radius:999px; background:var(--fond); color:var(--gris) }
+.badge.vert{ background:var(--vert-pale); color:var(--vert) }
+.badge.bleu{ background:var(--bleu-pale); color:var(--bleu) }
+.badge.orange{ background:var(--accent-pale); color:var(--accent) }
+.mesures{ display:grid; grid-template-columns:repeat(auto-fit,minmax(112px,1fr)); gap:9px; margin-bottom:14px }
+.mesure{ background:var(--fond); border-radius:11px; padding:9px 11px; border:1px solid var(--ligne) }
+.mesure .t{ font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600 }
+.mesure .v{ font-size:19px; font-weight:700; font-variant-numeric:tabular-nums; line-height:1.3 }
+.mesure .u{ font-size:11px; color:var(--gris); font-weight:500 }
+/* ---------- tableau des données sous un graphique ---------- */
+.donnees{ margin-top:10px; font-size:12px }
+.donnees summary{ cursor:pointer; color:var(--accent); font-weight:500; padding:5px 0;
+  list-style:none; display:flex; align-items:center; gap:6px }
+.donnees summary::-webkit-details-marker{ display:none }
+.donnees summary::before{ content:'▸'; font-size:10px; transition:transform .2s }
+.donnees[open] summary::before{ transform:rotate(90deg) }
+.donnees table{ width:100%; border-collapse:collapse; margin-top:4px }
+.donnees th, .donnees td{ text-align:right; padding:4px 8px; border-bottom:1px solid var(--ligne);
+  font-variant-numeric:tabular-nums; white-space:nowrap }
+.donnees th:first-child, .donnees td:first-child{ text-align:left }
+/* pas de capitales : elles déformeraient « pH » et « mg·L⁻¹ » */
+.donnees th{ font-size:11px; font-weight:600; color:var(--gris);
+  position:sticky; top:0; background:var(--papier) }
+.donnees .enveloppe{ max-height:260px; overflow:auto }
+.donnees .pied{ display:flex; gap:8px; align-items:center; margin-top:8px; color:var(--gris-clair); font-size:11px }
+
+table.tab{ width:100%; border-collapse:collapse; font-size:12.5px }
+table.tab th, table.tab td{ text-align:left; padding:7px 9px; border-bottom:1px solid var(--ligne) }
+table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair) }
+.scroll-x{ overflow-x:auto }
+canvas{ display:block; max-width:100%; touch-action:pan-y }
+#ex-enceinte,#ex-graphe,#ex-serie,#ex-defi,#pi-spectre,#pi-fluo,
+#en-graphe,#en-gamme,#en-serie,#en-defi,#hi-coupe{ width:100% }
+/* Ces deux-là ont une largeur fixe : elle doit venir du CSS, jamais de
+   l'attribut width, que le tracé réécrit. */
+/* Hauteur explicite pour les graphiques des défis : tant qu'aucun défi n'a été
+   tracé, le canvas n'a pas d'attribut width et prendrait un format 300×270
+   étiré sur toute la largeur. */
+#ex-defi{ height:270px } #en-defi{ height:250px }
+#bio-tube{ width:180px; height:270px }
+#pi-chromo{ width:200px; height:400px }
+
+/* ---------- cartes et sections repliables ---------- */
+.pli > summary, .partie-pli > summary{ list-style:none; cursor:pointer; display:flex;
+  align-items:baseline; gap:10px }
+.pli > summary::-webkit-details-marker, .partie-pli > summary::-webkit-details-marker{ display:none }
+.pli > summary::after{ content:'▾'; margin-left:auto; color:var(--gris-clair); font-size:12px;
+  transition:transform .2s }
+.pli:not([open]) > summary::after{ transform:rotate(-90deg) }
+.pli:not([open]) > summary{ margin-bottom:0 }
+/* Le masquage natif d'un <details> fermé vient de la feuille de style du
+   navigateur : la règle d'auteur canvas{display:block} l'emportait et laissait
+   dépasser les graphiques. On masque donc explicitement. */
+.pli:not([open]) > *:not(summary){ display:none !important }
+.partie-pli{ border-bottom:1px solid var(--ligne) }
+.partie-pli > summary{ padding:11px 2px; font-size:13px; font-weight:600; color:var(--gris);
+  text-transform:uppercase; letter-spacing:.05em }
+.partie-pli > summary::after{ content:'▾'; margin-left:auto; font-size:11px; color:var(--gris-clair);
+  transition:transform .2s }
+.partie-pli:not([open]) > summary::after{ transform:rotate(-90deg) }
+.partie-pli > summary:hover{ color:var(--accent) }
+.partie-pli .compte{ font-weight:400; text-transform:none; letter-spacing:0; color:var(--gris-clair) }
+
+/* ---------- catalogue ---------- */
+.filtres{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:16px }
+.filtres input[type=text]{ max-width:260px }
+.partie-titre{ display:flex; align-items:center; gap:10px; margin:26px 0 10px; font-size:13px;
+  text-transform:uppercase; letter-spacing:.06em; color:var(--gris-clair); font-weight:600 }
+.partie-titre::after{ content:''; flex:1; height:1px; background:var(--ligne) }
+.liste-exp{ display:grid; gap:8px }
+.exp{ background:var(--papier); border:1px solid var(--ligne); border-radius:11px; padding:10px 14px;
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.exp .num{ font-variant-numeric:tabular-nums; font-weight:700; color:var(--accent-clair); font-size:12.5px; min-width:34px }
+.exp .titre{ flex:1; min-width:180px; font-size:13.5px 	}
+.exp .page{ font-size:11.5px; color:var(--gris-clair); font-variant-numeric:tabular-nums }
+.exp.simulable{ border-color:var(--accent-clair); background:linear-gradient(90deg,var(--accent-pale),var(--papier) 70%) }
+
+/* ---------- carnet ---------- */
+#carnet{ position:fixed; right:0; bottom:0; top:0; width:min(420px,100%); background:var(--papier);
+  border-left:1px solid var(--ligne); box-shadow:-8px 0 30px rgba(35,32,28,.12); z-index:80;
+  transform:translateX(100%); transition:transform .3s cubic-bezier(.22,1,.36,1); display:flex; flex-direction:column }
+#carnet.ouvert{ transform:none }
+#carnet .cn-tete{ padding:16px 18px; border-bottom:1px solid var(--ligne); display:flex; align-items:center; gap:10px }
+#carnet .cn-corps{ flex:1; overflow-y:auto; padding:16px 18px }
+#carnet .cn-pied{ padding:12px 18px; border-top:1px solid var(--ligne); display:flex; gap:8px; flex-wrap:wrap }
+#carnet textarea{ min-height:120px; margin-bottom:14px }
+.flottant{ position:fixed; right:18px; bottom:18px; z-index:70; box-shadow:0 6px 20px rgba(35,32,28,.18) }
+
+/* ---------- impression ---------- */
+@media print{
+  header.top, nav.onglets, .flottant, #carnet, .no-print{ display:none !important }
+  body{ background:#fff } main{ padding:0 } .carte{ box-shadow:none; break-inside:avoid }
+}
+
+/* ---------- ajouts de la page géologie ----------
+   Sans minmax(0,1fr), une colonne de grille prend la largeur de son contenu
+   le plus large — un tableau de cinq colonnes, une liste déroulante à longs
+   intitulés — et la page déborde horizontalement sur téléphone. */
+.grille{ grid-template-columns:minmax(0,1fr) }
+@media(min-width:900px){
+  .grille.deux{ grid-template-columns:minmax(0,340px) minmax(0,1fr) }
+  .grille.deux-eg{ grid-template-columns:minmax(0,1fr) minmax(0,1fr) }
+}
+select{ max-width:100% }
+#se-classes{ overflow-x:auto }
+#se-classes table{ min-width:360px }
+input[type=search]{ font:inherit; font-size:13px; width:100%; padding:8px 10px;
+  border:1px solid var(--ligne-forte); border-radius:10px; background:var(--papier); color:var(--encre) }
+.filtres input[type=search]{ max-width:260px }
+.lgd{ display:block; font-size:12px; font-weight:500; color:var(--gris); margin-bottom:5px }
+.btn.mini[aria-pressed="true"]{ border-color:var(--accent-clair); background:var(--accent-pale) }
+table.tab td{ vertical-align:top }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-bar">
+    <div class="marque">
+      <b>Laboratoire virtuel — géologie</b>
+      <i>TP classiques du lycée</i>
+    </div>
+    <div class="top-spacer"></div>
+    <div class="top-actions">
+      <a class="btn mini" href="labo_vegetal.html">→ Labo biologie végétale</a>
+      <button class="btn mini" id="btn-carnet">Carnet de manip</button>
+      <a class="btn mini" href="../index.html">Retour au site</a>
+    </div>
+  </div>
+  <nav class="onglets" role="tablist" aria-label="Modules du laboratoire">
+    <button role="tab" data-mod="accueil"  aria-selected="true">Accueil &amp; catalogue</button>
+    <button role="tab" data-mod="sediment" aria-selected="false">Érosion, transport &amp; dépôt</button>
+    <button role="tab" data-mod="cristal"  aria-selected="false">Cristallisation &amp; texture</button>
+    <button role="tab" data-mod="magma"    aria-selected="false">Viscosité &amp; style éruptif</button>
+    <button role="tab" data-mod="roches"   aria-selected="false">Paillasse — identifier une roche</button>
+    <button role="tab" data-mod="preparer" aria-selected="false">Préparer une manip</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- =========================================================
+     MODULE — ACCUEIL & CATALOGUE
+     ========================================================= -->
+<section class="module actif" id="mod-accueil" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Quatre paillasses de géologie, et de quoi préparer les vraies</h2>
+    <p>La gouttière hydraulique, la cristallisation, la viscosité des magmas et l'identification
+       des roches : les quatre manipulations que l'on refait chaque année et qui demandent
+       toujours du temps de montage. Ici on fait varier les paramètres en quelques secondes,
+       pour préparer la séance réelle ou pour l'exploiter après coup. Le dernier onglet sort la
+       liste de matériel.</p>
+    <span class="ref">TP classiques du lycée · d'après la banque d'expériences de Planet-Terre (ENS Lyon)</span>
+    <a class="btn mini no-print" style="margin-left:8px; vertical-align:2px"
+       href="https://planet-terre.ens-lyon.fr/" target="_blank" rel="noopener">Planet-Terre ↗</a>
+  </div>
+
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Deux statuts très différents dans ce laboratoire.</b> Les trois premiers modules
+       calculent : vitesse de chute d'un grain, taille des cristaux, viscosité d'un magma sortent
+       d'équations. Les lois sont celles des manuels (Stokes, Hjulström, loi d'Arrhenius), mais
+       <b>les constantes ont été ajustées pour l'illustration : les nombres ne sont pas des mesures</b>.</p>
+    <p>Le quatrième, la paillasse d'identification, ne calcule rien : les propriétés des roches
+       (effervescence à l'acide, dureté, texture, minéraux) sont des <b>faits</b>, pas un modèle.
+       Chaque module le rappelle en tête.</p>
+  </div></div>
+
+  <div class="grille" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+    <div class="carte">
+      <span class="badge bleu">Érosion · transport · dépôt</span>
+      <h3 style="margin-top:8px">La gouttière hydraulique</h3>
+      <p class="sous">Débit, pente, mélange de sédiments, couvert végétal. Les grains sont érodés,
+         transportés ou déposés selon leur taille et la vitesse du courant. Diagramme de Hjulström
+         en direct, tri granulométrique du dépôt, et un mode delta.</p>
+      <button class="btn primaire" data-va="sediment">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge orange">Magmatisme</span>
+      <h3 style="margin-top:8px">Cristallisation &amp; texture</h3>
+      <p class="sous">Du pluton refroidi en un million d'années à la trempe dans l'eau. La vitesse
+         de refroidissement fixe la taille des cristaux, donc la texture — et la texture plus la
+         teneur en silice donnent le nom de la roche.</p>
+      <button class="btn primaire" data-va="cristal">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge vert">Volcanisme</span>
+      <h3 style="margin-top:8px">Viscosité &amp; style éruptif</h3>
+      <p class="sous">Silice, température, eau dissoute : la viscosité varie sur dix ordres de
+         grandeur. Vitesse d'écoulement sur une pente, et le style éruptif qui en découle,
+         de la fontaine de lave à la nuée ardente.</p>
+      <button class="btn primaire" data-va="magma">Ouvrir la paillasse</button>
+    </div>
+    <div class="carte">
+      <span class="badge">Faits, pas modèle</span>
+      <h3 style="margin-top:8px">Identifier une roche</h3>
+      <p class="sous">Seize échantillons, six tests : loupe, acide chlorhydrique, dureté, densité,
+         minéraux visibles, réaction à la lumière. Mode « roche mystère » avec le moins de tests
+         possible, et classement magmatique / sédimentaire / métamorphique.</p>
+      <button class="btn primaire" data-va="roches">Ouvrir la paillasse</button>
+    </div>
+  </div>
+
+  <div class="partie-titre">Le catalogue des TP de géologie</div>
+  <p style="font-size:13px; color:var(--gris); margin:-2px 2px 12px">
+    Les manipulations classiques du lycée. Celles qui portent un bouton coloré se simulent ici ;
+    toutes ont une fiche de matériel.</p>
+
+  <div class="filtres no-print" style="margin-bottom:12px">
+    <input type="search" id="cat-recherche" placeholder="Chercher une expérience (érosion, cristaux, acide…)">
+    <div class="segment" id="cat-filtre">
+      <button aria-pressed="true"  data-p="tout">Tout</button>
+      <button aria-pressed="false" data-p="A">A. Roches &amp; minéraux</button>
+      <button aria-pressed="false" data-p="B">B. Surface de la Terre</button>
+      <button aria-pressed="false" data-p="C">C. Magmatisme</button>
+      <button aria-pressed="false" data-p="D">D. Terre interne</button>
+    </div>
+  </div>
+  <div id="cat-liste"></div>
+</section>
+
+<!-- =========================================================
+     MODULE — ÉROSION, TRANSPORT & DÉPÔT
+     ========================================================= -->
+<section class="module" id="mod-sediment" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Gouttière hydraulique — érosion, transport, dépôt</h2>
+    <p>On verse un mélange de sédiments en haut de la gouttière et on ouvre l'eau. Selon la
+       vitesse du courant, chaque classe de grains est arrachée, emportée, ou abandonnée sur le
+       fond. Le dépôt se trie tout seul : les gros d'abord, les fins plus loin.</p>
+    <span class="ref">TP « transport et dépôt » · « formation d'un delta » · « érosion »</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="gouttiere"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Valeurs simulées, non mesurées.</b> La vitesse de chute d'un grain vient de la loi de
+       Stokes, corrigée pour les gros grains ; le seuil d'arrachement suit un ajustement de la
+       courbe de Hjulström. Les deux lois sont celles des manuels, mais les constantes ont été
+       choisies pour que les ordres de grandeur soient justes.</p>
+    <p><b>Les nombres affichés ne sont pas des mesures</b> : ils disent le sens et l'ordre de
+       grandeur des variations, pas le résultat d'une vraie gouttière.</p>
+  </div></div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Réglages</h3>
+        <div class="reglage">
+          <label for="se-debit">Vitesse du courant <span class="val" id="se-debit-v">45 cm/s</span></label>
+          <input type="range" id="se-debit" min="0" max="200" value="45" step="1">
+        </div>
+        <div class="reglage">
+          <label for="se-pente">Pente de la gouttière <span class="val" id="se-pente-v">4°</span></label>
+          <input type="range" id="se-pente" min="0" max="15" value="4" step="1">
+        </div>
+        <div class="reglage">
+          <label for="se-melange">Mélange versé en haut</label>
+          <select id="se-melange">
+            <option value="alluvions">Alluvions de rivière (tout-venant)</option>
+            <option value="sable">Sable de plage (bien classé)</option>
+            <option value="moraine">Moraine glaciaire (très mal classée)</option>
+            <option value="limon">Limon de crue (fins dominants)</option>
+            <option value="galets">Galets et graviers</option>
+          </select>
+        </div>
+        <div class="reglage">
+          <label>Couvert végétal du talus</label>
+          <div class="segment" id="se-vegetal">
+            <button aria-pressed="true"  data-v="0">Sol nu</button>
+            <button aria-pressed="false" data-v="40">Herbe rase</button>
+            <button aria-pressed="false" data-v="80">Prairie dense</button>
+          </div>
+        </div>
+        <div class="reglage">
+          <label>Dispositif</label>
+          <div class="segment" id="se-mode">
+            <button aria-pressed="true"  data-m="gouttiere">Gouttière</button>
+            <button aria-pressed="false" data-m="delta">Bac à delta</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap" class="no-print">
+          <button class="btn primaire" id="se-go">Ouvrir l'eau</button>
+          <button class="btn" id="se-vider">Vider et recommencer</button>
+        </div>
+        <div class="note" id="se-note"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Ce que fait chaque classe de grains</h3>
+        <div id="se-classes"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>La gouttière</h3>
+        <div class="mesures">
+          <div class="mesure"><div class="t">Courant</div><div class="v" id="se-m-v">45</div><div class="u">cm/s</div></div>
+          <div class="mesure"><div class="t">Transporté</div><div class="v" id="se-m-t">0</div><div class="u">% de la masse</div></div>
+          <div class="mesure"><div class="t">Déposé</div><div class="v" id="se-m-d">0</div><div class="u">% de la masse</div></div>
+          <div class="mesure"><div class="t">Sorti du bac</div><div class="v" id="se-m-s">0</div><div class="u">% de la masse</div></div>
+        </div>
+        <canvas id="se-cv" height="250" style="width:100%; display:block; border-radius:11px"></canvas>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px" id="se-legende"></p>
+      </div>
+
+      <div class="carte">
+        <h3>Diagramme de Hjulström</h3>
+        <p class="sous">Pour chaque taille de grain, deux seuils : au-dessus de la courbe rouge le
+           grain est arraché du fond, en dessous de la courbe bleue il se dépose. Entre les deux,
+           il continue son voyage. Le trait horizontal marque le courant réglé, et les pastilles
+           les classes présentes dans le mélange.</p>
+        <canvas id="se-hj" height="260" style="width:100%; display:block"></canvas>
+        <div class="note">Le minimum de la courbe d'arrachement vers 0,2–0,3 mm est le point le
+          plus contre-intuitif du diagramme : <b>les argiles sont plus difficiles à arracher que
+          les sables fins</b>, parce qu'elles sont cohésives. Une fois en suspension, elles ne se
+          redéposent presque jamais.</div>
+      </div>
+
+      <div class="carte">
+        <h3>Questions d'exploitation</h3>
+        <div id="se-questions"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — CRISTALLISATION & TEXTURE
+     ========================================================= -->
+<section class="module" id="mod-cristal" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Cristallisation — la vitesse de refroidissement fait la texture</h2>
+    <p>En classe on le montre au sulfate de cuivre ou à l'alun : une solution refroidie lentement
+       donne de gros cristaux, refroidie brutalement de la poudre. Un magma fait exactement
+       pareil. Ici on choisit où il refroidit, et la lame mince se dessine.</p>
+    <span class="ref">TP « cristallisation » · texture des roches magmatiques</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="cristallisation"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Valeurs simulées, non mesurées.</b> La taille des cristaux suit d = 0,37 × R<sup>−0,28</sup>
+       (R = vitesse de refroidissement en °C/h). L'exposant, proche de −1/3, est de l'ordre de
+       grandeur admis ; la constante a été ajustée sur deux repères : un pluton granitique
+       (cristaux centimétriques) et une coulée basaltique (microlites de quelques centièmes de mm).</p>
+    <p><b>C'est un dessin, pas une photographie de lame mince</b> : la texture est construite par
+       le programme. L'allure et le sens des variations sont fidèles, les détails non.</p>
+  </div></div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Où le magma refroidit-il ?</h3>
+        <div class="reglage">
+          <label for="cr-lieu">Situation</label>
+          <select id="cr-lieu">
+            <option value="pluton">Pluton profond — 10 km, refroidi en 1 million d'années</option>
+            <option value="laccolite">Petit massif intrusif — 2 km, quelques milliers d'années</option>
+            <option value="filon">Filon de quelques mètres — quelques mois</option>
+            <option value="coulee" selected>Coulée de lave à l'air — quelques jours</option>
+            <option value="bombe">Projection en l'air — quelques minutes</option>
+            <option value="trempe">Lave entrant dans l'eau — quelques secondes</option>
+          </select>
+        </div>
+        <div class="reglage">
+          <label for="cr-silice">Teneur en silice <span class="val" id="cr-silice-v">70 % — magma felsique</span></label>
+          <input type="range" id="cr-silice" min="45" max="76" value="70" step="1">
+        </div>
+        <label class="inter" style="margin-bottom:14px">
+          <input type="checkbox" id="cr-phenos"><span class="piste"></span>
+          Cristaux déjà formés en profondeur (phénocristaux)
+        </label>
+        <div class="note" id="cr-note"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Taille des cristaux et vitesse de refroidissement</h3>
+        <canvas id="cr-courbe" height="230" style="width:100%; display:block"></canvas>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px">
+          Deux échelles logarithmiques : six ordres de grandeur sur la vitesse de refroidissement,
+          quatre sur la taille des cristaux.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>La lame mince</h3>
+        <div class="mesures">
+          <div class="mesure"><div class="t">Refroidissement</div><div class="v" id="cr-m-r">—</div><div class="u">°C par heure</div></div>
+          <div class="mesure"><div class="t">Cristaux</div><div class="v" id="cr-m-d">—</div><div class="u">mm</div></div>
+          <div class="mesure"><div class="t">Texture</div><div class="v" id="cr-m-t" style="font-size:15px">—</div><div class="u">observée</div></div>
+          <div class="mesure"><div class="t">Roche</div><div class="v" id="cr-m-n" style="font-size:15px">—</div><div class="u">nommée</div></div>
+        </div>
+        <canvas id="cr-cv" height="330" style="width:100%; display:block; border-radius:11px"></canvas>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+          <button class="btn mini" id="cr-zoom">Changer de grossissement</button>
+          <button class="btn mini" id="cr-relance">Autre champ de la lame</button>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Le tableau à double entrée</h3>
+        <p class="sous">Texture en ligne, chimie en colonne : c'est ainsi qu'on nomme une roche
+           magmatique. La case allumée est celle du réglage actuel.</p>
+        <div class="scroll-x"><table class="tab" id="cr-table"></table></div>
+      </div>
+
+      <div class="carte">
+        <h3>Questions d'exploitation</h3>
+        <div id="cr-questions"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — VISCOSITÉ & STYLE ÉRUPTIF
+     ========================================================= -->
+<section class="module" id="mod-magma" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Viscosité des magmas et style éruptif</h2>
+    <p>En classe on compare l'eau, l'huile, le miel et le sirop sur un plan incliné. Un magma
+       couvre un domaine bien plus large : entre une lave basaltique à 1200 °C et une rhyolite à
+       800 °C, la viscosité varie d'un facteur dix millions. C'est ce qui décide si le volcan
+       coule ou s'il explose.</p>
+    <span class="ref">TP « viscosité des magmas » · « modélisation d'une éruption »</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="viscosite"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Valeurs simulées, non mesurées.</b> La viscosité vient de
+       log η = 2 + 0,15 (SiO₂ − 50) + 0,011 (1200 − T) − 0,6 H₂O, une forme simplifiée des lois
+       d'Arrhenius, calée sur deux repères réels : basalte à 1200 °C (≈ 100 Pa·s) et rhyolite
+       sèche à 850 °C (≈ 10⁹ Pa·s). La vitesse d'écoulement vient de l'écoulement d'un fluide
+       visqueux sur un plan incliné.</p>
+    <p>Les ordres de grandeur sont justes et les variations ont le bon sens.
+       <b>Les nombres ne sont pas des mesures</b>, et un magma réel contient des cristaux et des
+       bulles qui changent tout.</p>
+  </div></div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Le magma</h3>
+        <div class="reglage">
+          <label for="ma-silice">Teneur en silice <span class="val" id="ma-silice-v">50 %</span></label>
+          <input type="range" id="ma-silice" min="45" max="76" value="50" step="1">
+        </div>
+        <div class="reglage">
+          <label for="ma-temp">Température <span class="val" id="ma-temp-v">1200 °C</span></label>
+          <input type="range" id="ma-temp" min="700" max="1300" value="1200" step="10">
+        </div>
+        <div class="reglage">
+          <label for="ma-eau">Eau dissoute <span class="val" id="ma-eau-v">0,0 %</span></label>
+          <input type="range" id="ma-eau" min="0" max="50" value="0" step="1">
+        </div>
+        <div class="reglage">
+          <label for="ma-pente">Pente du versant <span class="val" id="ma-pente-v">8°</span></label>
+          <input type="range" id="ma-pente" min="1" max="35" value="8" step="1">
+        </div>
+        <div class="reglage">
+          <label>Magmas de référence</label>
+          <div class="segment" id="ma-type">
+            <button aria-pressed="true"  data-t="basalte">Basalte</button>
+            <button aria-pressed="false" data-t="andesite">Andésite</button>
+            <button aria-pressed="false" data-t="rhyolite">Rhyolite</button>
+          </div>
+        </div>
+        <div class="note" id="ma-note"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Viscosité et température</h3>
+        <canvas id="ma-courbe" height="230" style="width:100%; display:block"></canvas>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px">
+          Échelle logarithmique : chaque graduation vaut un facteur dix.</p>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>L'écoulement</h3>
+        <div class="mesures">
+          <div class="mesure"><div class="t">Viscosité</div><div class="v" id="ma-m-eta">—</div><div class="u">Pa·s</div></div>
+          <div class="mesure"><div class="t">Vitesse</div><div class="v" id="ma-m-v">—</div><div class="u" id="ma-m-vu">m/s</div></div>
+          <div class="mesure"><div class="t">Parcours en 1 h</div><div class="v" id="ma-m-d">—</div><div class="u" id="ma-m-du">m</div></div>
+          <div class="mesure"><div class="t">Style</div><div class="v" id="ma-m-s" style="font-size:15px">—</div><div class="u">éruptif</div></div>
+        </div>
+        <canvas id="ma-cv" height="300" style="width:100%; display:block; border-radius:11px"></canvas>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
+          <button class="btn primaire" id="ma-go">Déclencher l'éruption</button>
+          <button class="btn" id="ma-stop">Arrêter</button>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Ce que l'on observerait sur le terrain</h3>
+        <div id="ma-terrain"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Questions d'exploitation</h3>
+        <div id="ma-questions"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — PAILLASSE : IDENTIFIER UNE ROCHE
+     ========================================================= -->
+<section class="module" id="mod-roches" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Paillasse — identifier une roche</h2>
+    <p>Seize échantillons et six tests. On choisit une roche, on lui fait subir les tests que l'on
+       veut, et on conclut. En mode « roche mystère », l'échantillon est caché : il faut le
+       reconnaître avec le moins de tests possible, comme devant une caisse d'échantillons.</p>
+    <span class="ref">TP « reconnaissance et classification des roches » · « identification des minéraux »</span>
+    <button class="btn mini no-print" data-va="preparer" data-fiche="roches"
+            style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Ici, rien n'est simulé.</b> L'effervescence à l'acide, la dureté, la densité, la texture
+       et les minéraux visibles de ces seize roches sont des <b>propriétés réelles</b>, relevées
+       comme on les trouve dans une collection de lycée. Ce module est une base de données, pas un
+       modèle : les résultats des tests sont vrais.</p>
+    <p>Ce qui reste un dessin, c'est l'aspect de l'échantillon à l'écran. Une vraie caisse de
+       roches ne se remplace pas : <b>le but est de préparer la séance ou de la réviser</b>, pas
+       de s'en passer.</p>
+  </div></div>
+
+  <div class="grille deux">
+    <div>
+      <div class="carte">
+        <h3>Mode</h3>
+        <div class="segment" id="ro-mode" style="margin-bottom:14px">
+          <button aria-pressed="true"  data-m="libre">Explorer</button>
+          <button aria-pressed="false" data-m="mystere">Roche mystère</button>
+        </div>
+        <div id="ro-choix">
+          <div class="reglage">
+            <label for="ro-ech">Échantillon</label>
+            <select id="ro-ech"></select>
+          </div>
+        </div>
+        <div id="ro-mystere-bloc" style="display:none">
+          <p style="font-size:13px; color:var(--gris); margin-bottom:12px">
+            Un échantillon a été tiré au sort. Faites les tests nécessaires, puis proposez un nom.</p>
+          <div class="reglage">
+            <label for="ro-reponse">Votre identification</label>
+            <select id="ro-reponse"></select>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap" class="no-print">
+            <button class="btn primaire" id="ro-valider">Valider</button>
+            <button class="btn" id="ro-nouvelle">Autre échantillon</button>
+          </div>
+          <div class="note" id="ro-score"></div>
+        </div>
+      </div>
+
+      <div class="carte">
+        <h3>Les tests</h3>
+        <div id="ro-tests" style="display:grid; gap:7px"></div>
+        <div class="note" id="ro-securite"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="carte">
+        <h3>L'échantillon</h3>
+        <canvas id="ro-cv" height="260" style="width:100%; display:block; border-radius:11px"></canvas>
+        <div id="ro-resultats" style="margin-top:14px"></div>
+      </div>
+
+      <div class="carte">
+        <h3>Clé de détermination</h3>
+        <p class="sous">L'ordre dans lequel un géologue enchaîne les tests devant une roche inconnue.</p>
+        <div id="ro-cle"></div>
+      </div>
+
+      <div class="carte">
+        <h3>La collection</h3>
+        <p class="sous">Les seize échantillons et leurs propriétés. À replier avant de lancer une
+           roche mystère…</p>
+        <div class="scroll-x"><table class="tab" id="ro-table"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODULE — PRÉPARER UNE MANIP
+     ========================================================= -->
+<section class="module" id="mod-preparer" role="tabpanel">
+  <div class="intro-mod">
+    <h2>Préparer une manip</h2>
+    <p>Chaque expérience donne sa liste de matériel pour le nombre de postes voulu. Le panier
+       réunit plusieurs manipulations en une seule liste de courses, le matériel partagé compté
+       une fois. Dans l'autre sens, cochez ce que contient votre placard : le laboratoire dit ce
+       que vous pouvez faire.</p>
+    <span class="ref">Pour le professeur</span>
+  </div>
+  <div class="avert"><span class="marque">i</span><div>
+    <p><b>Quantités estimées, protocoles condensés.</b> Les fiches sont des versions courtes et
+       standard des protocoles, pas les modes opératoires d'un fournisseur. Les quantités sont des
+       ordres de grandeur pour un poste d'élèves.</p>
+    <p><b>À confronter à vos habitudes et aux règles de sécurité de votre établissement</b> avant
+       une séance, en particulier pour l'acide chlorhydrique et la découpe des roches.</p>
+  </div></div>
+
+  <div class="segment no-print" id="pr-mode" style="margin-bottom:16px">
+    <button aria-pressed="true"  data-m="recette">Je choisis une manip → le matériel</button>
+    <button aria-pressed="false" data-m="placard">J'ai ce matériel → les manips possibles</button>
+  </div>
+
+  <div id="pr-recette">
+    <div class="grille deux">
+      <div>
+        <div class="carte">
+          <h3>Les manipulations</h3>
+          <div class="filtres no-print" style="margin-bottom:12px">
+            <input type="search" id="pr-q" placeholder="Chercher (acide, cristaux, delta…)">
+            <select id="pr-partie">
+              <option value="">Toutes les parties</option>
+              <option value="A">A. Roches &amp; minéraux</option>
+              <option value="B">B. Surface de la Terre</option>
+              <option value="C">C. Magmatisme</option>
+              <option value="D">D. Terre interne</option>
+            </select>
+          </div>
+          <div class="reglage">
+            <label for="pr-duree">Durée maximale <span class="val" id="pr-duree-v">2 h</span></label>
+            <input type="range" id="pr-duree" min="10" max="120" value="120" step="5">
+          </div>
+          <div id="pr-liste" style="display:grid; gap:6px"></div>
+        </div>
+      </div>
+      <div><div class="carte" id="pr-fiche"></div></div>
+    </div>
+  </div>
+
+  <div id="pr-placard" style="display:none">
+    <div class="grille deux">
+      <div>
+        <div class="carte">
+          <h3>Votre placard</h3>
+          <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px" class="no-print">
+            <button class="btn mini" id="pr-type">Placard type de lycée</button>
+            <button class="btn mini" id="pr-rien">Tout décocher</button>
+          </div>
+          <div id="pr-inventaire"></div>
+        </div>
+      </div>
+      <div>
+        <div class="carte">
+          <h3>Ce que vous pouvez faire</h3>
+          <p class="sous" id="pr-bilan"></p>
+          <div id="pr-possibles"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="carte" id="pr-panier-carte" style="display:none; margin-top:16px">
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap">
+      <h3 style="flex:1">Liste de courses</h3>
+      <label style="font-size:12.5px; display:flex; align-items:center; gap:7px">
+        Postes
+        <input type="number" id="pr-postes" value="8" min="1" max="20" style="width:72px">
+      </label>
+    </div>
+    <p class="sous" id="pr-panier-sous"></p>
+    <div id="pr-panier"></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:14px" class="no-print">
+      <button class="btn primaire" id="pr-imprimer">Imprimer la liste</button>
+      <button class="btn" id="pr-vider">Vider le panier</button>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ---------- carnet de manip ---------- -->
+<button class="btn sombre flottant no-print" id="btn-carnet-2">Carnet</button>
+<aside id="carnet" aria-label="Carnet de manipulation">
+  <div class="cn-tete">
+    <b style="flex:1">Carnet de manipulation</b>
+    <button class="btn mini" id="cn-fermer">Fermer</button>
+  </div>
+  <div class="cn-corps">
+    <div class="reglage">
+      <label for="cn-nom">Nom, classe, date</label>
+      <input type="text" id="cn-nom" placeholder="Léa M. — 2nde 4 — 12/03">
+    </div>
+    <label class="lgd" for="cn-1">Gouttière — observations et interprétation</label>
+    <textarea id="cn-1" placeholder="Où se déposent les graviers ? et les argiles ?…"></textarea>
+    <label class="lgd" for="cn-2">Cristallisation</label>
+    <textarea id="cn-2" placeholder="Taille des cristaux selon le lieu de refroidissement…"></textarea>
+    <label class="lgd" for="cn-3">Viscosité et style éruptif</label>
+    <textarea id="cn-3" placeholder="Ce qui rend une éruption explosive…"></textarea>
+    <label class="lgd" for="cn-4">Identification des roches</label>
+    <textarea id="cn-4" placeholder="Tests réalisés, conclusion, classement…"></textarea>
+    <p style="font-size:11.5px; color:var(--gris-clair)">
+      Les valeurs que vous trouvez dans les modules sont relevées automatiquement et s'ajoutent en
+      tête de la fiche imprimée. Tout reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
+  </div>
+  <div class="cn-pied">
+    <button class="btn primaire" id="cn-imprimer">Fiche de résultats (imprimer / PDF)</button>
+    <button class="btn" id="cn-effacer">Tout effacer</button>
+  </div>
+</aside>
+
+<script>
+/* ==========================================================================
+   OUTILS COMMUNS
+   ========================================================================== */
+const $  = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const borne = (v,a,b) => Math.max(a, Math.min(b, v));
+const fr = (v,d=2) => v.toLocaleString('fr-FR',{minimumFractionDigits:d, maximumFractionDigits:d});
+const ech = t => String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+
+/* --- groupe de boutons « segment » --- */
+function segment(el, cb){
+  el.addEventListener('click', e => {
+    const b = e.target.closest('button'); if(!b) return;
+    $$('button', el).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+    cb(b.dataset);
+  });
+}
+function segmentPose(el, cle, val){
+  $$('button', el).forEach(b => b.setAttribute('aria-pressed', String(b.dataset[cle] === val)));
+}
+
+/* --- dimensionnement d'un canvas ---------------------------------------
+   Écrire cv.width / cv.height met aussi à jour les ATTRIBUTS width et
+   height, donc la taille de mise en page. Relire ensuite ces attributs pour
+   calculer la taille voulue multiplie le canvas par le rapport de pixels à
+   chaque tracé, et la page s'allonge sans fin (écran Retina, zoom à 125 %).
+   On mémorise donc une bonne fois la hauteur d'affichage, et on l'impose
+   en CSS.                                                                  */
+function dimensionne(cv, hauteurVoulue){
+  const dpr = window.devicePixelRatio || 1;
+  if(!cv.dataset.hcss) cv.dataset.hcss = hauteurVoulue || cv.getAttribute('height') || 150;
+  const h = Math.round(hauteurVoulue || parseFloat(cv.dataset.hcss));
+  const l = Math.max(1, Math.round(cv.clientWidth || parseFloat(cv.getAttribute('width')) || 300));
+  cv.style.height = h + 'px';
+  const pw = Math.round(l*dpr), ph = Math.round(h*dpr);
+  if(cv.width !== pw || cv.height !== ph){ cv.width = pw; cv.height = ph; }
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,l,h);
+  return {ctx, l, h};
+}
+/* graduations « rondes » */
+function pas(etendue, cible=6){
+  const brut = etendue/cible, ex = Math.pow(10, Math.floor(Math.log10(brut))), n = brut/ex;
+  return (n<1.5?1:n<3?2:n<7?5:10)*ex;
+}
+/* questions d'exploitation : réponse masquée, à vérifier après coup */
+function blocQuestions(liste){
+  return liste.map((q,i) =>
+    '<details style="border-bottom:1px solid var(--ligne); padding:9px 0">' +
+    '<summary style="cursor:pointer; font-size:13.5px; font-weight:500">' + (i+1) + '. ' + q[0] + '</summary>' +
+    '<p style="font-size:12.5px; color:var(--gris); margin-top:7px">' + q[1] + '</p></details>').join('');
+}
+/* générateur pseudo-aléatoire reproductible : un même réglage donne toujours
+   le même dessin, ce qui évite qu'une roche change d'aspect à chaque tracé */
+function graine(n){
+  let a = n >>> 0;
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ==========================================================================
+   NAVIGATION ENTRE MODULES
+   ========================================================================== */
+const Labo = { surAffichage:{}, surURL:{}, moduleActif:'accueil', resultats:{} };
+try { Labo.resultats = JSON.parse(localStorage.getItem('labo-geol-resultats') || '{}'); } catch(e){}
+Labo.note = (mod, cle, valeur) => {
+  (Labo.resultats[mod] = Labo.resultats[mod] || {})[cle] = valeur;
+  try { localStorage.setItem('labo-geol-resultats', JSON.stringify(Labo.resultats)); } catch(e){}
+};
+function ouvreModule(nom){
+  $$('.module').forEach(m => m.classList.toggle('actif', m.id === 'mod-'+nom));
+  $$('nav.onglets button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mod === nom)));
+  Labo.moduleActif = nom;
+  history.replaceState(null,'','#'+nom);
+  window.scrollTo({top:0, behavior:'instant' in window ? 'instant' : 'auto'});
+  if(Labo.surAffichage[nom]) Labo.surAffichage[nom]();
+}
+$('nav.onglets').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(b) ouvreModule(b.dataset.mod);
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-va]'); if(b) ouvreModule(b.dataset.va);
+});
+window.addEventListener('resize', () => {
+  clearTimeout(Labo._t);
+  Labo._t = setTimeout(() => { if(Labo.surAffichage[Labo.moduleActif]) Labo.surAffichage[Labo.moduleActif](); }, 150);
+});
+
+/* ==========================================================================
+   CARNET DE MANIPULATION (mémorisé dans le navigateur)
+   ========================================================================== */
+(function carnet(){
+  const pan = $('#carnet');
+  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4'];
+  const CLE = 'labo-geol-carnet';
+  let sauv = {};
+  try { sauv = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch(e){ sauv = {}; }
+  champs.forEach(id => {
+    const el = $('#'+id); if(!el) return;
+    if(sauv[id]) el.value = sauv[id];
+    el.addEventListener('input', () => {
+      sauv[id] = el.value;
+      try { localStorage.setItem(CLE, JSON.stringify(sauv)); } catch(e){}
+    });
+  });
+  const ouvre = () => pan.classList.add('ouvert');
+  ['#btn-carnet','#btn-carnet-2'].forEach(s => { const b=$(s); if(b) b.addEventListener('click', ouvre); });
+  $('#cn-fermer').addEventListener('click', () => pan.classList.remove('ouvert'));
+  $('#cn-effacer').addEventListener('click', () => {
+    if(!confirm('Effacer le carnet et tous les résultats relevés ?')) return;
+    champs.forEach(id => { const el=$('#'+id); if(el) el.value=''; });
+    sauv = {}; Labo.resultats = {};
+    try { localStorage.removeItem(CLE); localStorage.removeItem('labo-geol-resultats'); } catch(e){}
+  });
+
+  const TITRES = {sediment:'Gouttière hydraulique', cristal:'Cristallisation',
+                  magma:'Viscosité et style éruptif', roches:'Identification des roches'};
+  const RUBRIQUES = [['cn-1','Gouttière'],['cn-2','Cristallisation'],
+                     ['cn-3','Viscosité et style éruptif'],['cn-4','Identification des roches']];
+  $('#cn-imprimer').addEventListener('click', () => {
+    const nom = ($('#cn-nom').value || '').trim();
+    const releve = Object.keys(Labo.resultats).filter(m => Object.keys(Labo.resultats[m]||{}).length);
+    const html =
+      '<meta charset="utf-8"><title>Fiche de résultats — laboratoire de géologie</title>' +
+      '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#b15f2c}' +
+      '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:4px}' +
+      'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left} th{background:#faf7f2;width:55%;font-weight:500}' +
+      'p.rep{white-space:pre-wrap;border:1px solid #e4dfd5;border-radius:6px;padding:8px;min-height:2.4cm}' +
+      '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
+      '<h1>Laboratoire virtuel de géologie — fiche de résultats</h1>' +
+      '<p class="s">' + (nom ? ech(nom) + ' · ' : '') + new Date().toLocaleDateString('fr-FR') + '</p>' +
+      '<div class="enc">Les valeurs relevées dans les trois premiers modules sont calculées par un ' +
+      'modèle, pas mesurées. Les propriétés des roches de la paillasse, elles, sont réelles.</div>' +
+      (releve.length ? releve.map(m => '<h2>' + (TITRES[m]||m) + ' — valeurs relevées</h2><table>' +
+        Object.keys(Labo.resultats[m]).map(k =>
+          '<tr><th>' + ech(k) + '</th><td>' + ech(Labo.resultats[m][k]) + '</td></tr>').join('') +
+        '</table>').join('') : '') +
+      RUBRIQUES.map(([id,t]) => '<h2>' + t + '</h2><p class="rep">' +
+        ech(($('#'+id).value || '').trim()) + '</p>').join('');
+    const f = window.open('', '_blank');
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
+    f.document.write(html); f.document.close(); f.focus();
+    setTimeout(() => f.print(), 300);
+  });
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   CATALOGUE DES TP DE GÉOLOGIE DU LYCÉE
+   p : partie · sim : module qui la simule · f : fiche de matériel
+   ========================================================================== */
+const NOM_PARTIE = {A:"A. Roches et minéraux", B:"B. La surface de la Terre",
+                    C:"C. Magmatisme et volcanisme", D:"D. La Terre interne"};
+const NOM_MODULE = {sediment:'Gouttière', cristal:'Cristallisation', magma:'Viscosité', roches:'Paillasse roches'};
+
+const CATALOGUE = [
+{p:'A', n:'A1', t:"Reconnaissance des roches à l'œil nu et à la loupe binoculaire", sim:'roches', f:'roches'},
+{p:'A', n:'A2', t:"Test à l'acide chlorhydrique sur les roches carbonatées", sim:'roches', f:'hcl'},
+{p:'A', n:'A3', t:"Test de dureté et échelle de Mohs", sim:'roches', f:'durete'},
+{p:'A', n:'A4', t:"Identification de minéraux à partir de leurs propriétés", sim:'roches', f:'mineraux'},
+{p:'A', n:'A5', t:"Texture et structure : observation comparée de trois roches", sim:'roches', f:'lames'},
+{p:'A', n:'A6', t:"Classer les roches : magmatiques, sédimentaires, métamorphiques", sim:'roches', f:'roches'},
+{p:'A', n:'A7', t:"Mesurer la masse volumique d'une roche", f:'densite'},
+
+{p:'B', n:'B1', t:"Altération d'une roche : eau, eau acidifiée, gel", f:'alteration'},
+{p:'B', n:'B2', t:"Érosion en bac : pente, débit, nature du matériau", sim:'sediment', f:'erosion'},
+{p:'B', n:'B3', t:"Influence de la végétation sur l'érosion", sim:'sediment', f:'erosion'},
+{p:'B', n:'B4', t:"Transport et dépôt en gouttière : le tri granulométrique", sim:'sediment', f:'gouttiere'},
+{p:'B', n:'B5', t:"Formation d'un delta", sim:'sediment', f:'delta'},
+{p:'B', n:'B6', t:"Granulométrie d'un sable au tamis", f:'granulometrie'},
+{p:'B', n:'B7', t:"Perméabilité et porosité de différentes roches", f:'permeabilite'},
+{p:'B', n:'B8', t:"Lecture d'un profil de sol", f:'sol'},
+
+{p:'C', n:'C1', t:"Cristallisation d'un sel : rôle de la vitesse de refroidissement", sim:'cristal', f:'cristallisation'},
+{p:'C', n:'C2', t:"Refroidissement lent ou trempe : deux textures", sim:'cristal', f:'cristallisation'},
+{p:'C', n:'C3', t:"Viscosité de fluides sur un plan incliné", sim:'magma', f:'viscosite'},
+{p:'C', n:'C4', t:"Modélisation d'une éruption volcanique", sim:'magma', f:'eruption'},
+{p:'C', n:'C5', t:"Rôle des gaz dissous dans l'explosivité", sim:'magma', f:'eruption'},
+{p:'C', n:'C6', t:"Texture des roches magmatiques en lame mince", sim:'cristal', f:'lames'},
+
+{p:'D', n:'D1', t:"Modélisation de la convection dans le manteau", f:'convection'},
+{p:'D', n:'D2', t:"Isostasie : blocs de bois flottant sur l'eau", f:'isostasie'},
+{p:'D', n:'D3', t:"Propagation des ondes sismiques", f:'sismo'},
+{p:'D', n:'D4', t:"Modéliser un pli et une faille", f:'tectonique'},
+{p:'D', n:'D5', t:"Datation relative sur un bloc-diagramme", f:'datation'}
+];
+
+(function catalogue(){
+  const liste = $('#cat-liste'), champ = $('#cat-recherche');
+  let texte = '', filtre = 'tout';
+  const sansAcc = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  function rendu(){
+    const q = sansAcc(texte.trim());
+    const gardees = CATALOGUE.filter(e =>
+      (filtre === 'tout' || e.p === filtre) && (!q || sansAcc(e.t + ' ' + e.n).includes(q)));
+    const parties = ['A','B','C','D'].filter(p => gardees.some(e => e.p === p));
+    liste.innerHTML = parties.length ? parties.map(p => {
+      const l = gardees.filter(e => e.p === p);
+      return '<details class="partie-pli"' + (q || filtre !== 'tout' ? ' open' : '') + '>' +
+        '<summary>' + NOM_PARTIE[p] + ' <span class="compte">' + l.length + ' expérience' +
+        (l.length>1?'s':'') + '</span></summary><div class="liste-exp" style="padding-bottom:12px">' +
+        l.map(e => '<div class="exp' + (e.sim ? ' simulable' : '') + '">' +
+          '<span class="num">' + e.n + '</span><span class="titre">' + ech(e.t) + '</span>' +
+          (e.sim ? '<button class="btn mini primaire no-print" data-va="' + e.sim + '">Simuler — ' +
+                   NOM_MODULE[e.sim] + '</button>' : '') +
+          (e.f ? '<button class="btn mini no-print" data-va="preparer" data-fiche="' + e.f +
+                 '" title="Voir le protocole et le matériel">Matériel</button>' : '') +
+          '</div>').join('') + '</div></details>';
+    }).join('') : '<p style="font-size:13px; color:var(--gris)">Aucune expérience ne correspond.</p>';
+  }
+  champ.addEventListener('input', () => { texte = champ.value; rendu(); });
+  segment($('#cat-filtre'), d => { filtre = d.p; rendu(); });
+  rendu();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE SÉDIMENTATION — érosion, transport, dépôt
+   Deux lois, toutes deux classiques :
+   · vitesse de chute d'un grain — Stokes pour les fins, régime turbulent
+     pour les gros, on retient la plus petite des deux ;
+   · vitesse d'arrachement — ajustement de la courbe de Hjulström, avec sa
+     remontée vers les argiles due à la cohésion.
+   Les constantes donnent les bons ordres de grandeur, rien de plus.
+   ========================================================================== */
+const CLASSES = [
+  {id:'argile',  n:"Argile",         d:0.002, c:'#9a8d78'},
+  {id:'silt',    n:"Silt (limon)",   d:0.03,  c:'#c0ac8a'},
+  {id:'sfin',    n:"Sable fin",      d:0.15,  c:'#e2cb91'},
+  {id:'sgros',   n:"Sable grossier", d:0.7,   c:'#c9a15a'},
+  {id:'gravier', n:"Gravier",        d:5,     c:'#9e8566'},
+  {id:'galet',   n:"Galet",          d:30,    c:'#7b6f64'}
+];
+const MELANGES = {
+  alluvions:[10,20,25,25,15, 5],
+  sable:    [ 2, 6,62,26, 4, 0],
+  moraine:  [18,17,17,17,16,15],
+  limon:    [35,42,18, 5, 0, 0],
+  galets:   [ 2, 3,10,15,35,35]
+};
+/* vitesse de chute, en cm/s, pour un diamètre en mm */
+function vChute(dmm){
+  const d = dmm/1000;
+  const stokes = 1650*9.81*d*d/(18*1e-3);
+  const turbulent = 1.1*Math.sqrt(1.65*9.81*d);
+  return Math.min(stokes, turbulent)*100;
+}
+/* vitesse d'arrachement du fond, en cm/s (Hjulström ajusté) */
+function vArrache(dmm){
+  return Math.max(30*Math.sqrt(dmm), dmm < 0.3 ? 20*Math.pow(0.3/dmm, 0.4) : 0);
+}
+
+(function sedimentation(){
+  const cv = $('#se-cv'), hj = $('#se-hj');
+  if(!cv) return;
+  const NB = 64;
+  let v = 45, pente = 4, melange = 'alluvions', vegetal = 0, mode = 'gouttiere';
+  let marche = false, anim = null, particules = [], depot = [], sorti = 0, verse = 0;
+
+  function razDepot(){
+    depot = Array.from({length:NB}, () => CLASSES.map(() => 0));
+    particules = []; sorti = 0; verse = 0;
+  }
+  razDepot();
+
+  /* --- où se dépose une classe : 0 = tout en haut, 1 = sortie du bac --- */
+  const X_BASSIN = 0.42;
+  function fractionParcours(i){
+    const vc = vChute(CLASSES[i].d);
+    if(v <= vc) return 0;
+    const xf = borne((v/vc - 1)/9, 0, 1);
+    if(mode !== 'delta' || xf < X_BASSIN) return xf;
+    /* dans le bassin, le courant s'étale et meurt : ce qu'il portait encore
+       se dépose progressivement, les plus gros à l'embouchure */
+    return borne(X_BASSIN + 0.08*Math.log(v/vc), X_BASSIN, 1);
+  }
+  /* masse réellement mise en mouvement, le couvert végétal retenant le sol */
+  function masseMobilisee(){ return 1 - vegetal/100*0.85; }
+
+  /* ---------- état de chaque classe ---------- */
+  function etatClasse(i){
+    const c = CLASSES[i], vc = vChute(c.d), va = vArrache(c.d);
+    if(v >= va) return {e:'arrache', t:"arrachée du fond", b:'orange'};
+    if(v > vc)  return {e:'transport', t:"transportée, pas arrachée", b:'bleu'};
+    return {e:'depot', t:"déposée", b:'vert'};
+  }
+  function rendClasses(){
+    const p = MELANGES[melange];
+    $('#se-classes').innerHTML =
+      '<table class="tab"><thead><tr><th>Classe</th><th>Taille</th><th>Chute</th>' +
+      '<th>Arrachement</th><th>Ici</th></tr></thead><tbody>' +
+      CLASSES.map((c,i) => {
+        const et = etatClasse(i);
+        return '<tr' + (p[i] ? '' : ' style="opacity:.4"') + '>' +
+          '<td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' +
+          c.c + ';margin-right:6px"></span>' + c.n + '</td>' +
+          '<td>' + (c.d < 1 ? fr(c.d,3) : fr(c.d,0)) + ' mm</td>' +
+          '<td>' + fr(vChute(c.d), vChute(c.d)<1?2:0) + '</td>' +
+          '<td>' + fr(vArrache(c.d),0) + '</td>' +
+          '<td><span class="badge ' + et.b + '">' + et.t + '</span></td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<p style="font-size:11px; color:var(--gris-clair); margin-top:8px">' +
+      'Vitesses en cm/s. « Arrachée » veut dire que le courant suffit à la reprendre sur le fond ; ' +
+      '« déposée » qu\'elle tombe plus vite que le courant ne l\'emporte.</p>';
+  }
+
+  /* ---------- géométrie du dispositif ---------- */
+  function geom(l, h){
+    const x0 = 6, x1 = l-6, sol = h-26;
+    /* la pente réelle donnerait un trait presque horizontal : on l'exagère
+       verticalement pour que le dispositif se lise, et on le dit en légende */
+    const chute = borne(Math.tan(pente*Math.PI/180)*(x1-x0)*1.6, 16, h-104);
+    const yHaut = borne(sol - chute, 26, sol-2);
+    const xBassin = mode === 'delta' ? x0 + (x1-x0)*X_BASSIN : x1;
+    return {x0, x1, sol, yHaut, xBassin};
+  }
+  function ySol(g, xf){          /* xf : 0 → 1 sur la largeur utile */
+    const xb = (g.xBassin - g.x0)/(g.x1 - g.x0);
+    if(mode === 'delta' && xf > xb) return g.sol;
+    const t = mode === 'delta' ? xf/xb : xf;
+    return g.yHaut + (g.sol - g.yHaut)*t;
+  }
+
+  /* ---------- tracé ---------- */
+  function dessine(){
+    const {ctx, l, h} = dimensionne(cv, 250);
+    const g = geom(l, h);
+    /* fond */
+    ctx.fillStyle = '#eef2f4'; ctx.fillRect(0,0,l,h);
+    /* corps de la gouttière, sous le fond */
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
+    ctx.lineTo(g.x1, h); ctx.lineTo(g.x0, h); ctx.closePath();
+    ctx.fillStyle = '#ded8cc'; ctx.fill();
+    /* lame d'eau : une hauteur constante au-dessus du fond */
+    const EAU = mode === 'delta' ? 34 : 46;
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)-EAU):ctx.moveTo(x,ySol(g,xf)-EAU); }
+    for(let i=NB;i>=0;i--){ const xf=i/NB; ctx.lineTo(g.x0+(g.x1-g.x0)*xf, ySol(g,xf)); }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(120,175,205,.34)'; ctx.fill();
+    if(mode === 'delta'){
+      /* le bassin : une tranche d'eau bien plus épaisse, où le courant meurt */
+      ctx.fillStyle = 'rgba(120,175,205,.34)';
+      ctx.fillRect(g.xBassin, g.sol-96, g.x1-g.xBassin, 96);
+      ctx.strokeStyle = 'rgba(70,130,170,.6)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(g.xBassin, g.sol-96); ctx.lineTo(g.x1, g.sol-96); ctx.stroke();
+    }
+    /* dépôt : lissé sur cinq cases et empilé de la classe la plus grossière à
+       la plus fine, pour obtenir un banc et non un histogramme */
+    const liss = [];
+    for(let i=0;i<NB;i++) liss[i] = CLASSES.map((c,k) => {
+      let som = 0, n = 0;
+      for(let j=Math.max(0,i-2); j<=Math.min(NB-1,i+2); j++){ som += depot[j][k]; n++; }
+      return Math.min(som/n*1.7, 58);
+    });
+    const cumul = new Array(NB).fill(0);
+    for(let k=CLASSES.length-1;k>=0;k--){
+      if(liss.every(col => col[k] < 0.4)) continue;
+      ctx.beginPath();
+      for(let i=0;i<NB;i++){
+        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
+        const y=ySol(g,xf)-cumul[i]-liss[i][k];
+        i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      for(let i=NB-1;i>=0;i--){
+        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
+        ctx.lineTo(x, ySol(g,xf)-cumul[i]);
+      }
+      ctx.closePath();
+      ctx.fillStyle = CLASSES[k].c; ctx.fill();
+      for(let i=0;i<NB;i++) cumul[i] += liss[i][k];
+    }
+    /* fond de la gouttière */
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB; const x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
+    ctx.strokeStyle = '#8d8579'; ctx.lineWidth = 2; ctx.stroke();
+    /* talus végétalisé */
+    if(vegetal > 0){
+      ctx.strokeStyle = '#4b8a5e'; ctx.lineWidth = 1.4;
+      const n = Math.round(vegetal/8);
+      for(let i=0;i<n;i++){
+        const xf = 0.02 + i/(n*1.35), x = g.x0+(g.x1-g.x0)*xf, y = ySol(g,xf);
+        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-3,y-9); ctx.moveTo(x,y); ctx.lineTo(x+3,y-8);
+        ctx.moveTo(x,y); ctx.lineTo(x,y-11); ctx.stroke();
+      }
+    }
+    /* grains en mouvement */
+    particules.forEach(p => {
+      const xf = borne(p.x,0,1), x = g.x0+(g.x1-g.x0)*xf;
+      ctx.beginPath();
+      ctx.arc(x, ySol(g,xf)-10-p.h, 1.6+Math.log10(CLASSES[p.k].d*1000)*0.9, 0, Math.PI*2);
+      ctx.fillStyle = CLASSES[p.k].c; ctx.fill();
+    });
+    /* repères */
+    ctx.fillStyle = '#6f6a60'; ctx.font = '11px system-ui,sans-serif';
+    ctx.fillText('amont', g.x0+4, 16);
+    ctx.textAlign = 'right'; ctx.fillText(mode==='delta' ? 'bassin' : 'aval', g.x1-4, 16);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = 'rgba(47,107,168,.85)';
+    ctx.fillText('courant ' + v + ' cm/s', g.x0+4, 32);
+  }
+
+  /* ---------- animation ---------- */
+  function pasAnim(){
+    const p = MELANGES[melange], mob = masseMobilisee();
+    /* on verse régulièrement le mélange en tête */
+    if(verse < 100){
+      const lot = Math.min(2.2, 100 - verse);   /* la dernière louche complète juste les 100 % */
+      verse += lot;
+      CLASSES.forEach((c,k) => {
+        const part = p[k]/100*lot*mob;
+        if(part <= 0) return;
+        for(let i=0;i<Math.max(1,Math.round(part*1.6));i++)
+          particules.push({x:0.01, k, h:Math.random()*14, m:part/Math.max(1,Math.round(part*1.6))});
+      });
+    }
+    /* déplacement et dépôt */
+    const restantes = [];
+    particules.forEach(part => {
+      const xf = fractionParcours(part.k);
+      part.x += 0.012 + v/2600;
+      if(part.x >= xf){
+        /* une classe que le courant porte jusqu'au bout quitte le dispositif :
+           elle ne doit pas s'entasser dans la dernière case du dépôt */
+        if(xf >= 0.995){ sorti += part.m; return; }
+        /* les grains d'une même classe ne tombent pas tous au même point :
+           sans cette dispersion le dépôt serait une barre et non un banc */
+        const xr = xf + (Math.random()-0.5)*Math.max(0.13, xf*0.5);
+        /* ce que la dispersion pousse au-delà du bord quitte le dispositif :
+           sans cela les grains s'entasseraient contre la dernière case */
+        if(xr >= 0.98){ sorti += part.m; return; }
+        const bin = borne(Math.floor(Math.max(0,xr)*NB), 0, NB-1);
+        depot[bin][part.k] += part.m*4.2;
+        return;
+      }
+      part.h *= 0.97;
+      restantes.push(part);
+    });
+    particules = restantes;
+    dessine(); majMesures();
+    if(verse >= 100 && !particules.length){ marche = false; $('#se-go').textContent = "Ouvrir l'eau"; }
+    if(marche) anim = requestAnimationFrame(pasAnim);
+  }
+
+  function majMesures(){
+    const p = MELANGES[melange], mob = masseMobilisee();
+    let dep = 0;
+    depot.forEach(col => col.forEach(m => dep += m/4.2));
+    const enVol = particules.reduce((s,x)=>s+x.m, 0);
+    $('#se-m-v').textContent = v;
+    $('#se-m-t').textContent = Math.round(enVol);
+    $('#se-m-d').textContent = Math.round(dep);
+    $('#se-m-s').textContent = Math.round(sorti);
+    /* légende du tri obtenu */
+    const ordre = CLASSES.map((c,i)=>({n:c.n, x:fractionParcours(i), p:p[i]})).filter(o=>o.p>0);
+    ordre.sort((a,b)=>a.x-b.x);
+    $('#se-legende').textContent = ordre.length
+      ? "De l'amont vers l'aval : " + ordre.map(o => o.n.toLowerCase() + (o.x>=0.995?' (exporté)':'')).join(', ') +
+        ". La pente du dessin est exagérée verticalement pour rester lisible."
+      : '';
+    Labo.note('sediment', 'Courant réglé', v + ' cm/s');
+    Labo.note('sediment', 'Masse exportée hors du bac', Math.round(sorti) + ' %');
+    const argile = etatClasse(0);
+    Labo.note('sediment', "Sort de l'argile", argile.t);
+  }
+
+  /* ---------- diagramme de Hjulström ---------- */
+  function dessineHj(){
+    const {ctx, l, h} = dimensionne(hj, 260);
+    const mg = 44, md = 10, mh = 12, mb = 30;
+    const X = d => mg + (Math.log10(d)+3)/5*(l-mg-md);        /* 0,001 → 100 mm */
+    const Y = w => h-mb - (Math.log10(w)+1)/4*(h-mh-mb);      /* 0,1 → 1000 cm/s */
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    /* grille */
+    ctx.strokeStyle = '#eee8dd'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#a9a294'; ctx.font = '10px system-ui,sans-serif';
+    for(let e=-3;e<=2;e++){
+      const x = X(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
+      ctx.textAlign='center';
+      ctx.fillText(e<0 ? '0,'+'0'.repeat(-e-1)+'1' : String(Math.pow(10,e)), x, h-mb+13);
+    }
+    for(let e=-1;e<=3;e++){
+      const y = Y(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
+      ctx.textAlign='right';
+      ctx.fillText(e<0 ? '0,1' : String(Math.pow(10,e)), mg-6, y+3);
+    }
+    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
+    ctx.fillText('taille des grains (mm)', (mg+l-md)/2, h-6);
+    ctx.save(); ctx.translate(11, (mh+h-mb)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('vitesse du courant (cm/s)', 0, 0); ctx.restore();
+    /* deux courbes */
+    const courbe = (f, coul, larg) => {
+      ctx.beginPath();
+      for(let i=0;i<=160;i++){
+        const d = Math.pow(10, -3 + i/160*5), x = X(d), y = Y(Math.max(0.1, f(d)));
+        i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      }
+      ctx.strokeStyle = coul; ctx.lineWidth = larg; ctx.stroke();
+    };
+    courbe(vArrache, '#c0392b', 2.2);
+    courbe(vChute,   '#2f6ba8', 2.2);
+    /* zones */
+    ctx.font = '600 11px system-ui,sans-serif';
+    ctx.fillStyle = 'rgba(192,57,43,.85)';  ctx.fillText('ÉROSION',  mg+58, mh+16);
+    ctx.fillStyle = 'rgba(47,107,168,.85)'; ctx.fillText('TRANSPORT', (mg+l-md)/2, h-mb-52);
+    ctx.fillStyle = 'rgba(63,125,95,.9)';   ctx.fillText('DÉPÔT', l-md-52, h-mb-12);
+    /* courant réglé */
+    if(v > 0){
+      const y = Y(Math.max(0.1,v));
+      ctx.setLineDash([5,4]); ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke(); ctx.setLineDash([]);
+    }
+    /* les classes du mélange */
+    const p = MELANGES[melange];
+    CLASSES.forEach((c,i) => {
+      if(!p[i]) return;
+      const x = X(c.d), y = Y(Math.max(0.1,v));
+      ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = c.c; ctx.fill();
+      ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.2; ctx.stroke();
+    });
+  }
+
+  /* ---------- interface ---------- */
+  function maj(){
+    $('#se-debit-v').textContent = v + ' cm/s';
+    $('#se-pente-v').textContent = pente + '°';
+    rendClasses(); dessine(); dessineHj(); majMesures();
+    const p = MELANGES[melange];
+    const exportees = CLASSES.filter((c,i)=>p[i] && fractionParcours(i) >= 0.995).map(c=>c.n.toLowerCase());
+    const bloquees  = CLASSES.filter((c,i)=>p[i] && v < vArrache(c.d)).map(c=>c.n.toLowerCase());
+    $('#se-note').innerHTML =
+      (exportees.length ? "<b>Quitte le bac :</b> " + exportees.join(', ') + ". " : "") +
+      (bloquees.length ? "<b>Que le courant ne peut pas reprendre sur le fond :</b> " +
+        bloquees.join(', ') + ". " : "") +
+      (vegetal ? "Le couvert végétal retient " + Math.round(vegetal*0.85) + " % du sol du talus." :
+        "Sol nu : tout le matériau est mobilisable.");
+  }
+  $('#se-debit').addEventListener('input', e => { v = +e.target.value; maj(); });
+  $('#se-pente').addEventListener('input', e => { pente = +e.target.value; maj(); });
+  $('#se-melange').addEventListener('change', e => { melange = e.target.value; razDepot(); maj(); });
+  segment($('#se-vegetal'), d => { vegetal = +d.v; razDepot(); maj(); });
+  segment($('#se-mode'), d => { mode = d.m; razDepot(); maj(); });
+  $('#se-go').addEventListener('click', () => {
+    marche = !marche;
+    $('#se-go').textContent = marche ? "Fermer l'eau" : "Ouvrir l'eau";
+    if(marche){ if(verse >= 100 && !particules.length) razDepot(); pasAnim(); }
+    else cancelAnimationFrame(anim);
+  });
+  $('#se-vider').addEventListener('click', () => {
+    marche = false; cancelAnimationFrame(anim); $('#se-go').textContent = "Ouvrir l'eau";
+    razDepot(); maj();
+  });
+
+  $('#se-questions').innerHTML = blocQuestions([
+    ["Pourquoi les graviers se déposent-ils près de l'amont et les sables fins beaucoup plus loin ?",
+     "Un grain se dépose quand le courant ne le soutient plus, c'est-à-dire quand sa vitesse de chute dépasse ce que le courant peut compenser. Un gravier tombe à environ 30 cm/s, un sable fin à 2 cm/s : le premier est abandonné tout de suite, le second voyage quinze fois plus loin. C'est le tri granulométrique, et c'est pourquoi on lit le régime d'un cours d'eau ancien dans la taille de ses dépôts."],
+    ["Réglez le courant à 100 cm/s. L'argile est-elle emportée ? Est-elle arrachée du fond ?",
+     "Les deux réponses diffèrent, et c'est tout l'intérêt du diagramme. Une argile déjà en suspension est emportée dès quelques millimètres par seconde. Mais pour l'arracher du fond il faut dépasser environ 150 cm/s, parce que les particules d'argile se collent entre elles. Le sable fin, lui, s'arrache dès 25 cm/s : il est plus fragile qu'une argile, alors qu'il est plus gros."],
+    ["Que change le couvert végétal ?",
+     "Il retient le sol : la masse mise en mouvement diminue fortement, jusqu'à environ 85 % avec une prairie dense. Les racines maintiennent les agrégats et les feuilles amortissent l'impact des gouttes. C'est l'argument central des haies, des couverts d'hiver et du maintien de la ripisylve."],
+    ["Passez en mode « bac à delta ». Où se dépose le sable, où se dépose l'argile ?",
+     "À l'entrée du bassin le courant s'étale et ralentit brutalement : les sables sont abandonnés en un éventail juste à l'embouchure, tandis que les argiles poursuivent en suspension et se déposent bien plus loin, dans les eaux calmes. Un delta est donc trié de la même façon, mais dans l'espace : sables à l'amont, argiles au large."],
+    ["Augmentez la pente sans toucher au débit. Le tri change-t-il ?",
+     "Dans ce modèle, la pente change la géométrie du dépôt mais pas les seuils, qui ne dépendent que de la vitesse du courant. Dans une vraie gouttière, augmenter la pente augmente la vitesse : c'est pourquoi les deux réglages sont séparés ici, pour faire apparaître que c'est bien la vitesse, et non la pente en elle-même, qui commande le tri."]
+  ]);
+
+  Labo.surAffichage.sediment = () => { dessine(); dessineHj(); };
+  maj();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE CRISTALLISATION — vitesse de refroidissement, taille, texture
+   d (mm) = 0,37 × R^(−0,283), R en °C/h. L'exposant est proche du −1/3
+   habituellement retenu ; la constante est calée sur deux repères, un pluton
+   granitique et une coulée basaltique. Le nom de la roche, lui, ne doit rien
+   au calcul : c'est le tableau à double entrée de la pétrographie.
+   ========================================================================== */
+const LIEUX = {
+  pluton:   {R:1e-5,  n:"Pluton profond",        d:"10 km de profondeur, refroidi en ~1 million d'années"},
+  laccolite:{R:1e-3,  n:"Petit massif intrusif", d:"2 km, quelques milliers d'années"},
+  filon:    {R:0.5,   n:"Filon de quelques mètres", d:"quelques mois"},
+  coulee:   {R:50,    n:"Coulée de lave à l'air", d:"quelques jours"},
+  bombe:    {R:8000,  n:"Projection en l'air",   d:"quelques minutes"},
+  trempe:   {R:1e5,   n:"Lave entrant dans l'eau", d:"quelques secondes"}
+};
+const TEXTURES = [
+  {min:1,     id:'grenue',       n:"Grenue",        e:"tous les cristaux visibles à l'œil nu"},
+  {min:0.3,   id:'microgrenue',  n:"Microgrenue",   e:"cristaux visibles à la loupe seulement"},
+  {min:0.03,  id:'microlithique',n:"Microlithique", e:"microlites baignant dans du verre"},
+  {min:0,     id:'vitreuse',     n:"Vitreuse",      e:"pas de cristal : le magma a été figé"}
+];
+const NOMS = {
+  grenue:       {f:"Granite",     i:"Diorite",      m:"Gabbro"},
+  microgrenue:  {f:"Microgranite",i:"Microdiorite", m:"Dolérite"},
+  microlithique:{f:"Rhyolite",    i:"Andésite",     m:"Basalte"},
+  vitreuse:     {f:"Obsidienne",  i:"Verre andésitique", m:"Verre basaltique (tachylite)"}
+};
+const MINERAUX = {
+  f:[{n:"quartz",     c:'#e6e2da', p:26},{n:"feldspath alcalin", c:'#e8cdc2', p:34},
+     {n:"plagioclase",c:'#f4f1ea', p:22},{n:"biotite",           c:'#3a3129', p:14},
+     {n:"amphibole",  c:'#4b5a45', p:4}],
+  i:[{n:"plagioclase",c:'#efece4', p:44},{n:"amphibole", c:'#4b5a45', p:28},
+     {n:"biotite",    c:'#3a3129', p:16},{n:"quartz",    c:'#e6e2da', p:8},
+     {n:"oxydes",     c:'#2b2723', p:4}],
+  m:[{n:"plagioclase",c:'#eae7de', p:46},{n:"pyroxène",  c:'#56644a', p:34},
+     {n:"olivine",    c:'#89a266', p:16},{n:"oxydes",    c:'#2b2723', p:4}]
+};
+const chimie = s => s >= 66 ? 'f' : s >= 52 ? 'i' : 'm';
+const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafique (pauvre en silice)"};
+
+(function cristallisation(){
+  const cv = $('#cr-cv'), cvc = $('#cr-courbe');
+  if(!cv) return;
+  let lieu = 'coulee', silice = 70, phenos = false, zoom = 1, champVariante = 1;
+
+  const tailleCristaux = R => 0.37*Math.pow(R, -0.283);
+  const texture = d => TEXTURES.find(t => d >= t.min);
+
+  function etat(){
+    const R = LIEUX[lieu].R, d = tailleCristaux(R), t = texture(d), ch = chimie(silice);
+    return {R, d, t, ch, nom:NOMS[t.id][ch], mineraux:MINERAUX[ch]};
+  }
+
+  /* ---------- la lame mince ---------- */
+  function tire(rnd, mineraux){
+    let x = rnd()*100, c = 0;
+    for(const m of mineraux){ c += m.p; if(x <= c) return m; }
+    return mineraux[mineraux.length-1];
+  }
+  function dessineLame(){
+    const {ctx, l, h} = dimensionne(cv, 330);
+    const e = etat();
+    /* champ de vision : une texture grenue se lit à huit cristaux de large,
+       une texture microlithique demande d'en voir des centaines */
+    const grains = (e.t.id === 'grenue' || e.t.id === 'microgrenue') ? 8 : 42;
+    const champ = Math.max(0.3, e.d*grains)/zoom;  /* largeur du champ, en mm */
+    const rnd = graine(Math.round(silice*97 + LIEUX[lieu].R*13 + champVariante*7919 + zoom*31));
+    ctx.fillStyle = '#f7f4ee'; ctx.fillRect(0,0,l,h);
+    const px = l/champ;                            /* pixels par millimètre */
+
+    if(e.t.id === 'grenue' || e.t.id === 'microgrenue'){
+      /* pavage de cristaux jointifs : sommets partagés entre voisins */
+      const pas = Math.max(9, e.d*px);
+      const nx = Math.ceil(l/pas)+1, ny = Math.ceil(h/pas)+1;
+      const P = [];
+      for(let j=0;j<=ny;j++){ P[j]=[];
+        for(let i=0;i<=nx;i++) P[j][i] = [i*pas + (rnd()-0.5)*pas*0.55,
+                                          j*pas + (rnd()-0.5)*pas*0.55]; }
+      for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){
+        const m = tire(rnd, e.mineraux);
+        ctx.beginPath();
+        ctx.moveTo(P[j][i][0],P[j][i][1]); ctx.lineTo(P[j][i+1][0],P[j][i+1][1]);
+        ctx.lineTo(P[j+1][i+1][0],P[j+1][i+1][1]); ctx.lineTo(P[j+1][i][0],P[j+1][i][1]);
+        ctx.closePath();
+        ctx.fillStyle = m.c; ctx.fill();
+        ctx.strokeStyle = 'rgba(60,54,46,.35)'; ctx.lineWidth = 0.7; ctx.stroke();
+        /* clivages des micas et des pyroxènes */
+        if(m.n === 'biotite' || m.n === 'pyroxène'){
+          ctx.save(); ctx.clip();
+          ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 0.8;
+          const a = rnd()*Math.PI;
+          for(let k=-4;k<=4;k++){
+            const ox = Math.cos(a+Math.PI/2)*k*pas*0.16, oy = Math.sin(a+Math.PI/2)*k*pas*0.16;
+            ctx.beginPath();
+            ctx.moveTo(P[j][i][0]+ox-pas, P[j][i][1]+oy-Math.tan(a)*pas);
+            ctx.lineTo(P[j][i][0]+ox+pas*2, P[j][i][1]+oy+Math.tan(a)*pas*2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+      }
+    } else {
+      /* pâte vitreuse + microlites en baguettes */
+      const fond = e.ch === 'm' ? '#3b3a33' : e.ch === 'i' ? '#5b564a' : '#6d6558';
+      ctx.fillStyle = fond; ctx.fillRect(0,0,l,h);
+      /* verre : on laisse voir des nuances */
+      for(let i=0;i<40;i++){
+        ctx.beginPath();
+        ctx.arc(rnd()*l, rnd()*h, 18+rnd()*46, 0, Math.PI*2);
+        ctx.fillStyle = 'rgba(255,255,255,' + (0.012+rnd()*0.03) + ')'; ctx.fill();
+      }
+      if(e.t.id === 'microlithique'){
+        const L = Math.max(3, e.d*px), n = Math.round(l*h/(L*L*2.2));
+        for(let i=0;i<n;i++){
+          const x = rnd()*l, y = rnd()*h, a = rnd()*Math.PI;
+          ctx.save(); ctx.translate(x,y); ctx.rotate(a);
+          ctx.fillStyle = e.mineraux[0].c;
+          ctx.globalAlpha = 0.85;
+          ctx.fillRect(-L/2, -Math.max(0.8, L*0.16)/2, L, Math.max(0.8, L*0.16));
+          ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
+    /* phénocristaux : cristaux formés avant l'arrivée en surface */
+    if(phenos && e.t.id !== 'grenue'){
+      const n = 3 + Math.round(rnd()*3);
+      for(let i=0;i<n;i++){
+        const r = 16+rnd()*24, x = r+rnd()*(l-2*r), y = r+rnd()*(h-2*r);
+        const m = e.mineraux[rnd() < 0.6 ? 0 : 1];
+        ctx.beginPath();
+        const k = 4+Math.floor(rnd()*3);
+        for(let s=0;s<k;s++){
+          const a = s/k*Math.PI*2 + rnd()*0.2, rr = r*(0.75+rnd()*0.4);
+          s ? ctx.lineTo(x+Math.cos(a)*rr, y+Math.sin(a)*rr*0.7)
+            : ctx.moveTo(x+Math.cos(a)*rr, y+Math.sin(a)*rr*0.7);
+        }
+        ctx.closePath();
+        ctx.fillStyle = m.c; ctx.fill();
+        ctx.strokeStyle = 'rgba(40,36,30,.6)'; ctx.lineWidth = 1.1; ctx.stroke();
+      }
+    }
+    /* champ du microscope : coins assombris */
+    const v = ctx.createRadialGradient(l/2,h/2,Math.min(l,h)*0.32, l/2,h/2,Math.max(l,h)*0.72);
+    v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(30,26,20,.22)');
+    ctx.fillStyle = v; ctx.fillRect(0,0,l,h);
+    /* échelle */
+    const mm = pas(champ/5, 1);                    /* une graduation ronde */
+    const lg = mm*px;
+    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(12, h-30, lg+12, 22);
+    ctx.fillStyle = '#23201c'; ctx.fillRect(18, h-14, lg, 2.5);
+    ctx.font = '11px system-ui,sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText((mm < 1 ? fr(mm, mm < 0.1 ? 3 : 2) : fr(mm,0)) + ' mm', 18, h-18);
+  }
+
+  /* ---------- courbe taille = f(vitesse de refroidissement) ---------- */
+  function dessineCourbe(){
+    const {ctx, l, h} = dimensionne(cvc, 230);
+    const mg = 42, md = 12, mh = 12, mb = 30;
+    const X = R => mg + (Math.log10(R)+6)/11*(l-mg-md);     /* 1e-6 → 1e5 */
+    const Y = d => h-mb - (Math.log10(d)+2)/3.2*(h-mh-mb);  /* 0,01 → ~16 mm */
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    ctx.strokeStyle = '#eee8dd'; ctx.fillStyle = '#a9a294'; ctx.font='10px system-ui,sans-serif';
+    for(let e=-6;e<=5;e+=2){
+      const x = X(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
+      ctx.textAlign='center'; ctx.fillText('10' + (e<0?'⁻':'') + String(Math.abs(e))
+        .replace(/[0-9]/g, c => '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]), x, h-mb+13);
+    }
+    [0.01,0.1,1,10].forEach(d => {
+      const y = Y(d);
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText(d<1?fr(d,d<0.1?2:1):String(d), mg-6, y+3);
+    });
+    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
+    ctx.fillText('refroidissement (°C par heure)', (mg+l-md)/2, h-5);
+    ctx.save(); ctx.translate(10,(mh+h-mb)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('taille des cristaux (mm)',0,0); ctx.restore();
+    /* la courbe */
+    ctx.beginPath();
+    for(let i=0;i<=140;i++){
+      const R = Math.pow(10, -6+i/140*11), x = X(R), y = Y(borne(tailleCristaux(R),0.01,16));
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.strokeStyle = 'var(--accent)'; ctx.strokeStyle = '#b15f2c'; ctx.lineWidth = 2.2; ctx.stroke();
+    /* les six situations */
+    Object.keys(LIEUX).forEach(k => {
+      const R = LIEUX[k].R, x = X(R), y = Y(borne(tailleCristaux(R),0.01,16));
+      ctx.beginPath(); ctx.arc(x,y, k===lieu?6:3.4, 0, Math.PI*2);
+      ctx.fillStyle = k===lieu ? '#b15f2c' : '#d3ccbe'; ctx.fill();
+      if(k===lieu){ ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
+    });
+  }
+
+  /* ---------- tableau à double entrée ---------- */
+  function rendTable(){
+    const e = etat();
+    $('#cr-table').innerHTML =
+      '<thead><tr><th>Texture</th><th>Felsique<br><span style="font-weight:400">≥ 66 % SiO₂</span></th>' +
+      '<th>Intermédiaire<br><span style="font-weight:400">52–65 %</span></th>' +
+      '<th>Mafique<br><span style="font-weight:400">&lt; 52 %</span></th></tr></thead><tbody>' +
+      TEXTURES.map(t => '<tr><td><b>' + t.n + '</b><br><span style="font-size:11px;color:var(--gris-clair)">' +
+        t.e + '</span></td>' +
+        ['f','i','m'].map(c => {
+          const actif = t.id === e.t.id && c === e.ch;
+          return '<td' + (actif ? ' style="background:var(--accent-pale); font-weight:600; color:var(--accent)"' : '') +
+            '>' + NOMS[t.id][c] + '</td>';
+        }).join('') + '</tr>').join('') + '</tbody>';
+  }
+
+  function maj(){
+    const e = etat();
+    $('#cr-silice-v').textContent = silice + ' % — magma ' + NOM_CHIMIE[e.ch];
+    $('#cr-m-r').textContent = e.R < 0.01 ? e.R.toExponential(0).replace('e','×10^').replace('+','')
+                                          : (e.R < 1 ? fr(e.R,2) : String(e.R));
+    $('#cr-m-d').textContent = e.d >= 1 ? fr(e.d,1) : fr(e.d,3);
+    $('#cr-m-t').textContent = e.t.n;
+    $('#cr-m-n').textContent = e.nom;
+    $('#cr-note').innerHTML = '<b>' + LIEUX[lieu].n + '</b> — ' + LIEUX[lieu].d + '. ' +
+      "Les cristaux ont eu le temps d'atteindre " +
+      (e.d >= 1 ? fr(e.d,1) + ' mm' : fr(e.d,3) + ' mm') + ' : texture <b>' +
+      e.t.n.toLowerCase() + '</b>, ' + e.t.e + '. Avec ' + silice + ' % de silice, la roche s\'appelle <b>' +
+      e.nom + '</b>.' +
+      (phenos && e.t.id !== 'grenue' ? " Les phénocristaux, eux, se sont formés lentement en profondeur avant l'éruption : une même roche garde ainsi la trace de deux vitesses de refroidissement." : "");
+    dessineLame(); dessineCourbe(); rendTable();
+    Labo.note('cristal', 'Situation', LIEUX[lieu].n);
+    Labo.note('cristal', 'Taille des cristaux', (e.d>=1?fr(e.d,1):fr(e.d,3)) + ' mm');
+    Labo.note('cristal', 'Texture', e.t.n);
+    Labo.note('cristal', 'Roche obtenue', e.nom + ' (' + silice + ' % SiO₂)');
+  }
+  $('#cr-lieu').addEventListener('change', e => { lieu = e.target.value; maj(); });
+  $('#cr-silice').addEventListener('input', e => { silice = +e.target.value; maj(); });
+  $('#cr-phenos').addEventListener('change', e => { phenos = e.target.checked; maj(); });
+  $('#cr-zoom').addEventListener('click', () => { zoom = zoom === 1 ? 4 : 1; maj(); });
+  $('#cr-relance').addEventListener('click', () => { champVariante++; dessineLame(); });
+
+  $('#cr-questions').innerHTML = blocQuestions([
+    ["Un granite et une rhyolite ont la même composition chimique. Pourquoi ne se ressemblent-elles pas ?",
+     "Parce qu'elles n'ont pas refroidi au même endroit. Le granite a cristallisé dans un pluton, à plusieurs kilomètres de profondeur, où la chaleur s'évacue si lentement que les cristaux atteignent le centimètre. La rhyolite est le même magma arrivé en surface : refroidi en quelques jours, il n'a formé que des microlites. Même chimie, deux textures, deux noms."],
+    ["Comment reconnaît-on, dans une lave, qu'une partie du magma avait déjà cristallisé avant l'éruption ?",
+     "À la présence de phénocristaux : de gros cristaux bien formés noyés dans une pâte microlithique. Les premiers se sont développés lentement dans le réservoir magmatique, la seconde s'est figée en quelques jours après l'émission. Cochez « phénocristaux » pour faire apparaître cette texture, dite porphyrique — c'est une des observations les plus utiles du programme."],
+    ["Pourquoi obtient-on du verre, et non des cristaux, lorsque la lave entre dans l'eau ?",
+     "Un cristal a besoin de temps : les atomes doivent se déplacer et s'ordonner. Une trempe fait chuter la température de mille degrés en quelques secondes ; le liquide se fige avant que l'ordre ne s'installe. On obtient un solide non cristallin, un verre — l'obsidienne pour un magma felsique, la tachylite pour un basalte."],
+    ["Le TP de cristallisation d'un sel reproduit-il vraiment cela ?",
+     "Il reproduit la relation, pas le matériau. En refroidissant lentement une solution saturée de sulfate de cuivre ou d'alun on obtient de gros cristaux, en la refroidissant brutalement une poudre : la même loi qualitative que pour les magmas. Mais il s'agit d'une cristallisation depuis une solution aqueuse, pas depuis un liquide silicaté à 1000 °C. C'est un modèle analogique, et cela vaut la peine de le dire aux élèves."]
+  ]);
+
+  Labo.surAffichage.cristal = () => { dessineLame(); dessineCourbe(); };
+  maj();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE VISCOSITÉ & STYLE ÉRUPTIF
+   log η = 2 + 0,15 (SiO₂ − 50) + 0,011 (1200 − T) − 0,6 H₂O, forme
+   simplifiée des lois d'Arrhenius, calée sur deux repères réels.
+   Vitesse : écoulement d'un fluide visqueux sur un plan incliné,
+   v = ρ g sinθ e² / 3η, pour une coulée d'un mètre d'épaisseur.
+   ========================================================================== */
+const MAGMAS = {
+  basalte: {s:50, T:1200, e:5,  n:"Basalte"},
+  andesite:{s:60, T:1000, e:30, n:"Andésite"},
+  rhyolite:{s:72, T:850,  e:45, n:"Rhyolite"}
+};
+const STYLES = [
+  {max:1,   n:"Effusif — hawaïen", c:'#c0392b',
+   t:"Fontaines et coulées très fluides, cônes larges et plats (volcans boucliers). Le gaz s'échappe sans résistance.",
+   r:"Coulées basaltiques, cheveux de Pelé, parfois lacs de lave."},
+  {max:2,   n:"Effusif à explosions — strombolien", c:'#cf6a2c',
+   t:"Explosions rythmées projetant des lambeaux de lave, coulées plus courtes, cônes de scories.",
+   r:"Bombes, scories, lapilli et coulées."},
+  {max:3.2, n:"Explosif — vulcanien", c:'#c08a1e',
+   t:"Le magma visqueux bouche le conduit ; la pression s'accumule et se libère par explosions violentes.",
+   r:"Cendres, blocs, panaches de plusieurs kilomètres."},
+  {max:99,  n:"Très explosif — péléen à plinien", c:'#6e5fa8',
+   t:"Magma si visqueux qu'il forme un dôme ou une aiguille ; son effondrement engendre des nuées ardentes, ou la colonne s'effondre en écoulements pyroclastiques.",
+   r:"Ponces, cendres fines, ignimbrites, dômes de lave."}
+];
+
+(function magmas(){
+  const cv = $('#ma-cv'), cvc = $('#ma-courbe');
+  if(!cv) return;
+  let silice = 50, temp = 1200, eau = 0, pente = 8;
+  let marche = false, anim = null, t = 0, jets = [];
+
+  const logEta = (s,T,H) => 2 + 0.15*(s-50) + 0.011*(1200-T) - 0.6*H;
+  const explosivite = (s,H) => 0.09*(s-45) + 0.5*H;
+
+  function etat(){
+    const H = eau/10, le = logEta(silice, temp, H), eta = Math.pow(10, le);
+    const v = 2600*9.81*Math.sin(pente*Math.PI/180)/(3*eta);   /* m/s, coulée de 1 m */
+    const ex = explosivite(silice, H);
+    return {H, le, eta, v, ex, style:STYLES.find(x => ex < x.max)};
+  }
+  /* une vitesse qui couvre dix ordres de grandeur ne se lit pas en m/s */
+  function vitesseLisible(v){
+    if(v >= 0.1)     return [fr(v,2), 'm/s'];
+    if(v*60 >= 0.1)  return [fr(v*60,2), 'm/min'];
+    if(v*3600 >= 0.1)return [fr(v*3600,2), 'm/h'];
+    if(v*86400 >= 0.01) return [fr(v*86400,2), 'm/jour'];
+    return [fr(v*86400*1000,2), 'mm/jour'];
+  }
+  function distanceLisible(d){
+    if(d >= 1000) return [fr(d/1000,2), 'km en 1 h'];
+    if(d >= 1)    return [fr(d,1), 'm en 1 h'];
+    if(d >= 0.01) return [fr(d*100,1), 'cm en 1 h'];
+    return [fr(d*1000,2), 'mm en 1 h'];
+  }
+
+  /* ---------- le volcan ---------- */
+  function dessine(){
+    const {ctx, l, h} = dimensionne(cv, 300);
+    const e = etat();
+    const sol = h-24, sommet = 118, xv = l*0.28;   /* du ciel au-dessus du cratère pour le panache */
+    ctx.fillStyle = '#e9eef1'; ctx.fillRect(0,0,l,h);
+    /* le cône : pente d'autant plus raide que la lave est visqueuse */
+    const raideur = borne(0.12 + e.le*0.075, 0.12, 1.1);
+    const base = xv + (sol-sommet)/raideur;
+    ctx.beginPath();
+    ctx.moveTo(0, sol);
+    ctx.lineTo(xv - (sol-sommet)/raideur*0.55, sol);
+    ctx.lineTo(xv-12, sommet); ctx.lineTo(xv+12, sommet);
+    ctx.lineTo(Math.min(l, base), sol); ctx.lineTo(l, sol); ctx.lineTo(l, h); ctx.lineTo(0,h);
+    ctx.closePath();
+    ctx.fillStyle = '#8a8071'; ctx.fill();
+    ctx.strokeStyle = '#6e6659'; ctx.lineWidth = 1.5; ctx.stroke();
+    /* coulée ou panache */
+    if(e.ex < 2.4){
+      const portee = borne(Math.log10(Math.max(1e-6, e.v))+6, 0.3, 6.6)/6.6;
+      const long = (Math.min(l,base)-xv)*portee*(marche ? Math.min(1, t/70) : 1);
+      ctx.beginPath();
+      ctx.moveTo(xv-10, sommet+4);
+      ctx.lineTo(xv+10, sommet+4);
+      ctx.lineTo(xv+10+long, sommet+4+(sol-sommet)*portee*(marche?Math.min(1,t/70):1));
+      ctx.lineTo(xv-10+long*0.94, sommet+16+(sol-sommet)*portee*(marche?Math.min(1,t/70):1));
+      ctx.closePath();
+      const g = ctx.createLinearGradient(xv, sommet, xv+long, sol);
+      g.addColorStop(0,'#ffd24a'); g.addColorStop(0.45,'#ef6d2a'); g.addColorStop(1,'#8e2f18');
+      ctx.fillStyle = g; ctx.fill();
+    }
+    if(marche && e.ex >= 1){
+      /* projections et panache */
+      jets.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = e.ex >= 2.4 ? 'rgba(120,112,102,' + p.a + ')'
+                                    : 'rgba(230,110,40,' + p.a + ')';
+        ctx.fill();
+      });
+    }
+    /* légende */
+    ctx.fillStyle = '#5c564c'; ctx.font = '11px system-ui,sans-serif';
+    ctx.fillText('pente du versant : ' + pente + '°', 10, 16);
+    ctx.fillStyle = e.style.c; ctx.font = '600 12px system-ui,sans-serif';
+    ctx.fillText(e.style.n, 10, 33);
+  }
+  function pasAnim(){
+    const e = etat();
+    t++;
+    const l = cv.clientWidth, xv = l*0.22;
+    if(e.ex >= 1 && t % Math.max(2, Math.round(9 - e.ex*1.8)) === 0){
+      const n = 1 + Math.round(e.ex);
+      for(let i=0;i<n;i++)
+        jets.push({x:xv + (Math.random()-0.5)*16, y:118,
+                   vx:(Math.random()-0.5)*(0.6+e.ex*0.35), vy:-(2+Math.random()*e.ex*1.6),
+                   r:2+Math.random()*(1+e.ex), a:0.85});
+    }
+    jets = jets.filter(p => {
+      p.x += p.vx; p.y += p.vy; p.vy += e.ex >= 2.4 ? -0.02 : 0.09;
+      p.a -= e.ex >= 2.4 ? 0.006 : 0.012;
+      if(e.ex >= 2.4) p.r += 0.22;
+      return p.a > 0.03 && p.y < 320;
+    });
+    dessine();
+    if(marche) anim = requestAnimationFrame(pasAnim);
+  }
+
+  /* ---------- courbe viscosité = f(T) ---------- */
+  function dessineCourbe(){
+    const {ctx, l, h} = dimensionne(cvc, 230);
+    const mg = 40, md = 12, mh = 12, mb = 30;
+    const X = T => mg + (T-700)/600*(l-mg-md);
+    const Y = le => h-mb - (le+1)/13*(h-mh-mb);       /* log η de −1 à 12 */
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    ctx.strokeStyle = '#eee8dd'; ctx.fillStyle = '#a9a294'; ctx.font='10px system-ui,sans-serif';
+    for(let T=700;T<=1300;T+=100){
+      const x = X(T);
+      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
+      ctx.textAlign='center'; ctx.fillText(T, x, h-mb+13);
+    }
+    for(let e=0;e<=12;e+=3){
+      const y = Y(e);
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
+      ctx.textAlign='right'; ctx.fillText('10' + String(e).replace(/[0-9]/g, c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]), mg-5, y+3);
+    }
+    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
+    ctx.fillText('température (°C)', (mg+l-md)/2, h-5);
+    ctx.save(); ctx.translate(10,(mh+h-mb)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('viscosité (Pa·s)',0,0); ctx.restore();
+    /* les trois magmas de référence, à eau nulle */
+    [['basalte','#c0392b'],['andesite','#c08a1e'],['rhyolite','#6e5fa8']].forEach(([k,coul]) => {
+      ctx.beginPath();
+      for(let T=700;T<=1300;T+=10){
+        const x = X(T), y = Y(borne(logEta(MAGMAS[k].s, T, 0), -1, 12));
+        T===700 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+      }
+      ctx.strokeStyle = coul; ctx.lineWidth = 1.6; ctx.globalAlpha = 0.45; ctx.stroke();
+      ctx.globalAlpha = 1;
+    });
+    /* le magma réglé */
+    ctx.beginPath();
+    for(let T=700;T<=1300;T+=10){
+      const x = X(T), y = Y(borne(logEta(silice, T, eau/10), -1, 12));
+      T===700 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    }
+    ctx.strokeStyle = '#23201c'; ctx.lineWidth = 2.4; ctx.stroke();
+    const e = etat();
+    ctx.beginPath(); ctx.arc(X(temp), Y(borne(e.le,-1,12)), 5.5, 0, Math.PI*2);
+    ctx.fillStyle = '#b15f2c'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+  }
+
+  function maj(){
+    const e = etat();
+    $('#ma-silice-v').textContent = silice + ' %';
+    $('#ma-temp-v').textContent = temp + ' °C';
+    $('#ma-eau-v').textContent = fr(e.H,1) + ' %';
+    $('#ma-pente-v').textContent = pente + '°';
+    $('#ma-m-eta').textContent = e.eta >= 1e4 ? '10' + String(Math.round(e.le)).replace(/[0-9]/g,c=>'⁰¹²³⁴⁵⁶⁷⁸⁹'[+c])
+                                              : fr(e.eta, e.eta<10?1:0);
+    const [vv,vu] = vitesseLisible(e.v); $('#ma-m-v').textContent = vv; $('#ma-m-vu').textContent = vu;
+    const [dd,du] = distanceLisible(e.v*3600); $('#ma-m-d').textContent = dd; $('#ma-m-du').textContent = du;
+    $('#ma-m-s').textContent = e.style.n.split(' — ')[0];
+    $('#ma-note').innerHTML = "Viscosité <b>10<sup>" + fr(e.le,1) + "</sup> Pa·s</b> — pour mémoire, l'eau vaut 10<sup>−3</sup>, le miel environ 10, le bitume 10<sup>8</sup>. " +
+      "L'eau dissoute <b>fluidifie</b> le magma en profondeur, mais elle s'échappe à la remontée et c'est elle qui fait l'explosion : " +
+      "les deux rôles sont opposés, et ce modèle ne rend compte que du premier.<br>" +
+      "La vitesse est celle d'une coulée d'un mètre d'épaisseur, sans croûte ni cristaux : c'est une " +
+      "<b>valeur idéale, donc majorante</b>. Une coulée réelle est freinée par la croûte qui se fige à sa surface.";
+    $('#ma-terrain').innerHTML =
+      '<div style="border-left:3px solid ' + e.style.c + '; padding:2px 0 2px 12px">' +
+      '<div style="font-weight:600; font-size:14px; color:' + e.style.c + '">' + e.style.n + '</div>' +
+      '<p style="font-size:13px; color:var(--gris); margin:5px 0 8px">' + e.style.t + '</p>' +
+      '<p style="font-size:12.5px"><b>Produits émis :</b> ' + e.style.r + '</p></div>' +
+      '<div class="note">Indice d\'explosivité calculé à partir de la silice et de l\'eau dissoute : ' +
+      fr(e.ex,2) + '. C\'est un indicateur de ce module, pas une échelle officielle — l\'indice ' +
+      'd\'explosivité volcanique (VEI) se mesure, lui, sur le volume de matériaux émis.</div>';
+    dessine(); dessineCourbe();
+    Labo.note('magma', 'Magma réglé', silice + ' % SiO₂, ' + temp + ' °C, ' + fr(e.H,1) + ' % H₂O');
+    Labo.note('magma', 'Viscosité', '10^' + fr(e.le,1) + ' Pa·s');
+    Labo.note('magma', "Vitesse d'écoulement", vv + ' ' + vu + ' (pente ' + pente + '°)');
+    Labo.note('magma', 'Style éruptif', e.style.n);
+  }
+  function poseCurseurs(){
+    $('#ma-silice').value = silice; $('#ma-temp').value = temp; $('#ma-eau').value = eau;
+  }
+  $('#ma-silice').addEventListener('input', x => { silice = +x.target.value; maj(); });
+  $('#ma-temp').addEventListener('input', x => { temp = +x.target.value; maj(); });
+  $('#ma-eau').addEventListener('input', x => { eau = +x.target.value; maj(); });
+  $('#ma-pente').addEventListener('input', x => { pente = +x.target.value; maj(); });
+  segment($('#ma-type'), d => {
+    const m = MAGMAS[d.t]; silice = m.s; temp = m.T; eau = m.e; poseCurseurs(); maj();
+  });
+  $('#ma-go').addEventListener('click', () => {
+    if(marche) return;
+    marche = true; t = 0; jets = []; pasAnim();
+  });
+  $('#ma-stop').addEventListener('click', () => {
+    marche = false; cancelAnimationFrame(anim); jets = []; dessine();
+  });
+
+  $('#ma-questions').innerHTML = blocQuestions([
+    ["Faites varier la seule température, de 1300 à 700 °C, sur un basalte. De combien la viscosité change-t-elle ?",
+     "D'un facteur d'environ dix mille : la courbe monte de quatre graduations. Un magma qui refroidit devient de plus en plus visqueux, ce qui ralentit puis arrête la coulée — et c'est pourquoi un front de coulée avance par à-coups, la croûte refroidie freinant la lave encore chaude qui la suit."],
+    ["Pourquoi un volcan à magma rhyolitique a-t-il des pentes raides et un volcan basaltique des pentes douces ?",
+     "Parce que la lave qui construit l'édifice s'étale d'autant plus qu'elle est fluide. Un basalte à 100 Pa·s coule sur des kilomètres et bâtit un volcan bouclier très plat, comme au Piton de la Fournaise. Une rhyolite, un milliard de fois plus visqueuse, ne s'écarte presque pas du conduit et forme un dôme en aiguille. La forme du volcan est donc lisible : elle renseigne sur la chimie du magma."],
+    ["L'eau dissoute rend le magma plus fluide. Pourquoi les magmas les plus riches en eau donnent-ils pourtant les éruptions les plus violentes ?",
+     "Parce que l'eau joue deux rôles opposés. En profondeur, sous pression, elle est dissoute et casse le réseau de silice : elle fluidifie. En remontant, la pression chute, l'eau repasse à l'état gazeux et forme des bulles — dans un magma visqueux qui ne les laisse pas s'échapper, la pression monte jusqu'à la fragmentation. Ce module ne calcule que le premier effet : c'est sa limite, et elle vaut la peine d'être dite."],
+    ["Le TP avec l'eau, l'huile, le miel et le sirop reproduit-il bien cette manipulation ?",
+     "Il reproduit fidèlement le lien entre viscosité et vitesse d'écoulement, et permet de le mesurer. Ce qu'il ne reproduit pas, c'est l'ampleur : entre l'eau et le miel il y a un facteur dix mille, entre un basalte et une rhyolite un facteur dix millions. Ni l'effet des gaz dissous, ni la cristallisation progressive qui, elle aussi, épaissit un magma en cours d'écoulement."]
+  ]);
+
+  Labo.surAffichage.magma = () => { dessine(); dessineCourbe(); };
+  maj();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   PAILLASSE — IDENTIFIER UNE ROCHE
+   Ce module ne calcule rien : les propriétés listées ici sont celles des
+   roches réelles d'une collection de lycée. Seul l'aspect à l'écran est un
+   dessin. tex : ce que montre la loupe · hcl : effervescence à l'acide ·
+   dur : comportement à la rayure · rho : masse volumique (g/cm³).
+   ========================================================================== */
+const ROCHES = [
+{id:'granite', n:"Granite", fam:'magmatique', cat:"Magmatique plutonique", asp:'grenue',
+ tex:"Grenue : tous les cristaux sont visibles à l'œil nu, jointifs, sans orientation.",
+ hcl:'nulle', dur:'verre', rho:2.7, min:["quartz gris vitreux","feldspaths blancs ou roses","micas noirs (biotite)"],
+ div:"Cassure irrégulière. Aucune orientation des minéraux : c'est ce qui la distingue d'un gneiss.",
+ coul:['#e8cdc2','#e6e2da','#f4f1ea','#3a3129']},
+{id:'gabbro', n:"Gabbro", fam:'magmatique', cat:"Magmatique plutonique", asp:'grenue',
+ tex:"Grenue, sombre : cristaux visibles, dominés par des minéraux verts et noirs.",
+ hcl:'nulle', dur:'verre', rho:2.95, min:["plagioclase blanc","pyroxène vert sombre","parfois olivine vert olive"],
+ div:"Nettement plus lourd qu'un granite de même taille : c'est la roche des planchers océaniques.",
+ coul:['#eae7de','#56644a','#89a266','#2b2723']},
+{id:'basalte', n:"Basalte", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
+ tex:"Microlithique : pâte sombre où la loupe ne montre que de fines baguettes claires, parfois quelques cristaux plus gros.",
+ hcl:'nulle', dur:'verre', rho:2.9, min:["microlites de plagioclase","phénocristaux d'olivine ou de pyroxène"],
+ div:"Souvent vacuolaire en surface de coulée. Se débite parfois en prismes (orgues).",
+ coul:['#3b3a33','#eae7de','#89a266']},
+{id:'rhyolite', n:"Rhyolite", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
+ tex:"Microlithique claire : pâte beige à rosée, quelques phénocristaux de quartz vitreux.",
+ hcl:'nulle', dur:'verre', rho:2.5, min:["quartz en phénocristaux","feldspath alcalin","pâte vitreuse"],
+ div:"Même chimie qu'un granite, mais refroidie en surface. Souvent litée par l'écoulement.",
+ coul:['#6d6558','#e8cdc2','#e6e2da']},
+{id:'andesite', n:"Andésite", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
+ tex:"Microlithique grise : pâte intermédiaire, phénocristaux blancs de plagioclase bien visibles.",
+ hcl:'nulle', dur:'verre', rho:2.7, min:["plagioclase","amphibole en baguettes noires"],
+ div:"La roche des volcans de subduction — Andes, Japon, Antilles.",
+ coul:['#5b564a','#efece4','#4b5a45']},
+{id:'obsidienne', n:"Obsidienne", fam:'magmatique', cat:"Magmatique volcanique (verre)", asp:'vitreuse',
+ tex:"Aucune structure : un verre noir brillant, homogène.",
+ hcl:'nulle', dur:'verre', rho:2.4, min:["aucun cristal : verre volcanique"],
+ div:"Cassure conchoïdale, en écailles à bords tranchants — c'est pourquoi elle a servi à faire des outils.",
+ coul:['#1d1b19','#2e2a26']},
+{id:'ponce', n:"Ponce", fam:'magmatique', cat:"Magmatique volcanique (verre)", asp:'vacuolaire',
+ tex:"Mousse de verre : criblée de vacuoles, claire, très légère.",
+ hcl:'nulle', dur:'acier', rho:0.6, min:["verre vésiculé"],
+ div:"Flotte sur l'eau : sa masse volumique apparente est inférieure à 1. C'est le magma figé sur ses bulles.",
+ coul:['#ded7c8','#f2ece0']},
+{id:'calcaire', n:"Calcaire", fam:'sedimentaire', cat:"Sédimentaire biochimique", asp:'cristalline',
+ tex:"Grain fin à cristallin, souvent des débris de coquilles visibles à la loupe.",
+ hcl:'vive', dur:'acier', rho:2.7, min:["calcite","fossiles ou débris coquilliers"],
+ div:"Rayé par une pointe d'acier, il raye l'ongle. Effervescence vive et durable à froid.",
+ coul:['#e7ddc6','#d9cdb2','#f0e9d8']},
+{id:'craie', n:"Craie", fam:'sedimentaire', cat:"Sédimentaire biochimique", asp:'cristalline',
+ tex:"Pas de grain visible : une poudre blanche cohérente, très poreuse.",
+ hcl:'vive', dur:'ongle', rho:1.9, min:["calcite (coccolithes)"],
+ div:"Tache les doigts, se raye à l'ongle, absorbe l'eau. Calcaire, mais tendre et léger.",
+ coul:['#f6f3ea','#eae5d8']},
+{id:'gres', n:"Grès", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
+ tex:"Grains de sable visibles à la loupe, arrondis, soudés par un ciment.",
+ hcl:'nulle', dur:'verre', rho:2.4, min:["quartz en grains","ciment siliceux"],
+ div:"Rugueux au toucher, comme du papier de verre. Un grès à ciment calcaire fait effervescence : le ciment, pas les grains.",
+ coul:['#dcc396','#c9ab77','#e6d3ad']},
+{id:'conglomerat', n:"Conglomérat (poudingue)", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
+ tex:"Galets arrondis de plusieurs millimètres à centimètres, pris dans une matrice plus fine.",
+ hcl:'faible', dur:'verre', rho:2.5, min:["galets de roches variées","matrice sableuse"],
+ div:"Les galets arrondis disent un transport long par l'eau. S'ils sont anguleux, on parle de brèche.",
+ coul:['#c2a884','#9e8565','#ddc9a6','#7b6f64']},
+{id:'marne', n:"Marne", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
+ tex:"Aucun grain visible : une roche terne, grise à beige, à cassure mate.",
+ hcl:'faible', dur:'ongle', rho:2.3, min:["argiles","calcite (25 à 65 %)"],
+ div:"Odeur d'argile mouillée quand on souffle dessus. Effervescence faible : elle contient du calcaire, mais mélangé d'argile.",
+ coul:['#b7ae9a','#a59c88']},
+{id:'sel', n:"Sel gemme (halite)", fam:'sedimentaire', cat:"Sédimentaire évaporitique", asp:'cristalline',
+ tex:"Cristaux cubiques translucides, parfois roses ou gris.",
+ hcl:'nulle', dur:'ongle', rho:2.2, min:["halite (NaCl)"],
+ div:"Soluble dans l'eau, et de saveur salée — le seul test gustatif encore utilisé en géologie. Né de l'évaporation d'une mer.",
+ coul:['#f0ece2','#e3d9c9','#efd9d5']},
+{id:'gneiss', n:"Gneiss", fam:'metamorphique', cat:"Métamorphique", asp:'foliee',
+ tex:"Lits clairs et lits sombres alternés : les minéraux sont orientés en bandes.",
+ hcl:'nulle', dur:'verre', rho:2.7, min:["quartz","feldspaths","micas alignés"],
+ div:"Mêmes minéraux qu'un granite, mais organisés en lits : c'est cette orientation qui signe le métamorphisme.",
+ coul:['#e6e2da','#e8cdc2','#3a3129','#f4f1ea']},
+{id:'micaschiste', n:"Micaschiste", fam:'metamorphique', cat:"Métamorphique", asp:'foliee',
+ tex:"Feuillets brillants qui se séparent à la main : les micas sont alignés dans un même plan.",
+ hcl:'nulle', dur:'acier', rho:2.8, min:["micas abondants","quartz","parfois grenat rouge"],
+ div:"Éclat argenté ou doré selon le mica. Se débite en plaques — la schistosité.",
+ coul:['#7c7263','#b9b0a0','#5b5348','#8e2f2a']},
+{id:'marbre', n:"Marbre", fam:'metamorphique', cat:"Métamorphique", asp:'grenue',
+ tex:"Grains de calcite jointifs, d'aspect sucré (saccharoïde), brillants à la cassure.",
+ hcl:'vive', dur:'acier', rho:2.7, min:["calcite recristallisée"],
+ div:"Un calcaire recuit : même chimie, mais les fossiles ont disparu et les cristaux ont grossi.",
+ coul:['#f2efe6','#e4ded0','#d8d0bd']}
+];
+const NOM_FAM = {magmatique:"Magmatique", sedimentaire:"Sédimentaire", metamorphique:"Métamorphique"};
+const TESTS = [
+ {id:'loupe',  n:"Loupe binoculaire", q:"Texture et taille des grains", lit:r => r.tex},
+ {id:'hcl',    n:"Acide chlorhydrique", q:"Effervescence ?",
+  lit:r => r.hcl === 'vive' ? "Effervescence vive et durable : la roche est carbonatée." :
+           r.hcl === 'faible' ? "Effervescence faible, localisée : une partie seulement de la roche est carbonatée." :
+           "Aucune effervescence : pas de carbonate."},
+ {id:'durete', n:"Dureté (rayure)", q:"Ongle, pointe d'acier, verre",
+  lit:r => r.dur === 'ongle' ? "Se raye à l'ongle : dureté inférieure à 2,5." :
+           r.dur === 'acier' ? "Résiste à l'ongle, se raye à la pointe d'acier : dureté entre 2,5 et 5,5." :
+           "Raye le verre : dureté supérieure à 5,5."},
+ {id:'densite',n:"Masse volumique", q:"Pesée et volume déplacé",
+  lit:r => fr(r.rho,2) + " g/cm³" + (r.rho < 1 ? " — elle flotte." : r.rho > 2.85 ? " — nettement lourde." : "")},
+ {id:'mineraux', n:"Minéraux identifiables", q:"À la loupe, avec la clé des minéraux",
+  lit:r => r.min.join(' · ')},
+ {id:'divers', n:"Observations diverses", q:"Cassure, toucher, odeur, solubilité", lit:r => r.div}
+];
+
+(function paillasseRoches(){
+  const cv = $('#ro-cv'); if(!cv) return;
+  let mode = 'libre', choix = ROCHES[0].id, mystere = null, faits = new Set(), score = {essais:0, tests:0, justes:0};
+
+  const courante = () => ROCHES.find(r => r.id === (mode === 'libre' ? choix : mystere));
+
+  /* ---------- dessin de l'échantillon ---------- */
+  function dessine(){
+    const {ctx, l, h} = dimensionne(cv, 260);
+    const r = courante();
+    const visible = mode === 'libre' || faits.has('loupe');
+    ctx.fillStyle = '#efeae1'; ctx.fillRect(0,0,l,h);
+    const m = 16, x0 = m, y0 = m, w = l-2*m, hh = h-2*m;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(x0+10, y0); ctx.lineTo(x0+w-18, y0+4); ctx.lineTo(x0+w, y0+hh-12);
+    ctx.lineTo(x0+14, y0+hh); ctx.closePath();
+    ctx.clip();
+    if(!visible){
+      ctx.fillStyle = '#b9b2a6'; ctx.fillRect(x0,y0,w,hh);
+      ctx.fillStyle = '#fff'; ctx.font = '600 15px system-ui,sans-serif'; ctx.textAlign='center';
+      ctx.fillText('échantillon non encore observé', x0+w/2, y0+hh/2);
+      ctx.font = '12px system-ui,sans-serif';
+      ctx.fillText('lancez le test « loupe binoculaire »', x0+w/2, y0+hh/2+20);
+    } else {
+      const rnd = graine(r.id.split('').reduce((a,c)=>a+c.charCodeAt(0)*31,7));
+      const C = r.coul;
+      ctx.fillStyle = C[0]; ctx.fillRect(x0,y0,w,hh);
+      if(r.asp === 'grenue'){
+        const pas = r.id === 'marbre' ? 13 : 20;
+        for(let y=y0-pas; y<y0+hh+pas; y+=pas) for(let x=x0-pas; x<x0+w+pas; x+=pas){
+          ctx.beginPath();
+          const k = 5+Math.floor(rnd()*2), cx = x+rnd()*pas*0.5, cy = y+rnd()*pas*0.5;
+          for(let s=0;s<k;s++){
+            const a = s/k*Math.PI*2+rnd()*0.3, rr = pas*(0.45+rnd()*0.35);
+            s?ctx.lineTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr):ctx.moveTo(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr);
+          }
+          ctx.closePath();
+          ctx.fillStyle = C[Math.floor(rnd()*C.length)]; ctx.fill();
+          ctx.strokeStyle = 'rgba(50,45,38,.22)'; ctx.lineWidth = 0.8; ctx.stroke();
+        }
+      } else if(r.asp === 'microlithique'){
+        for(let i=0;i<260;i++){
+          const x = x0+rnd()*w, y = y0+rnd()*hh, a = rnd()*Math.PI, L = 4+rnd()*9;
+          ctx.save(); ctx.translate(x,y); ctx.rotate(a);
+          ctx.fillStyle = C[1+Math.floor(rnd()*(C.length-1))];
+          ctx.globalAlpha = .8; ctx.fillRect(-L/2,-1.1,L,2.2); ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+        for(let i=0;i<7;i++){
+          const x = x0+20+rnd()*(w-40), y = y0+20+rnd()*(hh-40), rr = 5+rnd()*9;
+          ctx.beginPath(); ctx.ellipse(x,y,rr,rr*0.7,rnd()*3,0,Math.PI*2);
+          ctx.fillStyle = C[1]; ctx.fill();
+          ctx.strokeStyle = 'rgba(30,26,22,.5)'; ctx.lineWidth = 1; ctx.stroke();
+        }
+      } else if(r.asp === 'vitreuse'){
+        const g = ctx.createLinearGradient(x0,y0,x0+w,y0+hh);
+        g.addColorStop(0,C[0]); g.addColorStop(.5,C[1]); g.addColorStop(1,C[0]);
+        ctx.fillStyle = g; ctx.fillRect(x0,y0,w,hh);
+        for(let i=0;i<9;i++){        /* cassure conchoïdale */
+          const cx = x0+rnd()*w, cy = y0+rnd()*hh, rr = 22+rnd()*50;
+          ctx.beginPath(); ctx.arc(cx,cy,rr, rnd()*6, rnd()*6);
+          ctx.strokeStyle = 'rgba(255,255,255,.16)'; ctx.lineWidth = 1.6; ctx.stroke();
+        }
+      } else if(r.asp === 'vacuolaire'){
+        ctx.fillStyle = C[1]; ctx.fillRect(x0,y0,w,hh);
+        for(let i=0;i<420;i++){
+          const x = x0+rnd()*w, y = y0+rnd()*hh, rr = 1.5+rnd()*7;
+          ctx.beginPath(); ctx.arc(x,y,rr,0,Math.PI*2);
+          ctx.fillStyle = 'rgba(120,110,95,' + (0.18+rnd()*0.35) + ')'; ctx.fill();
+        }
+      } else if(r.asp === 'detritique'){
+        const gros = r.id === 'conglomerat';
+        for(let i=0;i<(gros?60:900);i++){
+          const x = x0+rnd()*w, y = y0+rnd()*hh, rr = gros ? 6+rnd()*22 : 1.2+rnd()*2.6;
+          ctx.beginPath(); ctx.ellipse(x,y,rr,rr*(0.6+rnd()*0.35),rnd()*3,0,Math.PI*2);
+          ctx.fillStyle = C[Math.floor(rnd()*C.length)]; ctx.fill();
+          if(gros){ ctx.strokeStyle = 'rgba(50,45,38,.3)'; ctx.lineWidth = 1; ctx.stroke(); }
+        }
+      } else if(r.asp === 'foliee'){
+        let y = y0-6;
+        while(y < y0+hh+6){
+          const ep = 4+rnd()*13;
+          ctx.fillStyle = C[Math.floor(rnd()*C.length)];
+          ctx.beginPath();
+          ctx.moveTo(x0-4, y);
+          for(let x=x0; x<=x0+w+4; x+=18) ctx.lineTo(x, y + Math.sin(x/34+y/23)*3.4);
+          ctx.lineTo(x0+w+4, y+ep);
+          for(let x=x0+w; x>=x0-4; x-=18) ctx.lineTo(x, y+ep + Math.sin(x/34+y/23)*3.4);
+          ctx.closePath(); ctx.fill();
+          y += ep;
+        }
+        if(r.id === 'micaschiste') for(let i=0;i<40;i++){
+          const x = x0+rnd()*w, yy = y0+rnd()*hh;
+          ctx.beginPath(); ctx.ellipse(x,yy,3+rnd()*5,1.4,0,0,Math.PI*2);
+          ctx.fillStyle = 'rgba(255,255,255,.38)'; ctx.fill();
+        }
+      } else {  /* cristalline : calcaire, craie, sel */
+        for(let i=0;i<500;i++){
+          const x = x0+rnd()*w, y = y0+rnd()*hh, rr = 2+rnd()*7;
+          ctx.beginPath(); ctx.ellipse(x,y,rr,rr*0.75,rnd()*3,0,Math.PI*2);
+          ctx.fillStyle = C[Math.floor(rnd()*C.length)]; ctx.globalAlpha = .75; ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        if(r.id === 'calcaire') for(let i=0;i<9;i++){   /* débris coquilliers */
+          const x = x0+20+rnd()*(w-40), y = y0+20+rnd()*(hh-40);
+          ctx.beginPath(); ctx.arc(x,y,7+rnd()*9, 0.4, 3.6);
+          ctx.strokeStyle = 'rgba(120,105,80,.55)'; ctx.lineWidth = 2; ctx.stroke();
+        }
+      }
+      /* effervescence en cours */
+      if(faits.has('hcl') && r.hcl !== 'nulle'){
+        const n = r.hcl === 'vive' ? 90 : 28;
+        for(let i=0;i<n;i++){
+          const x = x0+rnd()*w, y = y0+rnd()*hh;
+          ctx.beginPath(); ctx.arc(x,y,1.4+rnd()*3.4,0,Math.PI*2);
+          ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fill();
+          ctx.strokeStyle = 'rgba(120,150,180,.8)'; ctx.lineWidth = .8; ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(x0+10, y0); ctx.lineTo(x0+w-18, y0+4); ctx.lineTo(x0+w, y0+hh-12);
+    ctx.lineTo(x0+14, y0+hh); ctx.closePath();
+    ctx.strokeStyle = 'rgba(60,54,46,.45)'; ctx.lineWidth = 2; ctx.stroke();
+    if(visible){
+      /* pas de règle graduée : ce dessin est une vue d'échantillon de main,
+         stylisée, et afficher une échelle chiffrée serait une fausse précision */
+      ctx.fillStyle = 'rgba(255,255,255,.88)';
+      ctx.fillRect(x0+8, y0+hh-26, 142, 20);
+      ctx.fillStyle = '#6f6a60'; ctx.font = '11px system-ui,sans-serif'; ctx.textAlign='left';
+      ctx.fillText('vue d\'échantillon de main', x0+14, y0+hh-12);
+    }
+  }
+
+  /* ---------- tests ---------- */
+  function rendTests(){
+    $('#ro-tests').innerHTML = TESTS.map(t =>
+      '<button class="btn mini" data-test="' + t.id + '" style="text-align:left; display:block; width:100%"' +
+      (faits.has(t.id) ? ' aria-pressed="true"' : '') + '>' +
+      '<b>' + t.n + '</b><br><span style="font-size:11px; color:var(--gris-clair)">' + t.q + '</span>' +
+      (faits.has(t.id) ? ' <span class="badge vert" style="float:right">fait</span>' : '') +
+      '</button>').join('');
+    $('#ro-securite').innerHTML = faits.has('hcl')
+      ? "<b>Sécurité.</b> L'acide chlorhydrique dilué s'utilise avec lunettes et blouse, au compte-gouttes, sur un verre de montre — jamais sur un échantillon de collection, qui serait abîmé."
+      : "<b>Sécurité.</b> Un seul test présente un risque réel : l'acide chlorhydrique dilué. Lunettes, blouse, et une goutte sur un éclat, pas sur la pièce de collection.";
+  }
+  function rendResultats(){
+    const r = courante();
+    const l = TESTS.filter(t => faits.has(t.id));
+    $('#ro-resultats').innerHTML = l.length
+      ? l.map(t => '<div style="border-left:3px solid var(--accent-clair); padding:4px 0 4px 12px; margin-bottom:10px">' +
+          '<div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600">' +
+          t.n + '</div><div style="font-size:13px">' + ech(t.lit(r)) + '</div></div>').join('') +
+        (mode === 'libre' ? '<div class="note"><b>' + r.n + '</b> — ' + r.cat + '.</div>' : '')
+      : '<p style="font-size:13px; color:var(--gris)">Aucun test lancé pour l\'instant.</p>';
+  }
+  $('#ro-tests').addEventListener('click', e => {
+    const b = e.target.closest('[data-test]'); if(!b) return;
+    if(!faits.has(b.dataset.test)){ faits.add(b.dataset.test); if(mode==='mystere') score.tests++; }
+    rendTests(); rendResultats(); dessine();
+  });
+
+  /* ---------- listes déroulantes ---------- */
+  const options = ROCHES.map(r => '<option value="' + r.id + '">' + r.n + '</option>').join('');
+  $('#ro-ech').innerHTML = options;
+  $('#ro-reponse').innerHTML = '<option value="">— choisir —</option>' + options;
+  $('#ro-ech').addEventListener('change', e => {
+    choix = e.target.value; faits = new Set(['loupe']); rendTests(); rendResultats(); dessine();
+  });
+
+  /* ---------- mode mystère ---------- */
+  function nouvelle(){
+    mystere = ROCHES[Math.floor(Math.random()*ROCHES.length)].id;
+    faits = new Set(); $('#ro-reponse').value = '';
+    rendTests(); rendResultats(); dessine(); majScore();
+  }
+  function majScore(){
+    $('#ro-score').innerHTML = score.essais
+      ? '<b>' + score.justes + ' / ' + score.essais + '</b> identification' + (score.essais>1?'s':'') +
+        ' réussie' + (score.justes>1?'s':'') + ', ' + score.tests + ' test' + (score.tests>1?'s':'') +
+        ' utilisé' + (score.tests>1?'s':'') + ' en tout — soit ' + fr(score.tests/score.essais,1) +
+        ' par échantillon. Un géologue expérimenté en utilise deux ou trois.'
+      : "Faites les tests que vous jugez nécessaires, puis proposez un nom. Le score compte aussi le nombre de tests : l'élégance, ici, c'est d'en faire peu.";
+    Labo.note('roches', 'Identifications réussies', score.justes + ' sur ' + score.essais);
+    if(score.essais) Labo.note('roches', 'Tests par échantillon', fr(score.tests/score.essais,1));
+  }
+  $('#ro-valider').addEventListener('click', () => {
+    const rep = $('#ro-reponse').value;
+    if(!rep){ alert("Choisissez un nom avant de valider."); return; }
+    const r = courante(); score.essais++;
+    const juste = rep === r.id;
+    if(juste) score.justes++;
+    $('#ro-resultats').innerHTML =
+      '<div class="note" style="border-left-color:' + (juste ? 'var(--vert)' : 'var(--rouge)') + '">' +
+      (juste ? '<b>Exact : ' + r.n + '.</b> ' : '<b>Non — c\'était un ' + r.n.toLowerCase() + '.</b> ') +
+      r.cat + '. ' + ech(r.div) + '</div>' + $('#ro-resultats').innerHTML;
+    majScore();
+  });
+  $('#ro-nouvelle').addEventListener('click', nouvelle);
+  segment($('#ro-mode'), d => {
+    mode = d.m;
+    $('#ro-choix').style.display = mode === 'libre' ? '' : 'none';
+    $('#ro-mystere-bloc').style.display = mode === 'libre' ? 'none' : '';
+    if(mode === 'mystere') nouvelle();
+    else { faits = new Set(['loupe']); rendTests(); rendResultats(); dessine(); }
+  });
+
+  /* ---------- clé et collection ---------- */
+  $('#ro-cle').innerHTML =
+    '<ol style="font-size:13px; padding-left:20px; display:grid; gap:7px; list-style:decimal">' +
+    '<li><b>La roche fait-elle effervescence à l\'acide ?</b><br>' +
+    '<span style="color:var(--gris)">Oui, vivement → calcaire, craie ou marbre. Faiblement → marne, ou un grès à ciment calcaire. Non → passer au point 2.</span></li>' +
+    '<li><b>Voit-on des cristaux jointifs, sans orientation ?</b><br>' +
+    '<span style="color:var(--gris)">Oui → roche magmatique plutonique : granite si elle est claire et quartzeuse, gabbro si elle est sombre et lourde.</span></li>' +
+    '<li><b>Les minéraux sont-ils orientés, en lits ou en feuillets ?</b><br>' +
+    '<span style="color:var(--gris)">Oui → roche métamorphique : gneiss si les lits alternent clair et sombre, micaschiste si elle se débite en feuillets brillants.</span></li>' +
+    '<li><b>Voit-on des grains arrondis, déposés puis cimentés ?</b><br>' +
+    '<span style="color:var(--gris)">Oui → roche sédimentaire détritique : grès si les grains font moins de 2 mm, conglomérat au-delà.</span></li>' +
+    '<li><b>La roche est-elle sombre et sans cristal visible, ou vitreuse ?</b><br>' +
+    '<span style="color:var(--gris)">→ roche magmatique volcanique : basalte, andésite, rhyolite selon la couleur ; obsidienne si elle est vitreuse, ponce si elle flotte.</span></li></ol>' +
+    '<div class="note">Les deux premiers tests — acide et loupe — écartent à eux seuls les deux tiers de la collection. C\'est pourquoi on les fait toujours en premier.</div>';
+
+  $('#ro-table').innerHTML =
+    '<thead><tr><th>Roche</th><th>Famille</th><th>Acide</th><th>Dureté</th><th>ρ (g/cm³)</th></tr></thead><tbody>' +
+    ROCHES.map(r => '<tr><td><b>' + r.n + '</b></td><td>' + r.cat + '</td>' +
+      '<td>' + (r.hcl === 'vive' ? '<span class="badge orange">vive</span>' :
+                r.hcl === 'faible' ? '<span class="badge">faible</span>' : '—') + '</td>' +
+      '<td>' + (r.dur === 'ongle' ? "ongle" : r.dur === 'acier' ? "acier" : "raye le verre") + '</td>' +
+      '<td>' + fr(r.rho,2) + '</td></tr>').join('') + '</tbody>';
+
+  faits = new Set(['loupe']);
+  rendTests(); rendResultats(); majScore();
+  Labo.surAffichage.roches = dessine;
+  dessine();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   PRÉPARER UNE MANIP — dictionnaire du matériel
+   c : catégorie · u : unité · part : matériel partagé par la classe
+   ========================================================================== */
+const CAT = {geo:'Échantillons et matériaux', reactif:'Réactifs et solutions', verre:'Verrerie',
+             instr:'Instruments', decoupe:'Découpe et petit matériel', disp:'Dispositifs à monter',
+             conso:'Consommables'};
+const MATOS = {
+  /* --- échantillons --- */
+  collection:{n:"Collection de roches du lycée (16 échantillons)", c:'geo', part:true},
+  granite:{n:"Échantillon de granite", c:'geo'},
+  basalte:{n:"Échantillon de basalte", c:'geo'},
+  calcaire:{n:"Échantillon de calcaire", c:'geo'},
+  craie:{n:"Morceau de craie", c:'geo'},
+  gres:{n:"Échantillon de grès", c:'geo'},
+  gneiss:{n:"Échantillon de gneiss", c:'geo'},
+  marbre:{n:"Échantillon de marbre", c:'geo'},
+  mineraux_boite:{n:"Boîte de minéraux (quartz, calcite, feldspath, mica, gypse…)", c:'geo', part:true},
+  lames_minces:{n:"Lames minces de roches magmatiques", c:'geo', part:true},
+  sable:{n:"Sable sec", c:'geo', u:'kg'},
+  sable_fin:{n:"Sable fin tamisé", c:'geo', u:'kg'},
+  graviers:{n:"Graviers 2 à 10 mm", c:'geo', u:'kg'},
+  galets:{n:"Galets", c:'geo'},
+  argile:{n:"Argile ou kaolin", c:'geo', u:'kg'},
+  terre:{n:"Terre végétale", c:'geo', u:'kg'},
+  gazon:{n:"Plaque de gazon ou mousse", c:'geo'},
+  carottes:{n:"Carotte ou bloc de sol (profil pédologique)", c:'geo', part:true},
+
+  /* --- réactifs --- */
+  hcl:{n:"Acide chlorhydrique dilué à 10 %", c:'reactif', u:'mL'},
+  vinaigre:{n:"Vinaigre blanc", c:'reactif', u:'mL'},
+  eau_distillee:{n:"Eau distillée", c:'reactif', u:'mL'},
+  sulfate:{n:"Sulfate de cuivre", c:'reactif', u:'g'},
+  alun:{n:"Alun de potassium", c:'reactif', u:'g'},
+  selcuisine:{n:"Sel de cuisine", c:'reactif', u:'g'},
+  colorant:{n:"Colorant alimentaire", c:'reactif', u:'mL'},
+  huile:{n:"Huile de table", c:'reactif', u:'mL'},
+  miel:{n:"Miel", c:'reactif', u:'mL'},
+  sirop:{n:"Sirop de sucre épais", c:'reactif', u:'mL'},
+  glycerine:{n:"Glycérine", c:'reactif', u:'mL'},
+  semoule:{n:"Semoule ou sable fin coloré", c:'reactif', u:'g'},
+  purée:{n:"Purée en flocons (pour la lave modèle)", c:'reactif', u:'g'},
+  bicarbonate:{n:"Bicarbonate de soude", c:'reactif', u:'g'},
+
+  /* --- verrerie --- */
+  becher:{n:"Béchers 100 mL", c:'verre'},
+  becher250:{n:"Béchers 250 mL", c:'verre'},
+  cristallisoir:{n:"Cristallisoirs", c:'verre'},
+  eprouvette:{n:"Éprouvette graduée", c:'verre'},
+  verre_montre:{n:"Verres de montre", c:'verre'},
+  tube:{n:"Tubes à essai", c:'verre'},
+  entonnoir:{n:"Entonnoir", c:'verre'},
+  pipette:{n:"Pipettes compte-gouttes", c:'verre'},
+  lame_verre:{n:"Plaque de verre (test de dureté)", c:'verre'},
+
+  /* --- instruments --- */
+  loupe:{n:"Loupes à main ×10", c:'instr'},
+  loupebino:{n:"Loupe binoculaire", c:'instr'},
+  microscope:{n:"Microscope polarisant", c:'instr'},
+  balance:{n:"Balance au décigramme", c:'instr', part:true},
+  chrono:{n:"Chronomètre", c:'instr'},
+  thermo:{n:"Thermomètre", c:'instr'},
+  regle:{n:"Règle graduée", c:'instr'},
+  rapporteur:{n:"Rapporteur ou inclinomètre", c:'instr'},
+  plaque_chauffe:{n:"Plaque chauffante", c:'instr', part:true},
+  bain_marie:{n:"Bain-marie", c:'instr', part:true},
+  frigo:{n:"Réfrigérateur ou bac à glace", c:'instr', part:true},
+  etuve:{n:"Étuve", c:'instr', part:true},
+  appareil_photo:{n:"Tablette ou appareil photo", c:'instr'},
+
+  /* --- découpe et petit matériel --- */
+  marteau:{n:"Marteau de géologue", c:'decoupe', part:true},
+  pointe:{n:"Pointe d'acier ou clou", c:'decoupe'},
+  pinceau:{n:"Pinceau souple", c:'decoupe'},
+  spatule:{n:"Spatule", c:'decoupe'},
+  pince:{n:"Pince brucelles", c:'decoupe'},
+  mortier:{n:"Mortier et pilon", c:'decoupe'},
+  tamis:{n:"Colonne de tamis (2 · 0,5 · 0,2 · 0,063 mm)", c:'decoupe', part:true},
+  porcelaine:{n:"Plaque de porcelaine non émaillée (trait)", c:'decoupe'},
+
+  /* --- dispositifs --- */
+  gouttiere:{n:"Gouttière transparente sur tréteaux", c:'disp', part:true},
+  bac:{n:"Bac plastique transparent", c:'disp'},
+  bac_grand:{n:"Grand bac (delta, érosion)", c:'disp', part:true},
+  pompe:{n:"Pompe d'aquarium ou circuit d'eau", c:'disp', part:true},
+  arrosoir:{n:"Arrosoir à pomme fine", c:'disp'},
+  seau:{n:"Seau de récupération", c:'disp'},
+  plan_incline:{n:"Plan incliné gradué", c:'disp'},
+  cale:{n:"Cales pour régler la pente", c:'disp'},
+  maquette_volcan:{n:"Maquette de cône volcanique", c:'disp'},
+  blocs_bois:{n:"Blocs de bois d'épaisseurs différentes", c:'disp'},
+  mousse:{n:"Plaques de mousse ou de sable coloré (pli, faille)", c:'disp'},
+  ressort:{n:"Ressort long (ondes)", c:'disp', part:true},
+
+  /* --- consommables --- */
+  gants:{n:"Gants", c:'conso'},
+  lunettes:{n:"Lunettes de protection", c:'conso'},
+  papier_filtre:{n:"Papier filtre", c:'conso'},
+  marqueur:{n:"Marqueur indélébile", c:'conso'},
+  boites:{n:"Boîtes ou barquettes de tri", c:'conso'},
+  film:{n:"Film étirable", c:'conso'},
+  ficelle:{n:"Ficelle", c:'conso'},
+  fiche:{n:"Fiche de détermination imprimée", c:'conso'}
+};
+
+/* ==========================================================================
+   FICHES DE MANIPULATION
+   mat : [identifiant du matériel, quantité PAR POSTE]
+   ========================================================================== */
+const FICHES = [
+{id:'roches', t:"Reconnaître et classer les roches", p:'A', ref:'A1 et A6', duree:55, niveau:'Seconde', sim:'roches',
+ principe:"Trois familles, trois modes de formation. L'observation de la texture, l'effervescence à l'acide et la dureté suffisent à ranger la plupart des roches d'une collection de lycée.",
+ mat:[['collection',1],['loupe',2],['loupebino',1],['hcl',10],['pipette',1],['pointe',1],['lame_verre',1],['verre_montre',2],['lunettes',1],['fiche',1],['boites',3]],
+ etapes:["Répartir les échantillons par poste, sans les nommer.",
+         "Observer chacun à l'œil nu puis à la loupe : voit-on des cristaux ? des grains ? des feuillets ?",
+         "Tester l'effervescence avec une goutte d'acide sur un éclat, jamais sur la pièce entière.",
+         "Tester la dureté : ongle, puis pointe d'acier, puis rayure sur le verre.",
+         "Classer en trois familles et justifier chaque choix par un critère observé."],
+ resultat:"Magmatiques : cristaux jointifs sans orientation, ou pâte sombre. Sédimentaires : grains déposés, souvent effervescence. Métamorphiques : minéraux orientés en lits ou en feuillets.",
+ secu:"Acide chlorhydrique dilué : lunettes et gants, au compte-gouttes, sur un verre de montre."},
+
+{id:'hcl', t:"Test à l'acide sur les roches carbonatées", p:'A', ref:'A2', duree:20, niveau:'Seconde', sim:'roches',
+ principe:"L'acide chlorhydrique attaque le carbonate de calcium et libère du dioxyde de carbone : l'effervescence signale la calcite. Son intensité renseigne sur la proportion de carbonate.",
+ mat:[['calcaire',1],['craie',1],['marbre',1],['granite',1],['gres',1],['hcl',10],['pipette',1],['verre_montre',5],['loupe',1],['lunettes',1],['gants',1]],
+ etapes:["Déposer cinq éclats sur des verres de montre étiquetés.",
+         "Ajouter une goutte d'acide dilué sur chacun.",
+         "Comparer : effervescence vive, faible, ou nulle.",
+         "Recommencer sur une marne ou un grès à ciment calcaire pour montrer le cas intermédiaire."],
+ resultat:"Effervescence vive sur calcaire, craie et marbre ; nulle sur granite et grès siliceux ; faible et localisée sur une marne.",
+ secu:"Acide dilué : lunettes obligatoires, gants conseillés, ne jamais verser sur un échantillon de collection."},
+
+{id:'durete', t:"Dureté et échelle de Mohs", p:'A', ref:'A3', duree:30, niveau:'Seconde', sim:'roches',
+ principe:"Un minéral en raye un autre s'il est plus dur. Trois repères suffisent en classe : l'ongle (2,5), la pointe d'acier (5,5), le verre (5,5 à 6). La dureté est une propriété du minéral, pas de la roche entière.",
+ mat:[['mineraux_boite',1],['pointe',1],['lame_verre',1],['porcelaine',1],['loupe',1],['fiche',1]],
+ etapes:["Essayer de rayer chaque minéral avec l'ongle.",
+         "Puis avec la pointe d'acier.",
+         "Puis essayer de rayer le verre avec le minéral.",
+         "Faire le trait sur la plaque de porcelaine : sa couleur est souvent plus constante que celle du minéral."],
+ resultat:"Gypse et halite se rayent à l'ongle, la calcite à la pointe d'acier, le quartz raye le verre. Le trait de l'hématite est rouge brique même sur un échantillon noir.",
+ secu:"Les éclats peuvent être coupants : travailler au-dessus d'un plateau, lunettes conseillées."},
+
+{id:'mineraux', t:"Identifier des minéraux par leurs propriétés", p:'A', ref:'A4', duree:45, niveau:'Seconde', sim:'roches',
+ principe:"Couleur, éclat, trait, dureté, clivage, forme des cristaux : quelques propriétés simples suffisent à identifier les minéraux courants des roches du lycée.",
+ mat:[['mineraux_boite',1],['loupe',2],['loupebino',1],['pointe',1],['lame_verre',1],['porcelaine',1],['hcl',5],['pipette',1],['fiche',1],['lunettes',1]],
+ etapes:["Décrire l'éclat : métallique, vitreux, nacré, mat.",
+         "Observer les clivages : le minéral se casse-t-il selon des plans réguliers ?",
+         "Mesurer la dureté avec les trois repères.",
+         "Faire le trait, tester à l'acide si nécessaire.",
+         "Conclure à l'aide de la clé de détermination."],
+ resultat:"Quartz : vitreux, pas de clivage, raye le verre. Calcite : trois clivages obliques, effervescence. Micas : clivage parfait en feuillets. Feldspaths : deux clivages à angle droit.",
+ secu:"Acide dilué : lunettes. Ne pas porter les minéraux à la bouche, sauf la halite, et seulement si l'échantillon est prévu pour."},
+
+{id:'lames', t:"Texture des roches magmatiques en lame mince", p:'A', ref:'A5 et C6', duree:45, niveau:'Terminale', sim:'cristal',
+ principe:"Une lame de trente micromètres laisse passer la lumière : au microscope polarisant, chaque minéral prend des couleurs caractéristiques et la texture de la roche apparaît en entier.",
+ mat:[['lames_minces',1],['microscope',1],['appareil_photo',1],['regle',1],['fiche',1]],
+ etapes:["Observer d'abord en lumière naturelle : contours, couleurs propres, opacité.",
+         "Passer en lumière polarisée analysée : les teintes de biréfringence apparaissent.",
+         "Repérer la texture : cristaux tous visibles (grenue) ou baguettes dans du verre (microlithique).",
+         "Mesurer quelques cristaux au micromètre oculaire.",
+         "Photographier et légender."],
+ resultat:"Granite : quartz, feldspaths et biotite jointifs, de l'ordre du millimètre. Basalte : microlites de plagioclase dans une pâte sombre, parfois des phénocristaux d'olivine.",
+ secu:"Les lames minces sont fragiles et coûteuses : les manipuler par les bords, jamais de force sur la platine."},
+
+{id:'densite', t:"Mesurer la masse volumique d'une roche", p:'A', ref:'A7', duree:30, niveau:'Seconde',
+ principe:"La masse volumique distingue les roches de la croûte continentale (environ 2,7) de celles du manteau et de la croûte océanique (près de 3,0). C'est le fondement de l'isostasie.",
+ mat:[['granite',1],['basalte',1],['calcaire',1],['balance',1],['eprouvette',1],['eau_distillee',200],['ficelle',1],['papier_filtre',2]],
+ etapes:["Peser l'échantillon sec.",
+         "Remplir l'éprouvette d'un volume d'eau connu.",
+         "Y immerger l'échantillon suspendu à la ficelle et lire le nouveau volume.",
+         "Calculer la masse volumique, puis comparer les trois roches."],
+ resultat:"Granite environ 2,7 g/cm³, basalte 2,9, calcaire 2,7, péridotite 3,3. La croûte continentale est plus légère : elle flotte plus haut.",
+ secu:"Sans risque. Essuyer l'échantillon avant de le ranger pour ne pas altérer la collection."},
+
+{id:'alteration', t:"Altération d'une roche : eau, eau acidifiée, gel", p:'B', ref:'B1', duree:50, niveau:'Seconde',
+ principe:"L'altération chimique dissout, l'altération physique fragmente. Sur un calcaire, l'eau acidifiée agit en quelques minutes ; sur un granite, c'est l'eau qui transforme lentement les feldspaths en argiles.",
+ mat:[['calcaire',2],['granite',2],['becher',3],['eau_distillee',150],['vinaigre',150],['hcl',10],['balance',1],['etuve',1],['frigo',1],['papier_filtre',3],['marqueur',1],['lunettes',1]],
+ etapes:["Peser trois éclats de calcaire de masse voisine.",
+         "Les immerger : le premier dans l'eau, le deuxième dans le vinaigre, le troisième dans l'acide dilué.",
+         "Laisser agir une heure, ou d'une séance à l'autre.",
+         "Rincer, sécher à l'étuve et repeser : la perte de masse mesure l'altération.",
+         "Pour le gel, saturer un éclat poreux d'eau et le placer au congélateur entre deux séances."],
+ resultat:"Perte de masse notable dans le vinaigre, très forte dans l'acide, quasi nulle dans l'eau. Sur le granite, aucune perte mesurable à cette échelle de temps : l'altération chimique y demande des milliers d'années.",
+ secu:"Acide dilué : lunettes et gants. Ne pas fermer hermétiquement un récipient où se dégage du CO₂."},
+
+{id:'erosion', t:"Érosion en bac : pente, débit, végétation", p:'B', ref:'B2 et B3', duree:50, niveau:'Seconde', sim:'sediment',
+ principe:"L'érosion dépend de l'énergie de l'eau et de la résistance du sol. En faisant varier un paramètre à la fois — pente, débit, couvert végétal — on isole l'effet de chacun.",
+ mat:[['bac',2],['terre',3],['gazon',1],['arrosoir',1],['eau_distillee',2000],['cale',2],['rapporteur',1],['seau',1],['becher250',2],['balance',1],['chrono',1],['papier_filtre',4],['appareil_photo',1]],
+ etapes:["Préparer deux bacs identiques, l'un nu, l'autre recouvert de gazon.",
+         "Régler la même pente pour les deux et mesurer l'angle.",
+         "Arroser avec le même volume d'eau, au même débit, pendant la même durée.",
+         "Recueillir l'eau qui sort de chaque bac.",
+         "Filtrer, sécher et peser les sédiments : la comparaison est chiffrée.",
+         "Recommencer en changeant seulement la pente."],
+ resultat:"Le bac nu exporte plusieurs fois plus de sédiments que le bac végétalisé. L'exportation augmente fortement avec la pente et avec le débit.",
+ secu:"Sol mouillé et glissant : prévoir des serpillières. Rien de chimique."},
+
+{id:'gouttiere', t:"Transport et dépôt : le tri granulométrique", p:'B', ref:'B4', duree:45, niveau:'Seconde', sim:'sediment',
+ principe:"Dans un courant, chaque grain se dépose quand la vitesse de l'eau ne le porte plus. Les gros tombent les premiers, les fins voyagent loin : le dépôt se trie de lui-même, de l'amont vers l'aval.",
+ mat:[['gouttiere',1],['pompe',1],['sable',1],['sable_fin',1],['graviers',1],['argile',1],['seau',1],['regle',1],['chrono',1],['rapporteur',1],['appareil_photo',1],['boites',4]],
+ etapes:["Installer la gouttière avec une pente faible et mesurer l'angle.",
+         "Mesurer la vitesse du courant en chronométrant un flotteur sur une distance connue.",
+         "Verser en tête un mélange de graviers, sable grossier, sable fin et argile.",
+         "Observer et photographier le dépôt sans le déranger.",
+         "Mesurer la distance à laquelle chaque classe s'arrête.",
+         "Recommencer avec un débit double."],
+ resultat:"Les graviers s'arrêtent dès le premier décimètre, les sables plus loin, l'argile reste en suspension et sort de la gouttière. Doubler le débit repousse tout le dépôt vers l'aval.",
+ secu:"Eau et électricité de la pompe : prise éloignée du bac, rallonge protégée."},
+
+{id:'delta', t:"Formation d'un delta", p:'B', ref:'B5', duree:50, niveau:'Seconde', sim:'sediment',
+ principe:"À l'entrée d'un plan d'eau, le courant s'étale et ralentit brutalement : il abandonne sa charge. Le dépôt progresse vers le large par empilement de couches inclinées.",
+ mat:[['bac_grand',1],['sable',2],['argile',1],['pompe',1],['eau_distillee',3000],['colorant',10],['regle',1],['appareil_photo',1],['seau',1]],
+ etapes:["Remplir d'eau la moitié aval du grand bac, la moitié amont formant le versant.",
+         "Préparer une eau chargée de sable et d'argile colorée.",
+         "L'amener en un filet régulier à l'entrée du plan d'eau.",
+         "Photographier toutes les deux minutes depuis le même point.",
+         "En fin de séance, couper le delta perpendiculairement pour voir les couches inclinées."],
+ resultat:"Un éventail se construit et progresse vers le large. En coupe, on retrouve les trois ensembles : couches sommitales, couches frontales inclinées, couches fines au large.",
+ secu:"Volume d'eau important : bac stable, sol protégé."},
+
+{id:'granulometrie', t:"Granulométrie d'un sable au tamis", p:'B', ref:'B6', duree:40, niveau:'Seconde',
+ principe:"Tamiser un sédiment et peser chaque fraction donne sa courbe granulométrique. Un sédiment bien classé a été trié par un agent de transport régulier ; un sédiment mal classé a été déposé brutalement.",
+ mat:[['tamis',1],['sable',1],['balance',1],['boites',5],['papier_filtre',5],['marqueur',1],['etuve',1],['pinceau',1]],
+ etapes:["Sécher et peser 100 g de sédiment.",
+         "Empiler les tamis du plus grossier au plus fin et agiter deux minutes.",
+         "Peser chaque refus et calculer les pourcentages.",
+         "Tracer la courbe cumulative et comparer deux sédiments d'origines différentes."],
+ resultat:"Un sable de dune donne une courbe très raide : une seule classe domine. Une moraine donne une courbe étalée : toutes les tailles sont présentes, le glacier ne trie pas.",
+ secu:"Poussières fines : ne pas souffler dans les tamis, les nettoyer au pinceau."},
+
+{id:'permeabilite', t:"Perméabilité et porosité de différentes roches", p:'B', ref:'B7', duree:40, niveau:'Seconde',
+ principe:"La porosité est le volume de vide, la perméabilité l'aptitude à laisser circuler l'eau. Les deux se mesurent simplement et expliquent la localisation des nappes et des sources.",
+ mat:[['entonnoir',3],['becher',3],['eprouvette',1],['sable',1],['graviers',1],['argile',1],['eau_distillee',300],['chrono',1],['papier_filtre',3],['balance',1],['regle',1]],
+ etapes:["Garnir trois entonnoirs de même hauteur de graviers, de sable et d'argile.",
+         "Verser le même volume d'eau dans chacun au même instant.",
+         "Chronométrer l'écoulement et mesurer le volume recueilli après une minute.",
+         "Pour la porosité, saturer un volume connu de matériau et mesurer le volume d'eau absorbé."],
+ resultat:"Les graviers laissent tout passer en quelques secondes, le sable plus lentement, l'argile presque rien : elle est poreuse mais imperméable. C'est pourquoi une nappe repose sur un niveau argileux.",
+ secu:"Sans risque particulier."},
+
+{id:'sol', t:"Lire un profil de sol", p:'B', ref:'B8', duree:55, niveau:'Seconde',
+ principe:"Un sol s'organise en horizons, de la litière en surface à la roche mère en profondeur. Leur épaisseur et leur couleur racontent l'altération, l'activité biologique et le temps écoulé.",
+ mat:[['carottes',1],['regle',1],['loupe',2],['hcl',5],['pipette',1],['becher',2],['eau_distillee',100],['papier_filtre',2],['appareil_photo',1],['fiche',1],['lunettes',1]],
+ etapes:["Décrire les horizons de haut en bas : couleur, épaisseur, structure, présence de racines.",
+         "Tester l'effervescence à chaque horizon pour repérer le calcaire.",
+         "Estimer la texture en malaxant un peu de terre humide entre les doigts.",
+         "Relier la roche mère observée à la base et la nature du sol au-dessus.",
+         "Dessiner le profil à l'échelle."],
+ resultat:"Un horizon organique sombre en surface, un horizon d'altération intermédiaire, la roche mère fragmentée à la base. Sur calcaire, l'effervescence apparaît en profondeur avant la roche mère.",
+ secu:"Acide dilué : lunettes. Se laver les mains après manipulation de terre."},
+
+{id:'cristallisation', t:"Cristallisation d'un sel : rôle du refroidissement", p:'C', ref:'C1 et C2', duree:45, niveau:'Seconde', sim:'cristal',
+ principe:"Un cristal a besoin de temps pour se construire. Refroidie lentement, une solution saturée donne quelques gros cristaux ; refroidie brutalement, une multitude de petits. C'est la relation que l'on retrouve entre granite et rhyolite.",
+ mat:[['sulfate',30],['alun',30],['becher250',2],['cristallisoir',2],['eau_distillee',200],['plaque_chauffe',1],['thermo',1],['frigo',1],['loupebino',1],['verre_montre',2],['spatule',1],['papier_filtre',2],['gants',1],['lunettes',1]],
+ etapes:["Préparer une solution saturée chaude de sulfate de cuivre ou d'alun.",
+         "La partager en deux : une moitié laissée à refroidir lentement, emballée dans un tissu ; l'autre versée sur une plaque froide ou placée au réfrigérateur.",
+         "Attendre la séance suivante pour le refroidissement lent, quelques minutes pour la trempe.",
+         "Observer les deux résultats à la loupe binoculaire et mesurer la taille des cristaux.",
+         "Faire le lien avec les textures grenue et microlithique."],
+ resultat:"Refroidissement lent : cristaux de plusieurs millimètres, bien formés. Trempe : poudre de cristaux microscopiques. Le rapport des tailles dépasse souvent un facteur dix.",
+ secu:"Le sulfate de cuivre est nocif et polluant : gants, lunettes, récupération en bidon, jamais à l'évier. L'alun est nettement moins dangereux et convient bien en seconde."},
+
+{id:'viscosite', t:"Viscosité de fluides sur un plan incliné", p:'C', ref:'C3', duree:40, niveau:'Seconde', sim:'magma',
+ principe:"Plus un fluide est visqueux, plus il s'écoule lentement à pente égale. En mesurant le temps mis pour parcourir une distance fixée, on chiffre la viscosité et on transpose aux laves.",
+ mat:[['plan_incline',1],['eau_distillee',50],['huile',50],['miel',50],['sirop',50],['glycerine',50],['becher',5],['chrono',1],['regle',1],['rapporteur',1],['thermo',1],['plaque_chauffe',1],['papier_filtre',4],['marqueur',1]],
+ etapes:["Régler le plan incliné à un angle mesuré et tracer deux repères distants de 20 cm.",
+         "Déposer le même volume de chaque fluide au repère de départ.",
+         "Chronométrer le parcours entre les deux repères et calculer la vitesse.",
+         "Recommencer avec le miel réchauffé au bain-marie : la température change tout.",
+         "Classer les fluides et relier au style éruptif."],
+ resultat:"L'eau parcourt la distance en une seconde, le miel en plusieurs dizaines, le sirop épais davantage encore. Le miel réchauffé de 20 à 40 °C voit son temps divisé par cinq ou plus.",
+ secu:"Sol et paillasse glissants : essuyer immédiatement. Bain-marie chaud : gants."},
+
+{id:'eruption', t:"Modéliser une éruption volcanique", p:'C', ref:'C4 et C5', duree:45, niveau:'Seconde', sim:'magma',
+ principe:"Deux ingrédients font le style d'une éruption : la viscosité du magma et la quantité de gaz. En les faisant varier séparément sur une maquette, on obtient les deux grands comportements, effusif et explosif.",
+ mat:[['maquette_volcan',1],['purée',80],['sirop',80],['colorant',10],['bicarbonate',20],['vinaigre',60],['becher',3],['eprouvette',1],['spatule',1],['seau',1],['film',1],['appareil_photo',1],['lunettes',1]],
+ etapes:["Préparer deux laves modèles : une fluide (sirop dilué) et une visqueuse (purée épaisse).",
+         "Les faire sortir du cratère sans gaz : comparer l'étalement et la pente obtenue.",
+         "Recommencer en ajoutant le couple bicarbonate-vinaigre au fond du cratère.",
+         "Filmer chaque essai et comparer les quatre situations.",
+         "Relier chaque cas à un volcan réel."],
+ resultat:"Lave fluide sans gaz : coulée étalée, cône plat. Lave visqueuse avec gaz : le cratère se bouche puis projette violemment. La matrice à quatre cases est la conclusion de la séance.",
+ secu:"Projections : lunettes pour tout le monde, maquette posée dans un bac de récupération, personne au-dessus du cratère."},
+
+{id:'convection', t:"Modéliser la convection du manteau", p:'D', ref:'D1', duree:40, niveau:'Première',
+ principe:"Un fluide chauffé par le bas devient moins dense et monte, se refroidit en surface et redescend : des cellules s'installent. C'est le moteur invoqué pour la mobilité des plaques.",
+ mat:[['cristallisoir',1],['plaque_chauffe',1],['eau_distillee',500],['semoule',5],['colorant',5],['thermo',1],['chrono',1],['appareil_photo',1],['gants',1]],
+ etapes:["Remplir le cristallisoir d'eau et y disperser un peu de semoule ou de sciure.",
+         "Chauffer doucement par le dessous, sur un seul côté d'abord.",
+         "Observer les trajectoires des particules et les dessiner.",
+         "Déposer une plaque légère en surface pour voir son déplacement."],
+ resultat:"Des cellules apparaissent : montée à l'aplomb du chauffage, déplacement horizontal en surface, descente sur les côtés. La plaque posée en surface est entraînée.",
+ secu:"Plaque chauffante et eau : chauffer doucement, gants pour déplacer le cristallisoir."},
+
+{id:'isostasie', t:"Isostasie : des blocs de bois sur l'eau", p:'D', ref:'D2', duree:35, niveau:'Première',
+ principe:"Un bloc moins dense que le fluide qui le porte flotte en s'y enfonçant d'autant plus qu'il est épais. La croûte continentale, légère et épaisse, fait des racines sous les montagnes.",
+ mat:[['blocs_bois',4],['bac',1],['eau_distillee',2000],['regle',1],['balance',1],['marqueur',1],['appareil_photo',1]],
+ etapes:["Mesurer l'épaisseur et la masse de chaque bloc, calculer sa masse volumique.",
+         "Les faire flotter et mesurer la hauteur émergée et la profondeur immergée.",
+         "Tracer le graphique hauteur émergée en fonction de l'épaisseur totale.",
+         "Appuyer sur un bloc puis le relâcher : observer le retour à l'équilibre."],
+ resultat:"La hauteur émergée est proportionnelle à l'épaisseur : un bloc deux fois plus épais dépasse deux fois plus, et s'enfonce deux fois plus. C'est le modèle d'Airy.",
+ secu:"Sans risque. Prévoir de quoi éponger."},
+
+{id:'sismo', t:"Propagation des ondes sismiques", p:'D', ref:'D3', duree:40, niveau:'Première',
+ principe:"Un séisme émet plusieurs types d'ondes, qui ne se propagent ni de la même façon ni à la même vitesse. Un ressort long permet de produire et de distinguer les ondes de compression et les ondes de cisaillement.",
+ mat:[['ressort',1],['chrono',1],['regle',1],['appareil_photo',1],['ficelle',2],['marqueur',1]],
+ etapes:["Tendre le ressort entre deux élèves, sur au moins cinq mètres.",
+         "Produire une onde de compression en poussant brusquement selon l'axe.",
+         "Produire une onde de cisaillement en secouant perpendiculairement.",
+         "Filmer au ralenti et comparer les vitesses et le mouvement des spires.",
+         "Recommencer avec un ressort plus ou moins tendu."],
+ resultat:"L'onde de compression se propage nettement plus vite que celle de cisaillement, comme les ondes P devancent les ondes S. Le décalage entre leurs arrivées donne la distance au foyer.",
+ secu:"Un ressort long est dangereux s'il échappe : le tenir fermement à chaque extrémité, personne sur les côtés."},
+
+{id:'tectonique', t:"Modéliser un pli et une faille", p:'D', ref:'D4', duree:45, niveau:'Première',
+ principe:"Une même contrainte donne un pli ou une faille selon que le matériau se déforme de façon souple ou cassante — ce qui dépend de la profondeur, de la température et de la vitesse de déformation.",
+ mat:[['mousse',3],['bac',1],['sable',2],['argile',1],['regle',1],['spatule',1],['appareil_photo',1],['film',1]],
+ etapes:["Empiler des couches de sable et d'argile de couleurs différentes dans le bac.",
+         "Comprimer lentement avec une paroi mobile et observer la déformation.",
+         "Recommencer avec des plaques de mousse superposées pour obtenir des plis souples.",
+         "Couper la maquette perpendiculairement et photographier la coupe."],
+ resultat:"Le sable, cassant, se rompt en failles inverses qui se propagent vers l'avant. La mousse, ductile, se plisse sans rompre. Les deux comportements coexistent dans une chaîne de montagnes.",
+ secu:"Sans risque. Bac stable et sol protégé."},
+
+{id:'datation', t:"Datation relative sur un bloc-diagramme", p:'D', ref:'D5', duree:35, niveau:'Première',
+ principe:"Quatre principes suffisent à ordonner les événements d'une région : superposition, recoupement, inclusion et continuité. Aucun instrument n'est nécessaire, seulement de la rigueur.",
+ mat:[['fiche',1],['regle',1],['marqueur',1],['boites',1],['mousse',2],['appareil_photo',1]],
+ etapes:["Distribuer un bloc-diagramme comportant des couches, une faille, un filon et une surface d'érosion.",
+         "Numéroter chaque événement.",
+         "Justifier chaque relation par le principe utilisé.",
+         "Reconstituer l'histoire de la région en une phrase par événement.",
+         "Vérifier en construisant la même succession avec des plaques de mousse."],
+ resultat:"Une chronologie complète, chaque étape appuyée sur un principe nommé. L'erreur la plus fréquente est d'oublier que la surface d'érosion est un événement à part entière.",
+ secu:"Sans risque."}
+];
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE PRÉPARER UNE MANIP — interface
+   Deux sens de lecture : la manip donne le matériel, ou le matériel
+   disponible donne les manips possibles. Le panier agrège plusieurs fiches
+   en une seule liste de courses.
+   ========================================================================== */
+const PLACARD_TYPE = ['collection','granite','basalte','calcaire','craie','gres','mineraux_boite',
+ 'sable','sable_fin','graviers','galets','argile','terre',
+ 'hcl','vinaigre','eau_distillee','selcuisine','alun','colorant','huile','miel','sirop','bicarbonate',
+ 'becher','becher250','cristallisoir','eprouvette','verre_montre','tube','entonnoir','pipette','lame_verre',
+ 'loupe','loupebino','balance','chrono','thermo','regle','rapporteur','plaque_chauffe','bain_marie','frigo',
+ 'marteau','pointe','spatule','pince','mortier','porcelaine',
+ 'bac','seau','arrosoir','cale','plan_incline','blocs_bois',
+ 'gants','lunettes','papier_filtre','marqueur','boites','ficelle','fiche','film',
+ 'appareil_photo','etuve','tamis','pinceau','marteau','pince','mortier','tube','bain_marie','mousse'];
+
+(function preparer(){
+  const CLE_PLACARD = 'labo-geol-placard', CLE_PANIER = 'labo-geol-panier';
+  let mode = 'recette', fiche = null, panier = [], inventaire = new Set(), postes = 8;
+  try { panier = JSON.parse(localStorage.getItem(CLE_PANIER) || '[]'); } catch(e){}
+  try { inventaire = new Set(JSON.parse(localStorage.getItem(CLE_PLACARD) || '[]')); } catch(e){}
+  const garde = () => {
+    try {
+      localStorage.setItem(CLE_PANIER, JSON.stringify(panier));
+      localStorage.setItem(CLE_PLACARD, JSON.stringify([...inventaire]));
+    } catch(e){}
+  };
+  const sansAcc = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+
+  /* ---------- agrégation du matériel ---------- */
+  function agrege(ids, n){
+    const total = {};
+    ids.forEach(id => {
+      const f = FICHES.find(x => x.id === id); if(!f) return;
+      f.mat.forEach(([m,q]) => {
+        if(!MATOS[m]) return;
+        total[m] = (total[m] || 0) + (MATOS[m].part ? q : q*n);
+      });
+    });
+    const parCat = {};
+    Object.keys(total).forEach(m => {
+      const it = MATOS[m];
+      (parCat[it.c] = parCat[it.c] || []).push({nom:it.n, q:total[m], u:it.u||'', part:!!it.part});
+    });
+    Object.values(parCat).forEach(l => l.sort((a,b)=>a.nom.localeCompare(b.nom,'fr')));
+    return parCat;
+  }
+  const qte = o => o.part ? '1' : (Math.round(o.q*10)/10).toLocaleString('fr-FR') + (o.u ? ' ' + o.u : ' ×');
+  const ligne = o => '<b>' + qte(o) + '</b> ' + o.nom +
+    (o.part ? ' <span style="color:var(--gris-clair)">(pour la classe)</span>' : '');
+  function htmlMateriel(ids, n){
+    const parCat = agrege(ids, n);
+    const ordre = ['geo','reactif','verre','instr','decoupe','disp','conso'];
+    return ordre.filter(c => parCat[c]).map(c =>
+      '<div style="margin-bottom:12px"><div class="badge orange" style="margin-bottom:7px">' + CAT[c] + '</div>' +
+      '<ul style="display:grid; gap:4px; font-size:13px">' +
+      parCat[c].map(o => '<li style="display:flex; gap:8px"><span style="color:var(--accent-clair)">•</span><span>' +
+        ligne(o) + '</span></li>').join('') + '</ul></div>').join('');
+  }
+
+  /* ---------- liste des fiches ---------- */
+  function renduListe(){
+    const q = sansAcc($('#pr-q').value.trim()), pa = $('#pr-partie').value, dmax = +$('#pr-duree').value;
+    const l = FICHES.filter(f => (!pa || f.p === pa) && f.duree <= dmax &&
+      (!q || sansAcc(f.t + ' ' + f.principe + ' ' + f.ref).includes(q)));
+    $('#pr-liste').innerHTML = l.length ? l.map(f =>
+      '<div class="exp" style="padding:9px 12px; gap:8px">' +
+      '<button class="btn mini" data-fiche="' + f.id + '" style="flex:1; display:block; text-align:left; border:none; background:none; padding:0">' +
+      '<span style="font-size:13.5px; font-weight:500">' + ech(f.t) + '</span><br>' +
+      '<span style="font-size:11px; color:var(--gris-clair)">' + f.ref + ' · ' + f.duree + ' min · ' + f.niveau + '</span></button>' +
+      '<button class="btn mini" data-panier="' + f.id + '" title="Ajouter au panier">+</button></div>').join('')
+      : '<p style="font-size:13px; color:var(--gris)">Aucune manipulation ne correspond à ces filtres.</p>';
+  }
+
+  /* ---------- fiche détaillée ---------- */
+  function ouvre(id){
+    fiche = FICHES.find(f => f.id === id); if(!fiche) return;
+    const dans = panier.includes(id);
+    $('#pr-fiche').innerHTML =
+      '<div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:8px">' +
+        '<span class="badge orange">' + fiche.ref + '</span>' +
+        '<span class="badge bleu">' + fiche.duree + ' min</span>' +
+        '<span class="badge vert">' + fiche.niveau + '</span>' +
+      '</div>' +
+      '<h3 style="font-size:19px">' + ech(fiche.t) + '</h3>' +
+      '<p style="font-size:13px; color:var(--gris); margin:8px 0 16px">' + ech(fiche.principe) + '</p>' +
+      (fiche.sim ? '<button class="btn mini primaire no-print" data-va="' + fiche.sim +
+        '" style="margin-bottom:14px">Simuler d\'abord — ' + NOM_MODULE[fiche.sim] + '</button>' : '') +
+      '<div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px">' +
+        '<label style="font-size:12.5px; display:flex; align-items:center; gap:7px">Postes' +
+        '<input type="number" id="pr-n" value="' + postes + '" min="1" max="20" style="width:68px"></label>' +
+        '<button class="btn mini no-print" data-panier="' + fiche.id + '">' +
+        (dans ? 'Déjà dans le panier' : 'Ajouter au panier') + '</button>' +
+      '</div>' +
+      '<div class="partie-titre" style="margin-top:8px">Matériel</div>' +
+      '<div id="pr-mat">' + htmlMateriel([fiche.id], postes) + '</div>' +
+      '<div class="partie-titre">Protocole</div>' +
+      '<ol style="font-size:13px; padding-left:20px; display:grid; gap:5px">' +
+      fiche.etapes.map(e => '<li>' + ech(e) + '</li>').join('') + '</ol>' +
+      '<div class="partie-titre">Résultat attendu</div>' +
+      '<p style="font-size:13px">' + ech(fiche.resultat) + '</p>' +
+      '<div class="note"><b>Sécurité.</b> ' + ech(fiche.secu) + '</div>';
+    const n = $('#pr-n');
+    if(n) n.addEventListener('input', () => {
+      postes = borne(+n.value || 1, 1, 20);
+      $('#pr-mat').innerHTML = htmlMateriel([fiche.id], postes);
+      $('#pr-postes').value = postes; renduPanier();
+    });
+  }
+
+  /* ---------- panier ---------- */
+  function ajoute(id){
+    if(!panier.includes(id)) panier.push(id);
+    garde(); renduPanier(); if(fiche && fiche.id === id) ouvre(id);
+  }
+  function renduPanier(){
+    $('#pr-panier-carte').style.display = panier.length ? '' : 'none';
+    if(!panier.length) return;
+    $('#pr-panier-sous').textContent = panier.length + ' manipulation' + (panier.length>1?'s':'') +
+      ' · matériel calculé pour ' + postes + ' poste' + (postes>1?'s':'');
+    $('#pr-panier').innerHTML =
+      '<div style="display:grid; gap:6px; margin-bottom:16px">' +
+      panier.map(id => { const f = FICHES.find(x => x.id === id);
+        return '<div class="exp" style="padding:8px 12px"><span class="titre">' + ech(f.t) + '</span>' +
+          '<button class="btn mini no-print" data-retire="' + id + '">Retirer</button></div>';
+      }).join('') + '</div>' + htmlMateriel(panier, postes);
+  }
+  $('#pr-panier').addEventListener('click', e => {
+    const b = e.target.closest('[data-retire]'); if(!b) return;
+    panier = panier.filter(x => x !== b.dataset.retire); garde(); renduPanier();
+  });
+  $('#pr-postes').addEventListener('input', e => {
+    postes = borne(+e.target.value || 1, 1, 20); renduPanier();
+    if(fiche) $('#pr-mat').innerHTML = htmlMateriel([fiche.id], postes);
+  });
+  $('#pr-vider').addEventListener('click', () => { panier = []; garde(); renduPanier(); });
+  $('#pr-imprimer').addEventListener('click', () => {
+    const l = panier.map(id => FICHES.find(f => f.id === id));
+    const html = '<meta charset="utf-8"><title>Liste de matériel — laboratoire de géologie</title>' +
+      '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:16px 0 4px;color:#b15f2c;' +
+      'text-transform:uppercase;letter-spacing:.05em} .s{color:#7d776c;font-size:12px}' +
+      'ul{padding-left:18px} li{margin:2px 0} .enc{background:#fdf7f1;border-left:3px solid #b15f2c;' +
+      'padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
+      '<h1>Liste de matériel</h1><p class="s">' + l.map(f => ech(f.t)).join(' · ') +
+      ' — pour ' + postes + ' poste' + (postes>1?'s':'') + '</p>' +
+      '<div class="enc">Quantités estimées, protocoles condensés : à confronter à vos habitudes et ' +
+      'aux règles de sécurité de l\'établissement.</div>' +
+      (() => { const pc = agrege(panier, postes), ordre = ['geo','reactif','verre','instr','decoupe','disp','conso'];
+        return ordre.filter(c => pc[c]).map(c => '<h2>' + CAT[c] + '</h2><ul>' +
+          pc[c].map(o => '<li>' + qte(o) + ' — ' + o.nom + (o.part ? ' (pour la classe)' : '') + '</li>').join('') +
+          '</ul>').join(''); })() +
+      '<h2>Sécurité</h2><ul>' + l.map(f => '<li><b>' + ech(f.t) + '</b> — ' + ech(f.secu) + '</li>').join('') + '</ul>';
+    const w = window.open('', '_blank');
+    if(!w){ alert("Autorisez les fenêtres surgissantes pour imprimer la liste."); return; }
+    w.document.write(html); w.document.close(); w.focus();
+    setTimeout(() => w.print(), 300);
+  });
+
+  /* ---------- placard ---------- */
+  function renduInventaire(){
+    const ordre = ['geo','reactif','verre','instr','decoupe','disp','conso'];
+    $('#pr-inventaire').innerHTML = ordre.map(c => {
+      const l = Object.keys(MATOS).filter(m => MATOS[m].c === c && MATOS[m].n !== '—');
+      if(!l.length) return '';
+      return '<div style="margin-bottom:14px"><div class="badge orange" style="margin-bottom:7px">' + CAT[c] + '</div>' +
+        '<div style="display:grid; gap:3px">' + l.map(m =>
+          '<label style="font-size:12.5px; display:flex; align-items:center; gap:8px; cursor:pointer">' +
+          '<input type="checkbox" data-inv="' + m + '"' + (inventaire.has(m) ? ' checked' : '') +
+          ' style="accent-color:var(--accent)">' + MATOS[m].n + '</label>').join('') + '</div></div>';
+    }).join('');
+  }
+  $('#pr-inventaire').addEventListener('change', e => {
+    const b = e.target.closest('[data-inv]'); if(!b) return;
+    b.checked ? inventaire.add(b.dataset.inv) : inventaire.delete(b.dataset.inv);
+    garde(); renduPossibles();
+  });
+  $('#pr-type').addEventListener('click', () => {
+    inventaire = new Set(PLACARD_TYPE); garde(); renduInventaire(); renduPossibles();
+  });
+  $('#pr-rien').addEventListener('click', () => {
+    inventaire = new Set(); garde(); renduInventaire(); renduPossibles();
+  });
+  function renduPossibles(){
+    const pretes = [], presque = [];
+    FICHES.forEach(f => {
+      const manque = f.mat.map(([m]) => m).filter(m => MATOS[m] && MATOS[m].n !== '—' && !inventaire.has(m));
+      (manque.length === 0 ? pretes : manque.length <= 2 ? presque : []).push({f, manque});
+    });
+    $('#pr-bilan').textContent = pretes.length + ' manipulation' + (pretes.length>1?'s':'') +
+      ' réalisable' + (pretes.length>1?'s':'') + ' avec ' + inventaire.size + ' référence' +
+      (inventaire.size>1?'s':'') + ' cochée' + (inventaire.size>1?'s':'') + '.';
+    const carte = (x, gris) => '<div class="exp" style="padding:9px 12px' + (gris ? '; opacity:.75' : '') + '">' +
+      '<button class="btn mini" data-fiche="' + x.f.id + '" style="flex:1; text-align:left; border:none; background:none; padding:0">' +
+      '<span style="font-size:13.5px; font-weight:500">' + ech(x.f.t) + '</span></button>' +
+      (x.manque.length ? '<span style="font-size:11px; color:var(--gris-clair)">manque : ' +
+        x.manque.map(m => MATOS[m].n).join(', ') + '</span>' : '') + '</div>';
+    $('#pr-possibles').innerHTML =
+      (pretes.length ? '<div class="partie-titre" style="margin-top:6px">Réalisables tout de suite</div>' +
+        '<div style="display:grid; gap:6px">' + pretes.map(x => carte(x,false)).join('') + '</div>' : '') +
+      (presque.length ? '<div class="partie-titre">À une ou deux références près</div>' +
+        '<div style="display:grid; gap:6px">' + presque.map(x => carte(x,true)).join('') + '</div>' : '') +
+      (!pretes.length && !presque.length ? '<p style="font-size:13px; color:var(--gris)">' +
+        'Rien de réalisable pour l\'instant. Essayez le bouton « Placard type de lycée ».</p>' : '');
+  }
+
+  /* ---------- navigation interne ---------- */
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-fiche]');
+    if(b){
+      if(mode !== 'recette'){ mode = 'recette'; majMode(); }
+      ouvre(b.dataset.fiche);
+      $('#pr-fiche').scrollIntoView({behavior:'smooth', block:'nearest'});
+      return;
+    }
+    const a = e.target.closest('[data-panier]');
+    if(a){
+      const avant = a.textContent;
+      a.dataset.panier.split(',').forEach(id => ajoute(id));
+      a.textContent = '✓ ajouté';
+      setTimeout(() => a.textContent = avant, 1200);
+    }
+  });
+  function majMode(){
+    $$('#pr-mode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === mode)));
+    $('#pr-recette').style.display = mode === 'recette' ? '' : 'none';
+    $('#pr-placard').style.display = mode === 'placard' ? '' : 'none';
+    if(mode === 'placard'){ renduInventaire(); renduPossibles(); }
+  }
+  segment($('#pr-mode'), d => { mode = d.m; majMode(); });
+  $('#pr-q').addEventListener('input', renduListe);
+  $('#pr-partie').addEventListener('change', renduListe);
+  $('#pr-duree').addEventListener('input', () => {
+    const v = +$('#pr-duree').value;
+    $('#pr-duree-v').textContent = v >= 120 ? '2 h' : v >= 60 ? Math.floor(v/60) + ' h ' + (v%60 ? v%60 + ' min' : '') : v + ' min';
+    renduListe();
+  });
+  $('#pr-postes').value = postes;
+  renduListe(); renduPanier();
+  ouvre(FICHES[0].id);
+  Labo.surAffichage.preparer = () => { renduListe(); renduPanier(); };
+})();
+
+/* ---------- ouverture directe d'un module via l'adresse (#cristal, #roches…) ---------- */
+(function depart(){
+  function route(){
+    const brut = location.hash.replace('#','');
+    if(!brut) return;
+    const [mod] = brut.split('?');
+    if(!$('#mod-'+mod) || mod === Labo.moduleActif) return;
+    ouvreModule(mod);
+  }
+  route();
+  window.addEventListener('hashchange', route);
+})();
+</script>
+
+</body>
+</html>
