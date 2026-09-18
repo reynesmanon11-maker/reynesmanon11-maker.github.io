@@ -330,6 +330,35 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
 #mod-accueil .grille > .carte .badge{ background:var(--ptbg); color:var(--pt) }
 #mod-accueil .grille > .carte .btn.primaire{ background:var(--pt); border-color:var(--pt) }
 
+
+/* ---------- la grille d'accueil : des tuiles de même hauteur ----------
+   Sans cela, chaque carte s'arrête après son texte et le bouton flotte au
+   milieu du vide : c'est ce qui donnait une grille difforme. */
+#mod-accueil .grille{ grid-template-columns:minmax(0,1fr) !important; gap:14px }
+@media(min-width:660px){ #mod-accueil .grille{ grid-template-columns:repeat(2,minmax(0,1fr)) !important } }
+@media(min-width:1040px){ #mod-accueil .grille{ grid-template-columns:repeat(4,minmax(0,1fr)) !important } }
+#mod-accueil .grille > .carte{ display:flex; flex-direction:column; padding:18px }
+/* .carte + .carte donne une marge haute aux suivantes : dans une grille,
+   cela décale les cartes d'une même rangée de seize pixels les unes des autres */
+#mod-accueil .grille > .carte + .carte{ margin-top:0 }
+#mod-accueil .grille > .carte .badge{ align-self:flex-start }
+#mod-accueil .grille > .carte h3{ margin:10px 0 7px; min-height:2.5em; display:flex; align-items:flex-end }
+#mod-accueil .grille > .carte .sous{ flex:1 1 auto; margin:0; font-size:13px; line-height:1.6 }
+#mod-accueil .grille > .carte > .btn{ margin-top:16px; align-self:flex-start }
+
+/* ---------- le bandeau « pour la classe » : pleine largeur, deux colonnes ---------- */
+.bandeau-classe{ display:grid; gap:16px 28px; align-items:center }
+.bandeau-classe .sous{ margin:0; max-width:78ch }
+.bandeau-classe .badge{ justify-self:start }
+.bandeau-classe h3{ margin-top:8px }
+@media(min-width:760px){
+  .bandeau-classe{ grid-template-columns:minmax(0,1fr) auto }
+  .bandeau-classe .badge{ grid-column:1 }
+  .bandeau-classe h3{ grid-column:1; margin-top:0 }
+  .bandeau-classe .sous{ grid-column:1 }
+  .bandeau-classe > div:last-child{ grid-column:2; grid-row:1 / span 3; align-self:center }
+}
+
 /* ---------- en-tête : le trait terracotta du site ---------- */
 header.top{ border-bottom:none; box-shadow:0 1px 0 var(--ligne) }
 header.top .marque b{ letter-spacing:-.015em }
@@ -472,9 +501,10 @@ header.top .marque b{ letter-spacing:-.015em }
     <p><b>Les intitulés et les capacités viennent du Bulletin officiel</b> : seconde et spécialité
        SVT (2019), enseignement scientifique de première (22 juin 2023). Les passages entre
        guillemets sont cités du texte ; là où je ne cite pas, je le signale.</p>
-    <p>Ce qui reste un choix, c'est <b>le rattachement de chaque manipulation</b> à un chapitre, et
-       la mention « au-delà du programme » quand elle dépasse l'attendu. Confrontez-le à votre
-       progression.</p>
+    <p><b>Les deux niveaux de spécialité suivent votre programmation</b> : vos chapitres, vos
+       activités numérotées et leur type. Les autres niveaux suivent l'ordre du Bulletin officiel.</p>
+    <p>Ce qui reste un choix, c'est <b>le rattachement de chaque manipulation</b> à une activité, et
+       la mention « au-delà du programme » quand elle dépasse l'attendu.</p>
   </div></div>
 
   <div class="segment no-print" id="pg-niveau" style="margin-bottom:6px">
@@ -3084,86 +3114,127 @@ const PROGRAMMES = [
  rien:"Le chapitre 2.3, sur la photosynthèse, et le chapitre 1.3, sur la cellule, relèvent de l'autre laboratoire.",
  lien:{t:"Voir ces chapitres dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=1es"}},
 
-/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ======================== */
-{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"programme de spécialité, BO 2019", th:[
- {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · La dynamique interne de la Terre", ch:[
+/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ========================
+   Suit votre programmation : chapitre 4, activité par activité.          */
+{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"votre programmation 2025-2026", th:[
+ {t:"Chapitre 4 — La dynamique interne de la Terre", ch:[
 
-  {t:"Des contrastes entre les continents et les océans", cle:true,
+  {t:"Activité 1 : Deux croûtes, deux mondes", type:'TP', cle:true,
    att:"Établir que les deux croûtes diffèrent par leur composition, leur structure et leur masse volumique — et que c'est de là que vient la distribution bimodale des reliefs.",
    cap:["Effectuer des mesures de densité sur des roches continentales et océaniques.",
         "Mener une observation comparative des roches des croûtes océanique et continentale (composition, structure, etc.).",
         "Utiliser la carte de France au millionième pour identifier la répartition des principaux types de roches sur le territoire."],
-   note:"Précision du programme : « les différences de relief ne sont pas, à ce niveau, expliquées par les mécanismes de l'isostasie. L'étude pétrographique se limite à l'étude des principales caractéristiques des roches citées. » La manipulation d'isostasie ci-dessous est donc un complément, pas l'attendu.",
+   note:"Précision du programme : « les différences de relief ne sont pas, à ce niveau, expliquées par les mécanismes de l'isostasie. L'étude pétrographique se limite à l'étude des principales caractéristiques des roches citées. » La manipulation d'isostasie ci-dessous est donc un complément.",
    m:[
     {f:'densite', r:"La capacité exigible, mot pour mot : mesurer la masse volumique d'un granite et d'un basalte. L'écart fait tout le chapitre."},
     {f:'roches', sim:'roches', r:"L'observation comparative demandée : granite et gabbro côte à côte, composition et structure."},
     {f:'lames', sim:'cristal', r:"La même comparaison au microscope, si le lycée possède les lames."},
-    {f:'isostasie', r:"Pourquoi la croûte légère flotte plus haut. Explicitement au-delà de ce niveau selon le programme.", plus:true}]},
+    {f:'isostasie', r:"Pourquoi la croûte légère flotte plus haut. Explicitement au-delà de ce niveau.", plus:true}]},
 
-  {t:"L'apport des études sismologiques et thermiques à la connaissance du globe terrestre", cle:true,
-   att:"Reconstituer la structure du globe à partir des ondes sismiques, et comprendre comment la chaleur interne s'évacue par conduction et par convection.",
+  {t:"Activité 2 : Les ondes sismiques révèlent l'intérieur", type:'Act.',
+   att:"Reconstituer la structure du globe à partir de la propagation des ondes : vitesses, discontinuités, zone d'ombre.",
    cap:["Concevoir une modélisation analogique et réaliser des mesures à l'aide de dispositifs.",
         "Étudier la propagation profonde des ondes (zone d'ombre).",
-        "Réaliser des modèles analogiques pour appréhender la conduction et la convection.",
-        "Analyser des courbes d'augmentation de la température en fonction de la profondeur."],
+        "Consulter et exploiter une base de données sismologiques."],
    m:[
-    {f:'sismo', r:"La modélisation analogique demandée : un ressort long donne à voir la différence entre ondes de compression et de cisaillement."},
-    {f:'convection', r:"Le modèle analogique de convection que cite la capacité, avec ses cellules visibles à la semoule."}]},
+    {f:'sismo', r:"La modélisation analogique demandée : un ressort long donne à voir la différence entre ondes de compression et de cisaillement, et leurs vitesses."}]},
 
-  {t:"La dynamique des zones de divergence et de convergence",
-   att:"Relier la production de lithosphère océanique aux dorsales, sa disparition aux zones de subduction, et le magmatisme des arcs à l'hydratation du manteau.",
+  {t:"Activité 3 : La machine thermique Terre", type:'Act.', cle:true,
+   att:"Comprendre comment la chaleur interne s'évacue : par conduction dans la lithosphère rigide, par convection dans le manteau qui flue.",
+   cap:["Réaliser des modèles analogiques pour appréhender la conduction et la convection.",
+        "Analyser des courbes d'augmentation de la température en fonction de la profondeur.",
+        "Calculer la température au centre de la Terre en utilisant le gradient géothermique de surface."],
+   note:"Le calcul du gradient prolongé jusqu'au centre donne une valeur absurde : c'est l'argument qui impose la convection. Faites-le faire avant la modélisation.",
+   m:[
+    {f:'convection', r:"Le modèle analogique que cite la capacité : des cellules visibles à la semoule, et une plaque entraînée en surface."}]},
+
+  {t:"Activité 5 : Naissance d'une lithosphère (divergence)", type:'Act.',
+   att:"Relier la production de lithosphère océanique aux dorsales, et la texture des roches émises à leur vitesse de refroidissement.",
    cap:["Études de l'affleurement à la roche des basaltes, gabbros et péridotites.",
-        "Calcul de la densité moyenne de l'ensemble croûte – manteau lithosphérique.",
-        "En considérant la densité moyenne de la lithosphère et celle de l'asthénosphère, discuter de la subduction."],
+        "Calcul de la densité moyenne de l'ensemble croûte – manteau lithosphérique."],
    m:[
-    {f:'roches', sim:'roches', r:"Basalte et gabbro : deux roches de même chimie, deux refroidissements, deux places dans la croûte océanique."},
-    {f:'densite', r:"Le calcul demandé repose sur des masses volumiques mesurées : voici comment les obtenir."},
-    {f:'cristallisation', sim:'cristal', r:"Pourquoi le gabbro est grenu et le basalte microlithique, alors qu'ils sortent du même magma."},
-    {f:'viscosite', sim:'magma', r:"Le magmatisme de subduction est plus visqueux et plus explosif que celui des dorsales : la silice et l'eau en sont la cause."},
-    {f:'eruption', sim:'magma', r:"Et voilà ce que cela donne en surface, sur la plaque chevauchante.", plus:true}]},
+    {f:'roches', sim:'roches', r:"Basalte et gabbro : deux roches de même chimie, deux places dans la croûte océanique."},
+    {f:'cristallisation', sim:'cristal', r:"Pourquoi l'un est grenu et l'autre microlithique, alors qu'ils sortent du même magma. C'est la réponse à la question que pose toujours un élève."},
+    {f:'densite', r:"Les masses volumiques sur lesquelles repose le calcul demandé."}]},
 
-  {t:"Les zones de collision",
-   att:"Lire dans les roches et les structures les indices d'un raccourcissement : plis, failles inverses, nappes de charriage.",
+  {t:"Activité 6 : La plongée d'une plaque (subduction)", type:'Act.',
+   att:"Relier la densification de la lithosphère océanique à son plongement, et l'hydratation du manteau au magmatisme des arcs.",
+   cap:["En considérant la densité moyenne de la lithosphère et celle de l'asthénosphère, discuter de la subduction.",
+        "Relier la minéralogie des roches (présence de minéraux hydroxylés) mises en place aux conditions de leur formation."],
+   m:[
+    {f:'densite', r:"L'argument central : une lithosphère qui vieillit devient plus dense que l'asthénosphère."},
+    {f:'viscosite', sim:'magma', r:"Le magmatisme de subduction est plus visqueux et plus explosif que celui des dorsales : la silice et l'eau en sont la cause."},
+    {f:'eruption', sim:'magma', r:"Ce que cela donne en surface, sur la plaque chevauchante.", plus:true}]},
+
+  {t:"Activité 7 : L'affrontement des continents (collision)", type:'Act.',
+   att:"Lire dans les roches et les structures les indices d'un raccourcissement : plis, failles inverses, nappes.",
    cap:["Repérer à différentes échelles des indices simples de modifications tectoniques.",
+        "Observer les profils ECORS.",
         "Recenser, extraire et organiser des données de terrain, entre autres lors d'une sortie."],
    m:[
     {f:'tectonique', r:"Plis et failles obtenus dans un bac : le sable casse, la mousse se plisse — les deux comportements d'une chaîne."},
     {f:'roches', sim:'roches', r:"Gneiss et micaschiste : les roches que produit un enfouissement en collision."}]}]}],
- rien:"La partie 1A (patrimoine génétique, enzymes), la partie 2A (écosystèmes) et le thème 3 relèvent de l'autre laboratoire.",
+ rien:"Vos chapitres 1, 2, 3 et 5 — génétique et enzymes, santé, immunité, écosystèmes — sont traités dans l'autre laboratoire.",
  lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=1spe"}},
 
 /* ======================== TERMINALE — SPÉCIALITÉ SVT ======================== */
-{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"programme de spécialité, BO 2019", th:[
- {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · À la recherche du passé géologique de notre planète", ch:[
+{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"votre programmation 2025-2026", th:[
+ {t:"Chapitre 4 — L'histoire géologique de la France", ch:[
 
-  {t:"Le temps et les roches", cle:true,
-   att:"Dater, d'abord les uns par rapport aux autres — superposition, recoupement, inclusion, identité paléontologique — puis en années, par la désintégration radioactive.",
-   cap:["Le programme demande d'utiliser les relations géométriques entre objets géologiques pour établir une chronologie relative, d'observer une succession de strates et la carte géologique, puis de mobiliser les bases physiques de la radiochronologie.",
-        "Les intitulés officiels de ce chapitre sont « La chronologie relative » et « La chronologie absolue »."],
-   note:"Les capacités ci-dessus sont reformulées, non citées : le texte de ce chapitre se présente en colonnes serrées et je préfère ne pas mettre entre guillemets ce que je n'ai pas lu d'un seul tenant.",
+  {t:"Activité 1 : La chronologie relative", type:'Act.', cle:true,
+   att:"Ordonner les événements les uns par rapport aux autres : superposition, recoupement, inclusion, identité paléontologique.",
+   cap:["Le programme demande d'utiliser les relations géométriques entre objets géologiques pour établir une chronologie relative, et d'observer une succession de strates ainsi que la carte géologique.",
+        "Reformulé, non cité : la mise en colonnes du texte officiel ne permet pas de le lire d'un seul tenant."],
    m:[
-    {f:'datation', r:"Les quatre principes appliqués à un bloc-diagramme : c'est l'exercice même du chapitre."},
-    {f:'tectonique', r:"Construire la succession avec des couches de sable et de mousse, puis la dater : le recoupement devient évident."},
-    {f:'roches', sim:'roches', r:"Reconnaître les roches d'une coupe avant de les ordonner."}]},
+    {f:'datation', r:"Les quatre principes appliqués à un bloc-diagramme : c'est l'exercice même de l'activité."},
+    {f:'tectonique', r:"Construire la succession avec des couches de sable et de mousse, puis la dater : le recoupement devient évident."}]},
 
-  {t:"Les traces du passé mouvementé de la Terre",
-   att:"Retrouver dans les roches actuelles les marques d'une fragmentation continentale ancienne et d'un océan disparu : marges passives, ophiolites.",
+  {t:"Activité 2 : La chronologie absolue", type:'Act.',
+   att:"Passer des années relatives aux années réelles : la désintégration radioactive comme horloge, et le choix du chronomètre selon l'âge supposé.",
    m:[
-    {f:'roches', sim:'roches', r:"Les roches d'une ophiolite sont celles de la lithosphère océanique : basalte, gabbro, et la péridotite qui les porte."},
+    {f:'datation', r:"La seconde moitié de la fiche : ce que la radiochronologie ajoute aux principes de Steno."},
+    {f:'roches', sim:'roches', r:"Les datations se font sur des minéraux : savoir quelle roche en contient lesquels."}]},
+
+  {t:"Activité 3 : Des domaines d'âges variés (carte de France)", type:'Act.',
+   att:"Lire la carte géologique de la France comme un assemblage de domaines d'âges et d'histoires différents.",
+   m:[
+    {f:'roches', sim:'roches', r:"Reconnaître à la main les roches des grands domaines : granite et gneiss du Massif central, calcaires des bassins, basaltes récents."}]},
+
+  {t:"Activité 4 : À la recherche d'océans disparus", type:'Act.', cle:true,
+   att:"Retrouver, dans les Alpes, les roches d'une lithosphère océanique aujourd'hui disparue : les ophiolites.",
+   m:[
+    {f:'roches', sim:'roches', r:"Les trois roches d'une ophiolite — basalte, gabbro, péridotite — reconnues à leurs critères de main."},
     {f:'lames', sim:'cristal', r:"Leur texture en lame mince, qui signe la profondeur de mise en place."},
-    {f:'densite', r:"La masse volumique d'une péridotite, qui explique pourquoi elle plonge — ou pourquoi son émergence demande une explication."},
-    {f:'tectonique', r:"Les structures de la fragmentation : failles normales d'une marge, puis structures compressives."}]}]},
+    {f:'cristallisation', sim:'cristal', r:"Basalte en surface, gabbro en profondeur : la même chimie, deux vitesses de refroidissement."},
+    {f:'densite', r:"La masse volumique d'une péridotite, qui explique pourquoi son émergence demande une explication."}]},
 
- {t:"Thème 2 — Enjeux planétaires contemporains · Les climats de la Terre", ch:[
+  {t:"Activité 5 : Marges passives et fragmentation", type:'Act.',
+   att:"Lire dans les structures d'une marge les traces de la fragmentation continentale qui a ouvert l'océan.",
+   m:[
+    {f:'tectonique', r:"Les failles normales et les blocs basculés d'une marge, obtenus en étirant une maquette au lieu de la comprimer."},
+    {f:'roches', sim:'roches', r:"Les sédiments qui se déposent sur les blocs basculés et datent l'ouverture."}]}]},
 
-  {t:"Reconstituer et comprendre les variations climatiques passées",
-   att:"Lire les climats anciens dans les roches et les fossiles, et relier les variations à l'orbite, aux gaz et au cycle du carbone.",
+ {t:"Chapitre 5 — Le climat passé, actuel et futur", ch:[
+
+  {t:"Activité 1 : Le climat au Mésozoïque", type:'Act.',
+   att:"Reconstituer un climat ancien à partir des roches et des fossiles qu'il a laissés.",
    m:[
     {f:'roches', sim:'roches', r:"Un calcaire à fossiles, une craie, un sel gemme : trois roches, trois milieux, trois climats."},
-    {f:'alteration', r:"L'altération des silicates consomme du CO₂ : c'est l'un des leviers longs du climat, et il se mesure à la paillasse."},
-    {f:'granulometrie', r:"Un dépôt glaciaire ne se trie pas comme un dépôt fluviatile : la courbe granulométrique distingue les deux.", plus:true}]}]}],
- rien:"La partie « De la plante sauvage à la plante domestiquée », la génétique et le thème 3 relèvent de l'autre laboratoire.",
- lien:{t:"Voir la partie sur les plantes dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=tspe"}}
+    {f:'lames', sim:'cristal', r:"L'observation microscopique d'un calcaire : les organismes qui l'ont construit.", plus:true}]},
+
+  {t:"Activité 2 : Le climat avant BP", type:'Act.',
+   att:"Les dépôts quaternaires comme archives : un dépôt glaciaire ne ressemble pas à un dépôt fluviatile.",
+   m:[
+    {f:'granulometrie', r:"La courbe granulométrique distingue les deux : le glacier ne trie pas, la rivière trie."},
+    {f:'delta', sim:'sediment', r:"Et voici pourquoi la rivière trie : le courant abandonne sa charge par ordre de taille."}]},
+
+  {t:"Activité 3 : Le climat et l'Homme", type:'Act.',
+   att:"Relier les flux de carbone actuels aux leviers longs du climat, et mesurer ce qui est mesurable en classe.",
+   m:[
+    {f:'alteration', r:"L'altération des silicates consomme du CO₂ : c'est l'un des leviers longs du climat, et il se pèse à la paillasse."},
+    {f:'hcl', sim:'roches', r:"Le carbonate, principal réservoir de carbone de la planète, révélé en une goutte."}]}]}],
+ rien:"Vos chapitres 1, 2 et 3 — les Angiospermes, le contrôle du mouvement, la transmission de la vie — sont traités dans l'autre laboratoire, activité par activité.",
+ lien:{t:"Voir les chapitres de biologie dans le labo de biologie végétale", href:"labo_vegetal.html#programme?niveau=tspe"}}
 ];
 </script>
 
@@ -3198,7 +3269,9 @@ const PROGRAMMES = [
     const duree = c.m.filter(m => !m.plus).reduce((s,m) => s + F[m.f].duree, 0);
     return '<div class="carte" style="margin-top:12px">' +
       '<h3>' + ech(c.t) +
-        (c.cle ? ' <span class="badge orange" style="vertical-align:3px">chapitre central</span>' : '') + '</h3>' +
+        (c.type ? ' <span class="badge ' + (c.type === 'TP' ? 'orange' : c.type === 'Sortie' ? 'vert' : '') +
+          '" style="vertical-align:3px">' + ech(c.type) + '</span>' : '') +
+        (c.cle ? ' <span class="badge bleu" style="vertical-align:3px">temps fort</span>' : '') + '</h3>' +
       '<p style="font-size:13px; color:var(--gris); margin:6px 0 14px">' + ech(c.att) + '</p>' +
       (c.cap ? '<div class="note" style="margin:0 0 14px; border-left-color:var(--bleu)">' +
         '<b>Ce que demande le programme</b><ul style="display:grid; gap:5px; margin-top:7px">' +
@@ -3218,8 +3291,12 @@ const PROGRAMMES = [
   function rendu(){
     const p = PROGRAMMES.find(x => x.id === niv);
     let nCh = 0, nM = 0, nSim = 0;
+    /* les niveaux bâtis sur votre programmation listent des activités,
+       les autres des chapitres : le compte doit dire lequel */
+    const parActivite = p.th.some(t => t.ch.some(c => c.type));
+    const mot = parActivite ? 'activité' : 'chapitre';
     p.th.forEach(t => t.ch.forEach(c => { nCh++; nM += c.m.length; nSim += c.m.filter(m => m.sim).length; }));
-    entete.innerHTML = '<b>' + ech(p.n) + '</b> — ' + ech(p.s) + ' · ' + nCh + ' chapitre' + (nCh>1?'s':'') +
+    entete.innerHTML = '<b>' + ech(p.n) + '</b> — ' + ech(p.s) + ' · ' + nCh + ' ' + mot + (nCh>1?'s':'') +
       ' · ' + nM + ' manipulation' + (nM>1?'s':'') + ', dont ' + nSim + ' simulable' + (nSim>1?'s':'') + ' ici.';
     corps.innerHTML = p.th.map(t =>
       '<div class="partie-titre">' + ech(t.t) + '</div>' + t.ch.map(carteChapitre).join('')).join('') +
@@ -3246,7 +3323,8 @@ const PROGRAMMES = [
       '<div class="enc">Intitulés et capacités cités du Bulletin officiel. Le rattachement de chaque ' +
       'manipulation à un chapitre est une proposition, à confronter à votre progression.</div>' +
       p.th.map(t => '<h2>' + ech(t.t) + '</h2>' + t.ch.map(c =>
-        '<div class="ch"><h3>' + ech(c.t) + (c.cle ? ' — chapitre central' : '') + '</h3>' +
+        '<div class="ch"><h3>' + ech(c.t) + (c.type ? ' — ' + ech(c.type) : '') +
+        (c.cle ? ' — temps fort' : '') + '</h3>' +
         '<p class="att">' + ech(c.att) + '</p>' +
         (c.cap ? '<div class="enc"><b>Ce que demande le programme.</b><ul>' +
           c.cap.map(x => '<li>' + ech(x) + '</li>').join('') + '</ul></div>' : '') +

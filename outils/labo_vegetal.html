@@ -313,6 +313,35 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
 #mod-accueil .grille > .carte .badge{ background:var(--ptbg); color:var(--pt) }
 #mod-accueil .grille > .carte .btn.primaire{ background:var(--pt); border-color:var(--pt) }
 
+
+/* ---------- la grille d'accueil : des tuiles de même hauteur ----------
+   Sans cela, chaque carte s'arrête après son texte et le bouton flotte au
+   milieu du vide : c'est ce qui donnait une grille difforme. */
+#mod-accueil .grille{ grid-template-columns:minmax(0,1fr) !important; gap:14px }
+@media(min-width:660px){ #mod-accueil .grille{ grid-template-columns:repeat(2,minmax(0,1fr)) !important } }
+@media(min-width:1040px){ #mod-accueil .grille{ grid-template-columns:repeat(3,minmax(0,1fr)) !important } }
+#mod-accueil .grille > .carte{ display:flex; flex-direction:column; padding:18px }
+/* .carte + .carte donne une marge haute aux suivantes : dans une grille,
+   cela décale les cartes d'une même rangée de seize pixels les unes des autres */
+#mod-accueil .grille > .carte + .carte{ margin-top:0 }
+#mod-accueil .grille > .carte .badge{ align-self:flex-start }
+#mod-accueil .grille > .carte h3{ margin:10px 0 7px; min-height:2.5em; display:flex; align-items:flex-end }
+#mod-accueil .grille > .carte .sous{ flex:1 1 auto; margin:0; font-size:13px; line-height:1.6 }
+#mod-accueil .grille > .carte > .btn{ margin-top:16px; align-self:flex-start }
+
+/* ---------- le bandeau « pour la classe » : pleine largeur, deux colonnes ---------- */
+.bandeau-classe{ display:grid; gap:16px 28px; align-items:center }
+.bandeau-classe .sous{ margin:0; max-width:78ch }
+.bandeau-classe .badge{ justify-self:start }
+.bandeau-classe h3{ margin-top:8px }
+@media(min-width:760px){
+  .bandeau-classe{ grid-template-columns:minmax(0,1fr) auto }
+  .bandeau-classe .badge{ grid-column:1 }
+  .bandeau-classe h3{ grid-column:1; margin-top:0 }
+  .bandeau-classe .sous{ grid-column:1 }
+  .bandeau-classe > div:last-child{ grid-column:2; grid-row:1 / span 3; align-self:center }
+}
+
 /* ---------- en-tête : le trait terracotta du site ---------- */
 header.top{ border-bottom:none; box-shadow:0 1px 0 var(--ligne) }
 header.top .marque b{ letter-spacing:-.015em }
@@ -381,52 +410,55 @@ header.top .marque b{ letter-spacing:-.015em }
     <div class="carte">
       <span class="badge bleu">Parties III &amp; IV</span>
       <h3 style="margin-top:8px">ExAO — photosynthèse &amp; respiration</h3>
-      <p class="sous">Enceinte fermée, sonde à O<sub>2</sub> et sonde à CO<sub>2</sub>. Lumière / obscurité,
-         intensité, filtre coloré, température, CO<sub>2</sub> disponible. Courbes en direct,
-         point de compensation, spectre d'action et son analyse critique. Les enregistrements se
-         superposent pour comparer deux conditions, et un défi demande de retrouver le facteur
-         qui a changé.</p>
+      <p class="sous">Enceinte fermée, sondes à O<sub>2</sub> et à CO<sub>2</sub>. Lumière, intensité,
+         filtre coloré, température. Courbes en direct, point de compensation, enregistrements
+         superposables et défi du facteur caché.</p>
       <button class="btn primaire" data-va="exao">Ouvrir la paillasse</button>
     </div>
     <div class="carte">
       <span class="badge orange">Partie I — 1, 2, 3, 5</span>
       <h3 style="margin-top:8px">Paillasse biochimie</h3>
-      <p class="sous">Quinze échantillons, dix-huit réactifs. Lugol, liqueur de Fehling, biuret,
-         Soudan III, phloroglucine… Mode « échantillon mystère » pour un vrai raisonnement d'identification.</p>
+      <p class="sous">Quinze échantillons, dix-huit réactifs : lugol, liqueur de Fehling, biuret,
+         Soudan III, phloroglucine. Mode « échantillon mystère » pour un vrai raisonnement
+         d'identification.</p>
       <button class="btn primaire" data-va="biochimie">Ouvrir la paillasse</button>
     </div>
     <div class="carte">
       <span class="badge vert">Partie I — 4</span>
       <h3 style="margin-top:8px">Pigments photosynthétiques</h3>
-      <p class="sous">Chromatographie sur papier animée avec calcul des R<sub>f</sub>, spectres d'absorption
-         superposables, fluorescence de la chlorophylle, algue rouge.</p>
+      <p class="sous">Chromatographie sur papier animée avec calcul des R<sub>f</sub>, spectres
+         d'absorption superposables, spectre d'action, fluorescence de la chlorophylle et algue
+         rouge.</p>
       <button class="btn primaire" data-va="pigments">Ouvrir la paillasse</button>
     </div>
     <div class="carte">
       <span class="badge orange">Partie I — 6</span>
       <h3 style="margin-top:8px">Cinétiques enzymatiques</h3>
-      <p class="sous">Amylase, saccharase, peroxydase. Température, pH, concentrations.
-         Gamme de tubes au lugol, courbes superposables, représentation v = f([S]), dénaturation
-         définitive au-delà de la température critique, et défi de lecture de cinétique.</p>
+      <p class="sous">Amylase, saccharase, peroxydase. Température, pH, concentrations. Vitesse
+         initiale à la tangente, représentation v = f([S]), et dénaturation définitive au-delà de
+         la température critique.</p>
       <button class="btn primaire" data-va="enzymes">Ouvrir la paillasse</button>
     </div>
     <div class="carte">
       <span class="badge vert">Partie II</span>
       <h3 style="margin-top:8px">Histologie des plantes</h3>
-      <p class="sous">Coupes transversales schématiques : tige de dicotylédone, d'iris, feuille, racine.
-         Colorations au carmin-vert d'iode ou à la phloroglucine, mode « légender la coupe ».</p>
+      <p class="sous">Coupes dessinées cellule par cellule : tige, racine, feuille, bois. Colorations
+         au carmin-vert d'iode ou à la phloroglucine, tissus cliquables et mode « légender la
+         coupe ».</p>
       <button class="btn primaire" data-va="histologie">Ouvrir la paillasse</button>
     </div>
     <div class="carte" style="border-color:var(--accent-clair)">
       <span class="badge orange">Les huit parties</span>
       <h3 style="margin-top:8px">Préparer une manip</h3>
-      <p class="sous">Comme une application de recettes, mais pour la paillasse : une expérience
-         donne la liste de matériel pour le nombre de postes voulu, et le panier réunit plusieurs
-         manipulations en une seule liste de courses imprimable. En sens inverse, votre placard
-         indique ce qui est réalisable dès aujourd'hui.</p>
+      <p class="sous">Une expérience donne sa liste de matériel pour le nombre de postes voulu, et
+         le panier réunit plusieurs manipulations en une liste de courses imprimable. En sens
+         inverse, votre placard dit ce qui est réalisable aujourd'hui.</p>
       <button class="btn primaire" data-va="preparer">Ouvrir l'assistant</button>
     </div>
-    <div class="carte" style="background:var(--encre); color:#fff; border-color:var(--encre)">
+  </div>
+
+
+  <div class="carte bandeau-classe" style="background:var(--encre); color:#fff; border-color:var(--encre); margin-top:16px">
       <span class="badge" style="background:rgba(255,255,255,.14); color:#fff">Pour la classe</span>
       <h3 style="margin-top:8px">Comment s'en servir</h3>
       <p class="sous" style="color:rgba(255,255,255,.7)">
@@ -439,7 +471,6 @@ header.top .marque b{ letter-spacing:-.015em }
         <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiche pédagogique</button>
       </div>
     </div>
-  </div>
 
   <div class="partie-titre">Sommaire des travaux pratiques de l'ouvrage</div>
   <div class="filtres no-print">
@@ -483,9 +514,11 @@ header.top .marque b{ letter-spacing:-.015em }
        vous m'avez transmises : seconde, première et terminale de spécialité (2019), enseignement
        scientifique de première (22 juin 2023) et de terminale. Les passages entre guillemets sont
        cités du texte.</p>
-    <p>Ce qui reste un choix, c'est <b>le rattachement de chaque manipulation</b> à un chapitre, et
-       la mention « au-delà du programme » quand elle dépasse l'attendu. Confrontez-le à votre
-       progression : deux collègues ne placeront pas les mêmes manips aux mêmes endroits.</p>
+    <p><b>Les deux niveaux de spécialité suivent votre programmation</b> : vos chapitres, vos
+       activités numérotées et leur type — TP, activité, sortie. Les autres niveaux suivent
+       l'ordre du Bulletin officiel, faute de programmation.</p>
+    <p>Ce qui reste un choix, c'est <b>le rattachement de chaque manipulation</b> à une activité, et
+       la mention « au-delà du programme » quand elle dépasse l'attendu.</p>
   </div></div>
 
   <div class="segment no-print" id="pg-niveau" style="margin-bottom:6px">
@@ -5826,33 +5859,33 @@ const PROGRAMMES = [
     {f:'multiplication', r:"La plante le fait seule : stolons, rhizomes, bulbilles."},
     {f:'protoplastes', r:"Ôter la paroi : la porte d'entrée des biotechnologies végétales.", plus:true}]}]}]},
 
-/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ======================== */
-{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"spécialité sciences de la vie et de la Terre — BO 2019", th:[
- {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · Transmission, variation et expression du patrimoine génétique", ch:[
+/* ======================== PREMIÈRE — SPÉCIALITÉ SVT ========================
+   Suit votre programmation : vos chapitres, vos activités, leur type.     */
+{id:'1spe', n:'Première — spécialité SVT', court:'1re spé', s:"votre programmation 2025-2026", th:[
+ {t:"Chapitre 1 — Transmission, expression et variation du patrimoine génétique", ch:[
 
-  {t:"L'expression du patrimoine génétique",
+  {t:"Activité 6 : Du gène à la protéine", type:'Act.',
    att:"Du gène à la protéine : constater que le produit de l'expression a une activité mesurable et marque la spécialisation de la cellule.",
    m:[
     {f:'adn', r:"Extraire le support de l'information, avant de parler de ce qu'il code."},
     {f:'peroxydase', r:"Une protéine révélée en quelques secondes sur un tissu végétal : l'expression du génome se voit."}]},
 
-  {t:"Les enzymes, des biomolécules aux propriétés catalytiques", cle:true,
-   att:"Montrer que les enzymes, issues de l'expression génétique, sont essentielles à la vie cellulaire, et mesurer leur spécificité et leur vitesse.",
+  {t:"Activité 7 : Les enzymes, catalyseurs du vivant", type:'TP', cle:true,
+   att:"Mesurer la spécificité d'une enzyme et la vitesse initiale d'une réaction, en faisant varier une concentration à la fois.",
    cap:["Concevoir et réaliser des expériences utilisant des enzymes et permettant d'identifier leurs spécificités.",
         "Étudier l'interaction enzyme-substrat en comparant les vitesses initiales des réactions et en faisant varier soit la concentration en substrat, soit en enzyme. Utiliser des tangentes à t₀ pour calculer la vitesse initiale."],
-   note:"Précision importante du programme : « les caractéristiques de la cinétique enzymatique, les compétitions au site actif ne sont pas attendues. Le contrôle de l'activité enzymatique par des effecteurs (T, pH) peut être utilisé par le professeur dans sa démarche mais n'est pas un attendu du programme. » Autrement dit, la tangente à t₀ et l'effet des concentrations sont exigibles ; l'optimum de température, le pH et le K_M sont de l'enrichissement.",
+   note:"Précision du programme : « les caractéristiques de la cinétique enzymatique, les compétitions au site actif ne sont pas attendues. Le contrôle de l'activité enzymatique par des effecteurs (T, pH) peut être utilisé par le professeur dans sa démarche mais n'est pas un attendu du programme. » La tangente à t₀ et l'effet des concentrations sont exigibles ; l'optimum de température, le pH et le K_M sont de l'enrichissement.",
    m:[
-    {f:'amylase', sim:'enzymes', r:"La spécificité de substrat, à concevoir et à réaliser : l'amylase attaque l'amidon, pas le saccharose."},
+    {f:'amylase', sim:'enzymes', r:"La spécificité de substrat : l'amylase attaque l'amidon, pas le saccharose."},
     {f:'cinetique', sim:'enzymes', r:"L'attendu central : faire varier [substrat] puis [enzyme] et mesurer la vitesse initiale à la tangente. L'outil de pente du module trace cette tangente."},
-    {f:'peroxydase', r:"Une seconde enzyme pour éprouver la spécificité sur un autre substrat."}]}]},
+    {f:'peroxydase', r:"Une seconde enzyme, pour éprouver la spécificité sur un autre substrat."}]}]},
 
- {t:"Thème 2 — Enjeux contemporains de la planète · Écosystèmes et services environnementaux", ch:[
+ {t:"Chapitre 5 — Écosystèmes et services environnementaux", ch:[
 
-  {t:"Les écosystèmes : des interactions dynamiques entre les êtres vivants et entre eux et leur milieu", cle:true,
+  {t:"Activité 3 : Flux de matière et équilibre dynamique", type:'Act.', cle:true,
    att:"Mesurer la production d'un écosystème et construire un bilan de matière : l'écosystème est un système ouvert, traversé par des flux.",
    cap:["Mesurer la biomasse et la production d'un écosystème à différents niveaux du réseau trophique.",
-        "Construire un cycle biogéochimique simplifié avec ses réservoirs et ses flux (on recommande le carbone) dans lequel l'écosystème intervient. Calculer un bilan de matière, considérant l'écosystème comme ouvert.",
-        "Décrire à l'aide d'observations, de préparations microscopiques et d'expériences les modalités de certaines interactions (exemple : symbiose mycorhizienne)."],
+        "Construire un cycle biogéochimique simplifié avec ses réservoirs et ses flux (on recommande le carbone) dans lequel l'écosystème intervient. Calculer un bilan de matière, considérant l'écosystème comme ouvert."],
    note:"Le programme précise que « l'étude des agrosystèmes et des sols a été traitée en seconde » : ici l'entrée est la production, les flux et le cycle du carbone, pas la nutrition minérale.",
    m:[
     {f:'photo-exao', sim:'exao', r:"L'entrée de carbone dans l'écosystème, chiffrée : le premier terme du bilan."},
@@ -5861,101 +5894,119 @@ const PROGRAMMES = [
     {f:'bulles', r:"Comparer la production dans deux conditions de milieu, sans matériel lourd."},
     {f:'germination-exao', sim:'exao', r:"La reprise d'activité d'une graine : le point de départ d'une colonisation."}]},
 
-  {t:"L'humanité et les écosystèmes : les services écosystémiques et leur gestion",
+  {t:"Activité 4 : Des services à préserver", type:'Act.',
    att:"Relier le fonctionnement de l'écosystème aux services qu'il rend, et aux perturbations que l'activité humaine lui impose.",
+   cap:["Décrire à l'aide d'observations, de préparations microscopiques et d'expériences les modalités de certaines interactions (exemple : symbiose mycorhizienne)."],
    m:[
     {f:'anthocyanes', sim:'biochimie', r:"Un indicateur coloré tiré du chou rouge : de quoi mesurer le pH d'un sol ou d'une eau en classe."},
     {f:'multiplication', r:"Comment une espèce occupe le terrain, et donc comment un milieu se referme ou se régénère."},
     {f:'bouture', r:"La même capacité, mise au service de la restauration ou de l'horticulture."}]}]}],
- rien:"La partie 1B du thème 1, « La dynamique interne de la Terre » — sismologie, divergence, subduction, collision — est traitée dans l'autre laboratoire. Le thème 3, « Corps humain et santé », ne mobilise pas de matériel végétal.",
- lien:{t:"Voir « La dynamique interne de la Terre » dans le labo de géologie", href:"labo_geologie.html#programme?niveau=1spe"}},
+ rien:"Vos chapitres 2 et 3 — variation génétique et santé, système immunitaire — ne mobilisent pas de matériel végétal. Le chapitre 4, « La dynamique interne de la Terre », est traité dans l'autre laboratoire, activité par activité.",
+ lien:{t:"Voir le chapitre 4 dans le labo de géologie", href:"labo_geologie.html#programme?niveau=1spe"}},
 
 /* ======================== TERMINALE — SPÉCIALITÉ SVT ======================== */
-{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"spécialité sciences de la vie et de la Terre — BO 2019", th:[
- {t:"Thème 1 — La Terre, la vie et l'organisation du vivant · Génétique et évolution", ch:[
+{id:'tspe', n:'Terminale — spécialité SVT', court:'Term spé', s:"votre programmation 2025-2026", th:[
+ {t:"Chapitre 1 — Les Angiospermes", ch:[
 
-  {t:"L'origine du génotype des individus",
-   att:"Relier la formation des gamètes au brassage génétique, en observant la méiose sur du matériel réel.",
-   note:"Le programme met l'accent sur le brassage et l'analyse de croisements plus que sur l'observation elle-même : les deux manipulations ci-dessous illustrent, elles ne constituent pas l'attendu.",
-   m:[
-    {f:'meiose', r:"Les anthères de lis : toutes les phases sur une même lame."},
-    {f:'pollen', r:"Faire germer un grain de pollen. Le programme place explicitement hors programme la structure du grain de pollen et sa formation.", plus:true}]}]},
-
- {t:"Thème 2 — Enjeux planétaires contemporains · De la plante sauvage à la plante domestiquée", ch:[
-
-  {t:"L'organisation fonctionnelle des plantes à fleurs", cle:true,
-   att:"La vie fixée impose de prélever sur place et de faire circuler : surfaces d'échange développées, tissus conducteurs, croissance orientée par le milieu.",
+  {t:"Activité 1 : Surfaces d'échange chez les Angiospermes", type:'TP', cle:true,
+   att:"La vie fixée impose de prélever sur place : la plante déploie des surfaces d'échange avec le sol et avec l'air, et des tissus pour les relier.",
    cap:["Réaliser et observer des coupes dans des organes végétaux afin de repérer les grands types de tissus conducteurs (phloème, xylème).",
-        "Estimer (ordre de grandeur) les surfaces d'échange d'une plante par rapport à sa masse ou son volume.",
-        "Établir et mettre en œuvre des protocoles montrant l'influence des conditions de milieu (lumière, gravité, vent) sur le développement de la plante.",
-        "Mettre en œuvre un protocole expérimental de localisation des zones d'élongation."],
-   note:"Précision du programme : « la connaissance de l'anatomie végétale se limite au repérage du phloème, du xylème ainsi qu'à l'indication de leurs rôles — sans mécanisme ». Le module Histologie va donc plus loin que l'attendu : servez-vous-en pour situer les deux tissus, pas pour faire apprendre tous les autres.",
+        "Estimer (ordre de grandeur) les surfaces d'échange d'une plante par rapport à sa masse ou son volume."],
+   note:"Précision du programme : « la connaissance de l'anatomie végétale se limite au repérage du phloème, du xylème ainsi qu'à l'indication de leurs rôles — sans mécanisme ». Le module Histologie va plus loin : servez-vous-en pour situer les deux tissus, pas pour faire apprendre tous les autres.",
    m:[
     {f:'coupes', sim:'histologie', r:"La capacité exigible, mot pour mot : réaliser et observer des coupes pour repérer xylème et phloème."},
     {f:'tiges', sim:'histologie', r:"Où sont ces tissus selon l'organe et le groupe : faisceaux en couronne ou dispersés."},
-    {f:'empreintes', r:"Compter les stomates au millimètre carré : c'est ainsi qu'on estime une surface d'échange."},
-    {f:'phototropisme', r:"L'influence de la lumière sur le développement — l'un des trois facteurs que cite le programme."},
-    {f:'gravitropisme', r:"Celle de la gravité, le deuxième."},
+    {f:'empreintes', r:"Compter les stomates au millimètre carré : c'est ainsi qu'on estime une surface d'échange."}]},
+
+  {t:"Activité 2 : Croissance de la plante", type:'Act.',
+   att:"Sans pouvoir fuir, la plante oriente sa croissance : les tropismes et la dominance apicale s'observent en une semaine de germoir.",
+   cap:["Établir et mettre en œuvre des protocoles montrant l'influence des conditions de milieu (lumière, gravité, vent) sur le développement de la plante.",
+        "Mettre en œuvre un protocole expérimental de localisation des zones d'élongation."],
+   note:"Les germoirs sont à monter une semaine avant la séance : c'est la seule contrainte de calendrier de tout le chapitre.",
+   m:[
+    {f:'phototropisme', r:"L'influence de la lumière — l'un des trois facteurs que cite le programme."},
+    {f:'gravitropisme', r:"Celle de la gravité, le deuxième. Racine et tige lisent la verticale en sens inverse."},
     {f:'etiolement', r:"Le témoin indispensable : ce que devient une plante privée de lumière."},
-    {f:'dominance', r:"Ôter le bourgeon terminal libère les bourgeons axillaires : le développement est piloté chimiquement."},
-    {f:'bois', sim:'histologie', r:"Le xylème secondaire : conduit et charpente à la fois.", plus:true},
-    {f:'frites', r:"Le potentiel hydrique d'un tissu, mesuré à la règle. Le programme 2019 ne le demande plus, mais il explique le sens des circulations.", plus:true},
+    {f:'dominance', r:"Ôter le bourgeon terminal libère les bourgeons axillaires : le développement est piloté chimiquement."}]},
+
+  {t:"Activité 3 : Circulation de la matière", type:'Act.',
+   att:"Relier la transpiration foliaire à la montée de la sève brute, et suivre le trajet de l'eau du sol à la feuille.",
+   m:[
+    {f:'dixon', r:"La sève brute monte : le trajet se colore sous les yeux."},
+    {f:'cobalt', r:"La transpiration, moteur de cette montée, localisée à la face inférieure."},
+    {f:'potometre', r:"Mesurer le débit absorbé, et le faire varier (vent, lumière, humidité)."},
+    {f:'bois', sim:'histologie', r:"Le xylème secondaire, conduit et charpente à la fois."},
+    {f:'plasmolyse', sim:'histologie', r:"Le sens des échanges dépend des concentrations : la cellule le montre."},
+    {f:'frites', r:"Le potentiel hydrique d'un tissu, mesuré à la règle. Le programme 2019 ne le demande plus.", plus:true},
     {f:'po-densito', r:"La même grandeur par la densité : de quoi croiser deux méthodes.", plus:true}]},
 
-  {t:"La plante, productrice de matière organique", cle:true,
-   att:"La feuille convertit, la plante stocke et transforme : amidon de réserve, lignine et cellulose de soutien, tanins et anthocyanes d'interaction.",
+  {t:"Activité 4 : Photosynthèse chez les Angiospermes", type:'TP', cle:true,
+   att:"La feuille comme organe de conversion : capter la lumière avec des pigments, fixer le carbone, produire du dioxygène.",
    cap:["Réaliser une chromatographie de pigments végétaux.",
-        "Mettre en évidence expérimentalement la présence d'amidon dans les chloroplastes et les amyloplastes de réserve dans des organes spécialisés (graine, fruit, tubercules…).",
-        "Mettre en œuvre une coloration afin d'identifier la lignine et la cellulose et d'analyser leur distribution.",
         "Étudier et/ou mettre en œuvre des expériences historiques sur la photosynthèse."],
-   note:"Le programme est net : « on n'attend pas ici une étude expérimentale des processus moléculaires de la photosynthèse, étude que l'on réserve aux produits de la photosynthèse ». C'est le bilan et les produits qui comptent, pas le mécanisme.",
+   note:"Le programme est net : « on n'attend pas ici une étude expérimentale des processus moléculaires de la photosynthèse, étude que l'on réserve aux produits de la photosynthèse ».",
    m:[
     {f:'chromato', sim:'pigments', r:"La capacité exigible, mot pour mot."},
-    {f:'amidon', sim:'biochimie', r:"L'amidon dans le tubercule et dans la feuille : la mise en évidence demandée."},
+    {f:'photo-exao', sim:'exao', r:"Le bilan de la photosynthèse, mesuré sur les deux gaz, avec point de compensation."},
     {f:'sachs', r:"L'expérience historique par excellence : pas de lumière, pas d'amidon."},
-    {f:'parois', sim:'histologie', r:"La coloration demandée : phloroglucine pour la lignine, carmin-vert d'iode pour distinguer les deux parois."},
-    {f:'anthocyanes', sim:'biochimie', r:"Les pigments d'interaction que cite le programme, extraits et utilisés comme indicateurs."},
-    {f:'photo-exao', sim:'exao', r:"Le bilan de la photosynthèse, mesuré sur les deux gaz."},
-    {f:'spectre-abs', sim:'pigments', r:"Ce que chaque pigment absorbe. Au-delà du bilan demandé.", plus:true},
+    {f:'spectre-abs', sim:'pigments', r:"Ce que chaque pigment absorbe — et ce qu'il laisse passer."},
+    {f:'spectre-action', sim:'pigments', r:"L'expérience d'Engelmann : ce qui est absorbé est bien ce qui sert."},
     {f:'hill', r:"La phase photochimique isolée : explicitement hors de l'attendu.", plus:true}]},
 
-  {t:"Reproduction de la plante entre vie fixée et mobilité",
-   att:"Deux modalités de reproduction : asexuée par totipotence, sexuée par la fleur — et dans les deux cas, la question du déplacement.",
-   cap:["Mettre en œuvre un protocole de reproduction asexuée (bouturage, marcottage) ou étudier la régénération de petits fragments tissulaires en laboratoire.",
-        "Réaliser la dissection d'une fleur entomogame pour mettre en lien structure et fonction.",
+  {t:"Activité 5 : Devenir des produits de la photosynthèse", type:'TP', cle:true,
+   att:"Ce que la plante fait du carbone fixé : réserves, parois de soutien, molécules d'interaction.",
+   cap:["Mettre en évidence expérimentalement la présence d'amidon dans les chloroplastes et les amyloplastes de réserve dans des organes spécialisés (graine, fruit, tubercules…).",
+        "Mettre en œuvre une coloration afin d'identifier la lignine et la cellulose et d'analyser leur distribution.",
+        "Réaliser et observer des coupes dans des organes végétaux pour repérer une diversité de métabolites."],
+   m:[
+    {f:'amidon', sim:'biochimie', r:"L'amidon dans le tubercule et dans la feuille : la mise en évidence demandée."},
+    {f:'parois', sim:'histologie', r:"La coloration demandée : phloroglucine pour la lignine, carmin-vert d'iode pour distinguer les deux parois."},
+    {f:'anthocyanes', sim:'biochimie', r:"Les pigments d'interaction que cite le programme, extraits et utilisés comme indicateurs."},
+    {f:'sucres-germination', sim:'biochimie', r:"Les réserves remobilisées : l'amidon redevient sucres réducteurs."},
+    {f:'inuline', sim:'biochimie', r:"Une réserve autre que l'amidon, pour montrer la diversité chimique.", plus:true}]},
+
+  {t:"Activité 6 : Reproduction sexuée chez les Angiospermes", type:'TP',
+   att:"Une plante fixée doit faire voyager ses gamètes et ses graines : l'organisation de la fleur est la réponse.",
+   cap:["Réaliser la dissection d'une fleur entomogame pour mettre en lien structure et fonction.",
         "Mettre en évidence les réserves de la graine et interpréter des expériences historiques sur la germination montrant la mobilisation des réserves."],
+   note:"Le programme place explicitement hors programme « la structure du grain de pollen, sa formation, les mécanismes de la double fécondation ».",
    m:[
     {f:'fleur', r:"La dissection demandée : le diagramme floral sort de la pince, pas du manuel."},
-    {f:'bouture', r:"Le protocole de reproduction asexuée que cite le programme."},
-    {f:'multiplication', r:"Les organes par lesquels la plante se clone elle-même : stolons, rhizomes, bulbilles."},
-    {f:'sucres-germination', sim:'biochimie', r:"La mobilisation des réserves de la graine, chiffrée au test de Fehling."},
-    {f:'germination-exao', sim:'exao', r:"La reprise d'activité mesurée : la graine sèche s'éveille."},
-    {f:'protoplastes', r:"La régénération de fragments tissulaires, version laboratoire.", plus:true}]},
+    {f:'germination-exao', sim:'exao', r:"La graine s'éveille : la reprise d'activité se mesure."},
+    {f:'bulbe', r:"Un organe de réserve disséqué, pour préparer la domestication."},
+    {f:'meiose', r:"Les anthères de lis, si vous liez cette activité au chapitre 3.", plus:true},
+    {f:'pollen', r:"Faire germer un grain de pollen : hors programme, mais spectaculaire.", plus:true}]}]},
 
-  {t:"La domestication des plantes",
-   att:"Comparer la plante cultivée et son ancêtre sauvage, et comprendre ce que la sélection humaine a retenu — et ce qu'elle a fait perdre.",
-   cap:["Comparer une plante cultivée et des populations naturelles voisines présentant un phénotype sauvage.",
-        "Identifier la diversité biologique de certaines plantes cultivées (tomate, chou, pomme de terre par exemple)."],
-   m:[
-    {f:'amidon', sim:'biochimie', r:"La réserve sur laquelle a porté la sélection : la localiser dans le tubercule de pomme de terre."},
-    {f:'bulbe', r:"Un organe de réserve sélectionné par l'humain : l'oignon, disséqué."},
-    {f:'pain', r:"De la plante cultivée au produit transformé : levure, gluten, fermentation."},
-    {f:'bouture', r:"La multiplication conforme, sur laquelle repose la production variétale."}]}]},
+ {t:"Chapitre 2 — Le contrôle du mouvement", ch:[
 
- {t:"Thème 3 — Corps humain et santé · Comportements, mouvement et système nerveux", ch:[
-
-  {t:"Origine de l'ATP nécessaire à la contraction de la cellule musculaire", cle:true,
+  {t:"Activité 5 : Le métabolisme de la cellule musculaire", type:'TP', cle:true,
    att:"Comparer les deux voies de régénération de l'ATP — respiration cellulaire et fermentation — et leurs rendements.",
    cap:["Réaliser des expérimentations assistées par ordinateur (ExAO) : respiration cellulaire et/ou fermentation.",
         "Calculer le rendement en kJ (ou nombre de molécules d'ATP) de la fermentation lactique et de la respiration cellulaire, pour une même quantité de glucose."],
-   note:"Le programme nomme explicitement l'ExAO dans ce chapitre. C'est le seul endroit des cinq programmes où la technique est citée telle quelle : le module ExAO y trouve son emploi le plus direct.",
+   note:"C'est le seul endroit des cinq programmes où l'ExAO est nommée telle quelle. Le module y trouve son emploi le plus direct — et le matériel végétal ci-dessous sert à installer le protocole avant de passer au muscle ou à la levure.",
    m:[
     {f:'respi-exao', sim:'exao', r:"L'expérimentation assistée par ordinateur que demande le programme, sur la respiration."},
     {f:'fermentation', r:"L'autre voie, celle qui se passe de dioxygène."},
     {f:'mitochondries', r:"Voir respirer l'organite où se fait la chaîne respiratoire."},
-    {f:'germination-exao', sim:'exao', r:"Un matériel végétal commode pour installer le protocole avant de passer au muscle."}]}]}],
- rien:"La partie 1B, « À la recherche du passé géologique de notre planète », et le chapitre « Les climats de la Terre » relèvent de l'autre laboratoire.",
- lien:{t:"Voir les deux parties de géologie dans l'autre laboratoire", href:"labo_geologie.html#programme?niveau=tspe"}}
+    {f:'germination-exao', sim:'exao', r:"Des graines en germination : le matériel le plus commode pour régler l'oxygraphe."}]}]},
+
+ {t:"Chapitre 3 — La transmission de la vie", ch:[
+
+  {t:"Activité 1 : Méiose et fécondation", type:'Act.',
+   att:"Observer la méiose sur du matériel réel et relier la formation des gamètes au brassage génétique.",
+   m:[
+    {f:'meiose', r:"Les anthères de lis : toutes les phases sur une même lame."},
+    {f:'pollen', r:"La suite de l'histoire, jusqu'au tube pollinique.", plus:true}]},
+
+  {t:"Activité 4 : Diversification sans reproduction sexuée", type:'Act.',
+   att:"La totipotence des cellules végétales permet une diversification — et une multiplication — sans méiose ni fécondation.",
+   cap:["Mettre en œuvre un protocole de reproduction asexuée (bouturage, marcottage) ou étudier la régénération de petits fragments tissulaires en laboratoire."],
+   m:[
+    {f:'bouture', r:"Le protocole de reproduction asexuée que cite le programme : un clone en pot."},
+    {f:'multiplication', r:"Les organes par lesquels la plante se clone elle-même : stolons, rhizomes, bulbilles."},
+    {f:'protoplastes', r:"La régénération de fragments tissulaires, version laboratoire.", plus:true}]}]}],
+ rien:"Vos chapitres 4 et 5 — l'histoire géologique de la France et le climat — sont traités dans l'autre laboratoire, activité par activité.",
+ lien:{t:"Voir les chapitres 4 et 5 dans le labo de géologie", href:"labo_geologie.html#programme?niveau=tspe"}}
 ];
 </script>
 
@@ -5996,7 +6047,9 @@ const PROGRAMMES = [
     const duree = c.m.filter(m => !m.plus).reduce((s,m) => s + F[m.f].duree, 0);
     return '<div class="carte" style="margin-top:12px">' +
       '<h3>' + echappe(c.t) +
-        (c.cle ? ' <span class="badge orange" style="vertical-align:3px">chapitre central</span>' : '') +
+        (c.type ? ' <span class="badge ' + (c.type === 'TP' ? 'orange' : c.type === 'Sortie' ? 'vert' : '') +
+          '" style="vertical-align:3px">' + echappe(c.type) + '</span>' : '') +
+        (c.cle ? ' <span class="badge bleu" style="vertical-align:3px">temps fort</span>' : '') +
       '</h3>' +
       '<p style="font-size:13px; color:var(--gris); margin:6px 0 14px">' + echappe(c.att) + '</p>' +
       (c.cap ? '<div class="note" style="margin:0 0 14px; border-left-color:var(--bleu)">' +
@@ -6018,11 +6071,15 @@ const PROGRAMMES = [
   function rendu(){
     const p = PROGRAMMES.find(x => x.id === niv);
     let nCh = 0, nM = 0, nSim = 0;
+    /* les niveaux bâtis sur votre programmation listent des activités,
+       les autres des chapitres : le compte doit dire lequel */
+    const parActivite = p.th.some(t => t.ch.some(c => c.type));
+    const mot = parActivite ? 'activité' : 'chapitre';
     p.th.forEach(t => t.ch.forEach(c => {
       nCh++; nM += c.m.length; nSim += c.m.filter(m => m.sim).length;
     }));
     entete.innerHTML = '<b>' + echappe(p.n) + '</b> — ' + echappe(p.s) + ' · ' +
-      nCh + ' chapitre' + (nCh>1?'s':'') + ' · ' + nM + ' manipulation' + (nM>1?'s':'') +
+      nCh + ' ' + mot + (nCh>1?'s':'') + ' · ' + nM + ' manipulation' + (nM>1?'s':'') +
       ', dont ' + nSim + ' simulable' + (nSim>1?'s':'') + ' ici.';
     corps.innerHTML = p.th.map(t =>
       '<div class="partie-titre">' + echappe(t.t) + '</div>' + t.ch.map(carteChapitre).join('')
@@ -6051,7 +6108,8 @@ const PROGRAMMES = [
       '<div class="enc">Rattachements proposés, reformulés : à confronter au Bulletin officiel et ' +
       'à votre progression avant usage.</div>' +
       p.th.map(t => '<h2>' + echappe(t.t) + '</h2>' + t.ch.map(c =>
-        '<div class="ch"><h3>' + echappe(c.t) + (c.cle ? ' — chapitre central' : '') + '</h3>' +
+        '<div class="ch"><h3>' + echappe(c.t) + (c.type ? ' — ' + echappe(c.type) : '') +
+        (c.cle ? ' — temps fort' : '') + '</h3>' +
         '<p class="att">' + echappe(c.att) + '</p>' +
         (c.cap ? '<div class="enc"><b>Ce que demande le programme.</b><ul>' +
           c.cap.map(x => '<li>' + echappe(x) + '</li>').join('') + '</ul></div>' : '') +
