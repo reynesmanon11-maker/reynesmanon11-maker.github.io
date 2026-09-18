@@ -419,6 +419,16 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
 #hi-info, #ro-resultats{ background:var(--ptbg); border:1px solid var(--ptbd);
   border-radius:12px; padding:13px 15px; min-height:110px }
 
+/* ---------- galerie de photographies réelles ---------- */
+.ro-galerie{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px }
+.ro-vignette{ padding:0; border:1px solid var(--ptbd); border-radius:10px; overflow:hidden;
+  background:var(--papier); aspect-ratio:4/3; display:block; transition:transform .2s, box-shadow .2s }
+.ro-vignette:hover{ transform:translateY(-2px); box-shadow:0 6px 18px rgba(35,32,28,.16) }
+.ro-vignette img{ width:100%; height:100%; object-fit:cover; display:block }
+.ro-loupe{ position:fixed; inset:0; z-index:200; background:rgba(25,22,18,.86); cursor:zoom-out;
+  display:flex; align-items:center; justify-content:center; padding:24px }
+.ro-loupe img{ max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.5) }
+
 /* ---------- la légende sous un graphique ---------- */
 .module .lgd{ color:#5f594f }
 
@@ -1033,9 +1043,11 @@ header.top .marque b{ letter-spacing:-.015em }
        et les minéraux visibles de ces seize roches sont des <b>propriétés réelles</b>, relevées
        comme on les trouve dans une collection de lycée. Ce module est une base de données, pas un
        modèle : les résultats des tests sont vrais.</p>
-    <p>Ce qui reste un dessin, c'est l'aspect de l'échantillon à l'écran. Une vraie caisse de
-       roches ne se remplace pas : <b>le but est de préparer la séance ou de la réviser</b>, pas
-       de s'en passer.</p>
+    <p>Ce qui reste un dessin, c'est l'aspect de l'échantillon à l'écran. Quand une photographie
+       de l'échantillon réel a été déposée dans <code>images/roches/</code>, elle s'affiche sous
+       le dessin — et c'est elle qui fait foi.</p>
+    <p>Une vraie caisse de roches ne se remplace pas : <b>le but est de préparer la séance ou de
+       la réviser</b>, pas de s'en passer.</p>
   </div></div>
 
   <div class="grille deux">
@@ -1078,6 +1090,7 @@ header.top .marque b{ letter-spacing:-.015em }
       <div class="carte">
         <h3>L'échantillon</h3>
         <canvas id="ro-cv" height="260" style="width:100%; display:block; border-radius:11px"></canvas>
+        <div id="ro-photos"></div>
         <div id="ro-resultats" style="margin-top:14px"></div>
       </div>
 
@@ -2426,6 +2439,58 @@ const TESTS = [
 
   const courante = () => ROCHES.find(r => r.id === (mode === 'libre' ? choix : mystere));
 
+  /* ---------- photographies réelles déposées dans images/roches/ ----------
+     La page est servie telle quelle, sans programme sur le serveur : elle ne
+     peut pas lister un dossier. Elle essaie donc les fichiers un par un —
+     granite-1.jpg, granite-2.jpg… — et s'arrête au premier absent. Rien à
+     déclarer nulle part : déposer le fichier suffit.
+     Conséquence assumée : la console du navigateur signale une requête en
+     échec par roche ouverte, celle du numéro manquant. C'est le seul moyen,
+     sans programme sur le serveur, de savoir qu'un fichier n'existe pas. */
+  const CACHE_PHOTOS = {};
+  function chargePhotos(id, fini){
+    if(CACHE_PHOTOS[id]) return fini(CACHE_PHOTOS[id]);
+    const trouvees = [];
+    (function essaie(n){
+      if(n > 12){ CACHE_PHOTOS[id] = trouvees; return fini(trouvees); }
+      const img = new Image();
+      img.onload  = () => { trouvees.push(img.src); essaie(n+1); };
+      img.onerror = () => { CACHE_PHOTOS[id] = trouvees; fini(trouvees); };
+      img.src = '../images/roches/' + id + '-' + n + '.jpg';
+    })(1);
+  }
+  function rendPhotos(){
+    const bac = $('#ro-photos'); if(!bac) return;
+    const r = courante();
+    /* en roche mystère, une photo donnerait la réponse avant tout test */
+    if(mode === 'mystere' && !faits.has('loupe')){ bac.innerHTML = ''; return; }
+    chargePhotos(r.id, photos => {
+      if(courante().id !== r.id) return;          /* l'élève a changé d'échantillon */
+      bac.innerHTML = photos.length
+        ? '<div class="partie-titre" style="margin:16px 0 8px">' +
+          (photos.length > 1 ? photos.length + ' photographies de l\'échantillon réel' :
+                               "Photographie de l'échantillon réel") + '</div>' +
+          '<div class="ro-galerie">' + photos.map((src,i) =>
+            '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir">' +
+            '<img src="' + src + '" alt="' + ech(r.n) + ', photographie ' + (i+1) + '" loading="lazy">' +
+            '</button>').join('') + '</div>'
+        : '<p style="font-size:11.5px; color:var(--gris-clair); margin-top:12px">' +
+          'Aucune photographie déposée pour cette roche : il n\'y a ici que le dessin.</p>';
+    });
+  }
+  /* agrandissement au clic */
+  document.addEventListener('click', e => {
+    const v = e.target.closest('[data-photo]');
+    if(v){
+      const o = document.createElement('div');
+      o.className = 'ro-loupe';
+      o.innerHTML = '<img src="' + v.dataset.photo + '" alt="">';
+      o.addEventListener('click', () => o.remove());
+      document.body.appendChild(o);
+      return;
+    }
+  });
+
   /* ---------- dessin de l'échantillon ---------- */
   function dessine(){
     const {ctx, l, h} = dimensionne(cv, 260);
@@ -2581,7 +2646,7 @@ const TESTS = [
   $('#ro-tests').addEventListener('click', e => {
     const b = e.target.closest('[data-test]'); if(!b) return;
     if(!faits.has(b.dataset.test)){ faits.add(b.dataset.test); if(mode==='mystere') score.tests++; }
-    rendTests(); rendResultats(); dessine();
+    rendTests(); rendResultats(); dessine(); rendPhotos();
   });
 
   /* ---------- listes déroulantes ---------- */
@@ -2589,14 +2654,14 @@ const TESTS = [
   $('#ro-ech').innerHTML = options;
   $('#ro-reponse').innerHTML = '<option value="">— choisir —</option>' + options;
   $('#ro-ech').addEventListener('change', e => {
-    choix = e.target.value; faits = new Set(['loupe']); rendTests(); rendResultats(); dessine();
+    choix = e.target.value; faits = new Set(['loupe']); rendTests(); rendResultats(); dessine(); rendPhotos();
   });
 
   /* ---------- mode mystère ---------- */
   function nouvelle(){
     mystere = ROCHES[Math.floor(Math.random()*ROCHES.length)].id;
     faits = new Set(); $('#ro-reponse').value = '';
-    rendTests(); rendResultats(); dessine(); majScore();
+    rendTests(); rendResultats(); dessine(); rendPhotos(); majScore();
   }
   function majScore(){
     $('#ro-score').innerHTML = score.essais
@@ -2626,7 +2691,7 @@ const TESTS = [
     $('#ro-choix').style.display = mode === 'libre' ? '' : 'none';
     $('#ro-mystere-bloc').style.display = mode === 'libre' ? 'none' : '';
     if(mode === 'mystere') nouvelle();
-    else { faits = new Set(['loupe']); rendTests(); rendResultats(); dessine(); }
+    else { faits = new Set(['loupe']); rendTests(); rendResultats(); dessine(); rendPhotos(); }
   });
 
   /* ---------- clé et collection ---------- */
@@ -2653,7 +2718,7 @@ const TESTS = [
       '<td>' + fr(r.rho,2) + '</td></tr>').join('') + '</tbody>';
 
   faits = new Set(['loupe']);
-  rendTests(); rendResultats(); majScore();
+  rendTests(); rendResultats(); majScore(); rendPhotos();
   Labo.surAffichage.roches = dessine;
   dessine();
 })();
