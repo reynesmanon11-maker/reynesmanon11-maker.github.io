@@ -12,6 +12,25 @@ visible de personne. On travaille donc sur une branche, on vérifie dans un
 navigateur, puis on fusionne dans `main` et on pousse. Compter une à deux
 minutes avant que GitHub Pages ne reconstruise le site.
 
+### Manon modifie en direct
+
+Manon corrige elle-même ses textes depuis l'éditeur de GitHub, sur `main`, et
+elle a raison de le faire : c'est son site. **Ses modifications passent avant
+les nôtres.** En pratique :
+
+- Toujours `git fetch origin main` puis `git rebase origin/main` avant de
+  pousser. **Jamais** de `push --force` sur `main`, jamais de `revert` d'un de
+  ses commits : on se replace derrière son travail, on ne le remplace pas.
+- Après un rebase, relire le fichier concerné pour vérifier que sa
+  modification est toujours là (elle peut être minuscule : un mot, un
+  attribut).
+- Une longue série de commits sur `main` pendant qu'elle a un éditeur ouvert
+  lui fait refuser sa validation (« … a effectué des modifications depuis que
+  vous avez commencé à les modifier »). Regrouper les publications plutôt que
+  de pousser vingt fois, et le lui signaler quand on va travailler longuement
+  sur un fichier qu'elle édite.
+- Si elle dit qu'elle est en train de modifier : ne pas pousser, attendre.
+
 ## Pages
 
 | Fichier | Rôle |
