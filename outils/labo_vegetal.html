@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laboratoire virtuel — Biologie et physiologie végétales</title>
 <meta name="description" content="Simulations de travaux pratiques de biologie végétale : ExAO photosynthèse et respiration, tests biochimiques, pigments, cinétiques enzymatiques, histologie. D'après R. Pratt, Expérimentation en biologie et physiologie végétales.">
-<meta name="theme-color" content="#b15f2c">
+<meta name="theme-color" content="#2f7150">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,9 +17,9 @@
    ============================================================ */
 *{ box-sizing:border-box; margin:0; padding:0 }
 :root{
-  --fond:#f5f2ed; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
-  --ligne:#e4dfd5; --ligne-forte:#d3ccbe;
-  --accent:#b15f2c; --accent-clair:#cf8047; --accent-pale:#f6e9df;
+  --fond:#f1f5f0; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
+  --ligne:#dfe6da; --ligne-forte:#c9d5c3;
+  --accent:#2f7150; --accent-clair:#4f9a6f; --accent-pale:#e7f1ea;
   --vert:#3f7d5f; --vert-pale:#e6f1ea;
   --bleu:#2f6ba8; --bleu-pale:#e5eef7;
   --violet:#6e5fa8; --or:#c08a1e; --rouge:#c0392b; --rose:#d46a8b;
@@ -60,6 +60,8 @@ nav.onglets button:hover{ background:var(--fond); color:var(--encre) }
 nav.onglets button[aria-selected="true"]{ background:var(--encre); color:#fff }
 
 /* ---------- boutons ---------- */
+.lien-labo{ color:#a8660f; border-color:#eedcbc; background:#fdf7ec; font-weight:600 }
+.lien-labo:hover{ border-color:#a8660f; background:#fdf7ec }
 .btn{
   border:1px solid var(--ligne-forte); background:var(--papier); border-radius:10px;
   padding:7px 13px; font-size:12.5px; font-weight:500; color:var(--encre);
@@ -89,7 +91,7 @@ main{ max-width:1180px; margin-inline:auto; padding:22px 18px 90px }
    Présent en tête de chaque module : l'élève doit savoir qu'il lit un modèle
    et non un relevé de mesures. */
 .avert{ display:flex; gap:11px; align-items:flex-start; margin:16px 0 20px;
-  background:#fdf7f1; border:1px solid #efd9c4; border-left:3px solid var(--accent);
+  background:#f4f9f4; border:1px solid #cfe2d2; border-left:3px solid var(--accent);
   border-radius:0 12px 12px 0; padding:11px 15px; font-size:12.5px; line-height:1.5; color:#575046 }
 .avert .marque{ flex:none; width:19px; height:19px; border-radius:50%; background:var(--accent);
   color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
@@ -238,15 +240,15 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
    répondent au survol. Tout ce bloc est décoratif : aucune règle n'y
    change un comportement.
    ====================================================================== */
-.module{ --pt:var(--accent); --ptbg:var(--accent-pale); --ptbd:#ecd5c3 }
-#mod-accueil{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+.module{ --pt:var(--accent); --ptbg:var(--accent-pale); --ptbd:#cde0d4 }
+#mod-accueil{ --pt:#2f7150; --ptbg:#e7f1ea; --ptbd:#cde0d4 }
 #mod-programme{ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
 #mod-exao{ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
-#mod-biochimie{ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 }
+#mod-biochimie{ --pt:#7aa32f; --ptbg:#f2f7e5; --ptbd:#dceac0 }
 #mod-pigments{ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
 #mod-enzymes{ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
 #mod-histologie{ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 }
-#mod-preparer{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+#mod-preparer{ --pt:#2f7150; --ptbg:#e7f1ea; --ptbd:#cde0d4 }
 
 /* ---------- bandeau de tête d'un module ---------- */
 .intro-mod{
@@ -267,14 +269,14 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 #mod-accueil .intro-mod::before{ font-size:clamp(96px, 20vw, 210px) }
 
 /* ---------- l'onglet actif prend la couleur de son module ---------- */
-nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#b15f2c }
+nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#2f7150 }
 nav.onglets button[data-mod="programme"][aria-selected="true"]{ background:#8f76cf }
 nav.onglets button[data-mod="exao"][aria-selected="true"]{ background:#4fae7a }
-nav.onglets button[data-mod="biochimie"][aria-selected="true"]{ background:#cf9430 }
+nav.onglets button[data-mod="biochimie"][aria-selected="true"]{ background:#7aa32f }
 nav.onglets button[data-mod="pigments"][aria-selected="true"]{ background:#3faea6 }
 nav.onglets button[data-mod="enzymes"][aria-selected="true"]{ background:#4f93d4 }
 nav.onglets button[data-mod="histologie"][aria-selected="true"]{ background:#d56a97 }
-nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2c }
+nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#2f7150 }
 
 /* ---------- la couleur du module traverse ses éléments ---------- */
 .module .avert{ background:var(--ptbg); border-color:var(--ptbd); border-left-color:var(--pt) }
@@ -305,11 +307,11 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
 #mod-accueil .grille > .carte:hover{ transform:translateY(-3px) }
 #mod-accueil .grille > .carte h3{ font-size:18px; letter-spacing:-.015em }
 #mod-accueil .grille > .carte:nth-child(6n+1){ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
-#mod-accueil .grille > .carte:nth-child(6n+2){ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 }
+#mod-accueil .grille > .carte:nth-child(6n+2){ --pt:#7aa32f; --ptbg:#f2f7e5; --ptbd:#dceac0 }
 #mod-accueil .grille > .carte:nth-child(6n+3){ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
 #mod-accueil .grille > .carte:nth-child(6n+4){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
-#mod-accueil .grille > .carte:nth-child(6n+5){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 }
-#mod-accueil .grille > .carte:nth-child(6n+6){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
+#mod-accueil .grille > .carte:nth-child(6n+5){ --pt:#2f8f6b; --ptbg:#e7f3ee; --ptbd:#c6e2d5 }
+#mod-accueil .grille > .carte:nth-child(6n+6){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 }
 #mod-accueil .grille > .carte .badge{ background:var(--ptbg); color:var(--pt) }
 #mod-accueil .grille > .carte .btn.primaire{ background:var(--pt); border-color:var(--pt) }
 
@@ -435,7 +437,7 @@ header.top .marque b{ letter-spacing:-.015em }
     </div>
     <div class="top-spacer"></div>
     <div class="top-actions">
-      <a class="btn mini" href="labo_geologie.html">→ Labo géologie</a>
+      <a class="btn mini lien-labo" href="labo_geologie.html">→ Labo géologie</a>
       <button class="btn mini" id="btn-carnet">Carnet de manip</button>
       <a class="btn mini" href="../index.html">Retour au site</a>
     </div>
@@ -1618,7 +1620,7 @@ function rafraichitTables(cv){
    que l'aire tracée se détache du papier de la carte. Purement décoratif. */
 function fondGraphe(ctx, cv, x, y, w, h){
   const cs = getComputedStyle(cv);
-  const bg = (cs.getPropertyValue('--ptbg') || '#f7ece3').trim();
+  const bg = (cs.getPropertyValue('--ptbg') || '#e7f1ea').trim();
   const g = ctx.createLinearGradient(0, y, 0, y + h);
   g.addColorStop(0, bg); g.addColorStop(1, '#ffffff');
   ctx.save(); ctx.globalAlpha = .6; ctx.fillStyle = g;
@@ -1853,7 +1855,7 @@ window.addEventListener('resize', () => {
     if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer le carnet."); return; }
     f.document.write('<meta charset="utf-8"><title>Carnet de manipulation</title>' +
       '<style>body{font:14px/1.6 system-ui,sans-serif;max-width:19cm;margin:2cm auto;color:#23201c}' +
-      'h1{font-size:19px} h2{font-size:14px;margin-top:22px;color:#b15f2c;border-bottom:1px solid #e4dfd5;padding-bottom:4px}' +
+      'h1{font-size:19px} h2{font-size:14px;margin-top:22px;color:#2f7150;border-bottom:1px solid #e4dfd5;padding-bottom:4px}' +
       'p{white-space:pre-wrap;margin:6px 0 0}' +
       'table{border-collapse:collapse;margin:4px 0 12px;width:100%}' +
       'td{border-bottom:1px solid #eee;padding:3px 6px;font-size:13px}' +
@@ -5458,11 +5460,11 @@ const FICHES = [
   const html = () =>
     '<meta charset="utf-8"><title>Laboratoire virtuel — fiche pédagogique</title>' +
     '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#b15f2c}' +
+    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#2f7150}' +
     '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
     'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
     'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
-    '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0}' +
+    '.enc{background:#f4f9f4;border-left:3px solid #2f7150;padding:9px 12px;margin:10px 0}' +
     'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
     '<h1>Laboratoire virtuel de biologie végétale — fiche pédagogique</h1>' +
     '<p class="s">D\'après R. Pratt, <i>Expérimentation en biologie et physiologie végétales</i>. ' +
@@ -5685,7 +5687,7 @@ const PLACARD_TYPE = ['tube','portoir','hemolyse','becher','becher250','erlen','
     const fiches = ids.map(id => FICHES.find(x => x.id === id));
     f.document.write('<meta charset="utf-8"><title>' + titre + '</title>' +
       '<style>body{font:13px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.6cm auto;color:#23201c}' +
-      'h1{font-size:18px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#b15f2c;' +
+      'h1{font-size:18px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#2f7150;' +
       'text-transform:uppercase;letter-spacing:.05em} .s{color:#7d776c;font-size:12px}' +
       'ul{margin:0;padding-left:0;list-style:none} li{padding:2px 0}' +
       '.case{display:inline-block;width:11px;height:11px;border:1px solid #999;margin-right:8px;vertical-align:-1px}' +
@@ -6183,11 +6185,11 @@ const PROGRAMMES = [
     const h = '<meta charset="utf-8"><title>Manips du labo — ' + p.n + '</title>' +
       '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
       'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:20px 0 4px;color:#7d776c;' +
-      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#b15f2c}' +
+      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#2f7150}' +
       '.s{color:#7d776c;font-size:12px} .att{font-size:12px;color:#4a453d;margin:2px 0 6px}' +
       'table{border-collapse:collapse;width:100%} td{border-bottom:1px solid #e4dfd5;padding:4px 6px;' +
       'vertical-align:top;font-size:11.5px} td.r{white-space:nowrap;color:#7d776c;text-align:right}' +
-      '.ch{break-inside:avoid} .enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
+      '.ch{break-inside:avoid} .enc{background:#f4f9f4;border-left:3px solid #2f7150;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
       '<h1>Manipulations du laboratoire — ' + echappe(p.n) + '</h1>' +
       '<p class="s">' + echappe(p.s) + ' · d\'après R. Pratt, <i>Expérimentation en biologie et ' +
       'physiologie végétales</i> · reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
@@ -6263,8 +6265,8 @@ const PROGRAMMES = [
   style.textContent = `
     .rt-cible{ outline:1px dashed rgba(177,95,44,.45); outline-offset:3px; border-radius:4px;
                transition:background .15s, outline-color .15s; cursor:text }
-    .rt-cible:hover{ background:rgba(207,128,71,.10); outline-color:#b15f2c }
-    .rt-cible:focus{ background:#fff8f1; outline:2px solid #b15f2c; outline-offset:3px }
+    .rt-cible:hover{ background:rgba(47,113,80,.10); outline-color:#2f7150 }
+    .rt-cible:focus{ background:#f3faf4; outline:2px solid #2f7150; outline-offset:3px }
     .rt-modifie{ background:#eef7ee !important; outline-color:#3d7a41 !important }
     #rt-barre{ position:fixed; left:0; right:0; bottom:0; z-index:9999;
                background:#23201c; color:#f5f2ed; padding:11px 16px;
@@ -6276,8 +6278,8 @@ const PROGRAMMES = [
     #rt-barre button{ font:inherit; font-weight:600; border:0; border-radius:8px;
                       padding:8px 13px; cursor:pointer; background:#3a352f; color:#f5f2ed }
     #rt-barre button:hover{ background:#4a443c }
-    #rt-barre button.rt-vert{ background:#cf8047; color:#fff }
-    #rt-barre button.rt-vert:hover{ background:#b15f2c }
+    #rt-barre button.rt-vert{ background:#4f9a6f; color:#fff }
+    #rt-barre button.rt-vert:hover{ background:#2f7150 }
     #rt-barre button[disabled]{ opacity:.45; cursor:default }
     #rt-liste{ position:fixed; right:16px; bottom:64px; z-index:9999; max-width:min(380px, 92vw);
                max-height:46vh; overflow:auto; background:#fff; border:1px solid #e3ddd3;

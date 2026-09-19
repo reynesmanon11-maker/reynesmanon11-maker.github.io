@@ -63,8 +63,16 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
 - La navigation est répétée dans les quatre pages principales (menu de bureau
   `nav.primary` **et** menu mobile, le tableau `NAV` en JavaScript) : ajouter un
   lien suppose de modifier les deux, dans les quatre fichiers.
-- Palette terracotta : `--accent:#b15f2c`, fond `#f5f2ed`, encre `#23201c`.
-  Police Onest.
+- Palette terracotta pour le site : `--accent:#b15f2c`, fond `#f5f2ed`, encre
+  `#23201c`. Police Onest.
+- **Chaque labo a sa propre teinte**, pour qu'on les distingue d'un coup d'œil :
+  biologie en vert (`--accent:#2f7150`, fond `#f1f5f0`), géologie en ambre
+  (`--accent:#a8660f`, fond `#f7f2e8`). Les couleurs par module restent variées
+  mais toutes dans la famille de leur labo — froide et végétale d'un côté,
+  minérale et chaude de l'autre. Le lien vers l'autre labo, dans la barre du
+  haut, porte la couleur de sa destination ; les pastilles des pages de niveau
+  aussi. Les couleurs de courbes (CO₂ en terracotta, O₂ en bleu) ne suivent pas
+  l'accent : elles doivent rester lisibles et distinctes entre elles.
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Laboratoire virtuel — Géologie au lycée</title>
 <meta name="description" content="Simulations de travaux pratiques de géologie au lycée : tri granulométrique et sédimentation, cristallisation et texture des roches magmatiques, viscosité des magmas et style éruptif, paillasse d'identification des roches, liste de matériel.">
-<meta name="theme-color" content="#b15f2c">
+<meta name="theme-color" content="#a8660f">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,9 +17,9 @@
    ============================================================ */
 *{ box-sizing:border-box; margin:0; padding:0 }
 :root{
-  --fond:#f5f2ed; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
-  --ligne:#e4dfd5; --ligne-forte:#d3ccbe;
-  --accent:#b15f2c; --accent-clair:#cf8047; --accent-pale:#f6e9df;
+  --fond:#f7f2e8; --papier:#ffffff; --encre:#23201c; --gris:#7d776c; --gris-clair:#a9a294;
+  --ligne:#e9e0cf; --ligne-forte:#d8ccb4;
+  --accent:#a8660f; --accent-clair:#c98a35; --accent-pale:#fbeeda;
   --vert:#3f7d5f; --vert-pale:#e6f1ea;
   --bleu:#2f6ba8; --bleu-pale:#e5eef7;
   --violet:#6e5fa8; --or:#c08a1e; --rouge:#c0392b; --rose:#d46a8b;
@@ -60,6 +60,8 @@ nav.onglets button:hover{ background:var(--fond); color:var(--encre) }
 nav.onglets button[aria-selected="true"]{ background:var(--encre); color:#fff }
 
 /* ---------- boutons ---------- */
+.lien-labo{ color:#2f7150; border-color:#cde0d4; background:#f2f8f4; font-weight:600 }
+.lien-labo:hover{ border-color:#2f7150; background:#f2f8f4 }
 .btn{
   border:1px solid var(--ligne-forte); background:var(--papier); border-radius:10px;
   padding:7px 13px; font-size:12.5px; font-weight:500; color:var(--encre);
@@ -89,7 +91,7 @@ main{ max-width:1180px; margin-inline:auto; padding:22px 18px 90px }
    Présent en tête de chaque module : l'élève doit savoir qu'il lit un modèle
    et non un relevé de mesures. */
 .avert{ display:flex; gap:11px; align-items:flex-start; margin:16px 0 20px;
-  background:#fdf7f1; border:1px solid #efd9c4; border-left:3px solid var(--accent);
+  background:#fdf6e9; border:1px solid #f0dcb8; border-left:3px solid var(--accent);
   border-radius:0 12px 12px 0; padding:11px 15px; font-size:12.5px; line-height:1.5; color:#575046 }
 .avert .marque{ flex:none; width:19px; height:19px; border-radius:50%; background:var(--accent);
   color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center;
@@ -259,15 +261,15 @@ table.tab td{ vertical-align:top }
    répondent au survol. Tout ce bloc est décoratif : aucune règle n'y
    change un comportement.
    ====================================================================== */
-.module{ --pt:var(--accent); --ptbg:var(--accent-pale); --ptbd:#ecd5c3 }
-#mod-accueil{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+.module{ --pt:var(--accent); --ptbg:var(--accent-pale); --ptbd:#eedcbc }
+#mod-accueil{ --pt:#a8660f; --ptbg:#fbeeda; --ptbd:#eedcbc }
 #mod-programme{ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
-#mod-sediment{ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
+#mod-sediment{ --pt:#5b7d94; --ptbg:#ecf1f5; --ptbd:#d3e0e8 }
 #mod-alteration{ --pt:#b8862b; --ptbg:#f9f1de; --ptbd:#ecdcb4 }
-#mod-cristal{ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
+#mod-cristal{ --pt:#8c6239; --ptbg:#f4ece4; --ptbd:#e3d2c2 }
 #mod-magma{ --pt:#c9542c; --ptbg:#fbeee7; --ptbd:#f0cfbd }
-#mod-roches{ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
-#mod-preparer{ --pt:#b15f2c; --ptbg:#f7ece3; --ptbd:#ecd5c3 }
+#mod-roches{ --pt:#6d5a46; --ptbg:#f1ece5; --ptbd:#ded3c5 }
+#mod-preparer{ --pt:#a8660f; --ptbg:#fbeeda; --ptbd:#eedcbc }
 
 /* ---------- bandeau de tête d'un module ---------- */
 .intro-mod{
@@ -288,14 +290,14 @@ table.tab td{ vertical-align:top }
 #mod-accueil .intro-mod::before{ font-size:clamp(96px, 20vw, 210px) }
 
 /* ---------- l'onglet actif prend la couleur de son module ---------- */
-nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#b15f2c }
+nav.onglets button[data-mod="accueil"][aria-selected="true"]{ background:#a8660f }
 nav.onglets button[data-mod="programme"][aria-selected="true"]{ background:#8f76cf }
-nav.onglets button[data-mod="sediment"][aria-selected="true"]{ background:#4f93d4 }
+nav.onglets button[data-mod="sediment"][aria-selected="true"]{ background:#5b7d94 }
 nav.onglets button[data-mod="alteration"][aria-selected="true"]{ background:#b8862b }
-nav.onglets button[data-mod="cristal"][aria-selected="true"]{ background:#3faea6 }
+nav.onglets button[data-mod="cristal"][aria-selected="true"]{ background:#8c6239 }
 nav.onglets button[data-mod="magma"][aria-selected="true"]{ background:#c9542c }
-nav.onglets button[data-mod="roches"][aria-selected="true"]{ background:#4fae7a }
-nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2c }
+nav.onglets button[data-mod="roches"][aria-selected="true"]{ background:#6d5a46 }
+nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660f }
 
 /* ---------- la couleur du module traverse ses éléments ---------- */
 .module .avert{ background:var(--ptbg); border-color:var(--ptbd); border-left-color:var(--pt) }
@@ -325,12 +327,12 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#b15f2
 #mod-accueil .grille > .carte{ border-top:3px solid var(--pt); padding-top:16px }
 #mod-accueil .grille > .carte:hover{ transform:translateY(-3px) }
 #mod-accueil .grille > .carte h3{ font-size:18px; letter-spacing:-.015em }
-#mod-accueil .grille > .carte:nth-child(6n+1){ --pt:#4fae7a; --ptbg:#edf7f0; --ptbd:#cfe9d9 }
-#mod-accueil .grille > .carte:nth-child(6n+2){ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 }
-#mod-accueil .grille > .carte:nth-child(6n+3){ --pt:#3faea6; --ptbg:#e8f6f5; --ptbd:#c8e9e6 }
-#mod-accueil .grille > .carte:nth-child(6n+4){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 }
-#mod-accueil .grille > .carte:nth-child(6n+5){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 }
-#mod-accueil .grille > .carte:nth-child(6n+6){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 }
+#mod-accueil .grille > .carte:nth-child(6n+1){ --pt:#cf9430; --ptbg:#f9f1de; --ptbd:#eeddb8 }
+#mod-accueil .grille > .carte:nth-child(6n+2){ --pt:#c9542c; --ptbg:#fbeee7; --ptbd:#f0cfbd }
+#mod-accueil .grille > .carte:nth-child(6n+3){ --pt:#8c6239; --ptbg:#f4ece4; --ptbd:#e3d2c2 }
+#mod-accueil .grille > .carte:nth-child(6n+4){ --pt:#5b7d94; --ptbg:#ecf1f5; --ptbd:#d3e0e8 }
+#mod-accueil .grille > .carte:nth-child(6n+5){ --pt:#b8862b; --ptbg:#f9f1de; --ptbd:#ecdcb4 }
+#mod-accueil .grille > .carte:nth-child(6n+6){ --pt:#6d5a46; --ptbg:#f1ece5; --ptbd:#ded3c5 }
 #mod-accueil .grille > .carte .badge{ background:var(--ptbg); color:var(--pt) }
 #mod-accueil .grille > .carte .btn.primaire{ background:var(--pt); border-color:var(--pt) }
 
@@ -466,7 +468,7 @@ header.top .marque b{ letter-spacing:-.015em }
     </div>
     <div class="top-spacer"></div>
     <div class="top-actions">
-      <a class="btn mini" href="labo_vegetal.html">→ Labo biologie végétale</a>
+      <a class="btn mini lien-labo" href="labo_vegetal.html">→ Labo biologie végétale</a>
       <button class="btn mini" id="btn-carnet">Carnet de manip</button>
       <a class="btn mini" href="../index.html">Retour au site</a>
     </div>
@@ -1280,7 +1282,7 @@ function dimensionne(cv, hauteurVoulue){
    que l'aire tracée se détache du papier de la carte. Purement décoratif. */
 function fondGraphe(ctx, cv, x, y, w, h){
   const cs = getComputedStyle(cv);
-  const bg = (cs.getPropertyValue('--ptbg') || '#f7ece3').trim();
+  const bg = (cs.getPropertyValue('--ptbg') || '#fbeeda').trim();
   const g = ctx.createLinearGradient(0, y, 0, y + h);
   g.addColorStop(0, bg); g.addColorStop(1, '#ffffff');
   ctx.save(); ctx.globalAlpha = .6; ctx.fillStyle = g;
@@ -1378,11 +1380,11 @@ window.addEventListener('resize', () => {
     const html =
       '<meta charset="utf-8"><title>Fiche de résultats — laboratoire de géologie</title>' +
       '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-      'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#b15f2c}' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#a8660f}' +
       '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:4px}' +
       'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left} th{background:#faf7f2;width:55%;font-weight:500}' +
       'p.rep{white-space:pre-wrap;border:1px solid #e4dfd5;border-radius:6px;padding:8px;min-height:2.4cm}' +
-      '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
+      '.enc{background:#fdf6e9;border-left:3px solid #a8660f;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
       '<h1>Laboratoire virtuel de géologie — fiche de résultats</h1>' +
       '<p class="s">' + (nom ? ech(nom) + ' · ' : '') + new Date().toLocaleDateString('fr-FR') + '</p>' +
       '<div class="enc">Les valeurs relevées dans les trois premiers modules sont calculées par un ' +
@@ -2022,12 +2024,12 @@ const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafiq
       const R = Math.pow(10, -6+i/140*11), x = X(R), y = Y(borne(tailleCristaux(R),0.01,16));
       i?ctx.lineTo(x,y):ctx.moveTo(x,y);
     }
-    ctx.strokeStyle = 'var(--accent)'; ctx.strokeStyle = '#b15f2c'; ctx.lineWidth = 2.2; ctx.stroke();
+    ctx.strokeStyle = 'var(--accent)'; ctx.strokeStyle = '#a8660f'; ctx.lineWidth = 2.2; ctx.stroke();
     /* les six situations */
     Object.keys(LIEUX).forEach(k => {
       const R = LIEUX[k].R, x = X(R), y = Y(borne(tailleCristaux(R),0.01,16));
       ctx.beginPath(); ctx.arc(x,y, k===lieu?6:3.4, 0, Math.PI*2);
-      ctx.fillStyle = k===lieu ? '#b15f2c' : '#d3ccbe'; ctx.fill();
+      ctx.fillStyle = k===lieu ? '#a8660f' : '#d3ccbe'; ctx.fill();
       if(k===lieu){ ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke(); }
     });
   }
@@ -2258,7 +2260,7 @@ const STYLES = [
     ctx.strokeStyle = '#23201c'; ctx.lineWidth = 2.4; ctx.stroke();
     const e = etat();
     ctx.beginPath(); ctx.arc(X(temp), Y(borne(e.le,-1,12)), 5.5, 0, Math.PI*2);
-    ctx.fillStyle = '#b15f2c'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    ctx.fillStyle = '#a8660f'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
   }
 
   function maj(){
@@ -3203,9 +3205,9 @@ const PLACARD_TYPE = ['collection','granite','basalte','calcaire','craie','gres'
     const l = panier.map(id => FICHES.find(f => f.id === id));
     const html = '<meta charset="utf-8"><title>Liste de matériel — laboratoire de géologie</title>' +
       '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-      'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:16px 0 4px;color:#b15f2c;' +
+      'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:16px 0 4px;color:#a8660f;' +
       'text-transform:uppercase;letter-spacing:.05em} .s{color:#7d776c;font-size:12px}' +
-      'ul{padding-left:18px} li{margin:2px 0} .enc{background:#fdf7f1;border-left:3px solid #b15f2c;' +
+      'ul{padding-left:18px} li{margin:2px 0} .enc{background:#fdf6e9;border-left:3px solid #a8660f;' +
       'padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
       '<h1>Liste de matériel</h1><p class="s">' + l.map(f => ech(f.t)).join(' · ') +
       ' — pour ' + postes + ' poste' + (postes>1?'s':'') + '</p>' +
@@ -3613,12 +3615,12 @@ const PROGRAMMES = [
     const h = '<meta charset="utf-8"><title>Manips de géologie — ' + p.n + '</title>' +
       '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
       'h1{font-size:19px;margin-bottom:2px} h2{font-size:12px;margin:20px 0 4px;color:#7d776c;' +
-      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#b15f2c}' +
+      'text-transform:uppercase;letter-spacing:.05em} h3{font-size:14px;margin:12px 0 2px;color:#a8660f}' +
       '.s{color:#7d776c;font-size:12px} .att{font-size:12px;color:#4a453d;margin:2px 0 6px}' +
       'table{border-collapse:collapse;width:100%} td{border-bottom:1px solid #e4dfd5;padding:4px 6px;' +
       'vertical-align:top;font-size:11.5px} td.r{white-space:nowrap;color:#7d776c;text-align:right}' +
       '.ch{break-inside:avoid} ul{padding-left:16px;margin:4px 0}' +
-      '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:8px 0;font-size:11.5px}</style>' +
+      '.enc{background:#fdf6e9;border-left:3px solid #a8660f;padding:9px 12px;margin:8px 0;font-size:11.5px}</style>' +
       '<h1>Manipulations de géologie — ' + ech(p.n) + '</h1>' +
       '<p class="s">' + ech(p.s) + ' · reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
       '<div class="enc">Intitulés et capacités cités du Bulletin officiel. Le rattachement de chaque ' +
@@ -4075,11 +4077,11 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
   const html = () =>
     '<meta charset="utf-8"><title>Laboratoire de géologie — fiche pédagogique</title>' +
     '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#b15f2c}' +
+    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#a8660f}' +
     '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
     'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
     'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
-    '.enc{background:#fdf7f1;border-left:3px solid #b15f2c;padding:9px 12px;margin:10px 0}' +
+    '.enc{background:#fdf6e9;border-left:3px solid #a8660f;padding:9px 12px;margin:10px 0}' +
     'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
     '<h1>Laboratoire virtuel de géologie — fiche pédagogique</h1>' +
     '<p class="s">TP classiques du lycée · reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
@@ -4160,8 +4162,8 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
   style.textContent = `
     .rt-cible{ outline:1px dashed rgba(177,95,44,.45); outline-offset:3px; border-radius:4px;
                transition:background .15s, outline-color .15s; cursor:text }
-    .rt-cible:hover{ background:rgba(207,128,71,.10); outline-color:#b15f2c }
-    .rt-cible:focus{ background:#fff8f1; outline:2px solid #b15f2c; outline-offset:3px }
+    .rt-cible:hover{ background:rgba(201,138,53,.10); outline-color:#a8660f }
+    .rt-cible:focus{ background:#fff9ef; outline:2px solid #a8660f; outline-offset:3px }
     .rt-modifie{ background:#eef7ee !important; outline-color:#3d7a41 !important }
     #rt-barre{ position:fixed; left:0; right:0; bottom:0; z-index:9999;
                background:#23201c; color:#f5f2ed; padding:11px 16px;
@@ -4173,8 +4175,8 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
     #rt-barre button{ font:inherit; font-weight:600; border:0; border-radius:8px;
                       padding:8px 13px; cursor:pointer; background:#3a352f; color:#f5f2ed }
     #rt-barre button:hover{ background:#4a443c }
-    #rt-barre button.rt-vert{ background:#cf8047; color:#fff }
-    #rt-barre button.rt-vert:hover{ background:#b15f2c }
+    #rt-barre button.rt-vert{ background:#c98a35; color:#fff }
+    #rt-barre button.rt-vert:hover{ background:#a8660f }
     #rt-barre button[disabled]{ opacity:.45; cursor:default }
     #rt-liste{ position:fixed; right:16px; bottom:64px; z-index:9999; max-width:min(380px, 92vw);
                max-height:46vh; overflow:auto; background:#fff; border:1px solid #e3ddd3;
