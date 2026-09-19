@@ -376,7 +376,15 @@ button{ font:inherit; cursor:pointer; border:none; background:none; color:inheri
   transform-origin:bottom right; animation:ouvre .22s cubic-bezier(.2,.8,.2,1) }
 @keyframes ouvre{ from{ opacity:0; transform:translateY(12px) scale(.97) } to{ opacity:1; transform:none } }
 @media (prefers-reduced-motion:reduce){ .vol,.bulle{ animation:none; transition:none } }
-@media (max-width:480px){ .vol{ right:.5rem; bottom:.5rem; width:calc(100vw - 1rem); height:calc(100vh - 1rem) } }
+/* Format agrandi : utile pour une question longue, une correction detaillee
+   ou simplement pour lire confortablement une definition. */
+.vol.grand{ width:min(52rem,calc(100vw - 2.5rem)); height:min(46rem,calc(100vh - 2.5rem)) }
+.vol.grand .b{ max-width:min(46rem,72%); font-size:.9rem }
+.vol.grand .fil{ padding:1.15rem 1.4rem }
+@media (max-width:480px){
+  .vol, .vol.grand{ right:.5rem; bottom:.5rem; width:calc(100vw - 1rem); height:calc(100vh - 1rem) }
+  .vol.grand .b{ max-width:84% }
+}
 
 header{ background:#0a0a0a; color:#fff; padding:.85rem 1rem; display:flex; align-items:center; gap:.7rem; flex:none }
 header .ic{ width:1.9rem; height:1.9rem; border-radius:999px; background:#1d1d1d; display:grid; place-items:center; flex:none }
@@ -459,6 +467,8 @@ header button svg{ width:1rem; height:1rem }
 
   const ICONE_CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-4-.9L3 21l1.9-4.6A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/></svg>';
   const ICONE_X = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+  const ICONE_GRAND = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4H4v5M4 4l6 6M15 20h5v-5M20 20l-6-6"/></svg>';
+  const ICONE_PETIT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h5V4M9 9 3 3M20 15h-5v5M15 15l6 6"/></svg>';
   const ICONE_ENV = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
 
   const ACCUEIL = {
@@ -515,6 +525,7 @@ header button svg{ width:1rem; height:1rem }
         <header>
           <span class="ic">${ICONE_CHAT}</span>
           <span class="t"><b>Assistant SVT</b><span>Révisions — hors ligne</span></span>
+          <button class="taille" aria-label="Agrandir la fenêtre" aria-pressed="false">${ICONE_GRAND}</button>
           <button class="fermer" aria-label="Fermer l'assistant">${ICONE_X}</button>
         </header>
         <div class="onglets" role="tablist">
@@ -534,6 +545,28 @@ header button svg{ width:1rem; height:1rem }
       const fil = vol.querySelector('.fil');
       const zone = vol.querySelector('textarea');
       const puces = vol.querySelector('.puces');
+
+      /* La préférence de taille tient dans le navigateur de l'élève : elle ne
+         quitte pas son appareil, et le stockage peut être refusé sans casser
+         quoi que ce soit — d'où le try. */
+      const CLE_TAILLE = 'assistantSvtGrand';
+      let grand = false;
+      try { grand = localStorage.getItem(CLE_TAILLE) === '1'; } catch (e) { }
+      const btnTaille = vol.querySelector('.taille');
+      appliquerTaille();
+
+      function appliquerTaille() {
+        vol.classList.toggle('grand', grand);
+        btnTaille.innerHTML = grand ? ICONE_PETIT : ICONE_GRAND;
+        btnTaille.setAttribute('aria-pressed', String(grand));
+        btnTaille.setAttribute('aria-label', grand ? 'Réduire la fenêtre' : 'Agrandir la fenêtre');
+        fil.scrollTop = fil.scrollHeight;
+      }
+      btnTaille.addEventListener('click', () => {
+        grand = !grand;
+        try { localStorage.setItem(CLE_TAILLE, grand ? '1' : '0'); } catch (e) { }
+        appliquerTaille();
+      });
 
       vol.querySelector('.fermer').addEventListener('click', fermer);
       vol.querySelectorAll('[data-mode]').forEach(b =>
