@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gestion du site — Mme Reynes · SVT</title>
+<meta name="description" content="Espace de gestion réservé à l'enseignante." />
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#0a0a0a" />
+<link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{ box-sizing:border-box; margin:0; padding:0 }
+body{ min-height:100vh; background:#f7f6f4; color:#111;
+  font-family:'Onest',system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased }
+a{ color:#8a4519 } button{ font:inherit; cursor:pointer }
+
+.bar{ background:#0a0a0a; color:#fff; padding:.9rem 1.25rem }
+.bar .in{ max-width:52rem; margin-inline:auto; display:flex; align-items:center; gap:.75rem }
+.bar b{ font-size:.95rem; font-weight:600 }
+.bar .sp{ flex:1 }
+.bar .lien{ color:rgba(255,255,255,.7); font-size:.8rem; text-decoration:none }
+.bar .lien:hover{ color:#fff }
+.bar .sortir{ background:none; border:1px solid rgba(255,255,255,.3); color:rgba(255,255,255,.8);
+  border-radius:99px; padding:.3rem .8rem; font-size:.75rem }
+.bar .sortir:hover{ border-color:#fff; color:#fff }
+
+main{ max-width:52rem; margin-inline:auto; padding:2rem 1.25rem 4rem }
+h1{ font-size:1.7rem; font-weight:600; letter-spacing:-.02em }
+.sous{ margin-top:.5rem; font-size:.92rem; line-height:1.6; color:#4a453d; max-width:60ch }
+
+.carte{ background:#fff; border-radius:1rem; padding:1.25rem; margin-top:1.25rem;
+  box-shadow:0 1px 2px rgba(0,0,0,.04), 0 0 0 1px #e8e4dc }
+.carte h2{ font-size:1rem; font-weight:600; margin-bottom:.15rem }
+.carte .aide{ font-size:.82rem; line-height:1.6; color:#5c574f; margin-bottom:1rem }
+
+label{ display:block; margin-top:.9rem }
+label .t{ display:block; font-size:.75rem; font-weight:600; text-transform:uppercase;
+  letter-spacing:.06em; color:#6b6459; margin-bottom:.35rem }
+input[type=text], input[type=password], select, textarea{
+  width:100%; padding:.6rem .75rem; border:1px solid #ddd8ce; border-radius:.65rem;
+  font-family:inherit; font-size:.9rem; color:#111; background:#fbfaf8; outline:none }
+input:focus, select:focus, textarea:focus{ border-color:#cf8047 }
+textarea{ resize:vertical; min-height:6rem; line-height:1.6 }
+input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed #ccc5b8;
+  border-radius:.65rem; background:#fbfaf8 }
+
+.rang{ display:grid; gap:.9rem; grid-template-columns:1fr }
+@media (min-width:640px){ .rang.deux{ grid-template-columns:1fr 1fr } }
+
+.pill{ display:inline-flex; align-items:center; gap:.5rem; padding:.65rem 1.3rem;
+  border-radius:99px; border:none; font-size:.9rem; font-weight:500 }
+.pill.noir{ background:#0a0a0a; color:#fff } .pill.noir:hover{ background:#2a2a2a }
+.pill.noir:disabled{ background:#c9c2b5; cursor:not-allowed }
+.pill.clair{ background:#fff; color:#111; box-shadow:0 0 0 1px #ddd8ce }
+.pill.clair:hover{ box-shadow:0 0 0 1px #999 }
+.actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top:1.1rem; align-items:center }
+
+.onglets{ display:flex; gap:.4rem; margin-top:1.5rem; flex-wrap:wrap }
+.onglets button{ padding:.5rem 1.1rem; border-radius:99px; border:1px solid #ddd8ce;
+  background:#fff; font-size:.85rem; color:#5c574f }
+.onglets button[aria-selected=true]{ background:#0a0a0a; border-color:#0a0a0a; color:#fff }
+
+.msg{ margin-top:1rem; padding:.75rem .9rem; border-radius:.7rem; font-size:.85rem; line-height:1.6 }
+.msg.ok{ background:#eaf4ee; color:#1f5133; border-left:3px solid #2f6b45 }
+.msg.ko{ background:#fbeceb; color:#7a2020; border-left:3px solid #a32c2c }
+.msg.info{ background:#f3efe7; color:#4a453d; border-left:3px solid #cf8047 }
+.msg.ko b, .msg.ok b{ font-weight:600 }
+
+.apercu{ margin-top:1rem; padding:.85rem; background:#fbfaf8; border:1px solid #e8e4dc;
+  border-radius:.7rem; font-size:.82rem; line-height:1.7; color:#3d3a36 }
+.apercu code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.78rem;
+  background:#efeae1; padding:.1rem .35rem; border-radius:.25rem; word-break:break-all }
+.apercu .l{ color:#6b6459 }
+
+ul.notions{ list-style:none; margin-top:1rem; display:flex; flex-direction:column; gap:.55rem }
+ul.notions li{ background:#fbfaf8; border:1px solid #e8e4dc; border-radius:.7rem; padding:.7rem .85rem }
+ul.notions .tete{ display:flex; align-items:center; gap:.6rem }
+ul.notions .nom{ flex:1; font-weight:600; font-size:.88rem; color:#8a4519; word-break:break-word }
+ul.notions .def{ margin-top:.4rem; font-size:.84rem; line-height:1.6; color:#3d3a36 }
+ul.notions .sup{ background:none; border:1px solid #e0cccc; color:#a32c2c; border-radius:99px;
+  padding:.2rem .65rem; font-size:.72rem; flex:none }
+ul.notions .sup:hover{ background:#fbeceb }
+
+.vide{ margin-top:1rem; padding:1rem; text-align:center; font-size:.85rem; color:#6b6459;
+  background:#fbfaf8; border:1px dashed #ddd8ce; border-radius:.7rem }
+.compte{ font-size:.78rem; color:#6b6459; margin-top:.6rem }
+details{ margin-top:1rem; font-size:.85rem }
+details summary{ cursor:pointer; font-weight:500; color:#8a4519 }
+details ol{ margin:.7rem 0 0 1.1rem; line-height:1.75; color:#3d3a36 }
+details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem;
+  background:#efeae1; padding:.1rem .35rem; border-radius:.25rem }
+.cacher{ display:none !important }
+</style>
+</head>
+<body>
+
+<div class="bar"><div class="in">
+  <b>Gestion du site</b>
+  <span class="sp"></span>
+  <a class="lien" href="/" target="_blank" rel="noopener">Voir le site ↗</a>
+  <button class="sortir cacher" id="sortir">Oublier le jeton</button>
+</div></div>
+
+<main>
+
+<!-- ─────────────── connexion ─────────────── -->
+<section id="ecran-jeton">
+  <h1>Se connecter au dépôt</h1>
+  <p class="sous">Cette page dépose vos documents et met à jour le site toute seule.
+     Pour cela, elle a besoin d'un jeton GitHub — une sorte de mot de passe limité,
+     que vous créez une fois et qui reste dans ce navigateur.</p>
+
+  <div class="carte">
+    <label>
+      <span class="t">Jeton GitHub</span>
+      <input type="password" id="jeton" placeholder="github_pat_…" autocomplete="off" />
+    </label>
+    <div class="actions">
+      <button class="pill noir" id="connecter">Se connecter</button>
+    </div>
+    <div id="msg-jeton"></div>
+
+    <details>
+      <summary>Comment créer ce jeton (une seule fois, 3 minutes)</summary>
+      <ol>
+        <li>Allez sur <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a> (connectée à votre compte).</li>
+        <li><b>Token name</b> : <code>Site SVT</code>.</li>
+        <li><b>Expiration</b> : choisissez une date — par exemple la fin de l'année scolaire. Le jeton cessera de marcher tout seul ensuite, c'est voulu.</li>
+        <li><b>Repository access</b> : cochez <b>Only select repositories</b>, puis choisissez <code>reynesmanon11-maker.github.io</code>. <b>Uniquement celui-là.</b></li>
+        <li><b>Permissions → Repository permissions</b> : cherchez <b>Contents</b> et mettez <b>Read and write</b>. Ne touchez à rien d'autre.</li>
+        <li>Cliquez sur <b>Generate token</b>, copiez la ligne qui commence par <code>github_pat_</code> et collez-la ci-dessus.</li>
+      </ol>
+      <p style="margin-top:.7rem; color:#5c574f">Ce jeton ne peut rien faire d'autre qu'écrire dans ce dépôt :
+         il ne donne accès ni à vos autres projets, ni à votre compte, ni à vos mails.
+         Il reste dans ce navigateur et n'est envoyé qu'à GitHub.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ─────────────── espace de gestion ─────────────── -->
+<section id="ecran-gestion" class="cacher">
+  <h1>Que voulez-vous faire ?</h1>
+  <div class="onglets" role="tablist">
+    <button role="tab" data-vue="doc" aria-selected="true">Déposer un document</button>
+    <button role="tab" data-vue="assistant" aria-selected="false">Nourrir l'assistant</button>
+  </div>
+
+  <!-- ─── dépôt d'un document ─── -->
+  <div id="vue-doc">
+    <div class="carte">
+      <h2>Ajouter un cours, un TP ou une fiche</h2>
+      <p class="aide">Le document est déposé dans le bon dossier et le lien apparaît
+         automatiquement sur la page du niveau. Rien d'autre à faire.</p>
+
+      <div class="rang deux">
+        <label>
+          <span class="t">Niveau</span>
+          <select id="d-niveau">
+            <option value="2nde.html">Seconde</option>
+            <option value="1ere.html">Première — enseignement scientifique</option>
+            <option value="terminale.html">Terminale — enseignement scientifique</option>
+          </select>
+        </label>
+        <label>
+          <span class="t">Chapitre</span>
+          <select id="d-chapitre"><option>Chargement…</option></select>
+        </label>
+      </div>
+
+      <label>
+        <span class="t">Nom affiché aux élèves</span>
+        <input type="text" id="d-nom" placeholder="Activité 3 — la mitose" />
+      </label>
+
+      <label>
+        <span class="t">Le fichier (PDF, image, document)</span>
+        <input type="file" id="d-fichier" accept=".pdf,.png,.jpg,.jpeg,.webp,.odt,.docx,.pptx" />
+      </label>
+
+      <div id="d-apercu"></div>
+      <div class="actions">
+        <button class="pill noir" id="d-publier" disabled>Déposer et publier</button>
+        <button class="pill clair" id="d-recharger">Recharger les chapitres</button>
+      </div>
+      <div id="d-msg"></div>
+    </div>
+  </div>
+
+  <!-- ─── base de l'assistant ─── -->
+  <div id="vue-assistant" class="cacher">
+    <div class="carte">
+      <h2>Ce que l'assistant sait répondre</h2>
+      <p class="aide">Chaque notion est un titre et une définition. L'assistant ne dira
+         jamais rien d'autre que ce qui est écrit ici — il ne cherche pas ailleurs et n'invente pas.</p>
+
+      <div class="rang deux">
+        <label>
+          <span class="t">Niveau</span>
+          <select id="a-niveau"><option>Chargement…</option></select>
+        </label>
+        <label>
+          <span class="t">Chapitre</span>
+          <select id="a-chapitre"></select>
+        </label>
+      </div>
+
+      <div id="a-liste"></div>
+      <p class="compte" id="a-compte"></p>
+    </div>
+
+    <div class="carte">
+      <h2>Ajouter une notion</h2>
+      <p class="aide">Écrivez la définition comme vous la diriez en classe. Une notion
+         par idée : mieux vaut trois courtes qu'une longue.</p>
+      <label>
+        <span class="t">Nom de la notion</span>
+        <input type="text" id="a-nom" placeholder="mitose" />
+      </label>
+      <label>
+        <span class="t">Définition</span>
+        <textarea id="a-def" placeholder="Division cellulaire qui donne deux cellules filles génétiquement identiques à la cellule mère…"></textarea>
+      </label>
+      <div class="actions">
+        <button class="pill clair" id="a-ajouter">Ajouter à la liste</button>
+      </div>
+      <div id="a-msg-ajout"></div>
+    </div>
+
+    <div class="carte">
+      <h2>Publier</h2>
+      <p class="aide">Rien n'est envoyé tant que vous ne cliquez pas ici. Vos ajouts
+         et suppressions sont pour l'instant seulement dans cette page.</p>
+      <div class="actions">
+        <button class="pill noir" id="a-publier" disabled>Publier les modifications</button>
+        <button class="pill clair" id="a-annuler">Tout annuler</button>
+      </div>
+      <div id="a-msg"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+/* =============================================================================
+   Espace de gestion — il écrit dans le dépôt GitHub via son API.
+
+   Aucun serveur : la page parle directement à GitHub depuis le navigateur, avec
+   un jeton que l'enseignante fournit. Le jeton reste dans ce navigateur et n'est
+   envoyé qu'à api.github.com.
+
+   Toute écriture relit d'abord le fichier pour récupérer son empreinte (sha).
+   Sans cela, deux modifications faites à peu d'intervalle s'écraseraient l'une
+   l'autre en silence.
+   ============================================================================= */
+
+const DEPOT = 'reynesmanon11-maker/reynesmanon11-maker.github.io';
+const BRANCHE = 'main';
+const CLE = 'svtJetonDepot';
+const API = 'https://api.github.com';
+
+let jeton = '';
+const $ = (id) => document.getElementById(id);
+
+/* ---------- petites aides ---------- */
+function message(ou, type, html) {
+  $(ou).innerHTML = html ? `<div class="msg ${type}">${html}</div>` : '';
+}
+const echap = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/* GitHub renvoie et attend du base64. Pour un PDF on passe par les octets bruts,
+   pour du texte par un encodage UTF-8 explicite : sinon les accents se perdent. */
+function versBase64(octets) {
+  let s = '';
+  const pas = 0x8000;
+  for (let i = 0; i < octets.length; i += pas) s += String.fromCharCode.apply(null, octets.subarray(i, i + pas));
+  return btoa(s);
+}
+const texteVersBase64 = (t) => versBase64(new TextEncoder().encode(t));
+const base64VersTexte = (b) => new TextDecoder('utf-8').decode(
+  Uint8Array.from(atob(b.replace(/\s/g, '')), c => c.charCodeAt(0)));
+
+async function api(chemin, options = {}) {
+  const r = await fetch(API + chemin, {
+    ...options,
+    headers: {
+      'Authorization': 'Bearer ' + jeton,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(options.headers || {}),
+    }
+  });
+  if (!r.ok) {
+    let d = ''; try { d = (await r.json()).message || ''; } catch (e) { }
+    throw new Error(`GitHub a répondu ${r.status}${d ? ' — ' + d : ''}`);
+  }
+  return r.status === 204 ? null : r.json();
+}
+
+async function lireFichier(chemin) {
+  const d = await api(`/repos/${DEPOT}/contents/${encodeURI(chemin)}?ref=${BRANCHE}`);
+  return { texte: base64VersTexte(d.content), sha: d.sha };
+}
+
+async function ecrireFichier(chemin, contenuBase64, sha, message) {
+  return api(`/repos/${DEPOT}/contents/${encodeURI(chemin)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ message, content: contenuBase64, branch: BRANCHE, ...(sha ? { sha } : {}) })
+  });
+}
+
+/* ---------- connexion ---------- */
+$('connecter').addEventListener('click', async () => {
+  const v = $('jeton').value.trim();
+  if (!v) { message('msg-jeton', 'ko', 'Collez d\'abord votre jeton.'); return; }
+  jeton = v;
+  message('msg-jeton', 'info', 'Vérification…');
+  try {
+    const d = await api(`/repos/${DEPOT}`);
+    if (!d.permissions || !d.permissions.push)
+      throw new Error("ce jeton peut lire le dépôt mais pas y écrire. Vérifiez la permission « Contents : Read and write ».");
+    try { localStorage.setItem(CLE, jeton); } catch (e) { }
+    entrer();
+  } catch (e) {
+    jeton = '';
+    message('msg-jeton', 'ko', '<b>Connexion refusée.</b> ' + echap(e.message) +
+      '<br>Vérifiez que le jeton n\'a pas expiré et qu\'il donne accès à ce dépôt.');
+  }
+});
+$('jeton').addEventListener('keydown', e => { if (e.key === 'Enter') $('connecter').click(); });
+
+$('sortir').addEventListener('click', () => {
+  try { localStorage.removeItem(CLE); } catch (e) { }
+  location.reload();
+});
+
+function entrer() {
+  $('ecran-jeton').classList.add('cacher');
+  $('ecran-gestion').classList.remove('cacher');
+  $('sortir').classList.remove('cacher');
+  chargerChapitres();
+  chargerAssistant();
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ONGLET 1 — déposer un document
+   ───────────────────────────────────────────────────────────────────────────── */
+
+let pageNiveau = null;   // { texte, sha, chapitres:[{num,titre}] }
+
+/* Le tableau CHAPITRES est du JavaScript littéral dans la page : on le relit tel
+   quel plutôt que de le deviner, pour rester d'accord avec ce que voit l'élève. */
+function extraireChapitres(html) {
+  const i = html.indexOf('const CHAPITRES = [');
+  if (i < 0) throw new Error('tableau CHAPITRES introuvable dans la page.');
+  const debut = html.indexOf('[', i);
+  let n = 0, j = debut;
+  for (; j < html.length; j++) {
+    if (html[j] === '[') n++;
+    else if (html[j] === ']') { n--; if (!n) break; }
+  }
+  const bloc = html.slice(debut, j + 1);
+  return new Function('return ' + bloc)();
+}
+
+/* `garderMessage` sert apres une publication : sans lui, le rechargement de la
+   liste effacerait aussitot la confirmation que l'enseignante vient de lire. */
+async function chargerChapitres(garderMessage) {
+  const f = $('d-niveau').value;
+  $('d-chapitre').innerHTML = '<option>Chargement…</option>';
+  if (!garderMessage) message('d-msg', '', '');
+  try {
+    const { texte, sha } = await lireFichier(f);
+    const chapitres = extraireChapitres(texte);
+    pageNiveau = { fichier: f, texte, sha, chapitres };
+    $('d-chapitre').innerHTML = chapitres.map((c, i) =>
+      `<option value="${i}">${echap(c.num)} — ${echap(c.titre)}</option>`).join('');
+    majApercu();
+  } catch (e) {
+    pageNiveau = null;
+    $('d-chapitre').innerHTML = '<option>—</option>';
+    message('d-msg', 'ko', 'Impossible de lire ' + echap(f) + ' : ' + echap(e.message));
+  }
+}
+
+/* « Chapitre 1 » → chapitre-1, comme les dossiers déjà en place dans cours/. */
+const dossierDe = (num) => num.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+const NIVEAU_DOSSIER = { '2nde.html': '2nde', '1ere.html': '1ere', 'terminale.html': 'terminale' };
+
+/* Un nom de fichier sans accent, sans espace et sans majuscule : les adresses web
+   sont sensibles à la casse et un espace s'y encode mal. */
+function nomPropre(nom) {
+  const p = nom.lastIndexOf('.');
+  const base = p > 0 ? nom.slice(0, p) : nom;
+  const ext = p > 0 ? nom.slice(p).toLowerCase() : '';
+  return base.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + ext;
+}
+
+function cheminCible() {
+  if (!pageNiveau) return null;
+  const f = $('d-fichier').files[0];
+  if (!f) return null;
+  const ch = pageNiveau.chapitres[+$('d-chapitre').value];
+  if (!ch) return null;
+  return `cours/${NIVEAU_DOSSIER[pageNiveau.fichier]}/${dossierDe(ch.num)}/${nomPropre(f.name)}`;
+}
+
+function majApercu() {
+  const chemin = cheminCible();
+  const nom = $('d-nom').value.trim();
+  const pret = !!(chemin && nom && pageNiveau);
+  $('d-publier').disabled = !pret;
+  if (!chemin) { $('d-apercu').innerHTML = ''; return; }
+  const ch = pageNiveau.chapitres[+$('d-chapitre').value];
+  $('d-apercu').innerHTML = `<div class="apercu">
+    <span class="l">Le fichier sera déposé dans</span><br><code>${echap(chemin)}</code><br><br>
+    <span class="l">et un lien nommé</span> <b>${echap(nom || '…')}</b>
+    <span class="l">sera ajouté au</span> <b>${echap(ch.num)}</b> <span class="l">de</span>
+    <b>${echap($('d-niveau').selectedOptions[0].textContent)}</b>.</div>`;
+}
+
+['d-nom', 'd-fichier', 'd-chapitre'].forEach(id => {
+  $(id).addEventListener('input', majApercu);
+  $(id).addEventListener('change', majApercu);
+});
+$('d-niveau').addEventListener('change', () => chargerChapitres(false));
+$('d-recharger').addEventListener('click', () => chargerChapitres(false));
+
+/* On insère la ligne juste après le `docs: [` du chapitre visé, sans toucher au
+   reste du fichier : les commentaires et la mise en forme de Manon sont conservés. */
+function insererDocument(html, chapitre, libelle, chemin) {
+  const ancre = `num: '${chapitre.num}'`;
+  const i = html.indexOf(ancre);
+  if (i < 0) throw new Error(`chapitre « ${chapitre.num} » introuvable dans la page.`);
+  const j = html.indexOf('docs: [', i);
+  if (j < 0) throw new Error(`liste des documents introuvable pour « ${chapitre.num} ».`);
+  const apres = j + 'docs: ['.length;
+  const l = libelle.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+  return html.slice(0, apres) + `\n      { l:'${l}', h:'${chemin}' },` + html.slice(apres);
+}
+
+$('d-publier').addEventListener('click', async () => {
+  const b = $('d-publier');
+  const f = $('d-fichier').files[0];
+  const nom = $('d-nom').value.trim();
+  const chemin = cheminCible();
+  if (!f || !nom || !chemin || !pageNiveau) return;
+  b.disabled = true;
+  message('d-msg', 'info', 'Dépôt du fichier…');
+  try {
+    /* 1. le fichier */
+    const octets = new Uint8Array(await f.arrayBuffer());
+    let shaFichier = null;
+    try { shaFichier = (await lireFichierBrut(chemin)).sha; } catch (e) { /* nouveau fichier */ }
+    await ecrireFichier(chemin, versBase64(octets), shaFichier,
+      (shaFichier ? 'Remplace ' : 'Ajoute ') + chemin);
+
+    /* 2. le lien dans la page du niveau — relue à l'instant pour son sha */
+    message('d-msg', 'info', 'Mise à jour de la page du niveau…');
+    const frais = await lireFichier(pageNiveau.fichier);
+    const chapitres = extraireChapitres(frais.texte);
+    const ch = chapitres[+$('d-chapitre').value];
+    const nouveau = insererDocument(frais.texte, ch, nom, chemin);
+    await ecrireFichier(pageNiveau.fichier, texteVersBase64(nouveau), frais.sha,
+      `Ajoute « ${nom} » au ${ch.num}`);
+
+    message('d-msg', 'ok', `<b>C'est publié.</b> « ${echap(nom)} » est en ligne dans le ${echap(ch.num)}.
+      <br>Le site se met à jour en une minute environ —
+      <a href="/${echap(pageNiveau.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`);
+    $('d-nom').value = ''; $('d-fichier').value = '';
+    majApercu();
+    chargerChapitres(true);
+  } catch (e) {
+    message('d-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
+  }
+  b.disabled = false;
+});
+
+async function lireFichierBrut(chemin) {
+  return api(`/repos/${DEPOT}/contents/${encodeURI(chemin)}?ref=${BRANCHE}`);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ONGLET 2 — la base de l'assistant
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const FICHIER_ASSISTANT = 'assistant-svt.js';
+let assistant = null;   // { texte, sha, base, modifie }
+
+function extraireBloc(src, entete) {
+  const i = src.indexOf(entete);
+  if (i < 0) throw new Error(entete + ' introuvable.');
+  const debut = src.indexOf('{', i);
+  let n = 0, j = debut;
+  for (; j < src.length; j++) {
+    if (src[j] === '{') n++;
+    else if (src[j] === '}') { n--; if (!n) break; }
+  }
+  return { debut, fin: j + 1, bloc: src.slice(debut, j + 1) };
+}
+
+async function chargerAssistant() {
+  try {
+    const { texte, sha } = await lireFichier(FICHIER_ASSISTANT);
+    const { bloc } = extraireBloc(texte, 'const BASE = ');
+    assistant = { texte, sha, base: new Function('return ' + bloc)(), modifie: false };
+    const sel = $('a-niveau');
+    sel.innerHTML = Object.entries(assistant.base)
+      .map(([id, n]) => `<option value="${id}">${echap(n.nom)}</option>`).join('');
+    majChapitresAssistant();
+  } catch (e) {
+    message('a-msg', 'ko', 'Impossible de lire ' + FICHIER_ASSISTANT + ' : ' + echap(e.message));
+  }
+}
+
+function majChapitresAssistant() {
+  const niv = assistant.base[$('a-niveau').value];
+  const sel = $('a-chapitre');
+  const ids = Object.keys(niv.chapitres);
+  sel.innerHTML = ids.length
+    ? ids.map(id => `<option value="${id}">${echap(niv.chapitres[id].titre)}</option>`).join('')
+    : '<option value="">— aucun chapitre —</option>';
+  dessinerNotions();
+}
+
+function chapitreCourant() {
+  const niv = assistant && assistant.base[$('a-niveau').value];
+  const id = $('a-chapitre').value;
+  return niv && id ? niv.chapitres[id] : null;
+}
+
+function dessinerNotions() {
+  const ch = chapitreCourant();
+  const zone = $('a-liste');
+  if (!ch) {
+    zone.innerHTML = `<div class="vide">Ce niveau n'a pas encore de chapitre.
+      Écrivez-moi pour en créer un — ou ajoutez une notion à un chapitre existant.</div>`;
+    $('a-compte').textContent = '';
+    return;
+  }
+  const cles = Object.keys(ch.notions);
+  if (!cles.length) {
+    zone.innerHTML = `<div class="vide">Aucune notion pour l'instant. Ajoutez la première ci-dessous.</div>`;
+  } else {
+    zone.innerHTML = '<ul class="notions">' + cles.map(k => `
+      <li><div class="tete"><span class="nom">${echap(k)}</span>
+          <button class="sup" data-cle="${echap(k)}">Supprimer</button></div>
+        <p class="def">${echap(ch.notions[k])}</p></li>`).join('') + '</ul>';
+    zone.querySelectorAll('.sup').forEach(b => b.addEventListener('click', () => {
+      if (!confirm(`Supprimer la notion « ${b.dataset.cle} » ?`)) return;
+      delete ch.notions[b.dataset.cle];
+      assistant.modifie = true;
+      $('a-publier').disabled = false;
+      dessinerNotions();
+    }));
+  }
+  $('a-compte').textContent = cles.length + (cles.length > 1 ? ' notions' : ' notion') +
+    (assistant.modifie ? ' · modifications non publiées' : '');
+}
+
+$('a-niveau').addEventListener('change', majChapitresAssistant);
+$('a-chapitre').addEventListener('change', dessinerNotions);
+
+$('a-ajouter').addEventListener('click', () => {
+  const ch = chapitreCourant();
+  const nom = $('a-nom').value.trim();
+  const def = $('a-def').value.trim();
+  if (!ch) { message('a-msg-ajout', 'ko', 'Choisissez d\'abord un chapitre.'); return; }
+  if (nom.length < 2) { message('a-msg-ajout', 'ko', 'Donnez un nom à la notion.'); return; }
+  if (def.length < 15) { message('a-msg-ajout', 'ko', 'La définition est trop courte pour être utile à un élève.'); return; }
+  if (ch.notions[nom] && !confirm(`« ${nom} » existe déjà. Remplacer sa définition ?`)) return;
+  ch.notions[nom] = def;
+  assistant.modifie = true;
+  $('a-publier').disabled = false;
+  $('a-nom').value = ''; $('a-def').value = '';
+  message('a-msg-ajout', 'ok', `« ${echap(nom)} » est dans la liste. Pensez à publier.`);
+  dessinerNotions();
+});
+
+/* On réécrit le bloc BASE en entier : c'est de la donnée pure, pas du code, donc
+   le régénérer proprement ne fait rien perdre. Le reste du fichier — le moteur et
+   son mode d'emploi — n'est pas touché. */
+function chaine(t) { return "'" + String(t).replace(/\\/g, '\\\\').replace(/'/g, "\\'") + "'"; }
+function guillemets(t) { return '"' + String(t).replace(/\\/g, '\\\\').replace(/"/g, '\\"') + '"'; }
+
+function serialiserBase(base) {
+  let s = '{\n';
+  for (const [idN, niv] of Object.entries(base)) {
+    s += `\n    ${idN}: {\n      nom: ${chaine(niv.nom)},\n      chapitres: {\n`;
+    for (const [idC, ch] of Object.entries(niv.chapitres)) {
+      s += `\n        ${idC}: {\n          titre: ${chaine(ch.titre)},\n          notions: {\n`;
+      for (const [k, v] of Object.entries(ch.notions)) s += `            ${chaine(k)}: ${guillemets(v)},\n`;
+      s += `          },\n          questions: [\n`;
+      for (const q of (ch.questions || [])) {
+        const bouts = [`q: ${chaine(q.q)}`, `r: ${chaine(q.r)}`, `type: ${chaine(q.type)}`];
+        if (q.expl) bouts.push(`expl: ${chaine(q.expl)}`);
+        s += `            { ${bouts.join(', ')} },\n`;
+      }
+      s += `          ]\n        },\n`;
+    }
+    s += `      }\n    },\n`;
+  }
+  return s + '  }';
+}
+
+$('a-publier').addEventListener('click', async () => {
+  const b = $('a-publier');
+  if (!assistant || !assistant.modifie) return;
+  b.disabled = true;
+  message('a-msg', 'info', 'Publication…');
+  try {
+    /* On relit le fichier à l'instant : si une autre modification est passée
+       entre-temps, on la reprend plutôt que de l'écraser. */
+    const frais = await lireFichier(FICHIER_ASSISTANT);
+    const { debut, fin } = extraireBloc(frais.texte, 'const BASE = ');
+    const nouveau = frais.texte.slice(0, debut) + serialiserBase(assistant.base) + frais.texte.slice(fin);
+    /* Garde-fou : le fichier doit rester du JavaScript valide. */
+    new Function(nouveau);
+    await ecrireFichier(FICHIER_ASSISTANT, texteVersBase64(nouveau), frais.sha,
+      "Enrichit la base de l'assistant");
+    assistant.texte = nouveau; assistant.sha = null; assistant.modifie = false;
+    $('a-publier').disabled = true;
+    message('a-msg', 'ok', `<b>C'est publié.</b> L'assistant répondra aux nouvelles notions dans une minute environ.`);
+    dessinerNotions();
+  } catch (e) {
+    message('a-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
+    b.disabled = false;
+  }
+});
+
+$('a-annuler').addEventListener('click', () => {
+  if (assistant && assistant.modifie && !confirm('Abandonner les modifications non publiées ?')) return;
+  message('a-msg', '', ''); message('a-msg-ajout', '', '');
+  $('a-publier').disabled = true;
+  chargerAssistant();
+});
+
+/* ---------- onglets ---------- */
+document.querySelectorAll('[data-vue]').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('[data-vue]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  $('vue-doc').classList.toggle('cacher', b.dataset.vue !== 'doc');
+  $('vue-assistant').classList.toggle('cacher', b.dataset.vue !== 'assistant');
+}));
+
+/* ---------- reprise de session ---------- */
+(function () {
+  let garde = '';
+  try { garde = localStorage.getItem(CLE) || ''; } catch (e) { }
+  if (garde) { jeton = garde; entrer(); }
+})();
+</script>
+</body>
+</html>
