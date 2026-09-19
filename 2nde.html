@@ -454,6 +454,36 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 /* Arrivee par une ancre : le titre doit rester sous l'en-tete collant. */
 .theme{ scroll-margin-top:5.5rem }
+
+/* ===== sous-menus de la navigation (repris de l'accueil) ===== */
+#hdr nav.primary li.has-sub{ position:relative }
+#hdr nav.primary .caret{ font-size:.75rem; opacity:.6 }
+#hdr nav.primary .submenu{
+  position:absolute; top:100%; left:50%; transform:translateX(-50%) translateY(6px);
+  min-width:12rem; padding:.75rem .4rem .4rem; display:flex; flex-direction:column; gap:.1rem;
+  background:rgba(255,255,255,.92); backdrop-filter:blur(10px);
+  border:1px solid rgba(230,229,226,.85); border-radius:1rem;
+  box-shadow:0 14px 34px rgba(17,17,17,.12);
+  opacity:0; visibility:hidden; pointer-events:none;
+  transition:opacity .25s cubic-bezier(.22,1,.36,1), transform .25s cubic-bezier(.22,1,.36,1);
+  z-index:60; list-style:none;
+}
+#hdr nav.primary li.has-sub:hover > .submenu,
+#hdr nav.primary li.has-sub:focus-within > .submenu,
+#hdr nav.primary li.has-sub.ouvert > .submenu{
+  opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
+}
+#hdr nav.primary .submenu a{
+  display:block; width:100%; text-align:left; padding:.5rem .75rem; border-radius:.65rem;
+  font-size:.8125rem; font-weight:500; color:rgba(17,17,17,.75);
+  background:transparent; border:0; cursor:pointer; white-space:nowrap;
+  transition:background .2s, color .2s;
+}
+#hdr nav.primary .submenu a:hover,
+#hdr nav.primary .submenu a:focus-visible{ background:rgba(177,95,44,.10); color:#8a4519 }
+#hdr nav.primary li.has-sub:hover > button .caret,
+#hdr nav.primary li.has-sub:focus-within > button .caret,
+#hdr nav.primary li.has-sub.ouvert > button .caret{ transform:rotate(180deg) }
 </style>
 <!-- Icone d'onglet : le carre noir et l'etoile terracotta du site.
      Le SVG suffit aux navigateurs recents ; le PNG couvre les autres. -->
@@ -505,7 +535,13 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
         <li><a href="index.html"><span>Accueil</span></a></li>
         <li><a href="index.html#works"><span>Chapitres</span></a></li>
         <li><button aria-current="page"><span>Seconde</span></button></li>
-        <li><a class="labo-nav" href="outils/labo_vegetal.html"><span>Labo</span></a></li>
+        <li class="has-sub">
+          <button class="labo-nav" aria-haspopup="true"><span>Labo <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><a href="outils/labo_vegetal.html">Labo de biologie</a></li>
+            <li><a href="outils/labo_geologie.html">Labo de géologie</a></li>
+          </ul>
+        </li>
         <li><a href="index.html#about"><span>La classe</span></a></li>
         <li><button data-modal><span>Contact</span></button></li>
       </ul>
@@ -910,5 +946,34 @@ document.getElementById('reqform').addEventListener('submit', (e) => {
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
 <script src="/assistant-svt.js" defer></script>
+
+<script>
+/* Sous-menus de la navigation : le survol suffit à la souris, mais pas au
+   doigt. Le clic bascule donc explicitement le menu, et un clic ailleurs ou
+   la touche Échap le referme. */
+(function(){
+  const sousMenus = [...document.querySelectorAll('#hdr nav.primary li.has-sub')];
+  if(!sousMenus.length) return;
+  const fermerTout = (sauf) => sousMenus.forEach(li => {
+    if(li === sauf) return;
+    li.classList.remove('ouvert');
+    const b = li.querySelector(':scope > button');
+    if(b) b.setAttribute('aria-expanded', 'false');
+  });
+  for(const li of sousMenus){
+    const b = li.querySelector(':scope > button');
+    if(!b) continue;
+    b.setAttribute('aria-expanded', 'false');
+    b.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const ouvert = li.classList.toggle('ouvert');
+      b.setAttribute('aria-expanded', String(ouvert));
+      fermerTout(li);
+    });
+  }
+  document.addEventListener('click', () => fermerTout(null));
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') fermerTout(null); });
+})();
+</script>
 </body>
 </html>

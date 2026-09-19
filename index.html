@@ -136,7 +136,8 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
   z-index:60;
 }
 #hdr nav.primary li.has-sub:hover > .submenu,
-#hdr nav.primary li.has-sub:focus-within > .submenu{
+#hdr nav.primary li.has-sub:focus-within > .submenu,
+#hdr nav.primary li.has-sub.ouvert > .submenu{
   opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
 }
 #hdr nav.primary .submenu a,
@@ -157,7 +158,8 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 }
 #hdr nav.primary .caret{ transition:transform .25s }
 #hdr nav.primary li.has-sub:hover > button .caret,
-#hdr nav.primary li.has-sub:focus-within > button .caret{ transform:rotate(180deg) }
+#hdr nav.primary li.has-sub:focus-within > button .caret,
+#hdr nav.primary li.has-sub.ouvert > button .caret{ transform:rotate(180deg) }
 
 /* ===================== shared components ===================== */
 .pill{ display:inline-block }
@@ -537,7 +539,13 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
             <li><button data-nav="contact">Me contacter</button></li>
           </ul>
         </li>
-        <li><a class="labo-nav" href="outils/labo_vegetal.html"><span>Labo</span></a></li>
+        <li class="has-sub">
+          <button class="labo-nav" aria-haspopup="true"><span>Labo <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><a href="outils/labo_vegetal.html">Labo de biologie</a></li>
+            <li><a href="outils/labo_geologie.html">Labo de géologie</a></li>
+          </ul>
+        </li>
         <li><button data-nav="works"><span>Ressources</span></button></li>
         <li><button data-nav="contact"><span>Contact</span></button></li>
       </ul>
@@ -1652,5 +1660,34 @@ document.querySelectorAll('.pill').forEach(p => {
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
 <script src="/assistant-svt.js" defer></script>
+
+<script>
+/* Sous-menus de la navigation : le survol suffit à la souris, mais pas au
+   doigt. Le clic bascule donc explicitement le menu, et un clic ailleurs ou
+   la touche Échap le referme. */
+(function(){
+  const sousMenus = [...document.querySelectorAll('#hdr nav.primary li.has-sub')];
+  if(!sousMenus.length) return;
+  const fermerTout = (sauf) => sousMenus.forEach(li => {
+    if(li === sauf) return;
+    li.classList.remove('ouvert');
+    const b = li.querySelector(':scope > button');
+    if(b) b.setAttribute('aria-expanded', 'false');
+  });
+  for(const li of sousMenus){
+    const b = li.querySelector(':scope > button');
+    if(!b) continue;
+    b.setAttribute('aria-expanded', 'false');
+    b.addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const ouvert = li.classList.toggle('ouvert');
+      b.setAttribute('aria-expanded', String(ouvert));
+      fermerTout(li);
+    });
+  }
+  document.addEventListener('click', () => fermerTout(null));
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') fermerTout(null); });
+})();
+</script>
 </body>
 </html>
