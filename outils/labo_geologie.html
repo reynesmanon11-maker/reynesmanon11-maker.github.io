@@ -4124,5 +4124,219 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
 })();
 </script>
 
+
+<!-- =========================================================
+     MODE RETOUCHE — corriger un texte sans ouvrir le code
+     =========================================================
+     L'éditeur de GitHub refuse ce fichier : il est trop gros pour lui.
+     Ce mode contourne le problème sans rien demander à personne : la page
+     relit son propre fichier source, remplace dedans le texte corrigé, et
+     rend un fichier complet à redéposer sur GitHub (Add file → Upload files).
+     Rien n'est envoyé nulle part ; tout se passe dans le navigateur.
+
+     On y entre par l'adresse ?retouche ou par Ctrl + Alt + E.
+     Les élèves ne le voient jamais.
+     ========================================================= -->
+<script>
+(function(){
+  /* Bascule au clavier, disponible même hors du mode. */
+  document.addEventListener('keydown', e => {
+    if(!(e.ctrlKey && e.altKey) || (e.key||'').toLowerCase() !== 'e') return;
+    e.preventDefault();
+    const u = new URL(location.href);
+    if(u.searchParams.has('retouche')) u.searchParams.delete('retouche');
+    else u.searchParams.set('retouche', '1');
+    location.href = u.toString();
+  });
+
+  if(!new URLSearchParams(location.search).has('retouche')) return;
+
+  const NOM = (location.pathname.split('/').pop() || 'page.html');
+  let source = null;                 // le fichier source, tel qu'il est sur GitHub
+  const faites = [];                 // {avant, apres, el}
+
+  /* ---------- l'habillage ---------- */
+  const style = document.createElement('style');
+  style.textContent = `
+    .rt-cible{ outline:1px dashed rgba(177,95,44,.45); outline-offset:3px; border-radius:4px;
+               transition:background .15s, outline-color .15s; cursor:text }
+    .rt-cible:hover{ background:rgba(207,128,71,.10); outline-color:#b15f2c }
+    .rt-cible:focus{ background:#fff8f1; outline:2px solid #b15f2c; outline-offset:3px }
+    .rt-modifie{ background:#eef7ee !important; outline-color:#3d7a41 !important }
+    #rt-barre{ position:fixed; left:0; right:0; bottom:0; z-index:9999;
+               background:#23201c; color:#f5f2ed; padding:11px 16px;
+               display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+               font:14px/1.45 Onest, system-ui, sans-serif;
+               box-shadow:0 -6px 24px rgba(0,0,0,.25) }
+    #rt-barre b{ color:#f0b07a }
+    #rt-barre .rt-etat{ flex:1; min-width:210px }
+    #rt-barre button{ font:inherit; font-weight:600; border:0; border-radius:8px;
+                      padding:8px 13px; cursor:pointer; background:#3a352f; color:#f5f2ed }
+    #rt-barre button:hover{ background:#4a443c }
+    #rt-barre button.rt-vert{ background:#cf8047; color:#fff }
+    #rt-barre button.rt-vert:hover{ background:#b15f2c }
+    #rt-barre button[disabled]{ opacity:.45; cursor:default }
+    #rt-liste{ position:fixed; right:16px; bottom:64px; z-index:9999; max-width:min(380px, 92vw);
+               max-height:46vh; overflow:auto; background:#fff; border:1px solid #e3ddd3;
+               border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.18); padding:10px 12px;
+               font:13px/1.45 Onest, system-ui, sans-serif; display:none }
+    #rt-liste h4{ margin:2px 0 8px; font-size:13px; color:#6b6157 }
+    #rt-liste li{ margin:0 0 8px; list-style:none; border-bottom:1px solid #f0ebe3; padding-bottom:7px }
+    #rt-liste del{ color:#9a9089 } #rt-liste ins{ color:#2f6b34; text-decoration:none; font-weight:600 }
+    body{ padding-bottom:64px }
+  `;
+  document.head.appendChild(style);
+
+  const barre = document.createElement('div');
+  barre.id = 'rt-barre';
+  barre.innerHTML = `<b>Mode retouche</b>
+    <span class="rt-etat">Je relis le fichier…</span>
+    <button id="rt-voir" disabled>Mes corrections</button>
+    <button id="rt-annule" disabled>Tout annuler</button>
+    <button id="rt-tel" class="rt-vert" disabled>Télécharger la version corrigée</button>
+    <button id="rt-sortie">Quitter</button>`;
+  document.body.appendChild(barre);
+
+  const liste = document.createElement('div');
+  liste.id = 'rt-liste';
+  liste.innerHTML = '<h4>Corrections en attente</h4><ul></ul>';
+  document.body.appendChild(liste);
+
+  const etat = t => { barre.querySelector('.rt-etat').innerHTML = t; };
+  const bouton = (id, on) => { barre.querySelector('#' + id).disabled = !on; };
+
+  barre.querySelector('#rt-sortie').onclick = () => {
+    const u = new URL(location.href); u.searchParams.delete('retouche'); location.href = u.toString();
+  };
+
+  /* ---------- relecture du fichier source ---------- */
+  fetch(location.pathname, {cache:'no-store'})
+    .then(r => r.ok ? r.text() : Promise.reject(r.status))
+    .then(t => {
+      source = t;
+      etat('Cliquez sur un texte encadré pour le corriger. Rien n\'est envoyé : tout reste dans votre navigateur.');
+      marque();
+    })
+    .catch(() => etat('Je n\'arrive pas à relire le fichier. Ce mode a besoin de la page <b>en ligne</b> ' +
+                      '(reynesmanon11-maker.github.io), pas d\'un fichier ouvert depuis l\'ordinateur.'));
+
+  /* ---------- repérage des textes modifiables ----------
+     Un texte n'est proposé que s'il est fait d'un seul morceau, sans balise
+     à l'intérieur : sinon on ne saurait pas le retrouver dans le fichier. */
+  const SELECTEURS = 'p, li, h2, h3, h4, td, th, summary, figcaption, .ref, .note, .legende';
+  function marque(){
+    const zone = document.querySelector('main') || document.body;
+    zone.querySelectorAll(SELECTEURS).forEach(el => {
+      if(el.classList.contains('rt-cible')) return;
+      if(el.closest('button, a, #rt-barre, #rt-liste')) return;
+      if(el.childNodes.length !== 1 || el.firstChild.nodeType !== 3) return;
+      if(el.textContent.trim().length < 8) return;
+      el.classList.add('rt-cible');
+      el.setAttribute('contenteditable', 'plaintext-only');
+      el.setAttribute('spellcheck', 'true');
+    });
+  }
+  /* Les modules se dessinent au fur et à mesure : on re-marque après chaque rendu. */
+  let attente = null;
+  new MutationObserver(() => { clearTimeout(attente); attente = setTimeout(marque, 200); })
+    .observe(document.querySelector('main') || document.body, {childList:true, subtree:true});
+
+  document.addEventListener('focusin', e => {
+    const el = e.target;
+    if(el.classList && el.classList.contains('rt-cible')) el.dataset.rtAvant = el.textContent;
+  });
+  document.addEventListener('focusout', e => {
+    const el = e.target;
+    if(!el.classList || !el.classList.contains('rt-cible')) return;
+    const avant = el.dataset.rtAvant, apres = el.textContent;
+    if(avant === undefined || avant.trim() === apres.trim()) return;
+    corrige(el, avant, apres);
+  });
+
+  /* ---------- retrouver le texte dans le fichier ----------
+     Le fichier est indenté : un paragraphe y occupe plusieurs lignes. On
+     cherche donc en traitant toute suite d'espaces comme équivalente. */
+  function motif(t){
+    return t.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  }
+  function occurrences(src, t){
+    const re = new RegExp(motif(t), 'g'), out = [];
+    let m; while((m = re.exec(src))){ out.push([m.index, m[0].length]); if(!m[0].length) re.lastIndex++; }
+    return out;
+  }
+  /* Deux écritures possibles : telle quelle, ou avec les esperluettes échappées. */
+  const ECRITURES = [ t => t, t => t.replace(/&/g, '&amp;') ];
+
+  /* Un texte corrigé peut casser le fichier s'il contient une balise ou un
+     guillemet mal placé. On recompile tous les scripts avant d'accepter. */
+  function scriptsValides(src){
+    const re = /<script\b[^>]*>([\s\S]*?)<\/script>/gi;
+    let m; while((m = re.exec(src))){
+      try { new Function(m[1]); } catch(err){ return err.message; }
+    }
+    return null;
+  }
+
+  function corrige(el, avant, apres){
+    const net = apres.replace(/\s+/g, ' ').trim();
+    const refus = raison => {
+      el.textContent = avant; delete el.dataset.rtAvant;
+      etat('<b>Correction refusée.</b> ' + raison);
+    };
+    if(!source)        return refus('Le fichier n\'a pas pu être relu.');
+    if(!net)           return refus('Le texte ne peut pas être vidé entièrement.');
+    if(/[<>]/.test(net)) return refus('Les signes &lt; et &gt; ne sont pas acceptés ici : ils ouvriraient une balise.');
+
+    for(const ecrit of ECRITURES){
+      const occ = occurrences(source, ecrit(avant));
+      if(occ.length === 0) continue;
+      if(occ.length > 1)
+        return refus('Ce texte apparaît ' + occ.length + ' fois dans le fichier ; je ne sais pas lequel corriger. ' +
+                     'Dites-le-moi dans la conversation, je m\'en occupe.');
+      const [i, len] = occ[0];
+      const essai = source.slice(0, i) + ecrit(net) + source.slice(i + len);
+      const casse = scriptsValides(essai);
+      if(casse) return refus('Elle casserait le fichier (' + casse + '). Souvent : un guillemet en trop.');
+      source = essai;
+      el.textContent = net;
+      el.classList.add('rt-modifie');
+      faites.push({avant: avant.replace(/\s+/g,' ').trim(), apres: net, el});
+      delete el.dataset.rtAvant;
+      majBarre();
+      return;
+    }
+    refus('Je n\'ai pas retrouvé ce texte dans le fichier — il est sans doute fabriqué par un calcul. ' +
+          'Dites-le-moi dans la conversation.');
+  }
+
+  function majBarre(){
+    const n = faites.length;
+    etat(n === 0 ? 'Cliquez sur un texte encadré pour le corriger.'
+       : '<b>' + n + '</b> correction' + (n > 1 ? 's' : '') + ' prête' + (n > 1 ? 's' : '') +
+         '. Téléchargez le fichier, puis déposez-le sur GitHub : <b>Add file → Upload files</b>.');
+    bouton('rt-tel', n > 0); bouton('rt-annule', n > 0); bouton('rt-voir', n > 0);
+    const ul = liste.querySelector('ul');
+    ul.innerHTML = faites.map(f =>
+      '<li><del>' + f.avant.slice(0,90) + '</del><br><ins>' + f.apres.slice(0,90) + '</ins></li>').join('');
+  }
+
+  barre.querySelector('#rt-voir').onclick = () => {
+    liste.style.display = liste.style.display === 'block' ? 'none' : 'block';
+  };
+  barre.querySelector('#rt-annule').onclick = () => { location.reload(); };
+
+  barre.querySelector('#rt-tel').onclick = () => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([source], {type:'text/html;charset=utf-8'}));
+    a.download = NOM;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    etat('Fichier <b>' + NOM + '</b> téléchargé. Sur GitHub, ouvrez le dossier <b>outils/</b>, ' +
+         'bouton <b>Add file → Upload files</b>, glissez ce fichier, puis <b>Commit changes</b>. ' +
+         'En ligne dans la minute.');
+  };
+})();
+</script>
+
 </body>
 </html>

@@ -31,6 +31,19 @@ les nôtres.** En pratique :
   sur un fichier qu'elle édite.
 - Si elle dit qu'elle est en train de modifier : ne pas pousser, attendre.
 
+### Mode retouche (les deux labos)
+
+Les labos pèsent 250 à 390 Ko : l'éditeur web de GitHub les refuse
+(« File could not be edited »). Chaque labo embarque donc un **mode retouche**,
+ouvert par `?retouche` dans l'adresse ou par `Ctrl + Alt + E` — invisible pour
+les élèves. La page relit son propre fichier, y remplace le texte corrigé, et
+rend le fichier complet à redéposer (*Add file → Upload files*).
+
+Garde-fous à conserver si on touche à ce bloc : refus des chevrons, refus d'un
+texte vide, refus d'un texte présent plusieurs fois dans le fichier, et
+recompilation de tous les blocs `<script>` avant d'accepter une correction.
+Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
+
 ## Pages
 
 | Fichier | Rôle |
