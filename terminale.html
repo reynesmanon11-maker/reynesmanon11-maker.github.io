@@ -453,6 +453,9 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 .legend span:nth-of-type(4) b{ color:#996e24 } /* Exos  */
 
 /* Arrivee par une ancre : le titre doit rester sous l'en-tete collant. */
+/* un chapitre encore sans document : le dire, plutôt que laisser un blanc
+   qui ressemble à une page cassée */
+.theme .attente{ font-size:.875rem; color:rgba(17,17,17,.62); font-style:italic }
 /* ---- déroulé d'un chapitre : une activité = une étape du fil ---- */
 .fil{ list-style:none; max-width:58rem; margin:0; padding:0 }
 .etape{ position:relative; padding:0 0 1.9rem 3.4rem }
@@ -738,31 +741,18 @@ const CHAPITRES = [
     num: 'Thème 1',
     titre: 'Science, climat et société',
     docs: [
-      { l:'L\'atmosphère terrestre et la vie' },
-      { l:'La complexité du système climatique' },
-      { l:'Le climat du futur' },
-      { l:'Énergie, choix de développement et futur climatique' },
     ]
   },
   {
     num: 'Thème 2',
     titre: 'Le futur des énergies',
     docs: [
-      { l:'Deux siècles d\'énergie électrique' },
-      { l:'Les atouts de l\'électricité' },
-      { l:'Optimisation du transport de l\'électricité' },
-      { l:'Choix énergétiques et impacts sur les sociétés' },
     ]
   },
   {
     num: 'Thème 3',
     titre: 'Une histoire du vivant',
     docs: [
-      { l:'La biodiversité et son évolution' },
-      { l:'L\'évolution comme grille de lecture du monde' },
-      { l:'L\'évolution humaine' },
-      { l:'Les modèles démographiques' },
-      { l:'L\'intelligence artificielle' },
     ]
   },
 ];
@@ -806,7 +796,8 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
         <span class="theme-num">${ch.num}</span>
         <h2>${ch.titre}</h2>
       </div>
-      ${fil}${reste}
+      ${fil || reste ? fil + reste : `
+      <p class="attente">Les documents de ce chapitre seront déposés au fil de l'année.</p>`}
     </div>
   </section>`;
 }).join('');

@@ -453,6 +453,9 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 .legend span:nth-of-type(4) b{ color:#996e24 } /* Exos  */
 
 /* Arrivee par une ancre : le titre doit rester sous l'en-tete collant. */
+/* un chapitre encore sans document : le dire, plutôt que laisser un blanc
+   qui ressemble à une page cassée */
+.theme .attente{ font-size:.875rem; color:rgba(17,17,17,.62); font-style:italic }
 /* ---- déroulé d'un chapitre : une activité = une étape du fil ---- */
 .fil{ list-style:none; max-width:58rem; margin:0; padding:0 }
 .etape{ position:relative; padding:0 0 1.9rem 3.4rem }
@@ -736,46 +739,30 @@ const CHAPITRES = [
     num: 'Thème 1',
     titre: 'Une longue histoire de la matière',
     docs: [
-      { l:'Un niveau d\'organisation : les éléments chimiques' },
-      { l:'Des édifices ordonnés : les cristaux' },
-      { l:'Une structure complexe : la cellule vivante' },
     ]
   },
   {
     num: 'Thème 2',
     titre: 'Le Soleil, notre source d\'énergie',
     docs: [
-      { l:'Le rayonnement solaire' },
-      { l:'Le bilan radiatif terrestre' },
-      { l:'Une conversion biologique de l\'énergie solaire : la photosynthèse' },
     ]
   },
   {
     num: 'Thème 3',
     titre: 'La Terre, un astre singulier',
     docs: [
-      { l:'La forme de la Terre' },
-      { l:'L\'histoire de l\'âge de la Terre' },
-      { l:'La Terre dans l\'Univers' },
     ]
   },
   {
     num: 'Thème 4',
     titre: 'Son et musique, porteurs d\'information',
     docs: [
-      { l:'Le son, phénomène vibratoire' },
-      { l:'Musique et nombres' },
-      { l:'Le son, une information à coder' },
-      { l:'Entendre la musique' },
     ]
   },
   {
     num: 'Thème 5',
     titre: 'Projet expérimental et numérique',
     docs: [
-      { l:'Choix du sujet et problématique' },
-      { l:'Mesures et acquisition de données' },
-      { l:'Traitement numérique et restitution' },
     ]
   },
 ];
@@ -819,7 +806,8 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
         <span class="theme-num">${ch.num}</span>
         <h2>${ch.titre}</h2>
       </div>
-      ${fil}${reste}
+      ${fil || reste ? fil + reste : `
+      <p class="attente">Les documents de ce chapitre seront déposés au fil de l'année.</p>`}
     </div>
   </section>`;
 }).join('');
