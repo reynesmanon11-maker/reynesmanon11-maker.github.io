@@ -105,7 +105,15 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
 .docs{ list-style:none; margin-top:.7rem; display:flex; flex-direction:column; gap:.35rem }
 .docs li{ display:flex; gap:.4rem; align-items:center; background:#fff; border:1px solid #e8e4dc;
   border-radius:.6rem; padding:.35rem .45rem }
-.docs .l{ flex:2; min-width:8rem } .docs .h{ flex:3; min-width:9rem }
+.docs .l{ flex:2; min-width:8rem } .docs .h{ flex:2; min-width:8rem }
+/* rangement du document dans le fil du chapitre : activité + rôle */
+.docs .ra{ display:flex; gap:.25rem; flex:none; align-items:center }
+.docs .ra input{ width:2.7rem; text-align:center; padding:.38rem .2rem }
+.docs .ra select{ font-size:.74rem; padding:.36rem .3rem; border-radius:.45rem;
+  border:1px solid #ddd8ce; background:#fbfaf8; color:#5c574f; max-width:8.5rem }
+.chap .apercu{ font-size:.73rem; color:#5c574f; margin-top:.55rem; line-height:1.6 }
+.chap .apercu b{ color:#111; font-weight:600 }
+.chap .apercu .rien{ color:#8a5a12 }
 .docs input{ padding:.38rem .55rem; font-size:.8rem; border-radius:.45rem }
 .docs .h input{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:#5c574f }
 .docs .outils{ display:flex; gap:.25rem; flex:none }
@@ -113,7 +121,8 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
   background:#fbfaf8; font-size:.72rem; color:#5c574f; display:grid; place-items:center }
 .docs .outils .sup{ border-color:#e0cccc; color:#a32c2c }
 .docs .vide-h input{ background:#f6f3ec }
-@media (max-width:620px){ .docs li{ flex-wrap:wrap } .docs .l, .docs .h{ flex:1 1 100% } }
+@media (max-width:620px){ .docs li{ flex-wrap:wrap } .docs .l, .docs .h, .docs .ra{ flex:1 1 100% }
+  .docs .ra select{ flex:1; max-width:none } }
 
 ul.notions{ list-style:none; margin-top:1rem; display:flex; flex-direction:column; gap:.55rem }
 ul.notions li{ background:#fbfaf8; border:1px solid #e8e4dc; border-radius:.7rem; padding:.7rem .85rem }
@@ -368,6 +377,7 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
 
 </main>
 
+<script src="/activites.js"></script>
 <script>
 /* =============================================================================
    Espace de gestion — il écrit dans le dépôt GitHub via son API.
@@ -854,6 +864,47 @@ async function chargerOrga() {
   }
 }
 
+/* Les deux réglages qui rangent un document dans le fil du chapitre.
+   Laissés vides, ils suivent la déduction faite sur l'intitulé : « Bilan cours
+   activité 3 » se range tout seul sous l'activité 3. Remplis, ils l'emportent —
+   c'est ce qui permet de rattraper un intitulé hors norme sans le renommer. */
+const NOMS_ROLE = {
+  activite: 'Activité (l\'énoncé)', support: 'Aide, document support',
+  correction: 'Correction', bilan: 'Bilan de cours',
+  evaluation: 'Devoir, évaluation', entrainement: 'Entraînement, QCM',
+  autre: 'Autre',
+};
+
+function reglages(d) {
+  const nAuto = SVTActivites.numero(d.l || '');
+  const rAuto = SVTActivites.role(d.l || '');
+  const a = (d.a === undefined || d.a === null || d.a === '') ? '' : String(d.a);
+  const options = SVTActivites.ROLES.map(r =>
+    `<option value="${r}"${d.r === r ? ' selected' : ''}>${NOMS_ROLE[r]}</option>`).join('');
+  return `<input type="number" data-champ="a" min="0" max="30" step="1" value="${echap(a)}"
+            placeholder="${nAuto || '–'}" title="Numéro d'activité — vide = déduit de l'intitulé"
+            aria-label="Numéro d'activité" />
+          <select data-champ="r" title="Rôle dans l'activité — vide = déduit de l'intitulé"
+            aria-label="Rôle du document">
+            <option value="">auto · ${NOMS_ROLE[rAuto]}</option>${options}
+          </select>`;
+}
+
+/* Le fil tel que les élèves le verront, recalculé à chaque frappe : Mme Reynes
+   voit tout de suite si un document est tombé au bon endroit, sans publier. */
+function apercuFil(c) {
+  const paquet = SVTActivites.grouper(c.docs);
+  if (!paquet.etapes.length) {
+    return '<span class="rien">Aucune activité repérée : ce chapitre s\'affichera en simple liste. '
+         + 'Renseignez le numéro d\'activité des lignes concernées pour créer le fil.</span>';
+  }
+  const etapes = paquet.etapes.map(e =>
+    `<b>${e.n}.</b> ${echap(e.titre)} <i>(${e.docs.length})</i>`).join(' &nbsp;·&nbsp; ');
+  const reste = paquet.chapitre.length
+    ? ` &nbsp;·&nbsp; hors activité : ${paquet.chapitre.length}` : '';
+  return 'Fil du chapitre &nbsp;— &nbsp;' + etapes + reste;
+}
+
 function dessinerOrga() {
   const zone = $('o-liste');
   if (!orga) { zone.innerHTML = ''; return; }
@@ -873,11 +924,13 @@ function dessinerOrga() {
         </div>
       </div>
       <p class="avert cacher" data-avert>Renommer ce champ change l'adresse du chapitre : les liens déjà partagés vers lui ne fonctionneront plus.</p>
+      <p class="apercu" data-apercu>${apercuFil(c)}</p>
       <ul class="docs">
         ${c.docs.map((d, j) => `
           <li data-d="${j}">
             <div class="l"><input type="text" data-champ="l" value="${echap(d.l || '')}" placeholder="Nom affiché" aria-label="Nom du document" /></div>
             <div class="h ${d.h ? '' : 'vide-h'}"><input type="text" data-champ="h" value="${echap(d.h || '')}" placeholder="vide = « à venir »" aria-label="Lien du document" /></div>
+            <div class="ra">${reglages(d)}</div>
             <div class="outils">
               <button data-act="d-haut" title="Monter" aria-label="Monter la ligne">↑</button>
               <button data-act="d-bas" title="Descendre" aria-label="Descendre la ligne">↓</button>
@@ -893,15 +946,23 @@ function dessinerOrga() {
 function brancherOrga() {
   const zone = $('o-liste');
 
-  zone.querySelectorAll('input[data-champ]').forEach(inp => {
+  zone.querySelectorAll('[data-champ]').forEach(inp => {
     inp.addEventListener('input', () => {
       const bloc = inp.closest('.chap'), li = inp.closest('li');
       const c = orga.chapitres[+bloc.dataset.c];
       const champ = inp.dataset.champ;
       if (li) {
         const d = c.docs[+li.dataset.d];
-        d[champ] = inp.value.trim();
+        /* Vide ne veut pas dire zéro : pour l'activité et le rôle, vide veut
+           dire « laisse la déduction faire », donc on retire la clé. */
+        if (champ === 'a' || champ === 'r') {
+          if (inp.value.trim() === '') delete d[champ];
+          else d[champ] = champ === 'a' ? Math.max(0, parseInt(inp.value, 10) || 0) : inp.value;
+        } else {
+          d[champ] = inp.value.trim();
+        }
         if (champ === 'h') li.querySelector('.h').classList.toggle('vide-h', !inp.value.trim());
+        bloc.querySelector('[data-apercu]').innerHTML = apercuFil(c);
       } else {
         c[champ] = inp.value.trim();
         /* Le numéro sert d'ancre (#chapitre-1) : le changer casse les liens
@@ -969,8 +1030,13 @@ function serialiserChapitres(chs) {
     s += `  {\n    num: ${chaine(c.num)},\n    titre: ${chaine(c.titre)},\n    docs: [\n`;
     for (const d of c.docs) {
       if (!d.l) continue;
-      s += d.h ? `      { l:${chaine(d.l)}, h:${chaine(d.h)} },\n`
-               : `      { l:${chaine(d.l)} },\n`;
+      let t = `      { l:${chaine(d.l)}`;
+      if (d.h) t += `, h:${chaine(d.h)}`;
+      /* a et r ne sont écrits que s'ils ont été réglés à la main : tant qu'ils
+         sont absents, le rangement suit l'intitulé. */
+      if (d.a !== undefined && d.a !== null && d.a !== '') t += `, a:${parseInt(d.a, 10) || 0}`;
+      if (d.r) t += `, r:${chaine(d.r)}`;
+      s += t + ' },\n';
     }
     s += '    ]\n  },\n';
   }

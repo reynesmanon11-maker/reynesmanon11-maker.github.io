@@ -427,12 +427,12 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 /* ===================== palette pastel multicolore (Seconde) ===================== */
 /* Une teinte douce par thème, en rotation. Bloc autonome et réversible. */
-#themes .theme:nth-child(6n+1){ --pt:#4ba574; --ptbg:#edf7f0; --ptbd:#cfe9d9 } /* vert     */
-#themes .theme:nth-child(6n+2){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5 } /* bleu     */
-#themes .theme:nth-child(6n+3){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2 } /* rose     */
-#themes .theme:nth-child(6n+4){ --pt:#c18a2d; --ptbg:#f9f1de; --ptbd:#eeddb8 } /* ambre    */
-#themes .theme:nth-child(6n+5){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1 } /* violet   */
-#themes .theme:nth-child(6n+6){ --pt:#3ba39b; --ptbg:#e8f6f5; --ptbd:#c8e9e6 } /* turquoise*/
+#themes .theme:nth-child(6n+1){ --pt:#4ba574; --ptbg:#edf7f0; --ptbd:#cfe9d9; --ptd:#397d58 } /* vert     */
+#themes .theme:nth-child(6n+2){ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5; --ptd:#3c71a3 } /* bleu     */
+#themes .theme:nth-child(6n+3){ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2; --ptd:#a65275 } /* rose     */
+#themes .theme:nth-child(6n+4){ --pt:#c18a2d; --ptbg:#f9f1de; --ptbd:#eeddb8; --ptd:#8e6621 } /* ambre    */
+#themes .theme:nth-child(6n+5){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1; --ptd:#7560a9 } /* violet   */
+#themes .theme:nth-child(6n+6){ --pt:#3ba39b; --ptbg:#e8f6f5; --ptbd:#c8e9e6; --ptd:#2c7b75 } /* turquoise*/
 
 /* Numéro de chapitre : coloré et lisible (au lieu du gris très pâle) */
 .theme .theme-num{ color:var(--pt,#b15f2c); opacity:1 }
@@ -453,6 +453,42 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 .legend span:nth-of-type(4) b{ color:#996e24 } /* Exos  */
 
 /* Arrivee par une ancre : le titre doit rester sous l'en-tete collant. */
+/* ---- déroulé d'un chapitre : une activité = une étape du fil ---- */
+.fil{ list-style:none; max-width:58rem; margin:0; padding:0 }
+.etape{ position:relative; padding:0 0 1.9rem 3.4rem }
+.etape:last-child{ padding-bottom:.4rem }
+/* le trait qui relie une étape à la suivante : c'est lui, le fil directeur */
+.etape::before{ content:''; position:absolute; left:1.06rem; top:2.65rem; bottom:.3rem;
+  width:2px; border-radius:2px; background:var(--ptbd,#e6e5e2) }
+.etape:last-child::before{ display:none }
+.etape > .num{ position:absolute; left:0; top:.1rem; width:2.25rem; height:2.25rem;
+  display:grid; place-items:center; border-radius:50%; font-weight:700; font-size:.95rem;
+  background:var(--ptbg,#f4f3f1); border:2px solid var(--ptbd,#e6e5e2); color:var(--ptd,#3a3a3a) }
+.etape > h3{ font-size:1.0625rem; font-weight:600; line-height:1.35; letter-spacing:-.01em;
+  margin:.4rem 0 .7rem; max-width:46ch }
+/* dans une étape les documents se lisent en colonne, dans l'ordre du cours */
+.etape .docs{ grid-template-columns:1fr; gap:.4rem }
+/* lignes resserrées : une activité doit tenir sous l'œil d'un seul coup */
+.etape .doc{ padding:.72rem 1.1rem; border-radius:1rem }
+/* l'étiquette de rôle tombe toujours au même endroit : le repère s'apprend une fois */
+.doc .dr{ flex:none; width:5.6rem; font-size:.66rem; font-weight:700; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--ptd,#4a4a4a) }
+.doc .dt{ flex:1 }
+.doc.on:hover .dr{ color:#cf8047 }
+.doc:not(.on) .dr{ color:rgba(17,17,17,.62) }
+/* le bilan est ce qu'on relit avant un devoir : il se repère d'un coup d'œil */
+.doc.on.r-bilan{ border-color:var(--ptd,#c9c8c5) }
+@media(max-width:479.98px){
+  .doc{ flex-wrap:wrap; row-gap:.15rem }
+  .doc .dr{ width:100%; order:-1 }
+  .etape{ padding-left:2.9rem }
+  .etape > .num{ width:2rem; height:2rem; font-size:.85rem }
+  .etape::before{ left:.94rem }
+}
+/* ce qui ne relève d'aucune activité : QCM, devoir, corrigé du devoir */
+.hors{ max-width:58rem; margin-top:.4rem }
+.hors-t{ font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  color:rgba(17,17,17,.62); margin-bottom:.75rem }
 .theme{ scroll-margin-top:5.5rem }
 
 /* ===== sous-menus de la navigation (repris de l'accueil) ===== */
@@ -674,6 +710,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 
 
+<script src="/activites.js"></script>
 <script>
 /* =========================================================================
    ✏️ VOS CHAPITRES — tout se règle ici, rien d'autre à modifier.
@@ -821,22 +858,44 @@ const CHAPITRES = [
 const ancre = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-document.getElementById('themes').innerHTML = CHAPITRES.map(ch => `
+document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
+  /* Les documents d'un chapitre sont regroupés en activités d'après leur
+     intitulé — voir activites.js. Un chapitre sans numérotation d'activité
+     ressort avec zéro étape : la page retombe alors sur la liste simple. */
+  const paquet = SVTActivites.grouper(ch.docs);
+  const ligne = (d) => {
+    const et = SVTActivites.ETIQUETTE[d.__r] || '';
+    const tag = et ? `<span class="dr">${et}</span>` : '';
+    return d.h
+      ? `<li><a class="doc on r-${d.__r}" href="${d.h}" target="_blank" rel="noopener">
+           ${tag}<span class="dt">${d.__t}</span><span class="da">Ouvrir &#8599;</span></a></li>`
+      : `<li><span class="doc r-${d.__r}">${tag}<span class="dt">${d.__t}</span><span class="da">à venir</span></span></li>`;
+  };
+  const fil = paquet.etapes.length ? `
+      <ol class="fil">
+        ${paquet.etapes.map(e => `
+        <li class="etape">
+          <span class="num">${e.n}</span>
+          <h3>${e.titre}</h3>
+          <ul class="docs">${e.docs.map(ligne).join('')}</ul>
+        </li>`).join('')}
+      </ol>` : '';
+  const reste = paquet.chapitre.length ? `
+      <div class="hors">
+        ${paquet.etapes.length ? '<h3 class="hors-t">Pour tout le chapitre</h3>' : ''}
+        <ul class="docs">${paquet.chapitre.map(ligne).join('')}</ul>
+      </div>` : '';
+  return `
   <section class="theme" id="${ancre(ch.num)}">
     <div class="shell">
       <div class="theme-head">
         <span class="theme-num">${ch.num}</span>
         <h2>${ch.titre}</h2>
       </div>
-      <ul class="docs">
-        ${ch.docs.map(doc => doc.h
-          ? `<li><a class="doc on" href="${doc.h}" target="_blank" rel="noopener">
-               <span class="dt">${doc.l}</span><span class="da">Ouvrir &#8599;</span></a></li>`
-          : `<li><span class="doc"><span class="dt">${doc.l}</span><span class="da">à venir</span></span></li>`
-        ).join('')}
-      </ul>
+      ${fil}${reste}
     </div>
-  </section>`).join('');
+  </section>`;
+}).join('');
 
 /* ---- horloge ---- */
 function tickClock(){
