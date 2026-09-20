@@ -512,6 +512,9 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 #hdr nav.primary li.has-sub.ouvert > .submenu{
   opacity:1; visibility:visible; pointer-events:auto; transform:translateX(-50%) translateY(0);
 }
+/* Les emojis du menu sont décoratifs : aria-hidden les retire de la lecture
+   vocale, qui annoncerait sinon « pousse Labo de biologie ». */
+.emo{ margin-right:.45rem; font-style:normal }
 #hdr nav.primary .submenu a{
   display:block; width:100%; text-align:left; padding:.5rem .75rem; border-radius:.65rem;
   font-size:.8125rem; font-weight:500; color:rgba(17,17,17,.75);
@@ -577,8 +580,8 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
         <li class="has-sub">
           <button class="labo-nav" aria-haspopup="true"><span>Labo <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
-            <li><a href="outils/labo_vegetal.html">Labo de biologie</a></li>
-            <li><a href="outils/labo_geologie.html">Labo de géologie</a></li>
+            <li><a href="outils/labo_vegetal.html"><span class="emo" aria-hidden="true">🌱</span>Labo de biologie</a></li>
+            <li><a href="outils/labo_geologie.html"><span class="emo" aria-hidden="true">🌋</span>Labo de géologie</a></li>
           </ul>
         </li>
         <li><a href="index.html#about"><span>La classe</span></a></li>
@@ -879,7 +882,7 @@ const y = document.getElementById('year'); if (y) y.textContent = new Date().get
 (function(){
   const NAV = [
     { label:'Accueil', href:'index.html' }, { label:'Chapitres', href:'index.html#works' },
-    { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'Labo biologie', href:'outils/labo_vegetal.html' }, { label:'Labo géologie', href:'outils/labo_geologie.html' }, 
+    { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
     { label:'La classe', href:'index.html#about' },
     { label:'Contact', modal:true },
   ];
