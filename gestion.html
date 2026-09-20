@@ -114,6 +114,14 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
 .chap .apercu{ font-size:.73rem; color:#5c574f; margin-top:.55rem; line-height:1.6 }
 .chap .apercu b{ color:#111; font-weight:600 }
 .chap .apercu .rien{ color:#8a5a12 }
+.chap .apercu .fil-t{ font-size:.71rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  color:#8a8378; margin-bottom:.5rem }
+.chap .apercu .fil-l{ display:flex; align-items:center; gap:.5rem; margin-bottom:.3rem }
+.chap .apercu .fil-n{ flex:none; width:1.5rem; height:1.5rem; display:grid; place-items:center;
+  border-radius:50%; background:#efece5; font-size:.72rem; font-weight:700; color:#5c574f }
+.chap .apercu .fil-l input{ flex:1; padding:.32rem .55rem; font-size:.8rem; border-radius:.45rem }
+.chap .apercu .fil-c{ flex:none; font-size:.7rem; color:#8a8378 }
+.chap .apercu .fil-r{ font-size:.72rem; color:#8a8378; margin-top:.45rem }
 .docs input{ padding:.38rem .55rem; font-size:.8rem; border-radius:.45rem }
 .docs .h input{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:#5c574f }
 .docs .outils{ display:flex; gap:.25rem; flex:none }
@@ -756,16 +764,26 @@ function reglages(d) {
 /* Le fil tel que les élèves le verront, recalculé à chaque frappe : Mme Reynes
    voit tout de suite si un document est tombé au bon endroit, sans publier. */
 function apercuFil(c) {
-  const paquet = SVTActivites.grouper(c.docs);
+  const paquet = SVTActivites.grouper(c.docs, c.act);
   if (!paquet.etapes.length) {
     return '<span class="rien">Aucune activité repérée : ce chapitre s\'affichera en simple liste. '
          + 'Renseignez le numéro d\'activité des lignes concernées pour créer le fil.</span>';
   }
-  const etapes = paquet.etapes.map(e =>
-    `<b>${e.n}.</b> ${echap(e.titre)} <i>(${e.docs.length})</i>`).join(' &nbsp;·&nbsp; ');
+  /* Le titre de chaque activité est modifiable ici. Laissé vide il suit l'énoncé
+     — c'est le gris affiché en repère ; écrit, il l'emporte, ce qui permet de
+     nommer même une activité dont l'énoncé n'est pas en ligne. */
+  const lignes = paquet.etapes.map(e => `
+    <div class="fil-l">
+      <span class="fil-n">${e.n}</span>
+      <input type="text" data-act-titre="${e.n}" value="${echap((c.act && c.act[e.n]) || '')}"
+             placeholder="${echap(e.derive)}" aria-label="Titre de l'activité ${e.n}" />
+      <span class="fil-c">${e.docs.length} doc.</span>
+    </div>`).join('');
   const reste = paquet.chapitre.length
-    ? ` &nbsp;·&nbsp; hors activité : ${paquet.chapitre.length}` : '';
-  return 'Fil du chapitre &nbsp;— &nbsp;' + etapes + reste;
+    ? `<div class="fil-r">${paquet.chapitre.length} document(s) hors activité, regroupés sous « Pour tout le chapitre ».</div>`
+    : '';
+  return '<div class="fil-t">Fil du chapitre — le titre de chaque activité se modifie ici</div>'
+       + lignes + reste;
 }
 
 function dessinerOrga() {
@@ -787,7 +805,7 @@ function dessinerOrga() {
         </div>
       </div>
       <p class="avert cacher" data-avert>Renommer ce champ change l'adresse du chapitre : les liens déjà partagés vers lui ne fonctionneront plus.</p>
-      <p class="apercu" data-apercu>${apercuFil(c)}</p>
+      <div class="apercu" data-apercu>${apercuFil(c)}</div>
       <ul class="docs">
         ${c.docs.map((d, j) => `
           <li data-d="${j}">
@@ -815,6 +833,18 @@ function dessinerOrga() {
 
 function brancherOrga() {
   const zone = $('o-liste');
+
+  zone.querySelectorAll('[data-act-titre]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const c = orga.chapitres[+inp.closest('.chap').dataset.c];
+      const n = inp.dataset.actTitre, v = inp.value.trim();
+      if (!c.act) c.act = {};
+      if (v) c.act[n] = v; else delete c.act[n];
+      if (!Object.keys(c.act).length) delete c.act;
+      orgaModifiee();
+      /* Pas de redessin ici : il emporterait le champ en cours de frappe. */
+    });
+  });
 
   zone.querySelectorAll('[data-champ]').forEach(inp => {
     inp.addEventListener('input', () => {
@@ -970,7 +1000,11 @@ $('o-annuler').addEventListener('click', () => {
 function serialiserChapitres(chs) {
   let s = '[\n';
   for (const c of chs) {
-    s += `  {\n    num: ${chaine(c.num)},\n    titre: ${chaine(c.titre)},\n    docs: [\n`;
+    s += `  {\n    num: ${chaine(c.num)},\n    titre: ${chaine(c.titre)},\n`;
+    /* Les titres d'activité écrits à la main, s'il y en a. */
+    const cles = c.act ? Object.keys(c.act).filter(k => c.act[k]).sort((x, y) => x - y) : [];
+    if (cles.length) s += '    act: { ' + cles.map(k => `${k}: ${chaine(c.act[k])}`).join(', ') + ' },\n';
+    s += '    docs: [\n';
     for (const d of c.docs) {
       if (!d.l) continue;
       let t = `      { l:${chaine(d.l)}`;

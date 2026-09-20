@@ -77,14 +77,20 @@
   }
 
   /* --- titre de l'étape ---------------------------------------------------
-     Pris sur l'énoncé de l'activité : « Activité 1 : Les niveaux
-     d'organisation du vivant » donne « Les niveaux d'organisation du vivant ».
-     Sans énoncé, l'étape s'appelle simplement « Activité N ». */
-  function titreEtape(n, docs) {
+     À défaut de titre écrit à la main, il est pris sur l'énoncé de l'activité :
+     « Activité 1 : Les niveaux d'organisation du vivant » donne « Les niveaux
+     d'organisation du vivant ». Sans énoncé — une activité dont seule la fiche
+     réponse est en ligne — il ne resterait que « Activité N », d'où la
+     possibilité de l'écrire soi-même.
+
+     Les deux sont rendus : `titre` est celui qu'on affiche, `derive` sert à
+     repérer la ligne qui ne fait que répéter le titre. */
+  function titreEtape(n, docs, titres) {
+    const ecrit = (titres && titres[n]) ? String(titres[n]).trim() : '';
     const enonce = docs.find((d) => d.__r === 'activite');
-    if (!enonce) return 'Activité ' + n;
-    const t = alleger(enonce.l, n, 'activite');
-    return t === DEFAUT.activite ? 'Activité ' + n : t;
+    const t = enonce ? alleger(enonce.l, n, 'activite') : '';
+    const derive = (!t || t === DEFAUT.activite) ? 'Activité ' + n : t;
+    return { titre: ecrit || derive, derive: derive };
   }
 
   const RANG = { activite: 0, support: 1, correction: 2, bilan: 3, evaluation: 4, entrainement: 5, autre: 6 };
@@ -94,7 +100,7 @@
      aucun document ne mentionne d'activité — c'est le cas des chapitres 5 et 6
      en seconde — ressort avec zéro étape et tout dans « chapitre » : la page
      retombe alors sur une simple liste, sans rien casser. */
-  function grouper(docs) {
+  function grouper(docs, titres) {
     const prepares = (docs || []).map((d) => {
       const r = d.r || role(d.l);
       const n = (d.a === undefined || d.a === null) ? numero(d.l) : +d.a;
@@ -112,13 +118,13 @@
     const etapes = [...paquets.keys()].sort((x, y) => x - y).map((n) => {
       const L = paquets.get(n).slice()
         .sort((p, q) => (RANG[p.__r] ?? 9) - (RANG[q.__r] ?? 9));
-      const titre = titreEtape(n, L);
-      /* Le titre de l'étape vient de l'énoncé : inutile de le réécrire mot pour
-         mot sur sa propre ligne, elle s'annonce simplement « Énoncé de
-         l'activité ». Les autres énoncés d'une même activité, eux, gardent leur
-         intitulé puisqu'il apporte quelque chose. */
-      for (const d of L) if (d.__r === 'activite' && d.__t === titre) d.__t = DEFAUT.activite;
-      return { n: n, titre: titre, docs: L };
+      const { titre, derive } = titreEtape(n, L, titres);
+      /* La ligne de l'énoncé répète le titre déduit d'elle : inutile de le lire
+         deux fois, elle s'annonce simplement « Énoncé de l'activité ». On compare
+         au titre déduit et non à celui affiché, pour que ça tienne aussi quand le
+         titre a été réécrit à la main. */
+      for (const d of L) if (d.__r === 'activite' && d.__t === derive) d.__t = DEFAUT.activite;
+      return { n: n, titre: titre, derive: derive, docs: L };
     });
 
     return { etapes: etapes, chapitre: chapitre };

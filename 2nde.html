@@ -829,7 +829,7 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
   /* Les documents d'un chapitre sont regroupés en activités d'après leur
      intitulé — voir activites.js. Un chapitre sans numérotation d'activité
      ressort avec zéro étape : la page retombe alors sur la liste simple. */
-  const paquet = SVTActivites.grouper(ch.docs);
+  const paquet = SVTActivites.grouper(ch.docs, ch.act);
   const ligne = (d) => {
     const et = SVTActivites.ETIQUETTE[d.__r] || '';
     const tag = et ? `<span class="dr">${et}</span>` : '';
