@@ -76,6 +76,18 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
   background:#efeae1; padding:.1rem .35rem; border-radius:.25rem; word-break:break-all }
 .apercu .l{ color:#6b6459 }
 
+/* ── photos des labos ── */
+.vignettes{ list-style:none; display:grid; gap:.6rem; margin-top:1rem;
+  grid-template-columns:repeat(auto-fill,minmax(9rem,1fr)) }
+.vignettes li{ border:1px solid #e8e4dc; border-radius:.7rem; overflow:hidden; background:#fbfaf8 }
+.vignettes img{ width:100%; height:6.5rem; object-fit:cover; display:block; background:#eee }
+.vignettes .bas{ padding:.45rem .55rem; display:flex; gap:.4rem; align-items:center }
+.vignettes .lg{ flex:1; font-size:.72rem; line-height:1.4; color:#5c574f; word-break:break-word }
+.vignettes .sup{ flex:none; border:1px solid #e0cccc; color:#a32c2c; background:none;
+  border-radius:99px; padding:.15rem .5rem; font-size:.68rem }
+.vignettes .sup:hover{ background:#fbeceb }
+.mini-note{ font-size:.75rem; color:#6b6459; margin-top:.5rem }
+
 /* ── éditeur de chapitres ── */
 .chap{ border:1px solid #e8e4dc; border-radius:.85rem; background:#fbfaf8; padding:.85rem; margin-top:.8rem }
 .chap .haut{ display:flex; gap:.5rem; align-items:flex-start; flex-wrap:wrap }
@@ -174,6 +186,7 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
   <div class="onglets" role="tablist">
     <button role="tab" data-vue="doc" aria-selected="true">Déposer un document</button>
     <button role="tab" data-vue="organiser" aria-selected="false">Organiser une page</button>
+    <button role="tab" data-vue="photos" aria-selected="false">Photos des labos</button>
     <button role="tab" data-vue="assistant" aria-selected="false">Nourrir l'assistant</button>
   </div>
 
@@ -215,6 +228,55 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
         <button class="pill clair" id="d-recharger">Recharger les chapitres</button>
       </div>
       <div id="d-msg"></div>
+    </div>
+  </div>
+
+  <!-- ─── photos des labos ─── -->
+  <div id="vue-photos" class="cacher">
+    <div class="carte">
+      <h2>Ajouter une photo de la vraie paillasse</h2>
+      <p class="aide">Les labos montrent des simulations. Une photo prise en classe
+         dit ce qu'aucune simulation ne dit : à quoi ça ressemble pour de bon.</p>
+
+      <div class="rang deux">
+        <label>
+          <span class="t">Laboratoire</span>
+          <select id="f-labo">
+            <option value="vegetal">Biologie végétale</option>
+            <option value="geologie">Géologie</option>
+          </select>
+        </label>
+        <label>
+          <span class="t">Type de photo</span>
+          <select id="f-type">
+            <option value="manip">Une manipulation</option>
+            <option value="roche">Un échantillon de roche</option>
+          </select>
+        </label>
+      </div>
+
+      <label>
+        <span class="t" id="f-cible-t">Manipulation</span>
+        <select id="f-cible"><option>Chargement…</option></select>
+      </label>
+
+      <div id="f-actuelles"></div>
+
+      <label>
+        <span class="t">Légende (facultative)</span>
+        <input type="text" id="f-legende" placeholder="Le tube de gauche est le témoin." />
+      </label>
+
+      <label>
+        <span class="t">La photo</span>
+        <input type="file" id="f-fichier" accept="image/*" />
+      </label>
+      <p class="mini-note" id="f-poids"></p>
+
+      <div class="actions">
+        <button class="pill noir" id="f-publier" disabled>Déposer la photo</button>
+      </div>
+      <div id="f-msg"></div>
     </div>
   </div>
 
@@ -406,6 +468,7 @@ function entrer() {
   $('sortir').classList.remove('cacher');
   chargerChapitres();
   chargerOrga();
+  chargerPhotos();
   chargerAssistant();
 }
 
@@ -548,6 +611,220 @@ $('d-publier').addEventListener('click', async () => {
 
 async function lireFichierBrut(chemin) {
   return api(`/repos/${DEPOT}/contents/${encodeURI(chemin)}?ref=${BRANCHE}`);
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ONGLET « PHOTOS DES LABOS »
+
+   Deux conventions, parce qu'il y en avait déjà une.
+
+   · Les photos de roches du labo de géologie : images/roches/<id>-<n>.jpg.
+     La page les cherche toute seule, une à une, jusqu'à en manquer une. Rien
+     d'autre à faire que déposer le fichier au bon nom.
+
+   · Les photos de manipulation, nouvelles : un répertoire unique,
+     images/labo/photos.json, lu en une fois par les deux labos. Deux cents
+     manipulations, ce serait deux cents requêtes autrement.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const REPERTOIRE = 'images/labo/photos.json';
+let photosLabo = null;    // { repertoire, sha, manips:{...}, roches:[...] }
+
+const LABO_FICHIER = { vegetal: 'outils/labo_vegetal.html', geologie: 'outils/labo_geologie.html' };
+
+/* Les deux labos déclarent leurs listes en JavaScript littéral : on les relit
+   plutôt que de recopier ici une liste qui vieillirait. */
+function extraireTableau(src, entete) {
+  const i = src.indexOf(entete);
+  if (i < 0) throw new Error(entete + ' introuvable.');
+  const debut = src.indexOf('[', i);
+  let n = 0, j = debut;
+  for (; j < src.length; j++) {
+    if (src[j] === '[') n++;
+    else if (src[j] === ']') { n--; if (!n) break; }
+  }
+  return new Function('return ' + src.slice(debut, j + 1))();
+}
+
+async function chargerPhotos() {
+  const labo = $('f-labo').value;
+  $('f-cible').innerHTML = '<option>Chargement…</option>';
+  message('f-msg', '', '');
+  try {
+    let rep = { vegetal: {}, geologie: {} }, sha = null;
+    try {
+      const d = await lireFichier(REPERTOIRE);
+      rep = JSON.parse(d.texte); sha = d.sha;
+    } catch (e) { /* premier dépôt : le répertoire n'existe pas encore */ }
+
+    const page = await lireFichier(LABO_FICHIER[labo]);
+    const manips = extraireTableau(page.texte, 'const CATALOGUE = ')
+      .filter(e => !e.titre && e.n && e.t);
+    let roches = [];
+    if (labo === 'geologie') {
+      try { roches = extraireTableau(page.texte, 'const ROCHES = ').filter(r => r.id && r.n); }
+      catch (e) { roches = []; }
+    }
+    photosLabo = { rep, sha, manips, roches };
+    majTypePhoto();
+  } catch (e) {
+    photosLabo = null;
+    $('f-cible').innerHTML = '<option>—</option>';
+    message('f-msg', 'ko', 'Lecture impossible : ' + echap(e.message));
+  }
+}
+
+function majTypePhoto() {
+  const roche = $('f-type').value === 'roche';
+  const labo = $('f-labo').value;
+  /* Seul le labo de géologie a des échantillons de roche. */
+  $('f-type').querySelector('[value=roche]').disabled = labo !== 'geologie';
+  if (roche && labo !== 'geologie') { $('f-type').value = 'manip'; return majTypePhoto(); }
+  $('f-cible-t').textContent = roche ? 'Échantillon' : 'Manipulation';
+  if (!photosLabo) return;
+  const liste = roche
+    ? photosLabo.roches.map(r => ({ v: r.id, t: r.n }))
+    : photosLabo.manips.map(m => ({ v: m.n, t: m.n + ' — ' + m.t }));
+  $('f-cible').innerHTML = liste.length
+    ? liste.map(o => `<option value="${echap(o.v)}">${echap(o.t.length > 90 ? o.t.slice(0, 88) + '…' : o.t)}</option>`).join('')
+    : '<option value="">— aucun —</option>';
+  majPhotosActuelles();
+}
+
+function majPhotosActuelles() {
+  const zone = $('f-actuelles');
+  if (!photosLabo) { zone.innerHTML = ''; return; }
+  const labo = $('f-labo').value, cible = $('f-cible').value;
+  if ($('f-type').value === 'roche') {
+    zone.innerHTML = `<p class="mini-note">Les photos de roches sont cherchées automatiquement
+      par la page, dans l'ordre. Déposer une photo ajoute la suivante ; pour en retirer une,
+      dites-le-moi.</p>`;
+    return;
+  }
+  const dej = (photosLabo.rep[labo] || {})[cible] || [];
+  zone.innerHTML = dej.length
+    ? '<ul class="vignettes">' + dej.map((p, i) => `
+        <li><img src="/${echap(p.f)}" alt="${echap(p.lg || 'Photo ' + (i + 1))}" loading="lazy" />
+          <div class="bas"><span class="lg">${echap(p.lg || '—')}</span>
+          <button class="sup" data-i="${i}">Retirer</button></div></li>`).join('') + '</ul>'
+    : '<p class="mini-note">Aucune photo pour cette manipulation.</p>';
+  zone.querySelectorAll('.sup').forEach(b => b.addEventListener('click', () => retirerPhoto(+b.dataset.i)));
+}
+
+['f-labo', 'f-type', 'f-cible'].forEach(id => $(id).addEventListener('change', () => {
+  if (id === 'f-labo') chargerPhotos();
+  else if (id === 'f-type') majTypePhoto();
+  else majPhotosActuelles();
+}));
+
+/* Une photo de téléphone pèse plusieurs mégaoctets pour rien : à l'écran, le
+   grand côté ne dépassera jamais 1600 pixels. On réduit avant d'envoyer. */
+function reduire(fichier, cote = 1600, qualite = 0.82) {
+  return new Promise((ok, non) => {
+    const img = new Image();
+    img.onload = () => {
+      const f = Math.min(1, cote / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * f);
+      c.height = Math.round(img.height * f);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => b ? ok(b) : non(new Error('conversion impossible')), 'image/jpeg', qualite);
+      URL.revokeObjectURL(img.src);
+    };
+    img.onerror = () => non(new Error("ce fichier n'est pas une image lisible."));
+    img.src = URL.createObjectURL(fichier);
+  });
+}
+
+$('f-fichier').addEventListener('change', async () => {
+  const f = $('f-fichier').files[0];
+  $('f-publier').disabled = !f;
+  if (!f) { $('f-poids').textContent = ''; return; }
+  $('f-poids').textContent = 'Préparation…';
+  try {
+    const petite = await reduire(f);
+    $('f-poids').textContent = `Photo réduite pour le web : ${Math.round(f.size / 1024)} ko → ${Math.round(petite.size / 1024)} ko.`;
+  } catch (e) { $('f-poids').textContent = ''; message('f-msg', 'ko', echap(e.message)); }
+});
+
+const sansAccents = (t) => String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+$('f-publier').addEventListener('click', async () => {
+  const b = $('f-publier');
+  const f = $('f-fichier').files[0];
+  if (!f || !photosLabo) return;
+  const labo = $('f-labo').value, cible = $('f-cible').value;
+  const roche = $('f-type').value === 'roche';
+  if (!cible) { message('f-msg', 'ko', 'Choisissez d\'abord une cible.'); return; }
+  b.disabled = true;
+  message('f-msg', 'info', 'Réduction et dépôt de la photo…');
+  try {
+    const petite = await reduire(f);
+    const octets = new Uint8Array(await petite.arrayBuffer());
+
+    let chemin;
+    if (roche) {
+      /* La page essaie <id>-1, <id>-2… et s'arrête au premier manquant :
+         il faut donc prendre la première place libre, sans laisser de trou. */
+      let n = 1;
+      while (n <= 12) {
+        try { await lireFichierBrut(`images/roches/${cible}-${n}.jpg`); n++; }
+        catch (e) { break; }
+      }
+      if (n > 12) throw new Error('cet échantillon a déjà douze photos.');
+      chemin = `images/roches/${cible}-${n}.jpg`;
+    } else {
+      const dej = (photosLabo.rep[labo] || {})[cible] || [];
+      chemin = `images/labo/${labo}/${sansAccents(cible)}-${dej.length + 1}.jpg`;
+    }
+
+    let sha = null;
+    try { sha = (await lireFichierBrut(chemin)).sha; } catch (e) { /* nouveau fichier */ }
+    await ecrireFichier(chemin, versBase64(octets), sha, 'Ajoute la photo ' + chemin);
+
+    if (!roche) {
+      /* Le répertoire est relu à l'instant : un autre dépôt a pu passer entre-temps. */
+      let rep = { vegetal: {}, geologie: {} }, shaRep = null;
+      try { const d = await lireFichier(REPERTOIRE); rep = JSON.parse(d.texte); shaRep = d.sha; } catch (e) { }
+      rep[labo] = rep[labo] || {};
+      rep[labo][cible] = (rep[labo][cible] || []).filter(p => p.f !== chemin);
+      rep[labo][cible].push({ f: chemin, lg: $('f-legende').value.trim() });
+      await ecrireFichier(REPERTOIRE, texteVersBase64(JSON.stringify(rep, null, 2) + '\n'),
+        shaRep, `Repertorie la photo de ${cible}`);
+      photosLabo.rep = rep;
+    }
+
+    message('f-msg', 'ok', `<b>C'est déposé.</b> La photo apparaît sur le labo dans une minute environ —
+      <a href="/${echap(LABO_FICHIER[labo])}" target="_blank" rel="noopener">voir le labo ↗</a>`);
+    $('f-fichier').value = ''; $('f-legende').value = ''; $('f-poids').textContent = '';
+    majPhotosActuelles();
+  } catch (e) {
+    message('f-msg', 'ko', '<b>Rien n\'a été déposé.</b> ' + echap(e.message));
+  }
+  b.disabled = !$('f-fichier').files[0];
+});
+
+async function retirerPhoto(i) {
+  const labo = $('f-labo').value, cible = $('f-cible').value;
+  const dej = (photosLabo.rep[labo] || {})[cible] || [];
+  const p = dej[i];
+  if (!p) return;
+  if (!confirm(`Retirer cette photo de la manipulation ${cible} ?\n\nLe fichier reste sur le serveur : rien n'est perdu.`)) return;
+  message('f-msg', 'info', 'Mise à jour du répertoire…');
+  try {
+    const d = await lireFichier(REPERTOIRE);
+    const rep = JSON.parse(d.texte);
+    rep[labo][cible] = (rep[labo][cible] || []).filter(x => x.f !== p.f);
+    if (!rep[labo][cible].length) delete rep[labo][cible];
+    await ecrireFichier(REPERTOIRE, texteVersBase64(JSON.stringify(rep, null, 2) + '\n'),
+      d.sha, `Retire une photo de ${cible}`);
+    photosLabo.rep = rep;
+    message('f-msg', 'ok', 'Photo retirée du labo.');
+    majPhotosActuelles();
+  } catch (e) {
+    message('f-msg', 'ko', 'Rien n\'a change : ' + echap(e.message));
+  }
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -899,6 +1176,7 @@ document.querySelectorAll('[data-vue]').forEach(b => b.addEventListener('click',
   document.querySelectorAll('[data-vue]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
   $('vue-doc').classList.toggle('cacher', b.dataset.vue !== 'doc');
   $('vue-organiser').classList.toggle('cacher', b.dataset.vue !== 'organiser');
+  $('vue-photos').classList.toggle('cacher', b.dataset.vue !== 'photos');
   $('vue-assistant').classList.toggle('cacher', b.dataset.vue !== 'assistant');
 }));
 
