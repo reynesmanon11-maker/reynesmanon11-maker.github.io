@@ -120,6 +120,10 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
 .docs .outils button{ width:1.6rem; height:1.6rem; border-radius:.4rem; border:1px solid #ddd8ce;
   background:#fbfaf8; font-size:.72rem; color:#5c574f; display:grid; place-items:center }
 .docs .outils .sup{ border-color:#e0cccc; color:#a32c2c }
+.docs .outils .joindre{ border-color:#c9d8c9; background:#f2f8f2; font-size:.8rem }
+.docs .outils .joindre:hover{ border-color:#4ba574 }
+.chap .actions .efface{ color:#a32c2c; box-shadow:0 0 0 1px #e0cccc }
+.chap .actions .efface:hover{ box-shadow:0 0 0 1px #a32c2c }
 .docs .vide-h input{ background:#f6f3ec }
 @media (max-width:620px){ .docs li{ flex-wrap:wrap } .docs .l, .docs .h, .docs .ra{ flex:1 1 100% }
   .docs .ra select{ flex:1; max-width:none } }
@@ -193,53 +197,12 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
 <section id="ecran-gestion" class="cacher">
   <h1>Que voulez-vous faire ?</h1>
   <div class="onglets" role="tablist">
-    <button role="tab" data-vue="doc" aria-selected="true">Déposer un document</button>
-    <button role="tab" data-vue="organiser" aria-selected="false">Organiser une page</button>
+    <button role="tab" data-vue="organiser" aria-selected="true">Mes pages de cours</button>
     <button role="tab" data-vue="photos" aria-selected="false">Photos des labos</button>
     <button role="tab" data-vue="assistant" aria-selected="false">Nourrir l'assistant</button>
   </div>
 
   <!-- ─── dépôt d'un document ─── -->
-  <div id="vue-doc">
-    <div class="carte">
-      <h2>Ajouter un cours, un TP ou une fiche</h2>
-      <p class="aide">Le document est déposé dans le bon dossier et le lien apparaît
-         automatiquement sur la page du niveau. Rien d'autre à faire.</p>
-
-      <div class="rang deux">
-        <label>
-          <span class="t">Niveau</span>
-          <select id="d-niveau">
-            <option value="2nde.html">Seconde</option>
-            <option value="1ere.html">Première — enseignement scientifique</option>
-            <option value="terminale.html">Terminale — enseignement scientifique</option>
-          </select>
-        </label>
-        <label>
-          <span class="t">Chapitre</span>
-          <select id="d-chapitre"><option>Chargement…</option></select>
-        </label>
-      </div>
-
-      <label>
-        <span class="t">Nom affiché aux élèves</span>
-        <input type="text" id="d-nom" placeholder="Activité 3 — la mitose" />
-      </label>
-
-      <label>
-        <span class="t">Le fichier (PDF, image, document)</span>
-        <input type="file" id="d-fichier" accept=".pdf,.png,.jpg,.jpeg,.webp,.odt,.docx,.pptx" />
-      </label>
-
-      <div id="d-apercu"></div>
-      <div class="actions">
-        <button class="pill noir" id="d-publier" disabled>Déposer et publier</button>
-        <button class="pill clair" id="d-recharger">Recharger les chapitres</button>
-      </div>
-      <div id="d-msg"></div>
-    </div>
-  </div>
-
   <!-- ─── photos des labos ─── -->
   <div id="vue-photos" class="cacher">
     <div class="carte">
@@ -290,14 +253,14 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
   </div>
 
   <!-- ─── organisation d'une page de niveau ─── -->
-  <div id="vue-organiser" class="cacher">
+  <div id="vue-organiser">
     <div class="carte">
-      <h2>Renommer, supprimer, réordonner</h2>
-      <p class="aide">Tout ce qui s'affiche sur une page de niveau se modifie ici :
-         le titre d'un chapitre, le nom d'un document, son ordre — et les lignes
-         « à venir » que vous n'utilisez plus.</p>
+      <h2>Déposer un document, renommer, réordonner</h2>
+      <p class="aide">Tout se fait ici. Le bouton <b>📎</b> d'une ligne y dépose un fichier ;
+         <b>+ Déposer un fichier</b> crée la ligne et dépose dans la foulée. Le titre, l'ordre,
+         l'activité à laquelle le document appartient : tout se modifie sur place.</p>
       <label>
-        <span class="t">Page à organiser</span>
+        <span class="t">Page</span>
         <select id="o-niveau">
           <option value="2nde.html">Seconde</option>
           <option value="1ere.html">Première — enseignement scientifique</option>
@@ -305,6 +268,8 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
         </select>
       </label>
       <div id="o-liste"></div>
+      <input type="file" id="o-fichier" class="cacher"
+             accept=".pdf,.png,.jpg,.jpeg,.webp,.odt,.docx,.pptx,.odp,.ods,.xlsx" />
       <div class="actions">
         <button class="pill clair" id="o-ajouter-chap">+ Ajouter un chapitre</button>
       </div>
@@ -312,8 +277,9 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
 
     <div class="carte">
       <h2>Publier</h2>
-      <p class="aide">Rien n'est envoyé tant que vous ne cliquez pas ici. Supprimer une
-         ligne retire le lien de la page, mais ne supprime pas le fichier : rien n'est perdu.</p>
+      <p class="aide">Les fichiers déposés partent tout de suite ; les titres, l'ordre et les
+         suppressions attendent ce bouton. Supprimer une ligne retire le lien de la page,
+         mais ne supprime pas le fichier : rien n'est perdu.</p>
       <div class="actions">
         <button class="pill noir" id="o-publier" disabled>Publier les modifications</button>
         <button class="pill clair" id="o-annuler">Tout annuler</button>
@@ -476,17 +442,14 @@ function entrer() {
   $('ecran-jeton').classList.add('cacher');
   $('ecran-gestion').classList.remove('cacher');
   $('sortir').classList.remove('cacher');
-  chargerChapitres();
   chargerOrga();
   chargerPhotos();
   chargerAssistant();
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   ONGLET 1 — déposer un document
+   ONGLET 1 — les pages de cours : déposer, renommer, réordonner
    ───────────────────────────────────────────────────────────────────────────── */
-
-let pageNiveau = null;   // { texte, sha, chapitres:[{num,titre}] }
 
 /* Le tableau CHAPITRES est du JavaScript littéral dans la page : on le relit tel
    quel plutôt que de le deviner, pour rester d'accord avec ce que voit l'élève. */
@@ -501,26 +464,6 @@ function extraireChapitres(html) {
   }
   const bloc = html.slice(debut, j + 1);
   return new Function('return ' + bloc)();
-}
-
-/* `garderMessage` sert apres une publication : sans lui, le rechargement de la
-   liste effacerait aussitot la confirmation que l'enseignante vient de lire. */
-async function chargerChapitres(garderMessage) {
-  const f = $('d-niveau').value;
-  $('d-chapitre').innerHTML = '<option>Chargement…</option>';
-  if (!garderMessage) message('d-msg', '', '');
-  try {
-    const { texte, sha } = await lireFichier(f);
-    const chapitres = extraireChapitres(texte);
-    pageNiveau = { fichier: f, texte, sha, chapitres };
-    $('d-chapitre').innerHTML = chapitres.map((c, i) =>
-      `<option value="${i}">${echap(c.num)} — ${echap(c.titre)}</option>`).join('');
-    majApercu();
-  } catch (e) {
-    pageNiveau = null;
-    $('d-chapitre').innerHTML = '<option>—</option>';
-    message('d-msg', 'ko', 'Impossible de lire ' + echap(f) + ' : ' + echap(e.message));
-  }
 }
 
 /* « Chapitre 1 » → chapitre-1, comme les dossiers déjà en place dans cours/. */
@@ -538,86 +481,6 @@ function nomPropre(nom) {
   return base.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) + ext;
 }
-
-function cheminCible() {
-  if (!pageNiveau) return null;
-  const f = $('d-fichier').files[0];
-  if (!f) return null;
-  const ch = pageNiveau.chapitres[+$('d-chapitre').value];
-  if (!ch) return null;
-  return `cours/${NIVEAU_DOSSIER[pageNiveau.fichier]}/${dossierDe(ch.num)}/${nomPropre(f.name)}`;
-}
-
-function majApercu() {
-  const chemin = cheminCible();
-  const nom = $('d-nom').value.trim();
-  const pret = !!(chemin && nom && pageNiveau);
-  $('d-publier').disabled = !pret;
-  if (!chemin) { $('d-apercu').innerHTML = ''; return; }
-  const ch = pageNiveau.chapitres[+$('d-chapitre').value];
-  $('d-apercu').innerHTML = `<div class="apercu">
-    <span class="l">Le fichier sera déposé dans</span><br><code>${echap(chemin)}</code><br><br>
-    <span class="l">et un lien nommé</span> <b>${echap(nom || '…')}</b>
-    <span class="l">sera ajouté au</span> <b>${echap(ch.num)}</b> <span class="l">de</span>
-    <b>${echap($('d-niveau').selectedOptions[0].textContent)}</b>.</div>`;
-}
-
-['d-nom', 'd-fichier', 'd-chapitre'].forEach(id => {
-  $(id).addEventListener('input', majApercu);
-  $(id).addEventListener('change', majApercu);
-});
-$('d-niveau').addEventListener('change', () => chargerChapitres(false));
-$('d-recharger').addEventListener('click', () => chargerChapitres(false));
-
-/* On insère la ligne juste après le `docs: [` du chapitre visé, sans toucher au
-   reste du fichier : les commentaires et la mise en forme de Manon sont conservés. */
-function insererDocument(html, chapitre, libelle, chemin) {
-  const ancre = `num: '${chapitre.num}'`;
-  const i = html.indexOf(ancre);
-  if (i < 0) throw new Error(`chapitre « ${chapitre.num} » introuvable dans la page.`);
-  const j = html.indexOf('docs: [', i);
-  if (j < 0) throw new Error(`liste des documents introuvable pour « ${chapitre.num} ».`);
-  const apres = j + 'docs: ['.length;
-  const l = libelle.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-  return html.slice(0, apres) + `\n      { l:'${l}', h:'${chemin}' },` + html.slice(apres);
-}
-
-$('d-publier').addEventListener('click', async () => {
-  const b = $('d-publier');
-  const f = $('d-fichier').files[0];
-  const nom = $('d-nom').value.trim();
-  const chemin = cheminCible();
-  if (!f || !nom || !chemin || !pageNiveau) return;
-  b.disabled = true;
-  message('d-msg', 'info', 'Dépôt du fichier…');
-  try {
-    /* 1. le fichier */
-    const octets = new Uint8Array(await f.arrayBuffer());
-    let shaFichier = null;
-    try { shaFichier = (await lireFichierBrut(chemin)).sha; } catch (e) { /* nouveau fichier */ }
-    await ecrireFichier(chemin, versBase64(octets), shaFichier,
-      (shaFichier ? 'Remplace ' : 'Ajoute ') + chemin);
-
-    /* 2. le lien dans la page du niveau — relue à l'instant pour son sha */
-    message('d-msg', 'info', 'Mise à jour de la page du niveau…');
-    const frais = await lireFichier(pageNiveau.fichier);
-    const chapitres = extraireChapitres(frais.texte);
-    const ch = chapitres[+$('d-chapitre').value];
-    const nouveau = insererDocument(frais.texte, ch, nom, chemin);
-    await ecrireFichier(pageNiveau.fichier, texteVersBase64(nouveau), frais.sha,
-      `Ajoute « ${nom} » au ${ch.num}`);
-
-    message('d-msg', 'ok', `<b>C'est publié.</b> « ${echap(nom)} » est en ligne dans le ${echap(ch.num)}.
-      <br>Le site se met à jour en une minute environ —
-      <a href="/${echap(pageNiveau.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`);
-    $('d-nom').value = ''; $('d-fichier').value = '';
-    majApercu();
-    chargerChapitres(true);
-  } catch (e) {
-    message('d-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
-  }
-  b.disabled = false;
-});
 
 async function lireFichierBrut(chemin) {
   return api(`/repos/${DEPOT}/contents/${encodeURI(chemin)}?ref=${BRANCHE}`);
@@ -932,13 +795,20 @@ function dessinerOrga() {
             <div class="h ${d.h ? '' : 'vide-h'}"><input type="text" data-champ="h" value="${echap(d.h || '')}" placeholder="vide = « à venir »" aria-label="Lien du document" /></div>
             <div class="ra">${reglages(d)}</div>
             <div class="outils">
+              <button class="joindre" data-act="d-joindre" title="Déposer un fichier dans cette ligne"
+                      aria-label="Déposer un fichier dans cette ligne">📎</button>
               <button data-act="d-haut" title="Monter" aria-label="Monter la ligne">↑</button>
               <button data-act="d-bas" title="Descendre" aria-label="Descendre la ligne">↓</button>
               <button class="sup" data-act="d-sup" title="Supprimer la ligne" aria-label="Supprimer la ligne">✕</button>
             </div>
           </li>`).join('')}
       </ul>
-      <div class="actions"><button class="pill clair" data-act="d-ajout">+ Ajouter une ligne</button></div>
+      <div class="actions">
+        <button class="pill noir" data-act="d-ajout-fichier">+ Déposer un fichier</button>
+        <button class="pill clair" data-act="d-ajout">+ Ligne vide</button>
+        ${c.docs.some(d => !d.h) ? `<button class="pill clair efface" data-act="d-vider"
+          title="Retirer les lignes sans fichier">Retirer les ${c.docs.filter(d => !d.h).length} ligne(s) « à venir »</button>` : ''}
+      </div>
     </div>`).join('');
   brancherOrga();
 }
@@ -989,8 +859,22 @@ function brancherOrga() {
       orga.chapitres.splice(i, 1);
     }
     else if (act === 'd-ajout') c.docs.push({ l: 'Nouveau document' });
+    else if (act === 'd-ajout-fichier') {
+      /* On crée la ligne et on ouvre le sélecteur dans la foulée : c'est le
+         geste le plus courant — « j'ai un PDF à mettre dans ce chapitre ». */
+      c.docs.push({ l: '' });
+      demanderFichier(i, c.docs.length - 1);
+      return;
+    }
+    else if (act === 'd-vider') {
+      const n = c.docs.filter(d => !d.h).length;
+      if (!n || !confirm(`Retirer les ${n} ligne(s) « à venir » du ${c.num} ?\n\n`
+        + 'Ce sont les lignes sans fichier. Vous les recréerez en déposant vos documents.')) return;
+      c.docs = c.docs.filter(d => !!d.h);
+    }
     else if (li) {
       const j = +li.dataset.d;
+      if (act === 'd-joindre') { demanderFichier(i, j); return; }
       if (act === 'd-haut' && !bouger(c.docs, j, j - 1)) return;
       else if (act === 'd-bas' && !bouger(c.docs, j, j + 1)) return;
       else if (act === 'd-sup') {
@@ -1004,6 +888,65 @@ function brancherOrga() {
     dessinerOrga();
   }));
 }
+
+/* ── déposer un fichier dans une ligne ──────────────────────────────────────
+   Le fichier part tout de suite vers le dépôt : c'est une opération sûre, qui
+   n'affiche encore rien aux élèves. Le lien, lui, n'apparaît sur la page qu'à
+   la publication, avec le reste des modifications en cours. */
+let cibleDepot = null;
+
+function demanderFichier(i, j) {
+  cibleDepot = { i, j };
+  const inp = $('o-fichier');
+  inp.value = '';
+  inp.click();
+}
+
+/* « bilan-cours-activite-3.pdf » → « Bilan cours activite 3 » : un point de
+   départ pour le titre affiché, que Mme Reynes corrige ensuite sur la ligne. */
+function titreDepuisFichier(nom) {
+  const p = nom.lastIndexOf('.');
+  const base = (p > 0 ? nom.slice(0, p) : nom).replace(/[_-]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  return base ? base.charAt(0).toUpperCase() + base.slice(1) : 'Nouveau document';
+}
+
+/* Sélecteur refermé sans rien choisir : la ligne qu'on venait de créer pour
+   l'occasion n'a plus de raison d'être. */
+$('o-fichier').addEventListener('cancel', () => {
+  if (!cibleDepot || !orga) return;
+  const c = orga.chapitres[cibleDepot.i], d = c && c.docs[cibleDepot.j];
+  if (d && !d.l && !d.h) { c.docs.splice(cibleDepot.j, 1); dessinerOrga(); }
+  cibleDepot = null;
+});
+
+$('o-fichier').addEventListener('change', async () => {
+  const f = $('o-fichier').files[0];
+  if (!f || !cibleDepot || !orga) return;
+  const c = orga.chapitres[cibleDepot.i];
+  const d = c && c.docs[cibleDepot.j];
+  if (!c || !d) { cibleDepot = null; return; }
+
+  const chemin = `cours/${NIVEAU_DOSSIER[orga.fichier]}/${dossierDe(c.num)}/${nomPropre(f.name)}`;
+  message('o-msg', 'info', `Dépôt de <code>${echap(f.name)}</code>…`);
+  try {
+    const octets = new Uint8Array(await f.arrayBuffer());
+    let sha = null;
+    try { sha = (await lireFichierBrut(chemin)).sha; } catch (e) { /* fichier neuf */ }
+    await ecrireFichier(chemin, versBase64(octets), sha, (sha ? 'Remplace ' : 'Ajoute ') + chemin);
+
+    d.h = chemin;
+    if (!d.l || d.l === 'Nouveau document') d.l = titreDepuisFichier(f.name);
+    orgaModifiee();
+    dessinerOrga();
+    message('o-msg', 'ok',
+      `<b>${echap(f.name)} est déposé</b> dans le ${echap(c.num)}` + (sha ? ' (il en remplace un du même nom).' : '.')
+      + ` Vérifiez le titre affiché, puis <b>cliquez sur « Publier les modifications »</b>`
+      + ` pour que le lien apparaisse aux élèves.`);
+  } catch (e) {
+    message('o-msg', 'ko', `<b>${echap(f.name)} n'a pas été déposé.</b> ` + echap(e.message));
+  }
+  cibleDepot = null;
+});
 
 $('o-niveau').addEventListener('change', () => {
   if (orga && orga.modifie && !confirm('Changer de page abandonnera les modifications non publiées. Continuer ?')) {
@@ -1074,8 +1017,6 @@ $('o-publier').addEventListener('click', async () => {
     orga.modifie = false;
     message('o-msg', 'ok', `<b>C'est publié.</b> La page est à jour dans une minute environ —
       <a href="/${echap(orga.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`);
-    /* L'onglet de dépôt garde une copie des chapitres : elle vient de vieillir. */
-    if (pageNiveau && pageNiveau.fichier === orga.fichier) chargerChapitres(true);
   } catch (e) {
     message('o-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
     b.disabled = false;
@@ -1240,7 +1181,6 @@ $('a-annuler').addEventListener('click', () => {
 /* ---------- onglets ---------- */
 document.querySelectorAll('[data-vue]').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('[data-vue]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
-  $('vue-doc').classList.toggle('cacher', b.dataset.vue !== 'doc');
   $('vue-organiser').classList.toggle('cacher', b.dataset.vue !== 'organiser');
   $('vue-photos').classList.toggle('cacher', b.dataset.vue !== 'photos');
   $('vue-assistant').classList.toggle('cacher', b.dataset.vue !== 'assistant');
