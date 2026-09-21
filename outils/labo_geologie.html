@@ -578,7 +578,7 @@ header.top .marque b{ letter-spacing:-.015em }
        automatiquement et s'impriment en fiche de résultats à son nom.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
       <button class="btn" id="btn-carnet-3" style="background:#fff; border-color:#fff">Voir le carnet</button>
-      <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiche pédagogique</button>
+      <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches au format ECE</button>
     </div>
   </div>
 
@@ -4044,85 +4044,282 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
    FICHE PÉDAGOGIQUE — un récapitulatif imprimable pour le professeur
    ========================================================================== */
 (function fichePedago(){
+  /* Les fiches reprennent la trame d'une correction d'ECE : objectif, les
+     quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L'élève
+     retrouve donc ici la forme exacte de ce qu'on lui demandera à l'épreuve. */
   const MODULES = [
-    {n:"Gouttière hydraulique — érosion, transport, dépôt", ref:"B2 à B5", niv:"2de → 1re", d:"45 à 50 min",
-     o:"Relier la vitesse d'un courant à ce qu'il arrache, transporte et abandonne ; faire apparaître le tri granulométrique.",
-     r:"Graviers déposés près de l'amont, sables plus loin, argiles exportées. Le diagramme de Hjulström montre qu'une argile est plus difficile à arracher qu'un sable fin.",
-     v:"Séparer explicitement les deux seuils, chute et arrachement : c'est là que se joue la compréhension, et l'élève les confond spontanément."},
-    {n:"Altération des roches", ref:"B1", niv:"2de", d:"50 min",
-     o:"Relier la nature d'une roche à sa résistance à l'altération, et identifier par des tests ce qui est passé en solution.",
-     r:"Un calcaire perd quelques pour cent de sa masse en une heure dans du vinaigre, un granite rien de mesurable en un an. L'oxalate révèle le calcium, le pH remonte quand le carbonate neutralise l'acide.",
-     v:"Les vitesses sont celles d'un bécher agité, pas d'un paysage. Le tableau « à l'échelle géologique » donne les ordres de grandeur mesurés sur le terrain : la comparaison des deux est un exercice en soi."},
-    {n:"Cristallisation et texture", ref:"C1, C2, C6", niv:"2de → Terminale", d:"45 min",
-     o:"Relier la vitesse de refroidissement à la taille des cristaux, puis la texture et la chimie au nom de la roche.",
-     r:"Pluton : cristaux millimétriques à centimétriques, texture grenue, granite. Coulée : microlites, rhyolite. Trempe : verre, obsidienne. Le tableau à double entrée s'allume sur la bonne case.",
-     v:"Le TP réel se fait au sulfate de cuivre ou à l'alun : c'est un modèle analogique, une cristallisation depuis une solution aqueuse et non depuis un magma. Le dire aux élèves."},
-    {n:"Viscosité et style éruptif", ref:"C3, C4, C5", niv:"2de → 1re", d:"40 min",
-     o:"Relier silice, température et eau dissoute à la viscosité, puis la viscosité à la forme du volcan et au style éruptif.",
-     r:"Dix ordres de grandeur entre un basalte à 1200 °C et une rhyolite à 850 °C. Cône plat et coulées d'un côté, dôme et nuées ardentes de l'autre.",
-     v:"L'eau a deux effets opposés — elle fluidifie en profondeur, elle fait exploser à la remontée — et le module ne calcule que le premier. C'est la limite à faire formuler."},
-    {n:"Paillasse — identifier une roche", ref:"A1 à A6", niv:"2de → Terminale", d:"55 min",
-     o:"Classer seize roches en trois familles à partir de tests simples : loupe, acide, dureté, densité.",
-     r:"Magmatiques : cristaux jointifs sans orientation, ou pâte sombre. Sédimentaires : grains déposés, souvent effervescence. Métamorphiques : minéraux orientés.",
-     v:"Ce module ne simule rien : les propriétés sont réelles. Le mode « roche mystère » compte les tests utilisés — c'est l'économie des tests qu'il faut valoriser, pas leur nombre."},
-    {n:"Programmes du lycée", ref:"Toutes les parties", niv:"pour le professeur", d:"—",
-     o:"Partir du chapitre à traiter et non du catalogue : chaque chapitre donne les manipulations qui s'y rattachent.",
-     r:"Quatre niveaux. Les deux niveaux de spécialité suivent votre programmation, activité par activité, avec le type de séance.",
-     v:"Les capacités entre guillemets sont citées du Bulletin officiel ; le rattachement des manipulations, lui, est une proposition."},
-    {n:"Préparer une manip", ref:"Les quatre parties", niv:"pour le professeur", d:"—",
-     o:"Obtenir la liste de matériel d'une expérience pour le nombre de postes voulu, ou l'inverse.",
-     r:"Vingt et une fiches, panier agrégé en une liste de courses imprimable, matériel partagé compté une fois.",
-     v:"Les protocoles sont condensés : les confronter aux règles de sécurité de l'établissement, en particulier pour l'acide chlorhydrique et la découpe des roches."}
-  ];
-  const html = () =>
-    '<meta charset="utf-8"><title>Laboratoire de géologie — fiche pédagogique</title>' +
-    '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#a8660f}' +
-    '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
-    'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
-    'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
-    '.enc{background:#fdf6e9;border-left:3px solid #a8660f;padding:9px 12px;margin:10px 0}' +
-    'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
-    '<h1>Laboratoire virtuel de géologie — fiche pédagogique</h1>' +
-    '<p class="s">TP classiques du lycée · reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
-    '<div class="enc"><b>Deux statuts très différents dans ce laboratoire.</b> Les quatre premiers ' +
-    'modules calculent : vitesse de chute d\'un grain, taille des cristaux, viscosité d\'un magma, ' +
-    'perte de masse à l\'altération sortent d\'équations. Les lois sont celles des manuels — Stokes, ' +
-    'Hjulström, Arrhenius, cinétique du premier ordre — mais <b>les constantes sont ajustées pour ' +
-    'l\'illustration : les nombres ne sont pas des mesures</b>. La paillasse d\'identification, elle, ' +
-    'ne calcule rien : les propriétés des seize roches sont des faits. Un bandeau le rappelle dans ' +
-    'chaque module, et il ne dit pas la même chose selon le cas.</div>' +
-    MODULES.map(m => '<div class="mod"><h2>' + m.n + '</h2><table>' +
-      '<tr><th>Référence</th><td>' + m.ref + ' · ' + m.niv + ' · ' + m.d + '</td></tr>' +
-      '<tr><th>Objectif</th><td>' + m.o + '</td></tr>' +
-      '<tr><th>Résultat attendu</th><td>' + m.r + '</td></tr>' +
-      '<tr><th>Point de vigilance</th><td>' + m.v + '</td></tr></table></div>').join('') +
-    '<div class="mod"><h2>La boucle de la surface</h2>' +
-    '<p>Trois modules se suivent et racontent une seule histoire, qu\'il vaut la peine de traiter ' +
-    'dans cet ordre : <b>l\'altération</b> fabrique le sédiment en désagrégeant la roche, ' +
-    '<b>la gouttière</b> le transporte et le trie, et ce qui part en solution alimente les ' +
-    'rivières, puis les calcaires de demain. Le module d\'altération affiche explicitement ce ' +
-    'partage — ce qui s\'en va, ce qui reste sur place.</p></div>' +
-    '<div class="mod"><h2>Ce que l\'élève rend</h2>' +
-    '<p>Les valeurs qu\'il trouve — vitesse du courant et masse exportée, taille des cristaux et ' +
-    'nom de la roche, viscosité et style éruptif, perte de masse, identifications réussies et ' +
-    'nombre de tests utilisés — sont relevées automatiquement. Le bouton <b>Carnet</b> imprime une ' +
-    'fiche de résultats à son nom. Rien n\'est envoyé sur Internet : tout reste dans le navigateur ' +
-    'du poste.</p></div>' +
-    '<div class="mod"><h2>Liens directs</h2><ol>' +
-    ['#programme — entrée par le programme (#programme?niveau=2de, 1es, 1spe, tspe)',
-     '#sediment — gouttière, érosion, transport, dépôt','#alteration — altération des roches',
-     '#cristal — cristallisation et texture','#magma — viscosité et style éruptif',
-     '#roches — identifier une roche','#preparer — matériel']
-      .map(x => '<li>' + x + '</li>').join('') + '</ol></div>';
+    {n:"Gouttière hydraulique — érosion, transport, dépôt", niv:"2de → 1re", d:"45 à 50 min",
+     obj:"Déterminer comment la vitesse d'un courant contrôle ce qu'il arrache, ce qu'il transporte et ce qu'il abandonne.",
+     e1:"Réglage correct de la gouttière (pente, débit), introduction d'un mélange calibré et lecture du diagramme de Hjulström.",
+     gestes:[
+       {t:"Faire fonctionner la gouttière", l:[
+         "Régler la pente et le débit, puis laisser le courant s'établir avant toute observation.",
+         "Introduire en amont, en une seule fois, un mélange contenant plusieurs tailles de grains.",
+         "Relever la vitesse du courant affichée : c'est elle, et non le débit, qui sera reportée sur le diagramme."]},
+       {t:"Relever le dépôt et lire le diagramme", l:[
+         "Repérer la position où chaque classe de grains s'arrête, de l'amont vers l'aval.",
+         "Reporter la vitesse relevée sur le diagramme de Hjulström.",
+         "Lire, pour chaque taille de grain, s'il y a arrachement, transport ou dépôt."]}],
+     e2:"Un schéma de la gouttière annoté de l'amont vers l'aval — position des dépôts et taille des grains correspondante — ou un tableau taille de grain / distance de dépôt / comportement lu sur le diagramme.",
+     e3:{obs:"J'observe que les graviers se déposent près de l'amont, que les sables se déposent plus loin, et que les argiles franchissent toute la gouttière sans se déposer. J'observe sur le diagramme de Hjulström qu'à une même vitesse une argile déjà déposée est plus difficile à arracher qu'un sable fin.",
+         sais:"Je sais qu'un grain se dépose lorsque la vitesse du courant devient inférieure à sa vitesse limite de chute, laquelle croît avec la taille du grain ; mais que l'arrachement d'un grain déjà déposé dépend en outre de sa cohésion.",
+         ded:"J'en déduis que le ralentissement du courant vers l'aval trie les grains par taille : c'est le tri granulométrique, à l'origine du classement des dépôts sédimentaires. Les deux seuils — dépôt et arrachement — ne coïncident pas, ce qui explique qu'une argile, une fois déposée, reste en place."},
+     e4:{prop:"Pour vérifier que ce tri dépend bien de la vitesse et non de la seule distance parcourue, je propose de refaire l'essai avec le même mélange en augmentant la pente, donc la vitesse du courant.",
+         obs:"J'observe que tous les dépôts se décalent vers l'aval, et que les sables les plus fins ne se déposent plus du tout dans la gouttière.",
+         ded:"J'en déduis que c'est bien la vitesse du courant qui fixe, en un point donné, la taille des grains qui s'y déposent : un même lieu enregistre des dépôts différents selon l'énergie du courant, ce qui permet de lire l'énergie passée dans une roche sédimentaire."},
+     outil:["Réglage de la gouttière : pente et débit, temps d'établissement du courant",
+            "Lecture du diagramme de Hjulström : report d'une vitesse, lecture des trois domaines"],
+     res:["Obtention d'un dépôt trié et lisible de l'amont vers l'aval",
+          "Relevé de la vitesse du courant correspondant à ce dépôt"],
+     aidesM:["Régler la gouttière et lancer l'essai à la place du candidat",
+             "Fournir le schéma du dépôt déjà annoté, ou la lecture du diagramme"],
+     com:"La communication prépare à expliquer le tri granulométrique d'un dépôt sédimentaire."},
 
-  const b = $('#btn-fiche-prof');
-  if(b) b.addEventListener('click', () => {
+    {n:"Altération des roches", niv:"2de", d:"50 min",
+     obj:"Déterminer ce qui, dans une roche, résiste ou cède à l'altération, et identifier par des tests ce qui est passé en solution.",
+     e1:"Conduite correcte de l'essai — même masse, même agent, même durée pour deux roches comparées — et réalisation des tests sur l'eau d'altération.",
+     gestes:[
+       {t:"Conduire l'altération", l:[
+         "Choisir la roche, l'agent (eau, eau acidifiée, vinaigre, cycles gel-dégel) et la taille des fragments.",
+         "Ne modifier qu'un seul paramètre à la fois entre deux essais, sans quoi rien n'est comparable.",
+         "Relever la perte de masse en fin d'essai, et la rapporter à la masse de départ pour obtenir un pourcentage."]},
+       {t:"Tester l'eau d'altération", l:[
+         "Mesurer le pH au début et à la fin de l'essai.",
+         "Ajouter de l'oxalate d'ammonium à un prélèvement pour rechercher les ions calcium.",
+         "Noter le trouble ou le précipité obtenu, et le comparer à un témoin d'eau non utilisée."]}],
+     e2:"Un tableau roche / agent / durée / perte de masse en pourcentage, complété par les résultats des tests sur l'eau : pH initial, pH final, résultat de l'oxalate.",
+     e3:{obs:"J'observe qu'un calcaire perd quelques pour cent de sa masse en une heure dans du vinaigre, avec une effervescence, alors qu'un granite ne perd rien de mesurable. J'observe que le pH de l'eau remonte au cours de l'essai et que l'oxalate y révèle la présence de calcium.",
+         sais:"Je sais que le calcaire est constitué de carbonate de calcium, que le carbonate réagit avec un acide en libérant du dioxyde de carbone et des ions calcium, et que cette réaction consomme l'acide.",
+         ded:"J'en déduis que l'altération du calcaire est d'abord chimique : la roche passe en solution, le calcium part avec l'eau et l'acide est neutralisé — d'où l'effervescence et la remontée du pH. Le granite, dont les minéraux ne sont pas des carbonates, résiste à cette attaque."},
+     e4:{prop:"Pour savoir ce que devient alors le granite, je propose de le soumettre à des cycles de gel et de dégel, puis de comparer les résidus des deux roches.",
+         obs:"J'observe que le granite se désagrège en grains sans perte de masse dissoute mesurable, tandis que le calcaire disparaît sans laisser de résidu.",
+         ded:"J'en déduis que deux altérations coexistent : une altération physique qui fragmente sans dissoudre, et une altération chimique qui dissout. Les grains libérés par la première alimentent ensuite le transport et le dépôt."},
+     outil:["Conduite de l'essai : masses comparables, un seul paramètre modifié à la fois, durées identiques",
+            "Réalisation des tests sur l'eau : pH, oxalate, témoin conservé"],
+     res:["Obtention d'une perte de masse exploitable, exprimée en pourcentage de la masse initiale",
+          "Obtention de tests lisibles sur l'eau d'altération"],
+     aidesM:["Réaliser les pesées ou les tests à la place du candidat",
+             "Fournir le tableau des pertes de masse, ou l'interprétation des tests"],
+     com:"La communication prépare à distinguer ce qui part en solution de ce qui reste sur place."},
+
+    {n:"Cristallisation et texture", niv:"2de → Terminale", d:"45 min",
+     obj:"Déterminer comment la vitesse de refroidissement d'un magma contrôle la taille des cristaux, et donc la texture de la roche obtenue.",
+     e1:"Conduite correcte du refroidissement — une seule vitesse modifiée d'un essai à l'autre — et maîtrise de la mesure de taille des cristaux à l'échelle affichée.",
+     gestes:[
+       {t:"Conduire un refroidissement", l:[
+         "Choisir la vitesse de refroidissement et lancer la cristallisation.",
+         "Observer la formation des cristaux sans interrompre l'essai avant sa fin.",
+         "Mesurer la taille moyenne des cristaux obtenus en utilisant l'échelle affichée."]},
+       {t:"Comparer trois conditions", l:[
+         "Refaire l'essai pour un refroidissement lent, puis rapide, puis pour une trempe.",
+         "Reporter les couples (vitesse de refroidissement, taille des cristaux) dans un tableau.",
+         "Nommer la texture obtenue dans chaque cas, puis la roche correspondante."]}],
+     e2:"Un tableau vitesse de refroidissement / taille moyenne des cristaux / texture / nom de la roche, accompagné des trois dessins d'observation réalisés à la même échelle.",
+     e3:{obs:"J'observe qu'un refroidissement lent donne des cristaux millimétriques à centimétriques tous visibles et jointifs, qu'un refroidissement rapide donne de très petits cristaux noyés dans une pâte, et qu'une trempe ne donne aucun cristal mais un verre.",
+         sais:"Je sais qu'un cristal grossit tant que les atomes ont le temps de se mettre en place, et que ce temps est justement ce que la vitesse de refroidissement leur laisse ou leur refuse.",
+         ded:"J'en déduis que la taille des cristaux est inversement liée à la vitesse de refroidissement, et que la texture d'une roche magmatique renseigne donc sur son lieu de refroidissement : texture grenue pour un refroidissement lent en profondeur (granite), texture microlithique pour une coulée en surface (rhyolite, basalte), verre pour une trempe (obsidienne)."},
+     e4:{prop:"Pour vérifier que cette relation vaut pour de vraies roches et pas seulement pour le modèle, je propose d'observer au microscope polarisant des lames minces de granite, de basalte et d'obsidienne.",
+         obs:"J'observe sur les lames que le granite montre des cristaux jointifs tous visibles, que le basalte montre des microlites dans une pâte, et que l'obsidienne ne montre aucun cristal.",
+         ded:"J'en déduis que les textures observées sur le modèle se retrouvent dans les roches réelles, et que l'on peut donc déduire de la texture d'un échantillon inconnu la vitesse à laquelle son magma a refroidi."},
+     outil:["Conduite du refroidissement : une seule vitesse modifiée d'un essai à l'autre",
+            "Maîtrise de la mesure de taille des cristaux à l'échelle affichée"],
+     res:["Obtention de trois textures nettement différentes et mesurables",
+          "Obtention de tailles de cristaux exploitables, exprimées avec leur unité"],
+     aidesM:["Conduire les essais à la place du candidat",
+             "Fournir le tableau des tailles de cristaux, ou le nom des textures"],
+     com:"La communication prépare à relier la texture d'une roche à son lieu de refroidissement."},
+
+    {n:"Viscosité et style éruptif", niv:"2de → 1re", d:"40 min",
+     obj:"Déterminer ce qui rend un magma plus ou moins visqueux, et relier cette viscosité à la forme du volcan et au style de son éruption.",
+     e1:"Conduite correcte des essais — un seul paramètre modifié à la fois parmi la teneur en silice, la température et l'eau dissoute — et lecture d'une viscosité exprimée en puissances de dix.",
+     gestes:[
+       {t:"Mesurer une viscosité", l:[
+         "Choisir une composition de départ, puis ne faire varier qu'un paramètre : la teneur en silice, la température, ou l'eau dissoute.",
+         "Relever la viscosité obtenue ; elle s'exprime en puissances de dix, ce qui impose de comparer les exposants et non les nombres.",
+         "Recommencer pour plusieurs valeurs du même paramètre avant d'en changer."]},
+       {t:"Relier à la forme du volcan", l:[
+         "Pour chaque viscosité obtenue, observer la forme de l'édifice et le style éruptif associés.",
+         "Reporter les couples (viscosité, style éruptif) dans un tableau."]}],
+     e2:"Un tableau paramètre modifié / valeur / viscosité / forme de l'édifice / style éruptif, et un graphique de la viscosité en fonction du paramètre étudié, en échelle logarithmique.",
+     e3:{obs:"J'observe que la viscosité augmente fortement quand la teneur en silice augmente, qu'elle diminue quand la température augmente, et qu'elle diminue également quand l'eau dissoute augmente. J'observe près de dix ordres de grandeur d'écart entre un basalte à 1200 °C et une rhyolite à 850 °C.",
+         sais:"Je sais qu'un magma visqueux s'écoule mal et retient ses gaz, alors qu'un magma fluide s'écoule loin et laisse les gaz s'échapper.",
+         ded:"J'en déduis que la composition et la température du magma déterminent sa viscosité, et que cette viscosité commande le style éruptif : un magma fluide donne des coulées étendues et un édifice plat, un magma visqueux donne un dôme et des éruptions explosives avec nuées ardentes."},
+     e4:{prop:"Pour préciser le rôle de l'eau, dont les deux effets semblent contradictoires, je propose de comparer la viscosité calculée en profondeur, où l'eau reste dissoute, et le comportement observé à la remontée, où elle se dégaze.",
+         obs:"J'observe que le modèle ne rend compte que du premier effet : il fait baisser la viscosité quand l'eau augmente, mais ne dit rien de ce qui se passe lorsque le magma remonte.",
+         ded:"J'en déduis que l'eau dissoute fluidifie le magma en profondeur, mais qu'en se vaporisant à la remontée elle fait monter la pression dans un magma déjà visqueux : c'est cette combinaison qui rend les éruptions de rhyolite explosives. Le modèle atteint ici sa limite, et il faut le dire."},
+     outil:["Conduite des essais : un seul paramètre modifié à la fois",
+            "Lecture d'une viscosité exprimée en puissances de dix"],
+     res:["Obtention d'une série de viscosités exploitable pour un même paramètre",
+          "Association correcte de chaque viscosité à une forme d'édifice et à un style éruptif"],
+     aidesM:["Conduire les essais à la place du candidat",
+             "Fournir le tableau viscosité / style éruptif déjà rempli"],
+     com:"La communication prépare à relier la composition d'un magma au style de son éruption."},
+
+    {n:"Paillasse — identifier une roche", niv:"2de → Terminale", d:"55 min",
+     obj:"Identifier une roche inconnue et la classer dans sa famille à partir d'une série de tests simples, en utilisant le moins de tests possible.",
+     e1:"Conduite correcte des tests — loupe, acide chlorhydrique dilué, rayure, densité — dans le respect des règles de sécurité, et lecture rigoureuse de chaque résultat.",
+     gestes:[
+       {t:"Observer avant de tester", l:[
+         "Examiner l'échantillon à la loupe : les grains sont-ils jointifs, orientés, ou déposés les uns sur les autres ?",
+         "Décrire ce que l'on voit avant de formuler une hypothèse sur la famille de la roche.",
+         "Ne choisir le premier test qu'ensuite, en énonçant ce qu'il permettra de trancher."]},
+       {t:"Conduire les tests utiles", l:[
+         "Acide chlorhydrique dilué : déposer une goutte et observer une éventuelle effervescence — gants et lunettes obligatoires.",
+         "Rayure : tenter de rayer la roche avec l'ongle, une pointe de cuivre, une lame d'acier.",
+         "Densité : peser, mesurer le volume par déplacement d'eau, calculer.",
+         "S'arrêter dès que les tests réalisés suffisent à conclure : une identification économe vaut mieux qu'une batterie complète."]}],
+     e2:"Un tableau test réalisé / résultat observé / information apportée, suivi du nom de la roche et de sa famille, avec la justification tirée des seuls tests effectués.",
+     e3:{obs:"J'observe à la loupe des grains déposés, plus ou moins arrondis et de taille homogène. J'observe qu'une goutte d'acide chlorhydrique dilué provoque une effervescence nette, et que la roche est rayée par une lame d'acier.",
+         sais:"Je sais qu'une effervescence à l'acide signale la présence de carbonate, que des grains déposés et triés caractérisent une roche sédimentaire détritique, et que des cristaux jointifs sans orientation caractérisent une roche magmatique.",
+         ded:"J'en déduis que la roche est une roche sédimentaire carbonatée, et que les trois tests réalisés suffisent à l'établir : l'observation à la loupe a écarté les roches magmatiques et métamorphiques, l'acide a identifié le carbonate."},
+     e4:{prop:"Pour préciser l'identification au sein de la famille, je propose d'observer la taille et le tri des grains à un plus fort grossissement, et de comparer avec un échantillon de craie.",
+         obs:"J'observe que les grains de l'échantillon sont visibles et triés, alors que la craie apparaît homogène et pulvérulente.",
+         ded:"J'en déduis qu'il ne s'agit pas d'une craie, et que la taille des grains oriente vers un calcaire gréseux ou un calcaire détritique. Un examen en lame mince permettrait de trancher définitivement."},
+     outil:["Conduite des tests dans le respect des règles de sécurité : gants et lunettes pour l'acide",
+            "Lecture rigoureuse de chaque résultat, et comparaison à un témoin quand c'est possible"],
+     res:["Obtention de résultats de tests lisibles et notés au fur et à mesure",
+          "Économie des tests : chaque test réalisé est justifié avant d'être lancé"],
+     aidesM:["Désigner la famille de la roche à la place du candidat",
+             "Indiquer quels tests réaliser, ou donner la clé de détermination remplie"],
+     com:"La communication prépare à justifier une identification par les seuls tests réalisés."}
+  ];
+
+  /* La grille officielle : quatre blocs, quatre niveaux, vingt points.
+     Le premier bloc est le seul dont le contenu change d'une manip à l'autre. */
+  const NIVEAUX = [
+    [["Niveau A = seul ou avec une aide mineure, il obtient des résultats exploitables", 9],
+     ["Niveau B = avec des aides mineures répétées, il obtient des résultats exploitables", 6],
+     ["Niveau C = avec une aide majeure, il obtient des résultats exploitables", 3],
+     ["Niveau D = malgré toutes les aides apportées, il n'obtient pas de résultats exploitables. Un document de secours est indispensable", 0]],
+    [["Niveau A = trois critères", 5], ["Niveau B = deux des trois critères", 3],
+     ["Niveau C = un seul des trois critères", 1], ["Niveau D = rien à valoriser", 0]],
+    [["Niveau A = trois critères", 3], ["Niveau B = deux des trois critères", 2],
+     ["Niveau C = un seul des trois critères", 1], ["Niveau D = rien à valoriser", 0]],
+    [["Niveau A = seul ou avec une aide mineure, il formule une proposition pertinente", 3],
+     ["Niveau B = avec des aides mineures répétées, il formule une proposition pertinente", 2],
+     ["Niveau C = avec une aide majeure, il formule une proposition pertinente", 1],
+     ["Niveau D = malgré toutes les aides apportées, il ne formule pas de proposition pertinente. L'examinateur apporte la réponse", 0]]
+  ];
+  const ul = l => '<ul>' + l.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const curseur = i => '<td class="cur">' + NIVEAUX[i].map(([t, p]) =>
+    '<div class="niv"><span>' + t + '</span><b>' + p + '</b></div>').join('') + '</td>';
+
+  const bareme = m =>
+    '<h2 class="br">Fiche barème d\'évaluation</h2>' +
+    '<table class="bar"><tr><th class="c1">Curseur</th><th class="c2">Points</th></tr>' +
+    '<tr><td><b>Mettre en œuvre un protocole de résolution pour obtenir des résultats exploitables</b>' +
+      '<p>On attend du candidat qu\'il mette en œuvre le protocole : maîtrise du matériel, respect des ' +
+      'consignes et gestion correcte du poste de travail.</p>' +
+      '<p class="st">Gestion de l\'outil :</p>' + ul(m.outil) +
+      '<p class="st">Obtention de résultats exploitables :</p>' + ul(m.res) +
+      '<p class="st">Aide majeure :</p>' + ul(m.aidesM) +
+      '<p class="st">Aide mineure, pour « débloquer » :</p>' +
+      ul(["Remarques orales ou conseils",
+          "Le rangement du poste de travail est comptabilisé comme une aide mineure.",
+          "Toutes les autres aides doivent être considérées comme mineures."]) +
+      '</td>' + curseur(0) + '</tr>' +
+    '<tr><td><b>Présenter les résultats pour les communiquer</b>' +
+      '<p>On attend du candidat qu\'il présente une production :</p>' +
+      ul(["techniquement correcte (soignée, lisible, appropriée…)",
+          "bien renseignée (informations complètes et exactes)",
+          "bien organisée (informations traduites dans le sens du problème à traiter)"]) +
+      '<p>' + m.com + '</p></td>' + curseur(1) + '</tr>' +
+    '<tr><td><b>Exploiter les résultats obtenus pour répondre au problème posé</b>' +
+      '<p>On attend du candidat qu\'il :</p>' +
+      ul(["exploite l'ensemble des résultats (= j'observe que)",
+          "intègre des notions issues des ressources et de la mise en situation (= je sais que)",
+          "construise une réponse au problème posé, explicative et cohérente, intégrant les résultats (= j'en déduis que)"]) +
+      '</td>' + curseur(2) + '</tr>' +
+    '<tr><td><b>Poursuite d\'une stratégie</b><p>On attend du candidat qu\'il :</p>' +
+      ul(["choisisse la ou les expériences appropriées pour répondre au problème (= je propose)",
+          "exploite l'ensemble des résultats du document ressource (= j'observe que)",
+          "construise une réponse explicative et cohérente précisant l'intérêt de cette ou ces expériences supplémentaires (= j'en déduis que)"]) +
+      '</td>' + curseur(3) + '</tr>' +
+    '<tr><td class="com"><b>Commentaire</b></td><td class="note"><b>Note</b><br><span>/20</span></td></tr>' +
+    '</table>';
+
+  const fiche = m =>
+    '<section class="fiche">' +
+    '<p class="ent">Laboratoire virtuel de géologie — fiche au format ECE</p>' +
+    '<h1>' + m.n.toUpperCase() + '</h1>' +
+    '<p class="s">' + m.niv + ' · ' + m.d + ' · onglet « ' + m.n + ' » du laboratoire</p>' +
+    '<p class="obj"><b>Objectif :</b> ' + m.obj + '</p>' +
+    '<h2>Étape 1 : mettre en œuvre le protocole de résolution pour obtenir des résultats exploitables</h2>' +
+    '<p>' + m.e1 + ' <i>(voir la grille d\'évaluation en fin de fiche).</i></p>' +
+    m.gestes.map((g, i) => '<p class="st">Étapes techniques, geste n°' + (i+1) + ' — ' + g.t + '</p>' +
+      '<ol>' + g.l.map(x => '<li>' + x + '</li>').join('') + '</ol>').join('') +
+    '<h2>Étape 2 : présenter les résultats pour les communiquer</h2>' +
+    '<p>' + m.e2 + '</p><div class="cadre">Production de l\'élève</div>' +
+    '<h2>Étape 3 : exploiter les résultats obtenus pour répondre au problème posé</h2>' +
+    '<p>' + m.e3.obs + '</p><p>' + m.e3.sais + '</p><p>' + m.e3.ded + '</p>' +
+    '<h2>Étape 4 : poursuite de la stratégie</h2>' +
+    '<p>' + m.e4.prop + '</p><p>' + m.e4.obs + '</p><p>' + m.e4.ded + '</p>' +
+    bareme(m) + '</section>';
+
+  const html = () =>
+    '<meta charset="utf-8"><title>Laboratoire virtuel de géologie — fiches au format ECE</title>' +
+    '<style>' +
+    '@page{ size:A4; margin:1.5cm }' +
+    'body{ font:11.5px/1.5 system-ui,sans-serif; color:#23201c; max-width:19cm; margin:1.2cm auto }' +
+    '.ent{ font-size:10px; color:#7d776c; border-bottom:1px solid #e4dfd5; padding-bottom:4px; margin-bottom:14px }' +
+    'h1{ font-size:16px; letter-spacing:.02em; margin:0 0 2px }' +
+    'h2{ font-size:12px; margin:16px 0 5px; color:#a8660f }' +
+    'h2.br{ margin-top:22px }' +
+    '.s{ color:#7d776c; font-size:10.5px; margin:0 0 10px }' +
+    '.obj{ background:#fdf6e9; border-left:3px solid #a8660f; padding:7px 10px; margin:10px 0 4px }' +
+    '.st{ font-weight:600; margin:9px 0 2px }' +
+    'ol,ul{ margin:3px 0; padding-left:19px } li{ margin:1px 0 }' +
+    '.cadre{ border:1px dashed #e0d3b8; border-radius:6px; color:#a9a294; font-size:10px;' +
+    '  padding:26px 10px 10px; margin-top:6px }' +
+    'table.bar{ border-collapse:collapse; width:100%; margin-top:6px; font-size:10.5px }' +
+    'table.bar th, table.bar td{ border:1px solid #c9c2b6; padding:5px 7px; text-align:left; vertical-align:top }' +
+    'table.bar th{ background:#f2efe9; font-size:10px }' +
+    '.c1{ width:auto } .c2{ width:31% }' +
+    'td.cur{ padding:0 } .niv{ display:flex; gap:6px; align-items:flex-start; border-bottom:1px solid #ddd6c9; padding:5px 7px }' +
+    '.niv:last-child{ border-bottom:0 } .niv span{ flex:1 } .niv b{ font-size:12px; min-width:18px; text-align:right }' +
+    'td.com{ height:44px } td.note{ text-align:center } td.note span{ font-size:13px }' +
+    '.fiche{ break-before:page } .fiche:first-of-type{ break-before:auto }' +
+    'table, .niv, ol, ul{ break-inside:avoid }' +
+    '.tete{ margin-bottom:6px }' +
+    '.note-statut{ background:#fdf8ef; border-left:3px solid #c08a1e; padding:9px 12px; margin:12px 0; font-size:11px }' +
+    '</style>' +
+    '<section class="tete">' +
+    '<p class="ent">Laboratoire virtuel de géologie — TP classiques du lycée</p>' +
+    '<h1>CINQ FICHES AU FORMAT ECE</h1>' +
+    '<p class="s">reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
+    '<p>Chaque paillasse du laboratoire est présentée ici sous la forme d\'une correction d\'ECE : ' +
+    'objectif, les quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L\'élève retrouve ' +
+    'donc en s\'entraînant la forme exacte de ce qu\'on lui demandera à l\'épreuve, et le professeur ' +
+    'dispose d\'un barème prêt à l\'emploi.</p>' +
+    '<div class="note-statut"><b>Ce ne sont pas des sujets d\'ECE officiels.</b> Ce sont des fiches ' +
+    'd\'entraînement bâties sur la trame de l\'épreuve. Les quatre premières portent sur des ' +
+    'manipulations simulées : vitesses de courant, tailles de cristaux et viscosités sortent d\'un ' +
+    'modèle et ne sont pas des mesures. La cinquième, l\'identification des roches, ne simule rien : ' +
+    'effervescence, dureté, densité et texture y sont les propriétés réelles des échantillons. La ' +
+    'démarche, les gestes techniques et le barème sont ceux de l\'épreuve ; pour une ECE réelle, les ' +
+    'résultats doivent venir de la paillasse.</div>' +
+    '<p class="st">Les cinq fiches</p><ol>' + MODULES.map(m => '<li>' + m.n + ' — ' + m.niv + '</li>').join('') + '</ol>' +
+    '<p class="st">Deux outils pour le professeur, sans fiche ECE</p><ol>' +
+    '<li><b>Programmes du lycée</b> — partir du chapitre à traiter : chaque chapitre donne les ' +
+    'manipulations qui s\'y rattachent. Les deux niveaux de spécialité suivent votre programmation, ' +
+    'activité par activité.</li>' +
+    '<li><b>Préparer une manip</b> — la liste de matériel d\'une expérience pour le nombre de postes voulu, ' +
+    'ou l\'inverse : le placard disponible donne les manipulations réalisables.</li></ol>' +
+    '<p class="st">Ce que l\'élève rend</p>' +
+    '<p>Les valeurs qu\'il trouve — vitesses de courant, pertes de masse, tailles de cristaux, viscosités, ' +
+    'tests d\'identification — sont relevées automatiquement. Le bouton <b>Carnet</b> imprime une fiche de résultats ' +
+    'à son nom, graphiques joints. Rien n\'est envoyé sur Internet : tout reste dans le navigateur du poste.</p>' +
+    '</section>' +
+    MODULES.map(fiche).join('');
+
+  const ouvre = () => {
     const f = window.open('', '_blank');
-    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer les fiches."); return; }
     f.document.write(html()); f.document.close(); f.focus();
     setTimeout(() => f.print(), 300);
-  });
+  };
+  const b = $('#btn-fiche-prof');
+  if(b) b.addEventListener('click', ouvre);
 })();
 </script>
 

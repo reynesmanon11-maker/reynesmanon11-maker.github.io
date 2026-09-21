@@ -264,11 +264,41 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 .intro-mod > *{ position:relative; z-index:1 }
 .intro-mod h2{ font-size:clamp(24px, 4vw, 36px); letter-spacing:-.025em; margin-bottom:9px }
 .intro-mod p{ font-size:14.5px; line-height:1.65; color:#5f594f; max-width:62ch }
-/* L'intro d'accueil : un chapô, des paragraphes aérés, une signature.
-   Chaque paragraphe reste d'un seul tenant, donc modifiable en mode retouche. */
-.intro-mod p + p{ margin-top:11px }
-.intro-mod .chapo{ font-size:16.5px; line-height:1.58; color:#3f3a33 }
-.intro-mod .signature{ font-size:13.5px; font-style:italic; color:var(--gris-clair) }
+/* ---------- l'intro d'accueil en bulles de bande dessinée ----------
+   Une phrase par bulle, et les bulles alternent d'un bord à l'autre. Le
+   paragraphe reste seul dans sa bulle, sans balise à l'intérieur : il reste
+   donc modifiable en mode retouche. La queue est faite de deux triangles
+   superposés — celui du bord, puis celui du fond, un peu plus petit. */
+.bulles{ display:flex; flex-direction:column; gap:32px; max-width:none; margin-top:6px }
+.bulle{
+  --bulle-bg:#ffffff; --bulle-bd:#2f7150;
+  position:relative; background:var(--bulle-bg); border:2px solid var(--bulle-bd);
+  border-radius:26px; padding:16px 22px; max-width:min(560px, 80%); align-self:flex-start;
+}
+.bulle p{ margin:0; max-width:none; color:#3f3a33 }
+/* une bulle sur deux : remplie, et renvoyée de l'autre côté */
+.bulle:nth-child(even){ --bulle-bg:#dcebe1; align-self:flex-end }
+/* la dernière, courte, ferme la série : pleine, en vert, texte en blanc */
+.bulle.courte{ --bulle-bg:#2f7150; max-width:none; width:auto; align-self:flex-end; padding:11px 22px }
+.bulle.courte p{ color:#fff; font-style:italic }
+.bulle .chapo{ font-size:16.5px; line-height:1.58 }
+/* la queue : triangle du bord, puis triangle du fond posé dessus */
+.bulle::before, .bulle::after{ content:''; position:absolute; width:0; height:0; border-style:solid }
+.bulle::before{ bottom:-20px; left:40px;
+  border-width:20px 26px 0 0; border-color:var(--bulle-bd) transparent transparent transparent }
+.bulle::after{ bottom:-14px; left:45px;
+  border-width:15px 19px 0 0; border-color:var(--bulle-bg) transparent transparent transparent }
+.bulle:nth-child(even)::before, .bulle.courte::before{ left:auto; right:40px;
+  border-width:20px 0 0 26px; border-color:var(--bulle-bd) transparent transparent transparent }
+.bulle:nth-child(even)::after, .bulle.courte::after{ left:auto; right:45px;
+  border-width:15px 0 0 19px; border-color:var(--bulle-bg) transparent transparent transparent }
+@media(max-width:720px){
+  .bulle{ max-width:100%; align-self:stretch; border-radius:20px; padding:14px 17px }
+  .bulle.courte{ align-self:flex-end }
+  .bulle::before{ left:28px } .bulle::after{ left:33px }
+  .bulle:nth-child(even)::before, .bulle.courte::before{ right:28px }
+  .bulle:nth-child(even)::after, .bulle.courte::after{ right:33px }
+}
 .intro-mod .ref{ background:var(--papier); color:var(--pt); border:1px solid var(--ptbd) }
 #mod-accueil .intro-mod{ padding:42px 30px 36px }
 #mod-accueil .intro-mod::before{ font-size:clamp(96px, 20vw, 210px) }
@@ -467,17 +497,19 @@ header.top .marque b{ letter-spacing:-.015em }
 <section class="module actif" id="mod-accueil" role="tabpanel">
   <div class="intro-mod" data-wm="BIO">
     <h2>Paillasses virtuelles permettant de préparer les vraies</h2>
-    <p class="chapo">L'objectif de cette page n'est pas de remplacer les manipulations réalisées en classe
-       (qui restent l'idéal), mais de les préparer, les prolonger, les critiquer : tester des paramètres,
-       comparer les résultats, explorer des conditions expérimentales difficiles à mettre en oeuvre en
-       classe ou encore confronter le modèle et l'expérience faite en classe.</p>
-    <p>Chaque expérience s'appuie sur un protocole de TP et permet de faire varier certains paramètres
-       afin d'observer leur influence sur les résultats: évolution d'une courbe ExAO, migration des
-       pigments, changements de couleur d'un réactif...</p>
-    <p>Cette page web propose aussi des outils pour faire le lien entre les programmes et les TPs:
-       retrouver les manipulations associées à un chapitre, identifier le matériel nécéssaire à une
-       expérience et préparer plus facilement une séance de TP.</p>
-    <p class="signature">Bonne lecture ;)</p>
+    <div class="bulles">
+      <div class="bulle"><p class="chapo">L'objectif de cette page n'est pas de remplacer les manipulations
+         réalisées en classe (qui restent l'idéal), mais de les préparer, les prolonger, les critiquer :
+         tester des paramètres, comparer les résultats, explorer des conditions expérimentales difficiles
+         à mettre en oeuvre en classe ou encore confronter le modèle et l'expérience faite en classe.</p></div>
+      <div class="bulle"><p>Chaque expérience s'appuie sur un protocole de TP et permet de faire varier
+         certains paramètres afin d'observer leur influence sur les résultats: évolution d'une courbe ExAO,
+         migration des pigments, changements de couleur d'un réactif...</p></div>
+      <div class="bulle"><p>Cette page web propose aussi des outils pour faire le lien entre les programmes
+         et les TPs: retrouver les manipulations associées à un chapitre, identifier le matériel nécéssaire
+         à une expérience et préparer plus facilement une séance de TP.</p></div>
+      <div class="bulle courte"><p class="signature">Bonne lecture ;)</p></div>
+    </div>
     <span class="ref">Expérimentation en biologie et physiologie végétales inspiré du Pratt</span>
   </div>
   <div class="avert"><span class="marque">i</span><div><p><b>Valeurs simulées, non mesurées.</b> Toutes les courbes et les résultats provient d'équations mathématiques, les valeurs ne peuvent donc pas être utilisés.</p></div></div>
@@ -549,7 +581,7 @@ header.top .marque b{ letter-spacing:-.015em }
          automatiquement et s'impriment en fiche de résultats à son nom.</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap">
         <button class="btn" id="btn-carnet-2" style="background:#fff; border-color:#fff">Voir le carnet</button>
-        <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiche pédagogique</button>
+        <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches au format ECE</button>
       </div>
     </div>
 
@@ -5425,81 +5457,274 @@ const FICHES = [
    FICHE PÉDAGOGIQUE — un récapitulatif imprimable pour le professeur
    ========================================================================== */
 (function fichePedago(){
+  /* Les fiches reprennent la trame d'une correction d'ECE : objectif, les
+     quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L'élève
+     retrouve donc ici la forme exacte de ce qu'on lui demandera à l'épreuve. */
   const MODULES = [
-    {n:"ExAO — photosynthèse et respiration", ref:"Respiration · Photosynthèse", niv:"2de → Terminale", d:"30 à 55 min",
-     o:"Établir que la plante respire en permanence et que la photosynthèse s'y superpose à la lumière ; identifier les facteurs limitants.",
-     r:"Pente positive à la lumière, négative à l'obscurité. Point de compensation vers 10-15 % d'éclairement à 20 °C. Photosynthèse brute = nette + respiration.",
-     v:"Faire distinguer photosynthèse nette et brute. La courbe simulée n'a ni bruit ni temps de réponse de sonde : le dire avant de passer à la paillasse."},
-    {n:"Paillasse de biochimie", ref:"Biochimie végétale", niv:"2de → 1re", d:"25 à 45 min",
-     o:"Associer un réactif à la molécule qu'il révèle ; construire une démarche d'identification.",
-     r:"Lugol bleu-noir sur l'amidon, Fehling rouge brique à chaud sur les sucres réducteurs, biuret violet sur les protéines, Soudan III orangé sur les lipides.",
-     v:"Le mode « échantillon mystère » est le plus formateur : demander de justifier chaque test AVANT de le lancer, et de compter les tests utilisés."},
-    {n:"Pigments photosynthétiques", ref:"Pigments photosynthétiques", niv:"2de → Terminale", d:"30 à 50 min",
-     o:"Séparer les pigments, mesurer un rapport frontal, relier absorption et activité photosynthétique.",
-     r:"Du haut vers le bas : carotènes, phéophytine, chlorophylle a, chlorophylle b, xanthophylles. Absorption forte dans le bleu et le rouge, faible dans le vert.",
-     v:"Faire mesurer les Rf avec l'outil à trois repères avant de montrer le tableau. Le Rf n'est comparable qu'à solvant identique."},
-    {n:"Cinétiques enzymatiques", ref:"Cinétiques enzymatiques", niv:"1re → Terminale", d:"35 à 60 min",
-     o:"Établir l'effet de la température, du pH, des concentrations ; distinguer ralentissement et dénaturation.",
-     r:"Optimum vers 37 °C et pH 7 pour l'amylase. Vitesse proportionnelle à [enzyme], hyperbolique en [substrat] avec saturation.",
-     v:"Le point clé est l'irréversibilité : chauffer à 70 °C puis refroidir ne relance rien. Le TP guidé le fait constater en cinq étapes."},
-    {n:"Histologie des plantes", ref:"Histologie végétale", niv:"2de → 1re", d:"30 à 45 min",
-     o:"Lire une coupe, reconnaître les tissus, mesurer à l'échelle.",
-     r:"Dicotylédone : faisceaux en couronne. Monocotylédone : faisceaux dispersés. Racine : xylème central en étoile.",
-     v:"Commencer sans coloration pour obliger à lire l'organisation, puis colorer pour vérifier. Le mode « Légender » garde un score."},
-    {n:"Programmes du lycée", ref:"Toutes les parties", niv:"pour le professeur", d:"—",
-     o:"Partir du chapitre à traiter et non de l'ouvrage : chaque chapitre donne les manipulations qui s'y rattachent.",
-     r:"Cinq niveaux — 2de, enseignement scientifique de 1re et de terminale, spécialité SVT de 1re et de terminale. Un chapitre se verse d'un clic dans le panier de matériel.",
-     v:"Les rattachements sont reformulés et proposés, pas officiels : les confronter au Bulletin officiel avant de les recopier dans une fiche de séance."},
-    {n:"Préparer une manip", ref:"Les huit parties", niv:"pour le professeur", d:"—",
-     o:"Obtenir la liste de matériel d'une expérience pour le nombre de postes voulu, ou l'inverse.",
-     r:"Panier de plusieurs manipulations agrégé en une liste de courses imprimable, matériel partagé compté une fois.",
-     v:"Les protocoles sont des versions condensées et standard : les confronter à l'ouvrage avant la séance."}
+    {n:"ExAO — photosynthèse et respiration", mod:'exao', niv:"2de → Terminale", d:"30 à 55 min",
+     obj:"Déterminer si un végétal chlorophyllien respire en permanence, et identifier un facteur limitant de sa photosynthèse.",
+     e1:"Réglage correct du dispositif ExAO (enceinte close, sondes à dioxygène et à dioxyde de carbone, éclairement, durée d'acquisition) et maîtrise de l'outil de mesure de pente.",
+     gestes:[
+       {t:"Préparer l'enregistrement", l:[
+         "Placer le végétal dans l'enceinte et vérifier qu'elle est close : sans cela, les échanges avec l'air de la salle masquent tout.",
+         "Choisir l'éclairement et la température, puis la durée d'acquisition — trois minutes suffisent.",
+         "Lancer l'enregistrement et attendre que la courbe devienne rectiligne avant de mesurer."]},
+       {t:"Mesurer une pente, puis comparer deux conditions", l:[
+         "Placer les deux repères de l'outil de mesure sur la partie rectiligne de la courbe : la pente s'affiche en mg·L⁻¹·min⁻¹.",
+         "Garder ce premier enregistrement en témoin, puis éteindre la lampe et enregistrer de nouveau, toutes choses égales par ailleurs.",
+         "Mesurer la seconde pente et reporter les deux valeurs dans un tableau."]}],
+     e2:"Un tableau à double entrée — condition d'éclairement, pente du dioxygène, pente du dioxyde de carbone — ou le graphique des deux enregistrements superposés, avec les deux droites de mesure tracées, les axes légendés et les unités précisées.",
+     e3:{obs:"J'observe qu'à la lumière la teneur en dioxygène augmente (pente positive) tandis que celle en dioxyde de carbone diminue. À l'obscurité, dans les mêmes conditions, la teneur en dioxygène diminue (pente négative) et celle en dioxyde de carbone augmente.",
+         sais:"Je sais que la photosynthèse produit du dioxygène et consomme du dioxyde de carbone, et qu'elle n'a lieu qu'à la lumière ; la respiration, elle, consomme du dioxygène et produit du dioxyde de carbone.",
+         ded:"J'en déduis que la pente mesurée à l'obscurité correspond à la seule respiration, et que celle mesurée à la lumière est le bilan des deux échanges : la plante respire donc en permanence, la photosynthèse venant s'y superposer dès qu'elle est éclairée. La photosynthèse brute est la somme de la photosynthèse nette mesurée et de la respiration."},
+     e4:{prop:"Pour identifier ce qui limite la photosynthèse, je propose de reprendre la même mesure en ne faisant varier qu'un seul paramètre à la fois : l'éclairement, puis la température, puis la teneur initiale en dioxyde de carbone.",
+         obs:"J'observe qu'en faisant croître l'éclairement la pente augmente d'abord proportionnellement, puis cesse d'augmenter : la courbe atteint un palier.",
+         ded:"J'en déduis qu'en deçà du palier la lumière est le facteur limitant, et qu'au-delà c'est un autre facteur — teneur en dioxyde de carbone ou température — qui limite à son tour. L'éclairement pour lequel les deux pentes se compensent donne le point de compensation."},
+     outil:["Réglage du dispositif ExAO : enceinte close, éclairement, température, durée d'acquisition",
+            "Maîtrise de l'outil de mesure de pente (deux repères sur la partie rectiligne)"],
+     res:["Obtention d'une pente exploitable à la lumière et d'une pente exploitable à l'obscurité, dans les mêmes conditions",
+          "Conservation du premier enregistrement en témoin, qui seule permet la comparaison"],
+     aidesM:["Régler le dispositif à la place du candidat",
+             "Fournir le graphique avec les deux droites de mesure déjà tracées et les pentes indiquées"],
+     com:"La communication prépare à distinguer photosynthèse nette et photosynthèse brute."},
+
+    {n:"Paillasse de biochimie", mod:'biochimie', niv:"2de → 1re", d:"25 à 45 min",
+     obj:"Déterminer la nature des molécules organiques contenues dans un échantillon végétal inconnu.",
+     e1:"Choix raisonné des réactifs, conduite correcte de chaque test — chauffage au bain-marie lorsqu'il est nécessaire — et lecture rigoureuse des virages de couleur.",
+     gestes:[
+       {t:"Réaliser un test", l:[
+         "Déposer l'échantillon dans le tube ou sur la lame, et identifier le tube.",
+         "Ajouter le réactif choisi.",
+         "Chauffer au bain-marie lorsque le protocole l'exige : la liqueur de Fehling ne vire qu'à chaud.",
+         "Noter la couleur obtenue et la comparer au témoin négatif."]},
+       {t:"Conduire une identification", l:[
+         "Avant chaque test, énoncer ce que l'on cherche et le résultat attendu si l'hypothèse est juste.",
+         "N'enchaîner un nouveau test que si le précédent n'a pas tranché.",
+         "Compter les tests utilisés : une identification économe vaut mieux qu'une batterie complète."]}],
+     e2:"Un tableau à trois colonnes — réactif employé, couleur obtenue, molécule mise en évidence — chaque ligne portant la mention « test positif » ou « test négatif ».",
+     e3:{obs:"J'observe que l'eau iodée donne une coloration bleu-noir, que la liqueur de Fehling portée à l'ébullition donne un précipité rouge brique, et que le réactif de biuret reste bleu.",
+         sais:"Je sais que l'eau iodée colore l'amidon en bleu-noir, que la liqueur de Fehling forme à chaud un précipité rouge brique en présence de sucres réducteurs, et que le biuret vire au violet en présence de protéines.",
+         ded:"J'en déduis que l'échantillon contient de l'amidon et des sucres réducteurs, et qu'il ne contient pas de protéines en quantité détectable par ce test."},
+     e4:{prop:"Pour lever l'ambiguïté qui subsiste sur les glucides, je propose de réaliser une hydrolyse acide de l'échantillon, puis de refaire le test de Fehling sur l'hydrolysat.",
+         obs:"J'observe que le précipité rouge brique est nettement plus abondant après hydrolyse qu'avant.",
+         ded:"J'en déduis que l'échantillon contenait aussi un glucide non réducteur — saccharose ou amidon — qui libère des sucres réducteurs en s'hydrolysant."},
+     outil:["Conduite correcte des tests : volumes, identification des tubes, chauffage au bain-marie quand il est nécessaire",
+            "Gestion du poste de travail : témoin négatif conservé, verrerie rincée entre deux réactifs"],
+     res:["Obtention de virages lisibles et interprétables",
+          "Trace écrite de chaque test au moment où il est réalisé"],
+     aidesM:["Indiquer au candidat quel réactif employer pour la molécule recherchée",
+             "Donner le tableau des correspondances réactif / molécule / couleur"],
+     com:"La communication prépare à construire la démarche d'identification de l'échantillon."},
+
+    {n:"Pigments photosynthétiques", mod:'pigments', niv:"2de → Terminale", d:"30 à 50 min",
+     obj:"Déterminer la composition en pigments d'un extrait foliaire, et relier l'absorption de la lumière à l'activité photosynthétique.",
+     e1:"Réalisation correcte d'une chromatographie sur papier — dépôt fin, niveau du solvant sous la ligne de dépôt, arrêt au bon moment — et maîtrise de l'outil de mesure du rapport frontal.",
+     gestes:[
+       {t:"Réaliser la chromatographie", l:[
+         "Déposer l'extrait en une tache fine et concentrée sur la ligne de dépôt.",
+         "Placer la bande dans la cuve en vérifiant que le solvant affleure sous la ligne de dépôt sans la toucher : si la tache trempe, les pigments partent dans le solvant.",
+         "Laisser migrer, puis retirer la bande dès que le front du solvant approche du haut, et marquer aussitôt ce front."]},
+       {t:"Mesurer un rapport frontal", l:[
+         "Placer les trois repères : ligne de dépôt, front du solvant, centre de la tache à mesurer.",
+         "Lire le rapport frontal : distance parcourue par le pigment divisée par la distance parcourue par le solvant.",
+         "Recommencer pour chaque tache, et ne comparer que des rapports obtenus dans le même solvant."]}],
+     e2:"Le chromatogramme légendé — ligne de dépôt, front du solvant, nom de chaque tache — accompagné du tableau des rapports frontaux mesurés et du spectre d'absorption de l'extrait.",
+     e3:{obs:"J'observe cinq taches dont les rapports frontaux décroissent du haut vers le bas. J'observe également que le spectre d'absorption de l'extrait présente deux maximums, l'un dans le bleu et l'autre dans le rouge, et un minimum dans le vert.",
+         sais:"Je sais que dans ce solvant l'ordre de migration est, du haut vers le bas : carotènes, phéophytine, chlorophylle a, chlorophylle b, xanthophylles ; et que le spectre d'action mesure l'efficacité photosynthétique de chaque longueur d'onde.",
+         ded:"J'en déduis que l'extrait contient plusieurs pigments distincts, et que le spectre d'action se superpose au spectre d'absorption : la lumière verte, peu absorbée, est peu efficace. C'est donc bien l'absorption de la lumière par les pigments qui alimente la photosynthèse."},
+     e4:{prop:"Pour vérifier que cette superposition n'est pas propre aux végétaux verts, je propose de refaire les deux mesures sur une algue rouge.",
+         obs:"J'observe que l'algue rouge absorbe fortement dans le vert, là précisément où la chlorophylle absorbe peu, et que son spectre d'action suit cette absorption.",
+         ded:"J'en déduis que la relation entre absorption et activité se vérifie sur un autre jeu de pigments, et que ces pigments accessoires élargissent le domaine de lumière utilisable — ce qui permet à cette algue de vivre en profondeur, là où le rouge ne parvient plus."},
+     outil:["Réalisation de la chromatographie : dépôt fin, niveau du solvant sous la ligne de dépôt, arrêt au bon moment",
+            "Maîtrise de l'outil de mesure du rapport frontal (trois repères)"],
+     res:["Obtention d'un chromatogramme aux taches séparées et identifiables",
+          "Obtention de rapports frontaux exploitables"],
+     aidesM:["Réaliser le dépôt ou monter la cuve à la place du candidat",
+             "Fournir un chromatogramme déjà légendé, ou le tableau des rapports frontaux"],
+     com:"La communication prépare à relier l'absorption de la lumière et l'activité photosynthétique."},
+
+    {n:"Cinétiques enzymatiques", mod:'enzymes', niv:"1re → Terminale", d:"35 à 60 min",
+     obj:"Déterminer l'effet de la température sur l'activité d'une enzyme, et établir si cet effet est réversible.",
+     e1:"Conduite correcte des essais — une seule variable modifiée à la fois, durées identiques — et maîtrise de la mesure de vitesse initiale à la tangente.",
+     gestes:[
+       {t:"Mesurer une vitesse initiale", l:[
+         "Lancer la réaction et enregistrer l'apparition du produit.",
+         "Tracer la tangente à l'origine de la courbe : c'est la vitesse initiale, et elle seule est comparable d'un essai à l'autre.",
+         "Relever la valeur affichée avec son unité."]},
+       {t:"Construire la courbe, puis tester la réversibilité", l:[
+         "Refaire la mesure à plusieurs températures en ne changeant que celle-ci.",
+         "Reporter les couples (température, vitesse initiale) dans un tableau, puis sur un graphique.",
+         "Porter un essai à 70 °C, le ramener à 37 °C, et mesurer de nouveau la vitesse initiale."]}],
+     e2:"Le tableau des vitesses initiales en fonction de la température et la courbe correspondante — axes légendés, unités précisées — complétés par les deux valeurs de l'essai chauffé puis refroidi.",
+     e3:{obs:"J'observe que la vitesse initiale augmente avec la température jusqu'à un maximum voisin de 37 °C, puis chute rapidement. J'observe qu'un essai porté à 70 °C puis ramené à 37 °C ne retrouve pas la vitesse mesurée au départ à cette même température : elle reste nulle ou très faible.",
+         sais:"Je sais qu'une élévation modérée de température accélère les réactions chimiques, et qu'une enzyme est une protéine dont l'activité dépend de sa forme tridimensionnelle.",
+         ded:"J'en déduis que deux phénomènes se superposent : en deçà de l'optimum la chaleur accélère la réaction, au-delà elle détruit la structure de l'enzyme. Comme le refroidissement ne rétablit pas l'activité, cette dénaturation est irréversible — il ne s'agit donc pas d'un simple ralentissement."},
+     e4:{prop:"Pour vérifier que cet optimum tient bien à l'enzyme et non aux conditions de mesure, je propose de refaire la même série en faisant varier le pH à température constante, puis de comparer deux enzymes différentes.",
+         obs:"J'observe que chaque enzyme présente un optimum de pH qui lui est propre, et que le dépassement de cet optimum provoque, comme pour la température, une chute d'activité.",
+         ded:"J'en déduis que l'activité enzymatique dépend de conditions physico-chimiques propres à chaque enzyme, ce qui confirme le rôle déterminant de la structure de la protéine."},
+     outil:["Conduite des essais : une seule variable modifiée à la fois, durées d'enregistrement identiques",
+            "Maîtrise de la mesure de vitesse initiale à la tangente"],
+     res:["Obtention d'une série de vitesses initiales exploitable",
+          "Réalisation de l'essai chauffé puis refroidi, sans lequel on ne peut pas conclure"],
+     aidesM:["Tracer les tangentes à la place du candidat",
+             "Fournir le tableau des vitesses initiales, ou la courbe déjà construite"],
+     com:"La communication prépare à distinguer ralentissement et dénaturation."},
+
+    {n:"Histologie des plantes", mod:'histologie', niv:"2de → 1re", d:"30 à 45 min",
+     obj:"Identifier l'organe observé et le groupe auquel appartient la plante, à partir de l'organisation de ses tissus.",
+     e1:"Observation méthodique de la coupe — repérage à faible grossissement avant le détail —, choix raisonné de la coloration et maîtrise de l'outil de mesure à l'échelle.",
+     gestes:[
+       {t:"Observer la coupe", l:[
+         "Repérer d'abord l'organisation générale à faible grossissement : contour, position des faisceaux, présence d'une moelle.",
+         "Agrandir ensuite sur une zone précise, et refaire la mise au point.",
+         "Ne choisir la coloration qu'après avoir décrit ce que l'on voit sans elle."]},
+       {t:"Mesurer et légender", l:[
+         "Utiliser l'échelle affichée pour mesurer un élément : diamètre d'un vaisseau, épaisseur d'un tissu.",
+         "Placer les légendes sur les tissus reconnus : épiderme, parenchyme, xylème, phloème."]}],
+     e2:"Un dessin ou un schéma d'observation portant un titre — organe, plan de coupe, grossissement —, une échelle, et des légendes horizontales reliées par des traits qui ne se croisent pas.",
+     e3:{obs:"J'observe une coupe circulaire dont les faisceaux conducteurs sont disposés en une couronne régulière autour d'une moelle centrale, le xylème étant tourné vers l'intérieur.",
+         sais:"Je sais que chez les dicotylédones les faisceaux d'une tige sont disposés en couronne, alors qu'ils sont dispersés dans tout le parenchyme chez les monocotylédones ; et que dans une racine le xylème occupe le centre en étoile.",
+         ded:"J'en déduis que l'organe observé est une tige, et que la plante est une dicotylédone."},
+     e4:{prop:"Pour confirmer cette identification, je propose d'observer une coupe de racine de la même plante, puis une coupe de tige d'une monocotylédone.",
+         obs:"J'observe que la racine présente bien un xylème central en étoile, et que la tige de monocotylédone présente des faisceaux dispersés, sans couronne.",
+         ded:"J'en déduis que la disposition des faisceaux est bien un critère discriminant, et que l'identification faite à l'étape précédente est confirmée."},
+     outil:["Observation méthodique : repérage à faible grossissement avant tout agrandissement",
+            "Maîtrise de l'outil de mesure à l'échelle"],
+     res:["Repérage et identification des tissus sur la coupe",
+          "Obtention d'une mesure exploitable, exprimée avec son unité"],
+     aidesM:["Désigner les tissus à la place du candidat",
+             "Fournir une coupe déjà légendée"],
+     com:"La communication prépare à identifier l'organe observé et le groupe de la plante."}
   ];
+
+  /* La grille officielle : quatre blocs, quatre niveaux, vingt points.
+     Le premier bloc est le seul dont le contenu change d'une manip à l'autre. */
+  const NIVEAUX = [
+    [["Niveau A = seul ou avec une aide mineure, il obtient des résultats exploitables", 9],
+     ["Niveau B = avec des aides mineures répétées, il obtient des résultats exploitables", 6],
+     ["Niveau C = avec une aide majeure, il obtient des résultats exploitables", 3],
+     ["Niveau D = malgré toutes les aides apportées, il n'obtient pas de résultats exploitables. Un document de secours est indispensable", 0]],
+    [["Niveau A = trois critères", 5], ["Niveau B = deux des trois critères", 3],
+     ["Niveau C = un seul des trois critères", 1], ["Niveau D = rien à valoriser", 0]],
+    [["Niveau A = trois critères", 3], ["Niveau B = deux des trois critères", 2],
+     ["Niveau C = un seul des trois critères", 1], ["Niveau D = rien à valoriser", 0]],
+    [["Niveau A = seul ou avec une aide mineure, il formule une proposition pertinente", 3],
+     ["Niveau B = avec des aides mineures répétées, il formule une proposition pertinente", 2],
+     ["Niveau C = avec une aide majeure, il formule une proposition pertinente", 1],
+     ["Niveau D = malgré toutes les aides apportées, il ne formule pas de proposition pertinente. L'examinateur apporte la réponse", 0]]
+  ];
+  const ul = l => '<ul>' + l.map(x => '<li>' + x + '</li>').join('') + '</ul>';
+  const curseur = i => '<td class="cur">' + NIVEAUX[i].map(([t, p]) =>
+    '<div class="niv"><span>' + t + '</span><b>' + p + '</b></div>').join('') + '</td>';
+
+  const bareme = m =>
+    '<h2 class="br">Fiche barème d\'évaluation</h2>' +
+    '<table class="bar"><tr><th class="c1">Curseur</th><th class="c2">Points</th></tr>' +
+    '<tr><td><b>Mettre en œuvre un protocole de résolution pour obtenir des résultats exploitables</b>' +
+      '<p>On attend du candidat qu\'il mette en œuvre le protocole : maîtrise du matériel, respect des ' +
+      'consignes et gestion correcte du poste de travail.</p>' +
+      '<p class="st">Gestion de l\'outil :</p>' + ul(m.outil) +
+      '<p class="st">Obtention de résultats exploitables :</p>' + ul(m.res) +
+      '<p class="st">Aide majeure :</p>' + ul(m.aidesM) +
+      '<p class="st">Aide mineure, pour « débloquer » :</p>' +
+      ul(["Remarques orales ou conseils",
+          "Le rangement du poste de travail est comptabilisé comme une aide mineure.",
+          "Toutes les autres aides doivent être considérées comme mineures."]) +
+      '</td>' + curseur(0) + '</tr>' +
+    '<tr><td><b>Présenter les résultats pour les communiquer</b>' +
+      '<p>On attend du candidat qu\'il présente une production :</p>' +
+      ul(["techniquement correcte (soignée, lisible, appropriée…)",
+          "bien renseignée (informations complètes et exactes)",
+          "bien organisée (informations traduites dans le sens du problème à traiter)"]) +
+      '<p>' + m.com + '</p></td>' + curseur(1) + '</tr>' +
+    '<tr><td><b>Exploiter les résultats obtenus pour répondre au problème posé</b>' +
+      '<p>On attend du candidat qu\'il :</p>' +
+      ul(["exploite l'ensemble des résultats (= j'observe que)",
+          "intègre des notions issues des ressources et de la mise en situation (= je sais que)",
+          "construise une réponse au problème posé, explicative et cohérente, intégrant les résultats (= j'en déduis que)"]) +
+      '</td>' + curseur(2) + '</tr>' +
+    '<tr><td><b>Poursuite d\'une stratégie</b><p>On attend du candidat qu\'il :</p>' +
+      ul(["choisisse la ou les expériences appropriées pour répondre au problème (= je propose)",
+          "exploite l'ensemble des résultats du document ressource (= j'observe que)",
+          "construise une réponse explicative et cohérente précisant l'intérêt de cette ou ces expériences supplémentaires (= j'en déduis que)"]) +
+      '</td>' + curseur(3) + '</tr>' +
+    '<tr><td class="com"><b>Commentaire</b></td><td class="note"><b>Note</b><br><span>/20</span></td></tr>' +
+    '</table>';
+
+  const fiche = m =>
+    '<section class="fiche">' +
+    '<p class="ent">Laboratoire virtuel de biologie végétale — fiche au format ECE</p>' +
+    '<h1>' + m.n.toUpperCase() + '</h1>' +
+    '<p class="s">' + m.niv + ' · ' + m.d + ' · onglet « ' + m.n + ' » du laboratoire</p>' +
+    '<p class="obj"><b>Objectif :</b> ' + m.obj + '</p>' +
+    '<h2>Étape 1 : mettre en œuvre le protocole de résolution pour obtenir des résultats exploitables</h2>' +
+    '<p>' + m.e1 + ' <i>(voir la grille d\'évaluation en fin de fiche).</i></p>' +
+    m.gestes.map((g, i) => '<p class="st">Étapes techniques, geste n°' + (i+1) + ' — ' + g.t + '</p>' +
+      '<ol>' + g.l.map(x => '<li>' + x + '</li>').join('') + '</ol>').join('') +
+    '<h2>Étape 2 : présenter les résultats pour les communiquer</h2>' +
+    '<p>' + m.e2 + '</p><div class="cadre">Production de l\'élève</div>' +
+    '<h2>Étape 3 : exploiter les résultats obtenus pour répondre au problème posé</h2>' +
+    '<p>' + m.e3.obs + '</p><p>' + m.e3.sais + '</p><p>' + m.e3.ded + '</p>' +
+    '<h2>Étape 4 : poursuite de la stratégie</h2>' +
+    '<p>' + m.e4.prop + '</p><p>' + m.e4.obs + '</p><p>' + m.e4.ded + '</p>' +
+    bareme(m) + '</section>';
+
   const html = () =>
-    '<meta charset="utf-8"><title>Laboratoire virtuel — fiche pédagogique</title>' +
-    '<style>body{font:12.5px/1.55 system-ui,sans-serif;max-width:19cm;margin:1.4cm auto;color:#23201c}' +
-    'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:20px 0 6px;color:#2f7150}' +
-    '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:6px}' +
-    'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left;vertical-align:top}' +
-    'th{background:#faf7f2;font-size:11px;width:22%} .mod{break-inside:avoid;margin-top:14px}' +
-    '.enc{background:#f4f9f4;border-left:3px solid #2f7150;padding:9px 12px;margin:10px 0}' +
-    'ol{padding-left:18px;margin:4px 0} li{margin:2px 0}</style>' +
-    '<h1>Laboratoire virtuel de biologie végétale — fiche pédagogique</h1>' +
-    '<p class="s">D\'après R. Pratt, <i>Expérimentation en biologie et physiologie végétales</i>. ' +
-    'reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
-    '<div class="enc"><b>Statut des résultats.</b> Toutes les valeurs affichées sont calculées par un ' +
-    'modèle mathématique : les lois utilisées sont celles des manuels (Michaelis-Menten, Q₁₀ = 2, ' +
-    'saturation lumineuse, facteurs limitants), mais les constantes ont été choisies pour l\'illustration. ' +
-    'La forme et le sens des variations sont exploitables en classe ; <b>les nombres ne sont pas des ' +
-    'mesures</b> et ne doivent pas être relevés comme tels. Un bandeau le rappelle dans chaque module.</div>' +
-    MODULES.map(m => '<div class="mod"><h2>' + m.n + '</h2><table>' +
-      '<tr><th>Référence</th><td>' + m.ref + ' · ' + m.niv + ' · ' + m.d + '</td></tr>' +
-      '<tr><th>Objectif</th><td>' + m.o + '</td></tr>' +
-      '<tr><th>Résultat attendu</th><td>' + m.r + '</td></tr>' +
-      '<tr><th>Point de vigilance</th><td>' + m.v + '</td></tr></table></div>').join('') +
-    '<div class="mod"><h2>Deux TP guidés, vérifiés pas à pas</h2>' +
-    '<p><b>ExAO — la plante respire-t-elle en permanence ?</b> Six étapes : régler le dispositif, ' +
-    'enregistrer trois minutes à la lumière, mesurer la pente, garder le témoin, éteindre la lampe et ' +
-    'mesurer la nouvelle pente, conclure. Chaque étape est validée à partir de l\'état réel du ' +
-    'laboratoire : l\'élève ne peut pas cocher une étape qu\'il n\'a pas faite.</p>' +
-    '<p><b>Enzymes — la chaleur détruit-elle l\'enzyme ?</b> Six étapes menant au constat que le ' +
-    'refroidissement ne relance rien : la dénaturation est définitive.</p></div>' +
-    '<div class="mod"><h2>Ce que l\'élève rend</h2>' +
-    '<p>Les valeurs qu\'il trouve — pentes mesurées, point de compensation, optimums, Km, R<sub>f</sub>, ' +
-    'longueurs en micromètres, tests réalisés, scores des défis — sont relevées automatiquement. ' +
-    'Le bouton <b>Carnet</b> imprime une fiche de résultats à son nom, graphiques joints. ' +
-    'Rien n\'est envoyé sur Internet : tout reste dans le navigateur du poste.</p></div>' +
-    '<div class="mod"><h2>Liens directs</h2><ol>' +
-    ['#programme — entrée par le programme (#programme?niveau=2de, 1es, tes, 1spe, tspe)',
-     '#exao — ExAO','#biochimie — paillasse de biochimie','#pigments — pigments',
-     '#enzymes — cinétiques enzymatiques','#histologie — histologie','#preparer — matériel']
-      .map(x => '<li>' + x + '</li>').join('') + '</ol>' +
-    '<p class="s">Le bouton « Lien de ce réglage » de l\'ExAO produit une adresse qui rouvre le ' +
-    'laboratoire dans une configuration précise : pratique pour dicter une consigne à toute la classe.</p></div>';
+    '<meta charset="utf-8"><title>Laboratoire virtuel — fiches au format ECE</title>' +
+    '<style>' +
+    '@page{ size:A4; margin:1.5cm }' +
+    'body{ font:11.5px/1.5 system-ui,sans-serif; color:#23201c; max-width:19cm; margin:1.2cm auto }' +
+    '.ent{ font-size:10px; color:#7d776c; border-bottom:1px solid #e4dfd5; padding-bottom:4px; margin-bottom:14px }' +
+    'h1{ font-size:16px; letter-spacing:.02em; margin:0 0 2px }' +
+    'h2{ font-size:12px; margin:16px 0 5px; color:#2f7150 }' +
+    'h2.br{ margin-top:22px }' +
+    '.s{ color:#7d776c; font-size:10.5px; margin:0 0 10px }' +
+    '.obj{ background:#f4f9f4; border-left:3px solid #2f7150; padding:7px 10px; margin:10px 0 4px }' +
+    '.st{ font-weight:600; margin:9px 0 2px }' +
+    'ol,ul{ margin:3px 0; padding-left:19px } li{ margin:1px 0 }' +
+    '.cadre{ border:1px dashed #c9d5c3; border-radius:6px; color:#a9a294; font-size:10px;' +
+    '  padding:26px 10px 10px; margin-top:6px }' +
+    'table.bar{ border-collapse:collapse; width:100%; margin-top:6px; font-size:10.5px }' +
+    'table.bar th, table.bar td{ border:1px solid #c9c2b6; padding:5px 7px; text-align:left; vertical-align:top }' +
+    'table.bar th{ background:#f2efe9; font-size:10px }' +
+    '.c1{ width:auto } .c2{ width:31% }' +
+    'td.cur{ padding:0 } .niv{ display:flex; gap:6px; align-items:flex-start; border-bottom:1px solid #ddd6c9; padding:5px 7px }' +
+    '.niv:last-child{ border-bottom:0 } .niv span{ flex:1 } .niv b{ font-size:12px; min-width:18px; text-align:right }' +
+    'td.com{ height:44px } td.note{ text-align:center } td.note span{ font-size:13px }' +
+    '.fiche{ break-before:page } .fiche:first-of-type{ break-before:auto }' +
+    'table, .niv, ol, ul{ break-inside:avoid }' +
+    '.tete{ margin-bottom:6px }' +
+    '.note-statut{ background:#fdf8ef; border-left:3px solid #c08a1e; padding:9px 12px; margin:12px 0; font-size:11px }' +
+    '</style>' +
+    '<section class="tete">' +
+    '<p class="ent">Laboratoire virtuel de biologie végétale — inspiré du Pratt</p>' +
+    '<h1>CINQ FICHES AU FORMAT ECE</h1>' +
+    '<p class="s">reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
+    '<p>Chaque paillasse du laboratoire est présentée ici sous la forme d\'une correction d\'ECE : ' +
+    'objectif, les quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L\'élève retrouve ' +
+    'donc en s\'entraînant la forme exacte de ce qu\'on lui demandera à l\'épreuve, et le professeur ' +
+    'dispose d\'un barème prêt à l\'emploi.</p>' +
+    '<div class="note-statut"><b>Ce ne sont pas des sujets d\'ECE officiels.</b> Ce sont des fiches ' +
+    'd\'entraînement bâties sur la trame de l\'épreuve, à partir de manipulations simulées : les valeurs ' +
+    'affichées par le laboratoire sortent d\'un modèle mathématique et ne sont pas des mesures. La ' +
+    'démarche, les gestes techniques et le barème, eux, sont ceux de l\'épreuve. Pour une ECE réelle, ' +
+    'les résultats doivent venir de la paillasse.</div>' +
+    '<p class="st">Les cinq fiches</p><ol>' + MODULES.map(m => '<li>' + m.n + ' — ' + m.niv + '</li>').join('') + '</ol>' +
+    '<p class="st">Deux outils pour le professeur, sans fiche ECE</p><ol>' +
+    '<li><b>Programmes du lycée</b> — partir du chapitre à traiter et non du catalogue : chaque chapitre ' +
+    'donne les manipulations qui s\'y rattachent, et se verse d\'un clic dans le panier de matériel.</li>' +
+    '<li><b>Préparer une manip</b> — la liste de matériel d\'une expérience pour le nombre de postes voulu, ' +
+    'ou l\'inverse : le placard disponible donne les manipulations réalisables.</li></ol>' +
+    '<p class="st">Ce que l\'élève rend</p>' +
+    '<p>Les valeurs qu\'il trouve — pentes, point de compensation, optimums, rapports frontaux, longueurs, ' +
+    'tests réalisés — sont relevées automatiquement. Le bouton <b>Carnet</b> imprime une fiche de résultats ' +
+    'à son nom, graphiques joints. Rien n\'est envoyé sur Internet : tout reste dans le navigateur du poste.</p>' +
+    '</section>' +
+    MODULES.map(fiche).join('');
 
   const ouvre = () => {
     const f = window.open('', '_blank');
-    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
+    if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer les fiches."); return; }
     f.document.write(html()); f.document.close(); f.focus();
     setTimeout(() => f.print(), 300);
   };

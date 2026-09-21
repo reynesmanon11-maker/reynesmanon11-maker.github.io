@@ -80,6 +80,13 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
   données restent en place — ils servent de clés internes pour accrocher les
   fiches de matériel — mais ne s'affichent nulle part. L'attribution, elle,
   reste visible et assumée : « inspiré du Pratt ».
+- **Le bouton « Fiches au format ECE »** de chaque labo produit une fiche par
+  paillasse, bâtie sur la trame d'une correction d'ECE : objectif, les quatre
+  étapes évaluées (mettre en œuvre / présenter / exploiter — j'observe, je
+  sais, j'en déduis / poursuite de la stratégie), puis la grille A-B-C-D sur
+  vingt points (9 + 5 + 3 + 3). Garder cette trame et le total : l'élève doit
+  retrouver la forme exacte de l'épreuve. Rappeler aussi, en tête du document,
+  que ce ne sont pas des sujets officiels et que les valeurs sont simulées.
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé
