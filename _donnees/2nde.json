@@ -1,0 +1,324 @@
+{
+  "chapitres": [
+    {
+      "num": "Méthodes",
+      "titre": "Fiches méthode et documents généraux",
+      "docs": [
+        {
+          "l": "Présentation SVT rentrée lycée Ernest Ferroul",
+          "h": "cours/2nde/methodes/presentation-svt-seconde-rentree.pdf"
+        },
+        {
+          "l": "Fiche technique quadrat",
+          "h": "cours/2nde/methodes/fiche-technique-quadrat.docx"
+        },
+        {
+          "l": "Aide personnalisée mémorisation",
+          "h": "https://view.genially.com/6971363ccc025c49319751bf"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 1",
+      "titre": "Comment sont organisés les êtres vivants ?",
+      "act": {
+        "2": "La spécialisation des cellules chez les organismes pluricellulaires",
+        "3": "A la découverte de l’origine de la spécialisation cellulaire",
+        "5": "A la recherche du métabolisme des levures",
+        "6": "Pourquoi dit-on qu’il ne faut pas dormir avec une plante ?"
+      },
+      "docs": [
+        {
+          "l": "Activité 1 : Les niveaux d'organisation du vivant",
+          "h": "cours/2nde/chapitre-1/activite1-niveaux-orga-vivant.pdf"
+        },
+        {
+          "l": "Document aide activité 1",
+          "h": "cours/2nde/chapitre-1/document-support-activite-1-annexe.pdf",
+          "a": 1
+        },
+        {
+          "l": "Bilan cours activité 1",
+          "h": "cours/2nde/chapitre-1/c1-act1-niveaux-organisation.pdf"
+        },
+        {
+          "l": "Activité 2 Les cellules spécialisées",
+          "h": "cours/2nde/chapitre-1/activite-2-les-cellules-specialisees.pdf"
+        },
+        {
+          "l": "Doc aide",
+          "h": "cours/2nde/chapitre-1/doc-aide.pdf",
+          "a": 2
+        },
+        {
+          "l": "Bilan cours chapitre1 2",
+          "h": "cours/2nde/chapitre-1/bilan-cours-chapitre1-2.pdf",
+          "a": 2
+        },
+        {
+          "l": "Activité3 Origine spécialisation cellulaire",
+          "h": "cours/2nde/chapitre-1/activite3-origine-specialisation-cellulaire.pdf",
+          "a": 3,
+          "r": "activite"
+        },
+        {
+          "l": "Bilan cours chapitre1 3",
+          "h": "cours/2nde/chapitre-1/bilan-cours-chapitre1-3.pdf",
+          "a": 3
+        },
+        {
+          "l": "Activité 4 : L'ADN une molécule porteuse d'information",
+          "h": "cours/2nde/chapitre-1/c1-act4-adn.pdf"
+        },
+        {
+          "l": "Aide libmol",
+          "h": "cours/2nde/chapitre-1/aide-libmol.pdf",
+          "a": 4
+        },
+        {
+          "l": "Bilan cours chapitre1 4",
+          "h": "cours/2nde/chapitre-1/bilan-cours-chapitre1-4.pdf",
+          "a": 4
+        },
+        {
+          "l": "Activité 5 A la recherche du métabolisme des levures",
+          "h": "cours/2nde/chapitre-1/activite-5-a-la-recherche-du-metabolisme-des-levures.pdf"
+        },
+        {
+          "l": "Protocole act5",
+          "h": "cours/2nde/chapitre-1/protocole-act5.pdf",
+          "a": 5,
+          "r": "support"
+        },
+        {
+          "l": "Bilan cours chapitre1 5",
+          "h": "cours/2nde/chapitre-1/bilan-cours-chapitre1-5.pdf",
+          "a": 5
+        },
+        {
+          "l": "Document réponse TP5",
+          "h": "cours/2nde/chapitre-1/c1-act5-doc-reponse-levures.pdf"
+        },
+        {
+          "l": "Activité 6 Photosynthèse",
+          "h": "cours/2nde/chapitre-1/activite-6-photosynthese.pdf"
+        },
+        {
+          "l": "Doc réponse CTRL photosynthèse",
+          "h": "cours/2nde/chapitre-1/doc-reponse-ctrl-photosynthese.pdf",
+          "a": 6
+        },
+        {
+          "l": "Bilan cours chapitre1 6",
+          "h": "cours/2nde/chapitre-1/bilan-cours-chapitre1-6.pdf",
+          "a": 6
+        },
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=pvtn0kh7n25"
+        },
+        {
+          "l": "Sujet CTRL chap1",
+          "h": "cours/2nde/chapitre-1/sujet-ctrl-chap1.pdf",
+          "r": "evaluation"
+        },
+        {
+          "l": "Correction DS1 VerRoscoff",
+          "h": "cours/2nde/chapitre-1/correction-ds1-verroscoff.pdf",
+          "r": "evaluation"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 2",
+      "titre": "La biodiversité, témoin de l'histoire du vivant",
+      "act": {
+        "1": "Etude de la biodiversité du lycée Ernest Ferroul",
+        "2": "Allons-nous vers une 6ème crise biologique ?",
+        "3": "Les forces à l'origine de l'évolution de la biodiversité"
+      },
+      "docs": [
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=pco9tk7wt25"
+        },
+        {
+          "l": "Lien escape game",
+          "h": "https://view.genially.com/65552c2b114d1c0011e4edb6"
+        },
+        {
+          "l": "Activité1 Biodiversité lycéeEFerroul",
+          "h": "cours/2nde/chapitre-2/activite1-biodiversite-lyceeeferroul.docx",
+          "r": "activite"
+        },
+        {
+          "l": "Fiche rapport à remplir",
+          "h": "cours/2nde/chapitre-2/fiche-rapport-a-remplir.pdf",
+          "a": 1
+        },
+        {
+          "l": "Grille eleve2",
+          "h": "cours/2nde/chapitre-2/grille-eleve2.pdf",
+          "r": "support",
+          "a": 1
+        },
+        {
+          "l": "Bilan cours 1",
+          "h": "cours/2nde/chapitre-2/bilan-cours-1.pdf",
+          "a": 1
+        },
+        {
+          "l": "Activité 2 6ème crise biologique",
+          "h": "cours/2nde/chapitre-2/activite-2-6eme-crise-biologique.pdf"
+        },
+        {
+          "l": "Correction Genially 6ème extinction",
+          "h": "cours/2nde/chapitre-2/correction-genially-6eme-extinction.docx"
+        },
+        {
+          "l": "Activité3 Les forces origine biodiv",
+          "h": "cours/2nde/chapitre-2/activite3-les-forces-origine-biodiv.pdf",
+          "r": "activite"
+        },
+        {
+          "l": "Document aide act3",
+          "h": "cours/2nde/chapitre-2/document-aide-act3.pdf",
+          "a": 3
+        },
+        {
+          "l": "Bilan cours chap2",
+          "h": "cours/2nde/chapitre-2/bilan-cours-chap2.pdf",
+          "a": 3
+        },
+        {
+          "l": "Sujet CTRL biodiv méditeranée chap2",
+          "h": "cours/2nde/chapitre-2/sujet-ctrl-biodiv-mediteranee-chap2.pdf",
+          "r": "evaluation"
+        },
+        {
+          "l": "Correction DS2 Méditerannée",
+          "h": "cours/2nde/chapitre-2/correction-ds2-mediterannee.pdf",
+          "r": "correction"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 3",
+      "titre": "Devenir homme ou femme : communication, reproduction et maîtrise de sa sexualité",
+      "docs": [
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=pu9k1s0g525"
+        },
+        {
+          "l": "ACTIVITE 3: PMA",
+          "h": "https://view.genially.com/6943a244813341a2a79ebaa2/interactive-content-chapitre3activite-3pma"
+        },
+        {
+          "l": "ACTIVITE 4: Les méthodes de contraception",
+          "h": "https://view.genially.com/6950034f2ddc862aca8ac52e"
+        },
+        {
+          "l": "ACTIVITE 6: Identité et orientation sexuelle",
+          "h": "https://view.genially.com/6967f912882e1acdabd1cd8c"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 4",
+      "titre": "Microorganismes et santé : bon ou mauvais ?",
+      "docs": [
+        {
+          "l": "Activité 1: Les agents pathogènes",
+          "h": "cours/2nde/chapitre-4/activite1-les-agents-pathogenes-une-diversite-de-microorgani.pdf"
+        },
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=p88pu560a26"
+        },
+        {
+          "l": "Mise en commun des données activité 1 2nde4",
+          "h": "https://digicalc.app/698457e7ec467"
+        },
+        {
+          "l": "Mise en commun des données activité 1 2nde5",
+          "h": "https://digicalc.app/6991a9571653f"
+        },
+        {
+          "l": "Mise en commun des données activité 1 2nde6",
+          "h": "https://digicalc.app/6989933cb17bb"
+        },
+        {
+          "l": "Outil pour la création d'affiche",
+          "h": "https://ladigitale.dev/digidesign/editeur.html"
+        },
+        {
+          "l": "DIAPORAMA",
+          "h": "https://view.genially.com/69b872bc82ba81ab2090f236"
+        },
+        {
+          "l": "Documents secours activité 4",
+          "h": "https://drive.google.com/drive/folders/1gUcx26Hb32qdJ6fnN4nDjH16x5OQMsF5?usp=drive_link"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 5",
+      "titre": "Quelle est l'origine de nos paysages et comment se transforment-ils ?",
+      "docs": [
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=phbfedhvc26"
+        },
+        {
+          "l": "Cours chapitre 5",
+          "h": "https://view.genially.com/69cec60e8cd36e7ab9589d3f"
+        },
+        {
+          "l": "ACTIVITE : Mission ingénieur géologue",
+          "h": "https://view.genially.com/67f370d915eb1912c18ace69"
+        }
+      ]
+    },
+    {
+      "num": "Chapitre 6",
+      "titre": "Nourrir l'humanité aujourd'hui et demain : un défi réalisable ?",
+      "docs": [
+        {
+          "l": "Tester ses connaissances",
+          "h": "https://learningapps.org/watch?v=pbvc4dzit26"
+        }
+      ]
+    },
+    {
+      "num": "Culture",
+      "titre": "Articles et vidéos scientifiques",
+      "docs": [
+        {
+          "l": "Les super-pouvoirs de notre microbiote",
+          "h": "https://www.youtube.com/watch?v=TqyznGUuefo"
+        },
+        {
+          "l": "Les futures épidémies que nous vivrons",
+          "h": "https://www.youtube.com/watch?v=VJNt1AQ8p2A"
+        },
+        {
+          "l": "Dirty biology",
+          "h": "https://www.youtube.com/watch?v=WJ0f5wXETyg"
+        },
+        {
+          "l": "Darwin chez les pokémons",
+          "h": "https://youtu.be/OcKfWW7sAMk?si=EwL_6OZZSdLdxLbt"
+        },
+        {
+          "l": "Les atouts de l’ADN synthétique pour stocker les données numériques",
+          "h": "https://www.lemonde.fr/sciences/article/2024/09/03/les-atouts-de-l-adn-synthetique-pour-stocker-les-donnees-numeriques_6302640_1650684.html"
+        },
+        {
+          "l": "Suivre l'actualité scientifique",
+          "h": "https://youtube.com/@leblob_fr?si=1Vmq4BDFLd873EK5"
+        }
+      ]
+    }
+  ]
+}
