@@ -288,6 +288,42 @@ table.tab td{ vertical-align:top }
 .intro-mod h2{ font-size:clamp(24px, 4vw, 36px); letter-spacing:-.025em; margin-bottom:9px }
 .intro-mod p{ font-size:14.5px; line-height:1.65; color:#5f594f; max-width:62ch }
 .intro-mod .ref{ background:var(--papier); color:var(--pt); border:1px solid var(--ptbd) }
+
+/* ---------- l'intro d'accueil en bulles de bande dessinée ----------
+   Une phrase par bulle, et les bulles alternent d'un bord à l'autre. Le
+   paragraphe reste seul dans sa bulle, sans balise à l'intérieur : il reste
+   donc modifiable en mode retouche. La queue est faite de deux triangles
+   superposés — celui du bord, puis celui du fond, un peu plus petit. */
+.bulles{ display:flex; flex-direction:column; gap:32px; max-width:none; margin:6px 0 18px }
+.bulle{
+  --bulle-bg:#ffffff; --bulle-bd:#a8660f;
+  position:relative; background:var(--bulle-bg); border:2px solid var(--bulle-bd);
+  border-radius:26px; padding:16px 22px; max-width:min(560px, 80%); align-self:flex-start;
+}
+.bulle p{ margin:0; max-width:none; color:#453c31 }
+/* une bulle sur deux : remplie, et renvoyée de l'autre côté */
+.bulle:nth-child(even){ --bulle-bg:#f8ead4; align-self:flex-end }
+/* une bulle courte, s'il y en a une, ferme la série : pleine, texte en blanc */
+.bulle.courte{ --bulle-bg:#a8660f; max-width:none; width:auto; align-self:flex-end; padding:11px 22px }
+.bulle.courte p{ color:#fff; font-style:italic }
+.bulle .chapo{ font-size:16.5px; line-height:1.58 }
+/* la queue : triangle du bord, puis triangle du fond posé dessus */
+.bulle::before, .bulle::after{ content:''; position:absolute; width:0; height:0; border-style:solid }
+.bulle::before{ bottom:-20px; left:40px;
+  border-width:20px 26px 0 0; border-color:var(--bulle-bd) transparent transparent transparent }
+.bulle::after{ bottom:-14px; left:45px;
+  border-width:15px 19px 0 0; border-color:var(--bulle-bg) transparent transparent transparent }
+.bulle:nth-child(even)::before, .bulle.courte::before{ left:auto; right:40px;
+  border-width:20px 0 0 26px; border-color:var(--bulle-bd) transparent transparent transparent }
+.bulle:nth-child(even)::after, .bulle.courte::after{ left:auto; right:45px;
+  border-width:15px 0 0 19px; border-color:var(--bulle-bg) transparent transparent transparent }
+@media(max-width:720px){
+  .bulle{ max-width:100%; align-self:stretch; border-radius:20px; padding:14px 17px }
+  .bulle.courte{ align-self:flex-end }
+  .bulle::before{ left:28px } .bulle::after{ left:33px }
+  .bulle:nth-child(even)::before, .bulle.courte::before{ right:28px }
+  .bulle:nth-child(even)::after, .bulle.courte::after{ right:33px }
+}
 #mod-accueil .intro-mod{ padding:42px 30px 36px }
 #mod-accueil .intro-mod::before{ font-size:clamp(96px, 20vw, 210px) }
 
@@ -495,11 +531,17 @@ header.top .marque b{ letter-spacing:-.015em }
 <section class="module actif" id="mod-accueil" role="tabpanel">
   <div class="intro-mod" data-wm="GÉOL">
     <h2>Cinq paillasses de géologie, et de quoi préparer les vraies</h2>
-    <p>La gouttière hydraulique, l'altération, la cristallisation, la viscosité des magmas et
-       l'identification des roches : les manipulations que l'on refait chaque année et qui
-       demandent toujours du temps de montage. Ici on fait varier les paramètres en quelques
-       secondes, pour préparer la séance réelle ou pour l'exploiter après coup. Les deux derniers
-       onglets partent du programme et sortent la liste de matériel.</p>
+    <div class="bulles">
+      <div class="bulle"><p class="chapo">Ce laboratoire virtuel permet de tester rapidement différentes
+         conditions expérimentales, d’explorer les paramètres qui influencent un phénomène et de
+         préparer une séance avant de passer à la manipulation réelle.</p></div>
+      <div class="bulle"><p>L’objectif n’est pas de remplacer l’expérience en classe, mais de la
+         préparer, la compléter ou l’exploiter autrement : tester une autre valeur, comparer plusieurs
+         conditions, anticiper un résultat ou revenir sur une expérience après la séance.</p></div>
+      <div class="bulle"><p>Deux outils permettent également de faire le lien avec la pratique :
+         retrouver les manipulations associées aux différents chapitres du programme et identifier le
+         matériel nécessaire pour préparer une expérience.</p></div>
+    </div>
     <span class="ref">TP classiques du lycée · d'après la banque d'expériences de Planet-Terre (ENS Lyon)</span>
     <a class="btn mini no-print" style="margin-left:8px; vertical-align:2px"
        href="https://planet-terre.ens-lyon.fr/" target="_blank" rel="noopener">Planet-Terre ↗</a>
