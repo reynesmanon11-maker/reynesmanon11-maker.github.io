@@ -463,6 +463,46 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 #modal .sbadge{ width:3.5rem; height:3.5rem; display:grid; place-items:center; border-radius:9999px; background:#0a0a0a; color:#cf8047; font-size:1.5rem }
 #modal .stext{ max-width:42ch; font-size:.875rem; line-height:1.55; color:rgba(17,17,17,.6) }
 @media (min-width:640px){ #modal{ align-items:center } #modal .panel{ padding:2rem } #modal h2{ font-size:1.875rem } }
+
+/* ===================== bandeau « À voir, à lire » ===================== */
+.actus{ background:#fff; padding:4.5rem 0 5rem }
+.actus-tete{ padding-inline:1.25rem; margin-bottom:1.9rem }
+.actus-tete h2{ font-size:1.5rem; font-weight:600; letter-spacing:-.02em; margin:.55rem 0 .45rem }
+.actus-tete p{ font-size:.875rem; color:rgba(17,17,17,.62); max-width:48ch }
+/* le cadre défile, à la main comme tout seul */
+.actus-cadre{ overflow-x:auto; overflow-y:hidden; padding-inline:1.25rem;
+  scrollbar-width:none; cursor:grab; overscroll-behavior-x:contain;
+  /* pendant qu'on tire, on ne veut pas sélectionner les titres au passage */
+  user-select:none; -webkit-user-select:none }
+.actus-cadre img{ -webkit-user-drag:none }
+.actus-cadre::-webkit-scrollbar{ display:none }
+.actus-cadre.tire{ cursor:grabbing }
+/* Le mouvement est celui du conteneur, avancé par bandeau-actus.js : ainsi le
+   doigt et la molette agissent sur la même chose, sans se battre avec lui. */
+.actus-piste{ display:flex; width:max-content }
+.actus-rail{ display:flex; gap:1rem; margin:0; padding:0 .5rem 0 0; list-style:none }
+.actu{ flex:none; width:16.5rem }
+.actu a{ display:block; text-decoration:none; color:inherit }
+.actu .vign{ position:relative; display:block; aspect-ratio:16/9; overflow:hidden;
+  border-radius:1rem; border:1px solid #e6e5e2; background:#ecebe9;
+  transition:border-color .3s, transform .3s cubic-bezier(.22,1,.36,1) }
+.actu .vign img{ width:100%; height:100%; object-fit:cover; display:block }
+/* pas de vignette — un article de presse, une chaîne : on affiche la source */
+.actu .repli{ display:none; position:absolute; inset:0; place-items:center; padding:.5rem;
+  text-align:center; font-size:.8rem; color:rgba(17,17,17,.72);
+  background:linear-gradient(135deg,#f4f3f1,#e4e2de) }
+.actu.sans-image .vign img{ display:none }
+.actu.sans-image .repli{ display:grid }
+.actu .tt{ display:block; margin:.7rem 0 .25rem; font-size:.875rem; font-weight:500; line-height:1.35 }
+.actu .src{ display:block; font-size:.68rem; letter-spacing:.06em; text-transform:uppercase;
+  color:rgba(17,17,17,.62) }
+.actu a:hover .vign{ border-color:#0a0a0a; transform:translateY(-2px) }
+.actu a:focus-visible .vign{ outline:2px solid #0a0a0a; outline-offset:3px }
+@media (min-width:640px){
+  .actus-tete{ padding-inline:2rem } .actus-cadre{ padding-inline:2rem }
+  .actus-tete h2{ font-size:1.875rem }
+}
+@media (min-width:1024px){ .actus{ padding:6rem 0 6.5rem } }
 </style>
 <!-- Icone d'onglet : le carre noir et l'etoile terracotta du site.
      Le SVG suffit aux navigateurs recents ; le PNG couvre les autres. -->
@@ -640,6 +680,17 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
     </span>
     <span class="right">Faire défiler <em style="font-style:normal">↓</em></span>
   </div>
+</section>
+
+<!-- ============ BANDEAU « À VOIR, À LIRE » ============ -->
+<section class="actus" aria-labelledby="actus-titre">
+  <div class="shell actus-tete" data-reveal="up" style="--ry:12px">
+    <span class="eyebrow">À voir, à lire</span>
+    <h2 id="actus-titre">L'actualité scientifique</h2>
+    <p>Des vidéos et des articles pour prolonger le cours. Le bandeau s'arrête
+       quand on le survole, et se fait glisser à la main.</p>
+  </div>
+  <div class="actus-cadre"><div class="actus-piste" id="actus-piste"></div></div>
 </section>
 
 <!-- ============ ABOUT ============ -->
@@ -1662,6 +1713,8 @@ document.querySelectorAll('.pill').forEach(p => {
 </script>
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
+<script src="/actualites.js" defer></script>
+<script src="/bandeau-actus.js" defer></script>
 <script src="/assistant-svt.js" defer></script>
 
 <script>

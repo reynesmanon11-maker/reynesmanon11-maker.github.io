@@ -140,6 +140,23 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
 .chap .actions .efface{ color:#a32c2c; box-shadow:0 0 0 1px #e0cccc }
 .chap .actions .efface:hover{ box-shadow:0 0 0 1px #a32c2c }
 .docs .vide-h input{ background:#f6f3ec }
+
+/* bandeau d'actualités */
+.actus-l{ list-style:none; display:flex; flex-direction:column; gap:.4rem; margin-top:.8rem }
+.actus-l li{ display:flex; gap:.5rem; align-items:center; background:#fff; border:1px solid #e8e4dc;
+  border-radius:.6rem; padding:.4rem .5rem }
+.actus-l .vg{ flex:none; width:5rem; aspect-ratio:16/9; border-radius:.4rem; overflow:hidden;
+  background:#efece5; display:grid; place-items:center; font-size:.6rem; color:#8a8378; text-align:center }
+.actus-l .vg img{ width:100%; height:100%; object-fit:cover; display:block }
+.actus-l .ch{ flex:1; min-width:9rem; display:flex; flex-direction:column; gap:.3rem }
+.actus-l input{ padding:.38rem .55rem; font-size:.8rem; border-radius:.45rem; width:100% }
+.actus-l .lien input{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.72rem; color:#5c574f }
+.actus-l .outils{ display:flex; gap:.25rem; flex:none }
+.actus-l .outils button{ width:1.6rem; height:1.6rem; border-radius:.4rem; border:1px solid #ddd8ce;
+  background:#fbfaf8; font-size:.72rem; color:#5c574f; display:grid; place-items:center; cursor:pointer }
+.actus-l .outils .joindre{ border-color:#c9d8c9; background:#f2f8f2; font-size:.8rem }
+.actus-l .outils .sup{ border-color:#e0cccc; color:#a32c2c }
+@media (max-width:620px){ .actus-l li{ flex-wrap:wrap } .actus-l .ch{ flex:1 1 100% } }
 @media (max-width:620px){ .docs li{ flex-wrap:wrap } .docs .l, .docs .h, .docs .ra{ flex:1 1 100% }
   .docs .ra select{ flex:1; max-width:none } }
 
@@ -213,11 +230,39 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
   <h1>Que voulez-vous faire ?</h1>
   <div class="onglets" role="tablist">
     <button role="tab" data-vue="organiser" aria-selected="true">Mes pages de cours</button>
+    <button role="tab" data-vue="actus" aria-selected="false">Bandeau d'actualités</button>
     <button role="tab" data-vue="photos" aria-selected="false">Photos des labos</button>
     <button role="tab" data-vue="assistant" aria-selected="false">Nourrir l'assistant</button>
   </div>
 
   <!-- ─── dépôt d'un document ─── -->
+  <!-- ─── bandeau d'actualités ─── -->
+  <div id="vue-actus" class="cacher">
+    <div class="carte">
+      <h2>Le bandeau de la page d'accueil</h2>
+      <p class="aide">Les vidéos et articles qui défilent sous le globe. Pour une vidéo
+         YouTube, collez simplement son lien : l'image est retrouvée toute seule.
+         Pour autre chose, ajoutez une image avec le bouton <b>📎</b>, sinon la carte
+         affichera le nom du site.</p>
+      <div id="ba-liste"></div>
+      <input type="file" id="ba-fichier" class="cacher" accept=".png,.jpg,.jpeg,.webp" />
+      <div class="actions">
+        <button class="pill clair" id="ba-ajouter">+ Ajouter une entrée</button>
+      </div>
+    </div>
+
+    <div class="carte">
+      <h2>Publier</h2>
+      <p class="aide">Les images ajoutées partent tout de suite ; l'ordre et les textes
+         attendent ce bouton.</p>
+      <div class="actions">
+        <button class="pill noir" id="ba-publier" disabled>Publier le bandeau</button>
+        <button class="pill clair" id="ba-annuler">Tout annuler</button>
+      </div>
+      <div id="ba-msg"></div>
+    </div>
+  </div>
+
   <!-- ─── photos des labos ─── -->
   <div id="vue-photos" class="cacher">
     <div class="carte">
@@ -359,6 +404,7 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
 </main>
 
 <script src="/activites.js"></script>
+<script src="/actualites.js"></script>
 <script>
 /* =============================================================================
    Espace de gestion — il écrit dans le dépôt GitHub via son API.
@@ -458,9 +504,195 @@ function entrer() {
   $('ecran-gestion').classList.remove('cacher');
   $('sortir').classList.remove('cacher');
   chargerOrga();
+  chargerActus();
   chargerPhotos();
   chargerAssistant();
 }
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   ONGLET — le bandeau d'actualités de la page d'accueil
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const FICHIER_ACTUS = 'actualites.js';
+let actus = null;   // { sha, liste, modifie }
+
+/* Le tableau est du JavaScript littéral : on le relit tel quel, comme pour les
+   chapitres, plutôt que d'essayer de le deviner. */
+function extraireActus(texte) {
+  const i = texte.indexOf('window.ACTUALITES = [');
+  if (i < 0) throw new Error('tableau ACTUALITES introuvable.');
+  const debut = texte.indexOf('[', i);
+  let n = 0, j = debut;
+  for (; j < texte.length; j++) {
+    if (texte[j] === '[') n++;
+    else if (texte[j] === ']') { n--; if (!n) break; }
+  }
+  return new Function('return ' + texte.slice(debut, j + 1))();
+}
+
+function serialiserActus(liste) {
+  let s = '[\n';
+  for (const a of liste) {
+    if (!a.t || !a.h) continue;
+    s += `  { t: ${chaine(a.t)}, h: ${chaine(a.h)}`;
+    if (a.img) s += `, img: ${chaine(a.img)}`;
+    s += ' },\n';
+  }
+  return s + ']';
+}
+
+function remplacerActus(texte, liste) {
+  const i = texte.indexOf('window.ACTUALITES = [');
+  const debut = texte.indexOf('[', i);
+  let n = 0, j = debut;
+  for (; j < texte.length; j++) {
+    if (texte[j] === '[') n++;
+    else if (texte[j] === ']') { n--; if (!n) break; }
+  }
+  return texte.slice(0, debut) + serialiserActus(liste) + texte.slice(j + 1);
+}
+
+function actusModifiees() { actus.modifie = true; $('ba-publier').disabled = false; }
+
+async function chargerActus() {
+  $('ba-liste').innerHTML = '<div class="vide">Chargement…</div>';
+  $('ba-publier').disabled = true;
+  try {
+    const { texte, sha } = await lireFichier(FICHIER_ACTUS);
+    actus = { sha, liste: extraireActus(texte), modifie: false };
+    dessinerActus();
+  } catch (e) {
+    actus = null;
+    $('ba-liste').innerHTML = '';
+    message('ba-msg', 'ko', 'Impossible de lire ' + FICHIER_ACTUS + ' : ' + echap(e.message));
+  }
+}
+
+function dessinerActus() {
+  if (!actus) { $('ba-liste').innerHTML = ''; return; }
+  if (!actus.liste.length) {
+    $('ba-liste').innerHTML = '<div class="vide">Le bandeau est vide. Ajoutez une entrée ci-dessous.</div>';
+    return;
+  }
+  const O = window.ACTUS_OUTILS;
+  $('ba-liste').innerHTML = '<ul class="actus-l">' + actus.liste.map((a, i) => {
+    const v = O.vignette(a);
+    return `
+    <li data-i="${i}">
+      <span class="vg">${v ? `<img src="${echap(v)}" alt="" referrerpolicy="no-referrer" />`
+                           : echap(O.source(a.h) || 'sans image')}</span>
+      <span class="ch">
+        <input type="text" data-a="t" value="${echap(a.t || '')}" placeholder="Titre affiché" aria-label="Titre" />
+        <span class="lien"><input type="text" data-a="h" value="${echap(a.h || '')}"
+              placeholder="https://…" aria-label="Lien" /></span>
+      </span>
+      <span class="outils">
+        <button class="joindre" data-aa="a-img" title="Ajouter une image à cette entrée"
+                aria-label="Ajouter une image">📎</button>
+        <button data-aa="a-haut" title="Monter" aria-label="Monter">↑</button>
+        <button data-aa="a-bas" title="Descendre" aria-label="Descendre">↓</button>
+        <button class="sup" data-aa="a-sup" title="Retirer" aria-label="Retirer">✕</button>
+      </span>
+    </li>`;
+  }).join('') + '</ul>';
+  brancherActus();
+}
+
+function brancherActus() {
+  const zone = $('ba-liste');
+  zone.querySelectorAll('[data-a]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const a = actus.liste[+inp.closest('li').dataset.i];
+      a[inp.dataset.a] = inp.value.trim();
+      actusModifiees();
+      /* Le lien change : la vignette YouTube qu'on en déduit change aussi. */
+      if (inp.dataset.a === 'h') {
+        const v = window.ACTUS_OUTILS.vignette(a);
+        const c = inp.closest('li').querySelector('.vg');
+        c.innerHTML = v ? `<img src="${echap(v)}" alt="" referrerpolicy="no-referrer" />`
+                        : echap(window.ACTUS_OUTILS.source(a.h) || 'sans image');
+      }
+    });
+  });
+  zone.querySelectorAll('[data-aa]').forEach(b => b.addEventListener('click', (e) => {
+    e.preventDefault();
+    const i = +b.closest('li').dataset.i, act = b.dataset.aa;
+    const bouger = (de, vers) => {
+      if (vers < 0 || vers >= actus.liste.length) return false;
+      const [x] = actus.liste.splice(de, 1); actus.liste.splice(vers, 0, x); return true;
+    };
+    if (act === 'a-img') { cibleImage = i; $('ba-fichier').value = ''; $('ba-fichier').click(); return; }
+    if (act === 'a-haut' && !bouger(i, i - 1)) return;
+    if (act === 'a-bas' && !bouger(i, i + 1)) return;
+    if (act === 'a-sup') {
+      if (!confirm(`Retirer « ${actus.liste[i].t || 'cette entrée'} » du bandeau ?`)) return;
+      actus.liste.splice(i, 1);
+    }
+    actusModifiees();
+    dessinerActus();
+  }));
+}
+
+let cibleImage = null;
+
+$('ba-fichier').addEventListener('change', async () => {
+  const f = $('ba-fichier').files[0];
+  if (!f || cibleImage === null || !actus) return;
+  const a = actus.liste[cibleImage];
+  const chemin = 'images/actualites/' + nomPropre(f.name).replace(/\.[^.]+$/, '') + '.jpg';
+  message('ba-msg', 'info', `Envoi de <code>${echap(f.name)}</code>…`);
+  try {
+    /* 640 px de large suffisent pour une carte de bandeau : inutile d'envoyer
+       une photo de téléphone de quatre mégaoctets. */
+    const petite = await reduire(f, 640, 0.82);
+    const octets = new Uint8Array(await petite.arrayBuffer());
+    let sha = null;
+    try { sha = (await lireFichierBrut(chemin)).sha; } catch (e) { /* image neuve */ }
+    await ecrireFichier(chemin, versBase64(octets), sha, (sha ? 'Remplace ' : 'Ajoute ') + chemin);
+    a.img = chemin;
+    actusModifiees();
+    dessinerActus();
+    message('ba-msg', 'ok', `<b>Image ajoutée.</b> Cliquez sur « Publier le bandeau » pour qu'elle apparaisse.`);
+  } catch (e) {
+    message('ba-msg', 'ko', "<b>L'image n'a pas été envoyée.</b> " + echap(e.message));
+  }
+  cibleImage = null;
+});
+
+$('ba-ajouter').addEventListener('click', () => {
+  if (!actus) return;
+  actus.liste.push({ t: 'Nouvelle ressource', h: '' });
+  actusModifiees();
+  dessinerActus();
+});
+
+$('ba-annuler').addEventListener('click', () => {
+  if (actus && actus.modifie && !confirm('Abandonner les modifications non publiées ?')) return;
+  chargerActus();
+});
+
+$('ba-publier').addEventListener('click', async () => {
+  if (!actus || !actus.modifie) return;
+  const incomplete = actus.liste.find(a => !a.t || !a.h);
+  if (incomplete && !confirm(`« ${incomplete.t || 'Une entrée'} » n'a pas de titre ou pas de lien :\n`
+      + 'elle ne sera pas publiée. Continuer ?')) return;
+  const b = $('ba-publier');
+  b.disabled = true;
+  message('ba-msg', 'info', 'Publication…');
+  try {
+    const frais = await lireFichier(FICHIER_ACTUS);
+    const nouveau = remplacerActus(frais.texte, actus.liste);
+    const relu = extraireActus(nouveau);          // vérification avant envoi
+    if (!Array.isArray(relu)) throw new Error('vérification interne : tableau illisible.');
+    await ecrireFichier(FICHIER_ACTUS, texteVersBase64(nouveau), frais.sha, 'Met a jour le bandeau d\'actualites');
+    actus.modifie = false;
+    message('ba-msg', 'ok', `<b>C'est publié.</b> ${relu.length} entrée(s) dans le bandeau —
+      <a href="/" target="_blank" rel="noopener">voir l'accueil ↗</a>`);
+  } catch (e) {
+    message('ba-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
+    b.disabled = false;
+  }
+});
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ONGLET 1 — les pages de cours : déposer, renommer, réordonner
@@ -1240,6 +1472,7 @@ $('a-annuler').addEventListener('click', () => {
 document.querySelectorAll('[data-vue]').forEach(b => b.addEventListener('click', () => {
   document.querySelectorAll('[data-vue]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
   $('vue-organiser').classList.toggle('cacher', b.dataset.vue !== 'organiser');
+  $('vue-actus').classList.toggle('cacher', b.dataset.vue !== 'actus');
   $('vue-photos').classList.toggle('cacher', b.dataset.vue !== 'photos');
   $('vue-assistant').classList.toggle('cacher', b.dataset.vue !== 'assistant');
 }));
