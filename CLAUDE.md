@@ -73,6 +73,13 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
   haut, porte la couleur de sa destination ; les pastilles des pages de niveau
   aussi. Les couleurs de courbes (CO₂ en terracotta, O₂ en bleu) ne suivent pas
   l'accent : elles doivent rester lisibles et distinctes entre elles.
+- **Ne pas reproduire la structure de l'ouvrage de R. Pratt** : pas de
+  pagination, pas de numérotation de parties ni de paragraphes (« Partie I —
+  4.1 »), pas de sommaire calqué. Le catalogue liste des manipulations par
+  thème, avec leur intitulé scientifique usuel. Les champs `ref` et `n` des
+  données restent en place — ils servent de clés internes pour accrocher les
+  fiches de matériel — mais ne s'affichent nulle part. L'attribution, elle,
+  reste visible et assumée : « inspiré du Pratt ».
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé
