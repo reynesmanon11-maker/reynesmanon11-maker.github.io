@@ -225,7 +225,9 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 #carnet .cn-tete{ padding:16px 18px; border-bottom:1px solid var(--ligne); display:flex; align-items:center; gap:10px }
 #carnet .cn-corps{ flex:1; overflow-y:auto; padding:16px 18px }
 #carnet .cn-pied{ padding:12px 18px; border-top:1px solid var(--ligne); display:flex; gap:8px; flex-wrap:wrap }
-#carnet textarea{ min-height:120px; margin-bottom:14px }
+#carnet textarea{ min-height:88px; margin-bottom:12px }
+#carnet .cn-etape{ margin:20px 0 10px; padding-top:13px; border-top:1px solid var(--ligne);
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent) }
 .flottant{ position:fixed; right:18px; bottom:18px; z-index:70; box-shadow:0 6px 20px rgba(35,32,28,.18) }
 
 /* ---------- impression ---------- */
@@ -578,7 +580,7 @@ header.top .marque b{ letter-spacing:-.015em }
        automatiquement et s'impriment en fiche de résultats à son nom.</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap">
       <button class="btn" id="btn-carnet-3" style="background:#fff; border-color:#fff">Voir le carnet</button>
-      <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches au format ECE</button>
+      <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches de correction</button>
     </div>
   </div>
 
@@ -1216,16 +1218,40 @@ header.top .marque b{ letter-spacing:-.015em }
       <label for="cn-nom">Nom, classe, date</label>
       <input type="text" id="cn-nom" placeholder="Léa M. — 2nde 4 — 12/03">
     </div>
-    <label class="lgd" for="cn-1">Gouttière — observations et interprétation</label>
-    <textarea id="cn-1" placeholder="Où se déposent les graviers ? et les argiles ?…"></textarea>
-    <label class="lgd" for="cn-2">Cristallisation</label>
-    <textarea id="cn-2" placeholder="Taille des cristaux selon le lieu de refroidissement…"></textarea>
-    <label class="lgd" for="cn-3">Viscosité et style éruptif</label>
-    <textarea id="cn-3" placeholder="Ce qui rend une éruption explosive…"></textarea>
-    <label class="lgd" for="cn-4">Identification des roches</label>
-    <textarea id="cn-4" placeholder="Tests réalisés, conclusion, classement…"></textarea>
-    <label class="lgd" for="cn-5">Altération</label>
-    <textarea id="cn-5" placeholder="Perte de masse, tests de l'eau, ce qui part et ce qui reste…"></textarea>
+    <div class="reglage">
+      <label for="cn-manip">Manipulation</label>
+      <select id="cn-manip">
+        <option>Gouttière hydraulique — érosion, transport, dépôt</option>
+        <option>Altération des roches</option>
+        <option>Cristallisation et texture</option>
+        <option>Viscosité et style éruptif</option>
+        <option>Paillasse — identifier une roche</option>
+      </select>
+    </div>
+    <div class="reglage">
+      <label for="cn-pb">Problème posé</label>
+      <input type="text" id="cn-pb" placeholder="Qu'est-ce qui trie les grains d'un dépôt sédimentaire ?">
+    </div>
+
+    <div class="cn-etape">Présenter les résultats</div>
+    <label class="lgd" for="cn-prod">Ce que j'ai obtenu, et comment je le présente</label>
+    <textarea id="cn-prod" placeholder="Mon tableau, mon schéma ou mon graphique : valeurs, unités, titre, légendes…"></textarea>
+
+    <div class="cn-etape">Exploiter les résultats pour répondre au problème</div>
+    <label class="lgd" for="cn-obs">J'observe que…</label>
+    <textarea id="cn-obs" placeholder="tous mes résultats, avec leurs valeurs et leurs unités"></textarea>
+    <label class="lgd" for="cn-sais">Je sais que…</label>
+    <textarea id="cn-sais" placeholder="les connaissances du cours et ce que disent les documents"></textarea>
+    <label class="lgd" for="cn-ded">J'en déduis que…</label>
+    <textarea id="cn-ded" placeholder="la réponse au problème posé, qui relie les deux"></textarea>
+
+    <div class="cn-etape">Poursuite de la stratégie</div>
+    <label class="lgd" for="cn-prop">Je propose…</label>
+    <textarea id="cn-prop" placeholder="l'expérience ou l'observation qui permettrait d'aller plus loin"></textarea>
+    <label class="lgd" for="cn-obs2">J'observe que…</label>
+    <textarea id="cn-obs2" placeholder="ce que montre le document ressource ou le nouvel essai"></textarea>
+    <label class="lgd" for="cn-ded2">J'en déduis que…</label>
+    <textarea id="cn-ded2" placeholder="ce que cela apporte de plus à la réponse"></textarea>
     <p style="font-size:11.5px; color:var(--gris-clair)">
       Les valeurs que vous trouvez dans les modules sont relevées automatiquement et s'ajoutent en
       tête de la fiche imprimée. Tout reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
@@ -1346,10 +1372,23 @@ window.addEventListener('resize', () => {
    ========================================================================== */
 (function carnet(){
   const pan = $('#carnet');
-  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4','cn-5'];
+  const champs = ['cn-nom','cn-manip','cn-pb','cn-prod','cn-obs','cn-sais','cn-ded',
+                  'cn-prop','cn-obs2','cn-ded2'];
+  /* Les carnets de l'ancienne version rangeaient leurs notes par module. On ne
+     les jette pas : on les verse dans « j'observe que », où elles ont leur place. */
+  const ANCIENS = [['Gouttière','cn-1'],['Cristallisation','cn-2'],['Viscosité','cn-3'],
+                   ['Identification des roches','cn-4'],['Altération','cn-5']];
   const CLE = 'labo-geol-carnet';
   let sauv = {};
   try { sauv = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch(e){ sauv = {}; }
+  (function recupere(){
+    if(champs.some(id => sauv[id])) return;
+    const vieux = ANCIENS.filter(([, id]) => (sauv[id] || '').trim());
+    if(!vieux.length) return;
+    sauv['cn-obs'] = vieux.map(([t, id]) => t + ' : ' + sauv[id].trim()).join('\n');
+    ANCIENS.forEach(([, id]) => delete sauv[id]);
+    try { localStorage.setItem(CLE, JSON.stringify(sauv)); } catch(e){}
+  })();
   champs.forEach(id => {
     const el = $('#'+id); if(!el) return;
     if(sauv[id]) el.value = sauv[id];
@@ -1371,9 +1410,15 @@ window.addEventListener('resize', () => {
   const TITRES = {sediment:'Gouttière hydraulique', cristal:'Cristallisation',
                   magma:'Viscosité et style éruptif', roches:'Identification des roches',
                   alteration:'Altération des roches'};
-  const RUBRIQUES = [['cn-1','Gouttière'],['cn-2','Cristallisation'],
-                     ['cn-3','Viscosité et style éruptif'],['cn-4','Identification des roches'],
-                     ['cn-5','Altération']];
+  /* Les trois temps de la démarche, dans le carnet comme sur la fiche imprimée. */
+  const DEMARCHE = [
+    ['Présenter les résultats', [["Ce que j'ai obtenu", 'cn-prod']]],
+    ['Exploiter les résultats pour répondre au problème',
+      [["J'observe que", 'cn-obs'], ['Je sais que', 'cn-sais'], ["J'en déduis que", 'cn-ded']]],
+    ['Poursuite de la stratégie',
+      [['Je propose', 'cn-prop'], ["J'observe que", 'cn-obs2'], ["J'en déduis que", 'cn-ded2']]]
+  ];
+  const val = id => ($('#'+id) ? $('#'+id).value : '').trim();
   $('#cn-imprimer').addEventListener('click', () => {
     const nom = ($('#cn-nom').value || '').trim();
     const releve = Object.keys(Labo.resultats).filter(m => Object.keys(Labo.resultats[m]||{}).length);
@@ -1383,18 +1428,20 @@ window.addEventListener('resize', () => {
       'h1{font-size:19px;margin-bottom:2px} h2{font-size:13px;margin:18px 0 6px;color:#a8660f}' +
       '.s{color:#7d776c;font-size:12px} table{border-collapse:collapse;width:100%;margin-top:4px}' +
       'th,td{border:1px solid #e4dfd5;padding:5px 7px;text-align:left} th{background:#faf7f2;width:55%;font-weight:500}' +
-      'p.rep{white-space:pre-wrap;border:1px solid #e4dfd5;border-radius:6px;padding:8px;min-height:2.4cm}' +
+      'p.rep{white-space:pre-wrap;border:1px solid #e4dfd5;border-radius:6px;padding:8px;min-height:1.6cm;margin:2px 0 10px}' +
+      'p.l{margin:10px 0 0;color:#a8660f;font-weight:600}' +
       '.enc{background:#fdf6e9;border-left:3px solid #a8660f;padding:9px 12px;margin:10px 0;font-size:12px}</style>' +
-      '<h1>Laboratoire virtuel de géologie — fiche de résultats</h1>' +
+      '<h1>Fiche de résultats — ' + ech(val('cn-manip')) + '</h1>' +
       '<p class="s">' + (nom ? ech(nom) + ' · ' : '') + new Date().toLocaleDateString('fr-FR') + '</p>' +
+      (val('cn-pb') ? '<p class="enc"><b>Problème posé.</b> ' + ech(val('cn-pb')) + '</p>' : '') +
       '<div class="enc">Les valeurs relevées dans les trois premiers modules sont calculées par un ' +
       'modèle, pas mesurées. Les propriétés des roches de la paillasse, elles, sont réelles.</div>' +
       (releve.length ? releve.map(m => '<h2>' + (TITRES[m]||m) + ' — valeurs relevées</h2><table>' +
         Object.keys(Labo.resultats[m]).map(k =>
           '<tr><th>' + ech(k) + '</th><td>' + ech(Labo.resultats[m][k]) + '</td></tr>').join('') +
         '</table>').join('') : '') +
-      RUBRIQUES.map(([id,t]) => '<h2>' + t + '</h2><p class="rep">' +
-        ech(($('#'+id).value || '').trim()) + '</p>').join('');
+      DEMARCHE.map(([titre, lignes]) => '<h2>' + titre + '</h2>' + lignes.map(([l, id]) =>
+        '<p class="l"><b>' + l + '</b></p><p class="rep">' + ech(val(id)) + '</p>').join('')).join('');
     const f = window.open('', '_blank');
     if(!f){ alert("Autorisez les fenêtres surgissantes pour imprimer la fiche."); return; }
     f.document.write(html); f.document.close(); f.focus();
@@ -4240,7 +4287,7 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
 
   const fiche = m =>
     '<section class="fiche">' +
-    '<p class="ent">Laboratoire virtuel de géologie — fiche au format ECE</p>' +
+    '<p class="ent">Laboratoire virtuel de géologie — fiche de correction</p>' +
     '<h1>' + m.n.toUpperCase() + '</h1>' +
     '<p class="s">' + m.niv + ' · ' + m.d + ' · onglet « ' + m.n + ' » du laboratoire</p>' +
     '<p class="obj"><b>Objectif :</b> ' + m.obj + '</p>' +
@@ -4257,7 +4304,7 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
     bareme(m) + '</section>';
 
   const html = () =>
-    '<meta charset="utf-8"><title>Laboratoire virtuel de géologie — fiches au format ECE</title>' +
+    '<meta charset="utf-8"><title>Laboratoire virtuel de géologie — fiches de correction</title>' +
     '<style>' +
     '@page{ size:A4; margin:1.5cm }' +
     'body{ font:11.5px/1.5 system-ui,sans-serif; color:#23201c; max-width:19cm; margin:1.2cm auto }' +
@@ -4285,7 +4332,7 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
     '</style>' +
     '<section class="tete">' +
     '<p class="ent">Laboratoire virtuel de géologie — TP classiques du lycée</p>' +
-    '<h1>CINQ FICHES AU FORMAT ECE</h1>' +
+    '<h1>CINQ FICHES DE CORRECTION</h1>' +
     '<p class="s">reynesmanon11-maker.github.io/outils/labo_geologie.html</p>' +
     '<p>Chaque paillasse du laboratoire est présentée ici sous la forme d\'une correction d\'ECE : ' +
     'objectif, les quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L\'élève retrouve ' +
@@ -4299,7 +4346,7 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
     'démarche, les gestes techniques et le barème sont ceux de l\'épreuve ; pour une ECE réelle, les ' +
     'résultats doivent venir de la paillasse.</div>' +
     '<p class="st">Les cinq fiches</p><ol>' + MODULES.map(m => '<li>' + m.n + ' — ' + m.niv + '</li>').join('') + '</ol>' +
-    '<p class="st">Deux outils pour le professeur, sans fiche ECE</p><ol>' +
+    '<p class="st">Deux outils pour le professeur, sans fiche de correction</p><ol>' +
     '<li><b>Programmes du lycée</b> — partir du chapitre à traiter : chaque chapitre donne les ' +
     'manipulations qui s\'y rattachent. Les deux niveaux de spécialité suivent votre programmation, ' +
     'activité par activité.</li>' +

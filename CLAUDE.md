@@ -80,13 +80,18 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
   données restent en place — ils servent de clés internes pour accrocher les
   fiches de matériel — mais ne s'affichent nulle part. L'attribution, elle,
   reste visible et assumée : « inspiré du Pratt ».
-- **Le bouton « Fiches au format ECE »** de chaque labo produit une fiche par
-  paillasse, bâtie sur la trame d'une correction d'ECE : objectif, les quatre
-  étapes évaluées (mettre en œuvre / présenter / exploiter — j'observe, je
-  sais, j'en déduis / poursuite de la stratégie), puis la grille A-B-C-D sur
-  vingt points (9 + 5 + 3 + 3). Garder cette trame et le total : l'élève doit
-  retrouver la forme exacte de l'épreuve. Rappeler aussi, en tête du document,
-  que ce ne sont pas des sujets officiels et que les valeurs sont simulées.
+- **La démarche de l'ECE structure les deux côtés.** Côté professeur, le
+  bouton « Fiches de correction » produit une fiche par paillasse : objectif,
+  les quatre étapes évaluées, puis la grille A-B-C-D sur vingt points
+  (9 + 5 + 3 + 3). Côté élève, le carnet de manipulation reprend les mêmes
+  temps — présenter les résultats, puis j'observe que / je sais que / j'en
+  déduis que, puis la poursuite de la stratégie — et la fiche imprimée les
+  restitue dans cet ordre. Garder cette trame et le total de points.
+- **Le sigle « ECE » ne s'affiche que là où il explique la trame**, c'est-à-dire
+  dans le document du professeur. Pas sur les boutons, pas dans le carnet de
+  l'élève, pas dans les titres : c'est la démarche qui doit être partout, pas
+  l'étiquette. Le document rappelle en tête que ce ne sont pas des sujets
+  officiels et que les valeurs sont simulées.
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé

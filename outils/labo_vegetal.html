@@ -225,7 +225,9 @@ canvas{ display:block; max-width:100%; touch-action:pan-y }
 #carnet .cn-tete{ padding:16px 18px; border-bottom:1px solid var(--ligne); display:flex; align-items:center; gap:10px }
 #carnet .cn-corps{ flex:1; overflow-y:auto; padding:16px 18px }
 #carnet .cn-pied{ padding:12px 18px; border-top:1px solid var(--ligne); display:flex; gap:8px; flex-wrap:wrap }
-#carnet textarea{ min-height:120px; margin-bottom:14px }
+#carnet textarea{ min-height:88px; margin-bottom:12px }
+#carnet .cn-etape{ margin:20px 0 10px; padding-top:13px; border-top:1px solid var(--ligne);
+  font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent) }
 .flottant{ position:fixed; right:18px; bottom:18px; z-index:70; box-shadow:0 6px 20px rgba(35,32,28,.18) }
 
 /* ---------- impression ---------- */
@@ -581,7 +583,7 @@ header.top .marque b{ letter-spacing:-.015em }
          automatiquement et s'impriment en fiche de résultats à son nom.</p>
       <div style="display:flex; gap:8px; flex-wrap:wrap">
         <button class="btn" id="btn-carnet-2" style="background:#fff; border-color:#fff">Voir le carnet</button>
-        <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches au format ECE</button>
+        <button class="btn" id="btn-fiche-prof" style="background:rgba(255,255,255,.14); border-color:rgba(255,255,255,.3); color:#fff">Fiches de correction</button>
       </div>
     </div>
 
@@ -1364,16 +1366,40 @@ header.top .marque b{ letter-spacing:-.015em }
       <label for="cn-nom">Nom, classe, date</label>
       <input type="text" id="cn-nom" placeholder="Léa M. — 2nde 4 — 12/03">
     </div>
-    <label class="lgd" for="cn-1">ExAO — observations et interprétation</label>
-    <textarea id="cn-1" placeholder="Ce que montrent les courbes…"></textarea>
-    <label class="lgd" for="cn-2">Biochimie — résultats des tests</label>
-    <textarea id="cn-2" placeholder="Tube 1 : pomme de terre + lugol → …"></textarea>
-    <label class="lgd" for="cn-3">Pigments</label>
-    <textarea id="cn-3" placeholder="Rf mesurés, comparaison des spectres…"></textarea>
-    <label class="lgd" for="cn-4">Enzymes</label>
-    <textarea id="cn-4" placeholder="Optimum de température, effet du pH…"></textarea>
-    <label class="lgd" for="cn-5">Histologie</label>
-    <textarea id="cn-5" placeholder="Tissus repérés sur la coupe…"></textarea>
+    <div class="reglage">
+      <label for="cn-manip">Manipulation</label>
+      <select id="cn-manip">
+        <option>ExAO — photosynthèse et respiration</option>
+        <option>Paillasse de biochimie</option>
+        <option>Pigments photosynthétiques</option>
+        <option>Cinétiques enzymatiques</option>
+        <option>Histologie des plantes</option>
+      </select>
+    </div>
+    <div class="reglage">
+      <label for="cn-pb">Problème posé</label>
+      <input type="text" id="cn-pb" placeholder="La plante respire-t-elle en permanence ?">
+    </div>
+
+    <div class="cn-etape">Présenter les résultats</div>
+    <label class="lgd" for="cn-prod">Ce que j'ai obtenu, et comment je le présente</label>
+    <textarea id="cn-prod" placeholder="Mon tableau, mon graphique ou mon dessin : valeurs, unités, titre, légendes…"></textarea>
+
+    <div class="cn-etape">Exploiter les résultats pour répondre au problème</div>
+    <label class="lgd" for="cn-obs">J'observe que…</label>
+    <textarea id="cn-obs" placeholder="tous mes résultats, avec leurs valeurs et leurs unités"></textarea>
+    <label class="lgd" for="cn-sais">Je sais que…</label>
+    <textarea id="cn-sais" placeholder="les connaissances du cours et ce que disent les documents"></textarea>
+    <label class="lgd" for="cn-ded">J'en déduis que…</label>
+    <textarea id="cn-ded" placeholder="la réponse au problème posé, qui relie les deux"></textarea>
+
+    <div class="cn-etape">Poursuite de la stratégie</div>
+    <label class="lgd" for="cn-prop">Je propose…</label>
+    <textarea id="cn-prop" placeholder="l'expérience ou l'observation qui permettrait d'aller plus loin"></textarea>
+    <label class="lgd" for="cn-obs2">J'observe que…</label>
+    <textarea id="cn-obs2" placeholder="ce que montre le document ressource ou le nouvel essai"></textarea>
+    <label class="lgd" for="cn-ded2">J'en déduis que…</label>
+    <textarea id="cn-ded2" placeholder="ce que cela apporte de plus à la réponse"></textarea>
     <p style="font-size:11.5px; color:var(--gris-clair)">
       Les valeurs que vous trouvez dans les modules (pentes, point de compensation, R<sub>f</sub>,
       optimums, scores) sont relevées automatiquement et s'ajoutent en tête de la fiche imprimée.
@@ -1816,10 +1842,23 @@ window.addEventListener('resize', () => {
    ========================================================================== */
 (function carnet(){
   const pan = $('#carnet');
-  const champs = ['cn-nom','cn-1','cn-2','cn-3','cn-4','cn-5'];
+  const champs = ['cn-nom','cn-manip','cn-pb','cn-prod','cn-obs','cn-sais','cn-ded',
+                  'cn-prop','cn-obs2','cn-ded2'];
+  /* Les carnets de l'ancienne version rangeaient leurs notes par module. On ne
+     les jette pas : on les verse dans « j'observe que », où elles ont leur place. */
+  const ANCIENS = [['ExAO','cn-1'],['Biochimie','cn-2'],['Pigments','cn-3'],
+                   ['Enzymes','cn-4'],['Histologie','cn-5']];
   const CLE = 'labo-vegetal-carnet';
   let sauv = {};
   try { sauv = JSON.parse(localStorage.getItem(CLE) || '{}'); } catch(e){ sauv = {}; }
+  (function recupere(){
+    if(champs.some(id => sauv[id])) return;
+    const vieux = ANCIENS.filter(([, id]) => (sauv[id] || '').trim());
+    if(!vieux.length) return;
+    sauv['cn-obs'] = vieux.map(([t, id]) => t + ' : ' + sauv[id].trim()).join('\n');
+    ANCIENS.forEach(([, id]) => delete sauv[id]);
+    try { localStorage.setItem(CLE, JSON.stringify(sauv)); } catch(e){}
+  })();
   champs.forEach(id => {
     const el = $('#'+id); if(!el) return;
     if(sauv[id]) el.value = sauv[id];
@@ -1870,17 +1909,30 @@ window.addEventListener('resize', () => {
     if(!mods.length) return null;
     return mods.map(m => ({m, lignes: Object.entries(Labo.resultats[m])}));
   };
+  /* Les trois temps de la démarche, dans le carnet comme sur la fiche imprimée. */
+  const DEMARCHE = [
+    ['Présenter les résultats', [["Ce que j'ai obtenu", 'cn-prod']]],
+    ['Exploiter les résultats pour répondre au problème',
+      [["J'observe que", 'cn-obs'], ['Je sais que', 'cn-sais'], ["J'en déduis que", 'cn-ded']]],
+    ['Poursuite de la stratégie',
+      [['Je propose', 'cn-prop'], ["J'observe que", 'cn-obs2'], ["J'en déduis que", 'cn-ded2']]]
+  ];
+  const val = id => ($('#'+id) ? $('#'+id).value : '').trim();
   const texte = () => {
     const t = ['CARNET DE MANIPULATION — laboratoire virtuel de biologie végétale',
-               $('#cn-nom').value, ''];
+               $('#cn-nom').value,
+               'Manipulation : ' + val('cn-manip'),
+               val('cn-pb') ? 'Problème posé : ' + val('cn-pb') : '', ''];
     const r = releves();
     if(r){
       t.push('== RÉSULTATS RELEVÉS PENDANT LA SÉANCE ==', '');
       r.forEach(({m, lignes}) => { t.push('— ' + m + ' —');
         lignes.forEach(([c,v]) => t.push('  ' + c + ' : ' + v)); t.push(''); });
     }
-    [['ExAO','cn-1'],['Biochimie','cn-2'],['Pigments','cn-3'],['Enzymes','cn-4'],['Histologie','cn-5']]
-      .forEach(([tit,id]) => { t.push('— ' + tit + ' —', $('#'+id).value || '(rien)', ''); });
+    DEMARCHE.forEach(([titre, lignes]) => {
+      t.push('== ' + titre.toUpperCase() + ' ==', '');
+      lignes.forEach(([l, id]) => t.push(l + ' : ' + (val(id) || '(rien)'), ''));
+    });
     return t.join('\n');
   };
   $('#cn-txt').addEventListener('click', () => telecharge('carnet-manip.txt', texte()));
@@ -1890,23 +1942,24 @@ window.addEventListener('resize', () => {
     f.document.write('<meta charset="utf-8"><title>Carnet de manipulation</title>' +
       '<style>body{font:14px/1.6 system-ui,sans-serif;max-width:19cm;margin:2cm auto;color:#23201c}' +
       'h1{font-size:19px} h2{font-size:14px;margin-top:22px;color:#2f7150;border-bottom:1px solid #e4dfd5;padding-bottom:4px}' +
-      'p{white-space:pre-wrap;margin:6px 0 0}' +
+      'p{white-space:pre-wrap;margin:8px 0 0} p b{color:#2f7150}' +
+      '.pb{background:#f4f9f4;border-left:3px solid #2f7150;padding:7px 10px;margin-top:10px}' +
       'table{border-collapse:collapse;margin:4px 0 12px;width:100%}' +
       'td{border-bottom:1px solid #eee;padding:3px 6px;font-size:13px}' +
       'td:last-child{text-align:right;white-space:nowrap}' +
       'figure{margin:10px 0 16px;break-inside:avoid} figure img{width:100%;border:1px solid #e4dfd5;border-radius:6px}' +
       'figcaption{font-size:11px;color:#7d776c;margin-top:4px;text-align:center}</style>' +
-      '<h1>Fiche de résultats — biologie végétale</h1><p><b>' +
+      '<h1>Fiche de résultats — ' + val('cn-manip').replace(/[<>]/g,'') + '</h1><p><b>' +
       $('#cn-nom').value.replace(/[<>]/g,'') + '</b></p>' +
+      (val('cn-pb') ? '<p class="pb"><b>Problème posé.</b> ' + val('cn-pb').replace(/[<>]/g,'') + '</p>' : '') +
       ((g => g.length ? '<h2>Graphiques</h2>' + g.map(x =>
         '<figure><img src="' + x.url + '" alt="Graphique : ' + x.titre + '"><figcaption>' + x.titre + '</figcaption></figure>').join('') : '')(graphiques())) +
       ((r => r ? '<h2>Résultats relevés pendant la séance</h2>' + r.map(({m, lignes}) =>
         '<p><b>' + m + '</b></p><table><tbody>' + lignes.map(([c,v]) =>
           '<tr><td>' + c + '</td><td><b>' + String(v).replace(/[<>]/g,'') + '</b></td></tr>').join('') +
         '</tbody></table>').join('') : '')(releves())) +
-      [['ExAO — photosynthèse et respiration','cn-1'],['Paillasse de biochimie','cn-2'],
-       ['Pigments photosynthétiques','cn-3'],['Cinétiques enzymatiques','cn-4'],['Histologie','cn-5']]
-      .map(([t,id]) => '<h2>'+t+'</h2><p>'+($('#'+id).value.replace(/[<>]/g,'')||'—')+'</p>').join(''));
+      DEMARCHE.map(([titre, lignes]) => '<h2>' + titre + '</h2>' + lignes.map(([l, id]) =>
+        '<p><b>' + l + '</b> ' + (val(id).replace(/[<>]/g,'') || '…') + '</p>').join('')).join(''));
     f.document.close(); f.focus(); setTimeout(() => f.print(), 250);
   });
 })();
@@ -5653,7 +5706,7 @@ const FICHES = [
 
   const fiche = m =>
     '<section class="fiche">' +
-    '<p class="ent">Laboratoire virtuel de biologie végétale — fiche au format ECE</p>' +
+    '<p class="ent">Laboratoire virtuel de biologie végétale — fiche de correction</p>' +
     '<h1>' + m.n.toUpperCase() + '</h1>' +
     '<p class="s">' + m.niv + ' · ' + m.d + ' · onglet « ' + m.n + ' » du laboratoire</p>' +
     '<p class="obj"><b>Objectif :</b> ' + m.obj + '</p>' +
@@ -5670,7 +5723,7 @@ const FICHES = [
     bareme(m) + '</section>';
 
   const html = () =>
-    '<meta charset="utf-8"><title>Laboratoire virtuel — fiches au format ECE</title>' +
+    '<meta charset="utf-8"><title>Laboratoire virtuel — fiches de correction</title>' +
     '<style>' +
     '@page{ size:A4; margin:1.5cm }' +
     'body{ font:11.5px/1.5 system-ui,sans-serif; color:#23201c; max-width:19cm; margin:1.2cm auto }' +
@@ -5698,7 +5751,7 @@ const FICHES = [
     '</style>' +
     '<section class="tete">' +
     '<p class="ent">Laboratoire virtuel de biologie végétale — inspiré du Pratt</p>' +
-    '<h1>CINQ FICHES AU FORMAT ECE</h1>' +
+    '<h1>CINQ FICHES DE CORRECTION</h1>' +
     '<p class="s">reynesmanon11-maker.github.io/outils/labo_vegetal.html</p>' +
     '<p>Chaque paillasse du laboratoire est présentée ici sous la forme d\'une correction d\'ECE : ' +
     'objectif, les quatre étapes évaluées, puis la grille A/B/C/D sur vingt points. L\'élève retrouve ' +
@@ -5710,7 +5763,7 @@ const FICHES = [
     'démarche, les gestes techniques et le barème, eux, sont ceux de l\'épreuve. Pour une ECE réelle, ' +
     'les résultats doivent venir de la paillasse.</div>' +
     '<p class="st">Les cinq fiches</p><ol>' + MODULES.map(m => '<li>' + m.n + ' — ' + m.niv + '</li>').join('') + '</ol>' +
-    '<p class="st">Deux outils pour le professeur, sans fiche ECE</p><ol>' +
+    '<p class="st">Deux outils pour le professeur, sans fiche de correction</p><ol>' +
     '<li><b>Programmes du lycée</b> — partir du chapitre à traiter et non du catalogue : chaque chapitre ' +
     'donne les manipulations qui s\'y rattachent, et se verse d\'un clic dans le panier de matériel.</li>' +
     '<li><b>Préparer une manip</b> — la liste de matériel d\'une expérience pour le nombre de postes voulu, ' +
