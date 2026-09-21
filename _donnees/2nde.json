@@ -173,7 +173,8 @@
         },
         {
           "l": "Correction Genially 6ème extinction",
-          "h": "cours/2nde/chapitre-2/correction-genially-6eme-extinction.docx"
+          "h": "cours/2nde/chapitre-2/correction-genially-6eme-extinction.docx",
+          "a": 2
         },
         {
           "l": "Activité3 Les forces origine biodiv",
@@ -293,6 +294,16 @@
           "l": "Bilan cours chapitre3 Correction",
           "h": "cours/2nde/chapitre-3/bilan-cours-chapitre3-correction.pdf",
           "a": 6
+        },
+        {
+          "l": "Sujet CTRL reproduction chap3",
+          "h": "cours/2nde/chapitre-3/sujet-ctrl-reproduction-chap3.pdf",
+          "r": "evaluation"
+        },
+        {
+          "l": "Correction DS3 MonsieurSertoli",
+          "r": "evaluation",
+          "h": "cours/2nde/chapitre-3/correction-ds3-monsieursertoli.pdf"
         }
       ],
       "act": {
@@ -316,18 +327,6 @@
           "h": "https://learningapps.org/watch?v=p88pu560a26"
         },
         {
-          "l": "Mise en commun des données activité 1 2nde4",
-          "h": "https://digicalc.app/698457e7ec467"
-        },
-        {
-          "l": "Mise en commun des données activité 1 2nde5",
-          "h": "https://digicalc.app/6991a9571653f"
-        },
-        {
-          "l": "Mise en commun des données activité 1 2nde6",
-          "h": "https://digicalc.app/6989933cb17bb"
-        },
-        {
           "l": "Outil pour la création d'affiche",
           "h": "https://ladigitale.dev/digidesign/editeur.html"
         },
@@ -339,7 +338,13 @@
           "l": "Documents secours activité 4",
           "h": "https://drive.google.com/drive/folders/1gUcx26Hb32qdJ6fnN4nDjH16x5OQMsF5?usp=drive_link"
         }
-      ]
+      ],
+      "act": {
+        "1": "Diversité des agents pathogènes",
+        "2": "Le paludisme: maladie à transmission vectorielle",
+        "3": "Le microbiote intestinal est-il notre allié ?",
+        "4": "Les gestes d'hygiènes sont-ils vraiment efficaces ?"
+      }
     },
     {
       "num": "Chapitre 5",
