@@ -294,6 +294,13 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
             <option value="roche">Un échantillon de roche</option>
           </select>
         </label>
+        <label id="f-vue-bloc" style="display:none">
+          <span class="t">Vue</span>
+          <select id="f-vue">
+            <option value="macro">À l'œil nu</option>
+            <option value="micro">Au microscope</option>
+          </select>
+        </label>
       </div>
 
       <label>
@@ -810,6 +817,7 @@ function majTypePhoto() {
   $('f-type').querySelector('[value=roche]').disabled = labo !== 'geologie';
   if (roche && labo !== 'geologie') { $('f-type').value = 'manip'; return majTypePhoto(); }
   $('f-cible-t').textContent = roche ? 'Échantillon' : 'Manipulation';
+  $('f-vue-bloc').style.display = roche ? '' : 'none';
   if (!photosLabo) return;
   const liste = roche
     ? photosLabo.roches.map(r => ({ v: r.id, t: r.n }))
@@ -825,9 +833,10 @@ function majPhotosActuelles() {
   if (!photosLabo) { zone.innerHTML = ''; return; }
   const labo = $('f-labo').value, cible = $('f-cible').value;
   if ($('f-type').value === 'roche') {
-    zone.innerHTML = `<p class="mini-note">Les photos de roches sont cherchées automatiquement
-      par la page, dans l'ordre. Déposer une photo ajoute la suivante ; pour en retirer une,
-      dites-le-moi.</p>`;
+    zone.innerHTML = `<p class="mini-note">Chaque roche a deux séries, cherchées automatiquement
+      par la page : <b>à l'œil nu</b> et <b>au microscope</b>. Choisissez la vue ci-dessus avant de
+      déposer — c'est elle qui décide du nom du fichier, et donc de la série. Quand les deux
+      existent, une bascule apparaît dans le labo. Pour retirer une photo, dites-le-moi.</p>`;
     return;
   }
   const dej = (photosLabo.rep[labo] || {})[cible] || [];
@@ -894,15 +903,18 @@ $('f-publier').addEventListener('click', async () => {
 
     let chemin;
     if (roche) {
-      /* La page essaie <id>-1, <id>-2… et s'arrête au premier manquant :
-         il faut donc prendre la première place libre, sans laisser de trou. */
+      /* Deux séries par roche : <id>-n.jpg à l'œil nu, <id>-micro-n.jpg au
+         microscope. La page essaie les numéros dans l'ordre et s'arrête au
+         premier manquant : il faut donc prendre la première place libre de la
+         série choisie, sans laisser de trou. */
+      const suffixe = $('f-vue').value === 'micro' ? '-micro-' : '-';
       let n = 1;
       while (n <= 12) {
-        try { await lireFichierBrut(`images/roches/${cible}-${n}.jpg`); n++; }
+        try { await lireFichierBrut(`images/roches/${cible}${suffixe}${n}.jpg`); n++; }
         catch (e) { break; }
       }
-      if (n > 12) throw new Error('cet échantillon a déjà douze photos.');
-      chemin = `images/roches/${cible}-${n}.jpg`;
+      if (n > 12) throw new Error('cette série a déjà douze photos.');
+      chemin = `images/roches/${cible}${suffixe}${n}.jpg`;
     } else {
       const dej = (photosLabo.rep[labo] || {})[cible] || [];
       chemin = `images/labo/${labo}/${sansAccents(cible)}-${dej.length + 1}.jpg`;

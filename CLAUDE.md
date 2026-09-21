@@ -98,8 +98,12 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
   masqué et la photo occupe sa place. Le dessin ne revient que pour les roches
   sans photo, et en mode « roche mystère » tant que la loupe n'a pas servi.
   Quand les deux séries existent, une bascule « À l'œil nu / Au microscope »
-  apparaît. Le nommage est documenté dans `images/roches/LISEZ-MOI.md` : ne pas
-  le changer sans le mettre à jour.
+  apparaît. Le nommage est documenté dans `images/roches/LISEZ-MOI.md`, et
+  `gestion.html` dépose les photos selon la vue choisie : ne pas changer la
+  convention sans mettre à jour ces deux endroits.
+- **Les deux labos portent une pancarte « Work in progress =) »** dans la barre
+  du haut : ils s'étoffent encore, et qui arrive dessus doit le savoir. La
+  retirer quand Manon le dira, pas avant.
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé

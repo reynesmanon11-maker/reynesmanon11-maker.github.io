@@ -50,6 +50,23 @@ header.top{
 .marque b{ font-size:15px }
 .marque i{ font-style:normal; font-size:11px; color:var(--gris-clair); white-space:nowrap }
 .top-spacer{ flex:1 }
+/* ---------- petite pancarte de chantier ----------
+   Le laboratoire s'étoffe encore : autant le dire à qui arrive dessus, plutôt
+   que de laisser croire à un outil fini. Bande de chantier dessinée en CSS,
+   pour ne dépendre d'aucune image ni d'aucun émoji. */
+.chantier{
+  display:inline-flex; align-items:center; align-self:center; gap:7px; white-space:nowrap;
+  font-size:11px; font-weight:700; letter-spacing:.02em; color:#6d5312;
+  background:#fdf3d6; border:1px solid #e6cf92; border-radius:7px;
+  padding:3px 9px 3px 7px; transform:rotate(-1.4deg); cursor:help;
+}
+.chantier::before{ content:''; flex:none; width:10px; height:10px; border-radius:2px;
+  background:repeating-linear-gradient(45deg, #e3ab2c 0 3px, #3a352e 3px 6px) }
+/* la pancarte s'ajoute au titre : sur un écran étroit, la ligne doit pouvoir
+   passer à la ligne suivante plutôt que de pousser la page hors de l'écran */
+.marque{ flex-wrap:wrap }
+@media(max-width:560px){ .chantier{ font-size:10px; padding:2px 7px 2px 6px } }
+
 .top-actions{ display:flex; gap:8px; flex-wrap:wrap }
 nav.onglets{ max-width:1180px; margin-inline:auto; padding:0 12px 8px; display:flex; gap:4px; overflow-x:auto; scrollbar-width:thin }
 nav.onglets button{
@@ -471,6 +488,7 @@ header.top .marque b{ letter-spacing:-.015em }
     <div class="marque">
       <b>Laboratoire virtuel — biologie végétale</b>
       <i>d'après R. Pratt</i>
+      <span class="chantier" title="Ce laboratoire est encore en chantier : des modules, des photographies et des corrections s'ajoutent régulièrement.">Work in progress =)</span>
     </div>
     <div class="top-spacer"></div>
     <div class="top-actions">
