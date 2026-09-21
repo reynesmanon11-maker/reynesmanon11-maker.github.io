@@ -781,7 +781,11 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
   /* Les documents d'un chapitre sont regroupés en activités d'après leur
      intitulé — voir activites.js. Un chapitre sans numérotation d'activité
      ressort avec zéro étape : la page retombe alors sur la liste simple. */
-  const paquet = SVTActivites.grouper(ch.docs, ch.act);
+  /* Les documents masqués sont retirés avant tout le reste : ils ne doivent
+     pas se retrouver dans la page, même invisibles — le code source d'une page
+     se lit. Une activité dont tous les documents sont masqués ne subsiste que
+     si son titre a été écrit à la main ; elle apparaît alors comme annoncée. */
+  const paquet = SVTActivites.grouper(ch.docs.filter(d => !d.cache), ch.act);
   const ligne = (d) => {
     const et = SVTActivites.ETIQUETTE[d.__r] || '';
     const tag = et ? `<span class="dr">${et}</span>` : '';

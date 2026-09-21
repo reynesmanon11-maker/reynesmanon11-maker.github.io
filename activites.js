@@ -104,7 +104,9 @@
     const prepares = (docs || []).map((d) => {
       const r = d.r || role(d.l);
       const n = (d.a === undefined || d.a === null) ? numero(d.l) : +d.a;
-      return Object.assign({}, d, { __r: r, __n: n, __t: alleger(d.l, n, r) });
+      /* __o renvoie à l'objet d'origine : la page de gestion modifie les vrais
+         documents à partir du regroupement, sans refaire son calcul à côté. */
+      return Object.assign({}, d, { __r: r, __n: n, __t: alleger(d.l, n, r), __o: d });
     });
 
     const paquets = new Map();

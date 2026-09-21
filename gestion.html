@@ -136,6 +136,15 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
   background:#fbfaf8; font-size:.72rem; color:#5c574f; display:grid; place-items:center }
 .docs .outils .sup{ border-color:#e0cccc; color:#a32c2c }
 .docs .outils .joindre{ border-color:#c9d8c9; background:#f2f8f2; font-size:.8rem }
+/* montré / masqué aux élèves */
+.oeil{ width:1.6rem; height:1.6rem; border-radius:.4rem; border:1px solid #ddd8ce; cursor:pointer;
+  background:#fbfaf8; color:#5c574f; display:grid; place-items:center; padding:.22rem }
+.oeil svg{ width:100%; height:100% }
+.oeil:hover{ border-color:#999; color:#111 }
+.oeil.off{ border-color:#e6d2ae; background:#fdf6e6; color:#8a5a12 }
+.docs li.masque{ background:#fdfbf5; border-style:dashed }
+.docs li.masque input{ color:#8a8378 }
+.chap .apercu .fil-masques{ margin-top:.5rem; font-size:.72rem; color:#8a5a12 }
 .docs .outils .joindre:hover{ border-color:#4ba574 }
 .chap .actions .efface{ color:#a32c2c; box-shadow:0 0 0 1px #e0cccc }
 .chap .actions .efface:hover{ box-shadow:0 0 0 1px #a32c2c }
@@ -958,6 +967,10 @@ function orgaModifiee() {
   $('o-publier').disabled = false;
 }
 
+/* La page des élèves ne contient que le visible ; la liste complète — masqués
+   compris — est dans ce fichier, qui n'est lié depuis aucune page. */
+const fichierComplet = (page) => 'donnees/' + page.replace(/\.html$/, '') + '.json';
+
 async function chargerOrga() {
   const f = $('o-niveau').value;
   $('o-liste').innerHTML = '<div class="vide">Chargement…</div>';
@@ -965,7 +978,16 @@ async function chargerOrga() {
   $('o-publier').disabled = true;
   try {
     const { texte, sha } = await lireFichier(f);
-    orga = { fichier: f, sha, chapitres: extraireChapitres(texte), modifie: false };
+    let chapitres = extraireChapitres(texte);
+    /* Le fichier complet l'emporte quand il existe : c'est lui qui garde les
+       documents masqués. Absent — première utilisation —, la page fait foi et
+       il sera créé à la première publication. */
+    try {
+      const complet = await lireFichier(fichierComplet(f));
+      const lu = JSON.parse(complet.texte);
+      if (lu && Array.isArray(lu.chapitres) && lu.chapitres.length) chapitres = lu.chapitres;
+    } catch (e) { /* pas encore de fichier complet */ }
+    orga = { fichier: f, sha, chapitres: chapitres, modifie: false };
     dessinerOrga();
   } catch (e) {
     orga = null;
@@ -984,6 +1006,16 @@ const NOMS_ROLE = {
   evaluation: 'Devoir, évaluation', entrainement: 'Entraînement, QCM',
   autre: 'Autre',
 };
+
+/* L'œil barré de la capture : même dessin dans les deux états, un trait en plus
+   quand c'est masqué. */
+function OEIL(cache) {
+  const base = '<path d="M1.6 12S5.2 5.6 12 5.6 22.4 12 22.4 12 18.8 18.4 12 18.4 1.6 12 1.6 12Z"/>'
+             + '<circle cx="12" cy="12" r="3.1"/>';
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" '
+       + 'stroke-linecap="round" aria-hidden="true">' + base
+       + (cache ? '<path d="M3.2 3.2l17.6 17.6"/>' : '') + '</svg>';
+}
 
 function reglages(d) {
   const nAuto = SVTActivites.numero(d.l || '');
@@ -1004,9 +1036,13 @@ function reglages(d) {
    voit tout de suite si un document est tombé au bon endroit, sans publier. */
 function apercuFil(c) {
   const paquet = SVTActivites.grouper(c.docs, c.act);
+  const caches = c.docs.filter(d => d.cache).length;
+  const rappel = caches
+    ? `<div class="fil-masques">${caches} document(s) masqué(s) : déposés, mais absents de la page des élèves.</div>`
+    : '';
   if (!paquet.etapes.length) {
     return '<span class="rien">Aucune activité pour l\'instant : ce chapitre s\'affichera en simple liste.</span>'
-         + '<button class="fil-plus" data-act="act-ajout">+ Ajouter une activité</button>';
+         + rappel + '<button class="fil-plus" data-act="act-ajout">+ Ajouter une activité</button>';
   }
   /* Le titre de chaque activité est modifiable ici. Laissé vide il suit l'énoncé
      — c'est le gris affiché en repère ; écrit, il l'emporte, ce qui permet de
@@ -1017,7 +1053,10 @@ function apercuFil(c) {
       <input type="text" data-act-titre="${e.n}" value="${echap((c.act && c.act[e.n]) || '')}"
              placeholder="${echap(e.derive)}" aria-label="Titre de l'activité ${e.n}" />
       ${e.docs.length
-        ? `<span class="fil-c">${e.docs.length} doc.</span>`
+        ? `<span class="fil-c">${e.docs.filter(d => !d.cache).length}/${e.docs.length} doc.</span>
+           <button class="oeil${e.docs.every(d => d.cache) ? ' off' : ''}" data-act="act-voir" data-n="${e.n}"
+                   title="Masquer ou montrer toute l'activité"
+                   aria-label="Masquer ou montrer toute l'activité ${e.n}">${OEIL(e.docs.every(d => d.cache))}</button>`
         : `<span class="fil-c vide">aucun doc.</span>
            <button class="fil-x" data-act="act-sup" data-n="${e.n}" title="Retirer cette activité"
                    aria-label="Retirer l'activité ${e.n}">✕</button>`}
@@ -1026,7 +1065,7 @@ function apercuFil(c) {
     ? `<div class="fil-r">${paquet.chapitre.length} document(s) hors activité, regroupés sous « Pour tout le chapitre ».</div>`
     : '';
   return '<div class="fil-t">Fil du chapitre — le titre de chaque activité se modifie ici</div>'
-       + lignes + reste
+       + lignes + reste + rappel
        + '<button class="fil-plus" data-act="act-ajout">+ Ajouter une activité</button>';
 }
 
@@ -1052,13 +1091,17 @@ function dessinerOrga() {
       <div class="apercu" data-apercu>${apercuFil(c)}</div>
       <ul class="docs">
         ${c.docs.map((d, j) => `
-          <li data-d="${j}">
+          <li data-d="${j}"${d.cache ? ' class="masque"' : ''}>
             <div class="l"><input type="text" data-champ="l" value="${echap(d.l || '')}" placeholder="Nom affiché" aria-label="Nom du document" /></div>
             <div class="h ${d.h ? '' : 'vide-h'}"><input type="text" data-champ="h" value="${echap(d.h || '')}" placeholder="vide = « à venir »" aria-label="Lien du document" /></div>
             <div class="ra">${reglages(d)}</div>
             <div class="outils">
               <button class="joindre" data-act="d-joindre" title="Déposer un fichier dans cette ligne"
                       aria-label="Déposer un fichier dans cette ligne">📎</button>
+              <button class="oeil${d.cache ? ' off' : ''}" data-act="d-voir"
+                      title="${d.cache ? 'Masqué aux élèves — cliquer pour montrer' : 'Visible — cliquer pour masquer'}"
+                      aria-pressed="${d.cache ? 'true' : 'false'}"
+                      aria-label="${d.cache ? 'Montrer ce document aux élèves' : 'Masquer ce document aux élèves'}">${OEIL(d.cache)}</button>
               <button data-act="d-haut" title="Monter" aria-label="Monter la ligne">↑</button>
               <button data-act="d-bas" title="Descendre" aria-label="Descendre la ligne">↓</button>
               <button class="sup" data-act="d-sup" title="Supprimer la ligne" aria-label="Supprimer la ligne">✕</button>
@@ -1148,6 +1191,16 @@ function brancherOrga() {
       while (pris.has(n)) n++;
       c.act[n] = 'Nouvelle activité';
     }
+    else if (act === 'act-voir') {
+      /* Toute l'activité d'un coup. On demande au regroupement quels documents
+         lui appartiennent plutôt que de refaire le calcul ici : une seule règle,
+         donc pas de divergence possible. On masque s'il reste quelque chose de
+         visible, on remontre sinon. */
+      const etape = SVTActivites.grouper(c.docs, c.act).etapes.find(e => e.n === +b.dataset.n);
+      if (!etape) return;
+      const cacher = etape.docs.some(d => !d.cache);
+      for (const d of etape.docs) { if (cacher) d.__o.cache = 1; else delete d.__o.cache; }
+    }
     else if (act === 'act-sup') { 
       delete c.act[b.dataset.n];
       if (!Object.keys(c.act).length) delete c.act;
@@ -1161,6 +1214,7 @@ function brancherOrga() {
     else if (li) {
       const j = +li.dataset.d;
       if (act === 'd-joindre') { demanderFichier(i, j); return; }
+      if (act === 'd-voir') { if (c.docs[j].cache) delete c.docs[j].cache; else c.docs[j].cache = 1; }
       if (act === 'd-haut' && !bouger(c.docs, j, j - 1)) return;
       else if (act === 'd-bas' && !bouger(c.docs, j, j + 1)) return;
       else if (act === 'd-sup') {
@@ -1253,7 +1307,10 @@ $('o-annuler').addEventListener('click', () => {
 
 /* On reconstruit le tableau en entier — il ne contient que de la donnée, aucun
    commentaire — et on remplace uniquement ce tableau dans la page. */
-function serialiserChapitres(chs) {
+/* `pourLaPage` ne garde que ce que les élèves doivent voir. Les documents
+   masqués ne sont pas seulement retirés de l'affichage : ils n'entrent pas dans
+   la page du tout, car son code source se lit. */
+function serialiserChapitres(chs, pourLaPage) {
   let s = '[\n';
   for (const c of chs) {
     s += `  {\n    num: ${chaine(c.num)},\n    titre: ${chaine(c.titre)},\n`;
@@ -1263,12 +1320,14 @@ function serialiserChapitres(chs) {
     s += '    docs: [\n';
     for (const d of c.docs) {
       if (!d.l) continue;
+      if (pourLaPage && d.cache) continue;
       let t = `      { l:${chaine(d.l)}`;
       if (d.h) t += `, h:${chaine(d.h)}`;
       /* a et r ne sont écrits que s'ils ont été réglés à la main : tant qu'ils
          sont absents, le rangement suit l'intitulé. */
       if (d.a !== undefined && d.a !== null && d.a !== '') t += `, a:${parseInt(d.a, 10) || 0}`;
       if (d.r) t += `, r:${chaine(d.r)}`;
+      if (d.cache) t += ', cache:1';
       s += t + ' },\n';
     }
     s += '    ]\n  },\n';
@@ -1285,7 +1344,7 @@ function remplacerChapitres(html, chs) {
     if (html[j] === '[') n++;
     else if (html[j] === ']') { n--; if (!n) break; }
   }
-  return html.slice(0, debut) + serialiserChapitres(chs) + html.slice(j + 1);
+  return html.slice(0, debut) + serialiserChapitres(chs, true) + html.slice(j + 1);
 }
 
 $('o-publier').addEventListener('click', async () => {
@@ -1302,10 +1361,26 @@ $('o-publier').addEventListener('click', async () => {
        plus lisible, mieux vaut échouer ici qu'une page blanche en ligne. */
     const relu = extraireChapitres(nouveau);
     if (relu.length !== orga.chapitres.length) throw new Error('vérification interne : le tableau relu ne correspond pas.');
+    const masques = orga.chapitres.reduce((n, c) => n + c.docs.filter(d => d.cache).length, 0);
+    if (relu.reduce((n, c) => n + c.docs.length, 0)
+        !== orga.chapitres.reduce((n, c) => n + c.docs.length, 0) - masques) {
+      throw new Error('vérification interne : le compte des documents visibles ne tombe pas juste.');
+    }
     await ecrireFichier(orga.fichier, texteVersBase64(nouveau), frais.sha,
       'Reorganise ' + orga.fichier);
+    /* La liste complète ensuite : si cette écriture échoue, la page des élèves
+       est déjà correcte — il ne manque que la mémoire des masqués, que la
+       prochaine publication rétablira. */
+    const chemin = fichierComplet(orga.fichier);
+    let shaComplet = null;
+    try { shaComplet = (await lireFichier(chemin)).sha; } catch (e) { /* à créer */ }
+    await ecrireFichier(chemin, texteVersBase64(JSON.stringify({ chapitres: orga.chapitres }, null, 2) + '\n'),
+      shaComplet, 'Met a jour la liste complete de ' + orga.fichier);
+
     orga.modifie = false;
-    message('o-msg', 'ok', `<b>C'est publié.</b> La page est à jour dans une minute environ —
+    message('o-msg', 'ok', `<b>C'est publié.</b> `
+      + (masques ? `${masques} document(s) restent masqués aux élèves. ` : '')
+      + `La page est à jour dans une minute environ —
       <a href="/${echap(orga.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`);
   } catch (e) {
     message('o-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
