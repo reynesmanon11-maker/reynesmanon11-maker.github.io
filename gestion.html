@@ -121,6 +121,13 @@ input[type=file]{ font-size:.85rem; width:100%; padding:.6rem; border:1px dashed
   border-radius:50%; background:#efece5; font-size:.72rem; font-weight:700; color:#5c574f }
 .chap .apercu .fil-l input{ flex:1; padding:.32rem .55rem; font-size:.8rem; border-radius:.45rem }
 .chap .apercu .fil-c{ flex:none; font-size:.7rem; color:#8a8378 }
+.chap .apercu .fil-c.vide{ color:#8a5a12 }
+.chap .apercu .fil-x{ flex:none; width:1.5rem; height:1.5rem; border-radius:.4rem; border:1px solid #e0cccc;
+  background:#fff; color:#a32c2c; font-size:.7rem; display:grid; place-items:center; cursor:pointer }
+.chap .apercu .fil-x:hover{ background:#fbeceb }
+.chap .apercu .fil-plus{ margin-top:.5rem; padding:.3rem .65rem; border-radius:.45rem; cursor:pointer;
+  border:1px solid #ddd8ce; background:#fff; font-size:.74rem; color:#5c574f }
+.chap .apercu .fil-plus:hover{ border-color:#999; color:#111 }
 .chap .apercu .fil-r{ font-size:.72rem; color:#8a8378; margin-top:.45rem }
 .docs input{ padding:.38rem .55rem; font-size:.8rem; border-radius:.45rem }
 .docs .h input{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.74rem; color:#5c574f }
@@ -766,8 +773,8 @@ function reglages(d) {
 function apercuFil(c) {
   const paquet = SVTActivites.grouper(c.docs, c.act);
   if (!paquet.etapes.length) {
-    return '<span class="rien">Aucune activité repérée : ce chapitre s\'affichera en simple liste. '
-         + 'Renseignez le numéro d\'activité des lignes concernées pour créer le fil.</span>';
+    return '<span class="rien">Aucune activité pour l\'instant : ce chapitre s\'affichera en simple liste.</span>'
+         + '<button class="fil-plus" data-act="act-ajout">+ Ajouter une activité</button>';
   }
   /* Le titre de chaque activité est modifiable ici. Laissé vide il suit l'énoncé
      — c'est le gris affiché en repère ; écrit, il l'emporte, ce qui permet de
@@ -777,13 +784,18 @@ function apercuFil(c) {
       <span class="fil-n">${e.n}</span>
       <input type="text" data-act-titre="${e.n}" value="${echap((c.act && c.act[e.n]) || '')}"
              placeholder="${echap(e.derive)}" aria-label="Titre de l'activité ${e.n}" />
-      <span class="fil-c">${e.docs.length} doc.</span>
+      ${e.docs.length
+        ? `<span class="fil-c">${e.docs.length} doc.</span>`
+        : `<span class="fil-c vide">aucun doc.</span>
+           <button class="fil-x" data-act="act-sup" data-n="${e.n}" title="Retirer cette activité"
+                   aria-label="Retirer l'activité ${e.n}">✕</button>`}
     </div>`).join('');
   const reste = paquet.chapitre.length
     ? `<div class="fil-r">${paquet.chapitre.length} document(s) hors activité, regroupés sous « Pour tout le chapitre ».</div>`
     : '';
   return '<div class="fil-t">Fil du chapitre — le titre de chaque activité se modifie ici</div>'
-       + lignes + reste;
+       + lignes + reste
+       + '<button class="fil-plus" data-act="act-ajout">+ Ajouter une activité</button>';
 }
 
 function dessinerOrga() {
@@ -895,6 +907,18 @@ function brancherOrga() {
       c.docs.push({ l: '' });
       demanderFichier(i, c.docs.length - 1);
       return;
+    }
+    else if (act === 'act-ajout') {
+      /* Le premier numéro encore libre, pour que les activités se suivent. */
+      if (!c.act) c.act = {};
+      const pris = new Set(SVTActivites.grouper(c.docs, c.act).etapes.map(e => e.n));
+      let n = 1;
+      while (pris.has(n)) n++;
+      c.act[n] = 'Nouvelle activité';
+    }
+    else if (act === 'act-sup') { 
+      delete c.act[b.dataset.n];
+      if (!Object.keys(c.act).length) delete c.act;
     }
     else if (act === 'd-vider') {
       const n = c.docs.filter(d => !d.h).length;

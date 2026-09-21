@@ -115,8 +115,16 @@
       paquets.get(d.__n).push(d);
     }
 
-    const etapes = [...paquets.keys()].sort((x, y) => x - y).map((n) => {
-      const L = paquets.get(n).slice()
+    /* Une activité annoncée dans `titres` compte même sans document : c'est ce
+       qui permet de poser le plan du chapitre avant d'avoir les fichiers. */
+    const numeros = new Set(paquets.keys());
+    if (titres) for (const k of Object.keys(titres)) {
+      const n = parseInt(k, 10);
+      if (n > 0) numeros.add(n);
+    }
+
+    const etapes = [...numeros].sort((x, y) => x - y).map((n) => {
+      const L = (paquets.get(n) || []).slice()
         .sort((p, q) => (RANG[p.__r] ?? 9) - (RANG[q.__r] ?? 9));
       const { titre, derive } = titreEtape(n, L, titres);
       /* La ligne de l'énoncé répète le titre déduit d'elle : inutile de le lire

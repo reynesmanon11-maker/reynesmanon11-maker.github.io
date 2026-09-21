@@ -470,6 +470,8 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 .etape > h3{ font-size:1.0625rem; font-weight:600; line-height:1.35; letter-spacing:-.01em;
   margin:.4rem 0 .7rem; max-width:46ch }
 /* dans une étape les documents se lisent en colonne, dans l'ordre du cours */
+/* activité annoncée dont les documents ne sont pas encore déposés */
+.etape-vide{ font-size:.82rem; font-style:italic; color:rgba(17,17,17,.62) }
 .etape .docs{ grid-template-columns:1fr; gap:.4rem }
 /* lignes resserrées : une activité doit tenir sous l'œil d'un seul coup */
 .etape .doc{ padding:.72rem 1.1rem; border-radius:1rem }
@@ -794,7 +796,9 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
         <li class="etape">
           <span class="num">${e.n}</span>
           <h3>${e.titre}</h3>
-          <ul class="docs">${e.docs.map(ligne).join('')}</ul>
+          ${e.docs.length
+            ? `<ul class="docs">${e.docs.map(ligne).join('')}</ul>`
+            : `<p class="etape-vide">Les documents de cette activité arriveront bientôt.</p>`}
         </li>`).join('')}
       </ol>` : '';
   const reste = paquet.chapitre.length ? `
