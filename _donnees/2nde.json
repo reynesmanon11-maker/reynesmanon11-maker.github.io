@@ -436,8 +436,46 @@
         {
           "l": "Tester ses connaissances",
           "h": "https://learningapps.org/watch?v=pbvc4dzit26"
+        },
+        {
+          "l": "2nd DossierSortieVigne",
+          "h": "cours/2nde/chapitre-6/2nd-dossiersortievigne.pdf",
+          "r": "activite",
+          "a": 1
+        },
+        {
+          "l": "2nd DossierSortieVigne Correction",
+          "h": "cours/2nde/chapitre-6/2nd-dossiersortievigne-correction.pdf",
+          "a": 1
+        },
+        {
+          "l": "2nd SortieCarteGeologique",
+          "h": "cours/2nde/chapitre-6/2nd-sortiecartegeologique.pdf",
+          "r": "support",
+          "a": 1
+        },
+        {
+          "l": "2nd SortieCarteRisqueClimat",
+          "h": "cours/2nde/chapitre-6/2nd-sortiecarterisqueclimat.pdf",
+          "r": "support",
+          "a": 1
+        },
+        {
+          "l": "2nd SortieCepageCaract",
+          "h": "cours/2nde/chapitre-6/2nd-sortiecepagecaract.pdf",
+          "a": 1,
+          "r": "support"
+        },
+        {
+          "l": "2nd SortieSolForet",
+          "h": "cours/2nde/chapitre-6/2nd-sortiesolforet.pdf",
+          "a": 1,
+          "r": "support"
         }
-      ]
+      ],
+      "act": {
+        "1": "Sortie à la vigne"
+      }
     },
     {
       "num": "Culture",
