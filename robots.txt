@@ -10,8 +10,10 @@ Disallow: /archives/
 Disallow: /correction_copies.html
 # Espace de gestion : sans interet pour un moteur, et reserve a l'enseignante.
 Disallow: /gestion.html
-# liste complète des documents, masqués compris : usage interne
-Disallow: /donnees/
+# liste complète des documents, masqués compris : usage interne.
+# Le dossier n'est de toute façon pas publié — Jekyll ignore les noms en « _ » —
+# mais la consigne reste, au cas où cette règle changerait.
+Disallow: /_donnees/
 Disallow: /raccourci-gestion.js
 Disallow: /essai-globe.html
 Disallow: /outils/chatbot_svt_TERM_test.html

@@ -968,8 +968,11 @@ function orgaModifiee() {
 }
 
 /* La page des élèves ne contient que le visible ; la liste complète — masqués
-   compris — est dans ce fichier, qui n'est lié depuis aucune page. */
-const fichierComplet = (page) => 'donnees/' + page.replace(/\.html$/, '') + '.json';
+   compris — est dans ce fichier. Le tiret bas n'est pas décoratif : Jekyll, qui
+   fabrique le site, ne recopie pas les dossiers qui commencent par « _ ». Le
+   fichier existe donc dans le dépôt, où la page de gestion le lit avec le jeton,
+   mais le site ne le sert à personne. */
+const fichierComplet = (page) => '_donnees/' + page.replace(/\.html$/, '') + '.json';
 
 async function chargerOrga() {
   const f = $('o-niveau').value;
