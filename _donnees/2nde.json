@@ -402,13 +402,32 @@
         },
         {
           "l": "Cours chapitre 5",
-          "h": "https://view.genially.com/69cec60e8cd36e7ab9589d3f"
+          "h": "https://view.genially.com/69cec60e8cd36e7ab9589d3f",
+          "a": 1,
+          "r": "bilan"
         },
         {
           "l": "ACTIVITE : Mission ingénieur géologue",
-          "h": "https://view.genially.com/67f370d915eb1912c18ace69"
+          "h": "https://view.genially.com/67f370d915eb1912c18ace69",
+          "a": 2
+        },
+        {
+          "l": "Grille eval rapport inge élève",
+          "h": "cours/2nde/chapitre-5/grille-eval-rapport-inge-eleve.pdf",
+          "r": "correction",
+          "a": 2
+        },
+        {
+          "l": "Grille eval rapport inge",
+          "a": 2,
+          "h": "cours/2nde/chapitre-5/grille-eval-rapport-inge-eleve.pdf",
+          "r": "support"
         }
-      ]
+      ],
+      "act": {
+        "1": "Cours magistral géologie sédimentaire",
+        "2": "Mission ingénieur géologue construction du lycée"
+      }
     },
     {
       "num": "Chapitre 6",
