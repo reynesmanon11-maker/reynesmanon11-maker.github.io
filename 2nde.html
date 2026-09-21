@@ -434,6 +434,21 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 #themes .theme:nth-child(6n+5){ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1; --ptd:#7560a9 } /* violet   */
 #themes .theme:nth-child(6n+6){ --pt:#3ba39b; --ptbg:#e8f6f5; --ptbd:#c8e9e6; --ptd:#2c7b75 } /* turquoise*/
 
+/* La couleur tient au chapitre, pas à son rang dans la page : le cycle
+   ci-dessus décalerait tout dès qu'un chapitre est inséré ou déplacé. Ces
+   règles-ci l'emportent, et le cycle ne sert plus que de repli pour une
+   section non nommée ici.
+   --pt habille le gros numéro et le filet, --ptbg et --ptbd les cartes ;
+   --ptd est la version assombrie, seule assez contrastée pour du texte. */
+#themes #methodes { --pt:#7c7a74; --ptbg:#f2f2f0; --ptbd:#dedcd7; --ptd:#6f6d68 } /* gris         */
+#themes #chapitre-1{ --pt:#4f93d4; --ptbg:#eaf2fb; --ptbd:#d2e3f5; --ptd:#3c71a3 } /* bleu         */
+#themes #chapitre-2{ --pt:#4ba574; --ptbg:#edf7f0; --ptbd:#cfe9d9; --ptd:#397d58 } /* vert         */
+#themes #chapitre-3{ --pt:#8f76cf; --ptbg:#f1edfa; --ptbd:#ddd3f1; --ptd:#7560a9 } /* violet       */
+#themes #chapitre-4{ --pt:#d56a97; --ptbg:#fbedf3; --ptbd:#f3d5e2; --ptd:#a65275 } /* rose         */
+#themes #chapitre-5{ --pt:#a98467; --ptbg:#f5f0e9; --ptbd:#e6dccd; --ptd:#856851 } /* marron clair */
+#themes #chapitre-6{ --pt:#d97b3f; --ptbg:#fdf0e7; --ptbd:#f7dcc5; --ptd:#a25c2f } /* orange       */
+#themes #culture   { --pt:#3ba39b; --ptbg:#e8f6f5; --ptbd:#c8e9e6; --ptd:#2c7b75 } /* turquoise    */
+
 /* Numéro de chapitre : coloré et lisible (au lieu du gris très pâle) */
 .theme .theme-num{ color:var(--pt,#b15f2c); opacity:1 }
 
