@@ -92,6 +92,14 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
   l'élève, pas dans les titres : c'est la démarche qui doit être partout, pas
   l'étiquette. Le document rappelle en tête que ce ne sont pas des sujets
   officiels et que les valeurs sont simulées.
+- **Une photographie de roche l'emporte toujours sur le dessin.** Le module
+  d'identification cherche `images/roches/<id>-1.jpg` (œil nu) et
+  `<id>-micro-1.jpg` (microscope) ; dès qu'une série existe, le canvas est
+  masqué et la photo occupe sa place. Le dessin ne revient que pour les roches
+  sans photo, et en mode « roche mystère » tant que la loupe n'a pas servi.
+  Quand les deux séries existent, une bascule « À l'œil nu / Au microscope »
+  apparaît. Le nommage est documenté dans `images/roches/LISEZ-MOI.md` : ne pas
+  le changer sans le mettre à jour.
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé

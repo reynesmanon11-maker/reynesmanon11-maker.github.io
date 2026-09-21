@@ -1,62 +1,63 @@
-# Photos de roches du laboratoire de géologie
+# Photographies des roches
 
-Déposez ici vos photos d'échantillons. **Aucun code à modifier** : le
-laboratoire les trouve tout seul et les affiche sous le dessin, dans la
-paillasse « Identifier une roche ».
+Déposez vos photos dans ce dossier : **le laboratoire les trouve tout seul**,
+il n'y a aucune ligne de code à écrire. Dès qu'une photographie existe pour une
+roche, elle remplace le dessin à l'écran — le dessin n'est là que faute de
+mieux.
 
 ## Comment nommer les fichiers
 
-`identifiant-numéro.jpg` — rien d'autre.
+Deux séries par roche, l'une à l'œil nu, l'autre au microscope :
 
-    granite-1.jpg
-    granite-2.jpg
-    granite-3.jpg
-    calcaire-1.jpg
+| Vue | Nom du fichier |
+|---|---|
+| à l'œil nu | `granite-1.jpg`, `granite-2.jpg`, `granite-3.jpg`… |
+| au microscope | `granite-micro-1.jpg`, `granite-micro-2.jpg`… |
 
-Les numéros commencent à **1** et se suivent **sans trou** : le laboratoire
-s'arrête au premier numéro manquant. Si vous avez `granite-1` et `granite-3`,
-la troisième ne s'affichera pas.
+Les numéros commencent à **1** et se suivent **sans trou** : la recherche
+s'arrête au premier numéro manquant. Si vous déposez `granite-1.jpg` et
+`granite-3.jpg`, la troisième ne s'affichera pas.
+
+Quand les deux séries existent, une bascule **« À l'œil nu / Au microscope »**
+apparaît au-dessus de la photo. Avec une seule série, la bascule ne s'affiche
+pas et la photo disponible est montrée directement.
+
+La première photo de chaque série s'affiche en grand ; les suivantes deviennent
+des vignettes sous elle. Un clic agrandit n'importe laquelle en plein écran.
 
 ## Les seize identifiants
 
-| Identifiant | Roche | | Identifiant | Roche |
-|---|---|---|---|---|
-| `granite` | Granite | | `calcaire` | Calcaire |
-| `gabbro` | Gabbro | | `craie` | Craie |
-| `basalte` | Basalte | | `gres` | Grès |
-| `rhyolite` | Rhyolite | | `conglomerat` | Conglomérat |
-| `andesite` | Andésite | | `marne` | Marne |
-| `obsidienne` | Obsidienne | | `sel` | Sel gemme |
-| `ponce` | Ponce | | `gneiss` | Gneiss |
-| | | | `micaschiste` | Micaschiste |
-| | | | `marbre` | Marbre |
+`granite` · `gabbro` · `basalte` · `rhyolite` · `andesite` · `obsidienne` ·
+`ponce` · `calcaire` · `craie` · `gres` · `conglomerat` · `marne` · `sel` ·
+`gneiss` · `micaschiste` · `marbre`
 
-## Trois précautions
+Pas d'accent, pas de majuscule, pas d'espace : `andesite` et non `andésite`.
 
-**Le format.** Des fichiers `.jpg` uniquement. Si vos photos sortent d'un
-iPhone en `.HEIC`, aucun navigateur ne saura les afficher : réglez l'appareil
-sur *Réglages → Appareil photo → Formats → Le plus compatible*, ou exportez
-en JPEG avant de déposer.
-
-**Le poids.** Une photo de téléphone pèse souvent 4 Mo. Visez **moins de
-500 Ko** par photo : sur le réseau d'un lycée, la différence se voit. Les
-photos ne se chargent que lorsqu'on ouvre la roche concernée, mais autant
-qu'elles soient légères.
-
-**Le cadrage.** Un échantillon sur fond uni, avec une règle ou une pièce de
-monnaie pour l'échelle, éclairé de côté : c'est ce qui fait ressortir le
-grain. Une photo prise sous la loupe binoculaire vaut de l'or.
-
-## Pour déposer
+## Comment les déposer
 
 Sur GitHub, ouvrez ce dossier, bouton **Add file → Upload files**, puis
-glissez-déposez autant de fichiers que vous voulez d'un coup (jusqu'à cent).
-Bouton **Commit changes**. Une à deux minutes plus tard, c'est en ligne.
+**glissez-déposez jusqu'à cent fichiers d'un coup**. Bouton *Commit changes*.
+Deux minutes plus tard, elles sont en ligne.
 
-## Une ligne rouge dans la console, c'est normal
+## Trois pièges
 
-Le site est servi tel quel, sans programme sur le serveur : la page ne peut
-pas lister ce dossier. Elle essaie donc les fichiers un par un et s'arrête au
-premier absent. Si vous ouvrez la console du navigateur, vous verrez une
-requête en échec par roche consultée — celle du numéro manquant. C'est le
-mécanisme, pas une panne.
+- **Les iPhone enregistrent en HEIC**, qu'aucun navigateur n'affiche. Réglez
+  *Appareil photo → Formats → Le plus compatible* avant la séance photo, ou
+  convertissez en JPEG.
+- **Le poids.** Visez moins de 500 Ko par photo. Une photo de 5 Mo fait ramer
+  la page sur les tablettes du lycée.
+- **Le cadrage.** Fond uni, une règle ou une pièce pour l'échelle, lumière
+  rasante pour faire ressortir les grains. Pour le microscope, précisez dans un
+  coin s'il s'agit de LPNA ou de LPA.
+
+## Une chose normale, à ne pas prendre pour un bug
+
+La console du navigateur signale deux requêtes en échec par roche ouverte :
+celles des numéros qui n'existent pas. C'est le seul moyen, sans programme sur
+le serveur, de savoir qu'un fichier n'est pas là. Rien n'est cassé.
+
+## Mode retouche
+
+Ouvrez le laboratoire avec `?retouche` dans l'adresse (ou `Ctrl + Alt + E`) :
+les roches sans photographie l'indiquent alors à l'écran, avec le nom de
+fichier attendu. Les élèves, eux, ne voient jamais ce rappel.

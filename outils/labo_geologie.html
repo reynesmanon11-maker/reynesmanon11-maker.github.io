@@ -460,6 +460,10 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
   border-radius:12px; padding:13px 15px; min-height:110px }
 
 /* ---------- galerie de photographies réelles ---------- */
+.ro-principale{ margin:0 }
+.ro-principale button{ display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in }
+.ro-principale img{ width:100%; display:block; border-radius:11px; border:1px solid var(--ptbd) }
+.ro-principale figcaption{ font-size:11.5px; color:var(--gris-clair); margin-top:6px }
 .ro-galerie{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px }
 .ro-vignette{ padding:0; border:1px solid var(--ptbd); border-radius:10px; overflow:hidden;
   background:var(--papier); aspect-ratio:4/3; display:block; transition:transform .2s, box-shadow .2s }
@@ -1077,9 +1081,10 @@ header.top .marque b{ letter-spacing:-.015em }
        et les minéraux visibles de ces seize roches sont des <b>propriétés réelles</b>, relevées
        comme on les trouve dans une collection de lycée. Ce module est une base de données, pas un
        modèle : les résultats des tests sont vrais.</p>
-    <p>Ce qui reste un dessin, c'est l'aspect de l'échantillon à l'écran. Quand une photographie
-       de l'échantillon réel a été déposée dans <code>images/roches/</code>, elle s'affiche sous
-       le dessin — et c'est elle qui fait foi.</p>
+    <p>L'aspect de l'échantillon à l'écran n'est un dessin que faute de mieux : dès qu'une
+       photographie de la roche réelle a été déposée, elle prend toute la place et le dessin
+       s'efface. Quand les deux vues existent, une bascule permet de passer de l'œil nu au
+       microscope.</p>
     <p>Une vraie caisse de roches ne se remplace pas : <b>le but est de préparer la séance ou de
        la réviser</b>, pas de s'en passer.</p>
   </div></div>
@@ -2527,34 +2532,70 @@ const TESTS = [
      échec par roche ouverte, celle du numéro manquant. C'est le seul moyen,
      sans programme sur le serveur, de savoir qu'un fichier n'existe pas. */
   const CACHE_PHOTOS = {};
-  function chargePhotos(id, fini){
-    if(CACHE_PHOTOS[id]) return fini(CACHE_PHOTOS[id]);
+  let vuePhoto = 'macro';               /* le choix suit l'élève d'une roche à l'autre */
+  /* Une série s'arrête au premier numéro manquant : granite-1, granite-2… pour
+     l'œil nu, granite-micro-1, granite-micro-2… pour le microscope. */
+  function serie(id, suffixe, fini){
     const trouvees = [];
     (function essaie(n){
-      if(n > 12){ CACHE_PHOTOS[id] = trouvees; return fini(trouvees); }
+      if(n > 12) return fini(trouvees);
       const img = new Image();
       img.onload  = () => { trouvees.push(img.src); essaie(n+1); };
-      img.onerror = () => { CACHE_PHOTOS[id] = trouvees; fini(trouvees); };
-      img.src = '../images/roches/' + id + '-' + n + '.jpg';
+      img.onerror = () => fini(trouvees);
+      img.src = '../images/roches/' + id + suffixe + n + '.jpg';
     })(1);
   }
+  function chargePhotos(id, fini){
+    if(CACHE_PHOTOS[id]) return fini(CACHE_PHOTOS[id]);
+    serie(id, '-', macro => serie(id, '-micro-', micro => {
+      CACHE_PHOTOS[id] = {macro, micro};
+      fini(CACHE_PHOTOS[id]);
+    }));
+  }
+  /* Le dessin n'est qu'un pis-aller : dès qu'une photographie existe pour la
+     roche, elle prend sa place et le dessin disparaît. Le dessin ne revient
+     que pour les roches sans photo, et en roche mystère tant que la loupe n'a
+     pas servi — une photo donnerait la réponse avant tout test. */
   function rendPhotos(){
     const bac = $('#ro-photos'); if(!bac) return;
     const r = courante();
-    /* en roche mystère, une photo donnerait la réponse avant tout test */
-    if(mode === 'mystere' && !faits.has('loupe')){ bac.innerHTML = ''; return; }
-    chargePhotos(r.id, photos => {
+    const dessin = visible => { if(cv) cv.style.display = visible ? 'block' : 'none'; };
+    if(mode === 'mystere' && !faits.has('loupe')){ dessin(true); bac.innerHTML = ''; return; }
+    chargePhotos(r.id, jeux => {
       if(courante().id !== r.id) return;          /* l'élève a changé d'échantillon */
-      bac.innerHTML = photos.length
-        ? '<div class="partie-titre" style="margin:16px 0 8px">' +
-          (photos.length > 1 ? photos.length + ' photographies de l\'échantillon réel' :
-                               "Photographie de l'échantillon réel") + '</div>' +
-          '<div class="ro-galerie">' + photos.map((src,i) =>
-            '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir">' +
-            '<img src="' + src + '" alt="' + ech(r.n) + ', photographie ' + (i+1) + '" loading="lazy">' +
-            '</button>').join('') + '</div>'
-        : '<p style="font-size:11.5px; color:var(--gris-clair); margin-top:12px">' +
-          'Aucune photographie déposée pour cette roche : il n\'y a ici que le dessin.</p>';
+      const deux = jeux.macro.length && jeux.micro.length;
+      /* si la vue choisie n'existe pas pour cette roche, on prend celle qui existe */
+      const vue = (jeux[vuePhoto] || []).length ? vuePhoto : (jeux.macro.length ? 'macro' : 'micro');
+      const photos = jeux[vue] || [];
+      dessin(!photos.length);
+      if(!photos.length){
+        /* le rappel ne sert qu'à Manon, qui dépose les photos : les élèves n'en
+           ont que faire. Il n'apparaît donc qu'en mode retouche. */
+        bac.innerHTML = new URLSearchParams(location.search).has('retouche')
+          ? '<p style="font-size:11.5px; color:var(--gris-clair); margin-top:12px">' +
+            'Aucune photographie déposée pour cette roche : déposez <b>' + r.id +
+            '-1.jpg</b> (œil nu) et <b>' + r.id + '-micro-1.jpg</b> (microscope) ' +
+            'dans images/roches/.</p>'
+          : '';
+        return;
+      }
+      const nom = vue === 'micro' ? 'au microscope' : "à l'œil nu";
+      bac.innerHTML =
+        (deux ? '<div class="segment" id="ro-vue" style="margin:12px 0 9px">' +
+          '<button data-vue="macro" aria-pressed="' + (vue === 'macro') + '">À l\'œil nu</button>' +
+          '<button data-vue="micro" aria-pressed="' + (vue === 'micro') + '">Au microscope</button>' +
+          '</div>' : '') +
+        '<figure class="ro-principale"><button data-photo="' + photos[0] + '" title="Agrandir">' +
+        '<img src="' + photos[0] + '" alt="' + ech(r.n) + ', ' + nom + '"></button>' +
+        '<figcaption>' + ech(r.n) + ' — ' + nom +
+        (photos.length > 1 ? ' · ' + photos.length + ' photographies' : '') + '</figcaption></figure>' +
+        (photos.length > 1
+          ? '<div class="ro-galerie" style="margin-top:9px">' + photos.slice(1).map((src,i) =>
+              '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir">' +
+              '<img src="' + src + '" alt="' + ech(r.n) + ', ' + nom + ', vue ' + (i+2) + '" loading="lazy">' +
+              '</button>').join('') + '</div>'
+          : '');
+      if(deux) segment($('#ro-vue'), d => { vuePhoto = d.vue; rendPhotos(); });
     });
   }
   /* agrandissement au clic */
