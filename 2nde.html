@@ -507,6 +507,13 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 }
 /* ce qui ne relève d'aucune activité : QCM, devoir, corrigé du devoir */
 .hors{ max-width:58rem; margin-top:.4rem }
+/* Toutes les cartes de la bande à la même taille : sans cela, « Correction DS3
+   MonsieurSertoli » tient sur trois lignes et « Tester ses connaissances » sur
+   deux, et les cases se retrouvent dépareillées. grid-auto-rows aligne les
+   rangées entre elles, le reste fait remplir chaque carte sa case. */
+.hors .docs{ grid-auto-rows:1fr }
+.hors .docs li{ display:flex }
+.hors .doc{ flex:1 }
 .hors-t{ font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
   color:rgba(17,17,17,.62); margin-bottom:.75rem }
 .theme{ scroll-margin-top:5.5rem }
