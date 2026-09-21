@@ -211,18 +211,97 @@
           "h": "https://learningapps.org/watch?v=pu9k1s0g525"
         },
         {
+          "l": "Activité 1 La communication des grenouilles",
+          "h": "cours/2nde/chapitre-3/activite-1-la-communication-des-grenouilles.pdf"
+        },
+        {
+          "l": "Correction activité1",
+          "h": "cours/2nde/chapitre-3/correction-activite1.pdf"
+        },
+        {
+          "l": "Document secours act1 chap3",
+          "r": "support",
+          "a": 1,
+          "h": "cours/2nde/chapitre-3/document-secours-act1-chap3.pdf"
+        },
+        {
+          "l": "BilanTP1",
+          "r": "bilan",
+          "a": 1,
+          "h": "cours/2nde/chapitre-3/bilantp1.pdf"
+        },
+        {
+          "l": "CM reproduction2",
+          "h": "cours/2nde/chapitre-3/cm-reproduction2.pdf",
+          "a": 2,
+          "r": "bilan"
+        },
+        {
+          "l": "Bilan cours chapitre3 Correction",
+          "h": "cours/2nde/chapitre-3/bilan-cours-chapitre3-correction.pdf",
+          "r": "correction",
+          "a": 2
+        },
+        {
+          "l": "Bilan cours chapitre3",
+          "h": "cours/2nde/chapitre-3/bilan-cours-chapitre3.pdf",
+          "r": "bilan",
+          "a": 2
+        },
+        {
           "l": "ACTIVITE 3: PMA",
           "h": "https://view.genially.com/6943a244813341a2a79ebaa2/interactive-content-chapitre3activite-3pma"
+        },
+        {
+          "l": "TableauBilan PMA act3",
+          "h": "cours/2nde/chapitre-3/tableaubilan-pma-act3.pdf",
+          "a": 3
+        },
+        {
+          "l": "Corr TableauBilan PMA",
+          "a": 3,
+          "r": "correction",
+          "h": "cours/2nde/chapitre-3/corr-tableaubilan-pma.pdf"
         },
         {
           "l": "ACTIVITE 4: Les méthodes de contraception",
           "h": "https://view.genially.com/6950034f2ddc862aca8ac52e"
         },
         {
+          "l": "TableauBilan MethodeContraception",
+          "a": 4,
+          "r": "support",
+          "h": "cours/2nde/chapitre-3/tableaubilan-methodecontraception.pdf"
+        },
+        {
+          "l": "TableauBilan MethodeContraception",
+          "h": "cours/2nde/chapitre-3/tableaubilan-methodecontraception.pdf",
+          "r": "correction",
+          "a": 4
+        },
+        {
           "l": "ACTIVITE 6: Identité et orientation sexuelle",
           "h": "https://view.genially.com/6967f912882e1acdabd1cd8c"
+        },
+        {
+          "l": "Vivre sa sexualité",
+          "h": "cours/2nde/chapitre-3/vivre-sa-sexualite.pdf",
+          "a": 6,
+          "r": "correction"
+        },
+        {
+          "l": "Bilan cours chapitre3 Correction",
+          "h": "cours/2nde/chapitre-3/bilan-cours-chapitre3-correction.pdf",
+          "a": 6
         }
-      ]
+      ],
+      "act": {
+        "1": "La communication chez les grenouilles",
+        "2": "Cours magistral sur la reproduction",
+        "3": "La Procréation Médicalement Assistée",
+        "4": "Les méthodes de contraception",
+        "6": "Identité et orientation sexuelle"
+      }
     },
     {
       "num": "Chapitre 4",
