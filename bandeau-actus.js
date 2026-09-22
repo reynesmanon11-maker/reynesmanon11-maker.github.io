@@ -41,9 +41,31 @@
     `<ul class="actus-rail"${copie ? ' aria-hidden="true"' : ''}>`
     + window.ACTUALITES.map((a) => entree(a, copie)).join('') + '</ul>';
 
-  /* La seconde liste est la même, en double. Elle est masquée aux lecteurs
-     d'écran et retirée du parcours clavier : c'est un artifice d'affichage. */
-  piste.innerHTML = liste(false) + liste(true);
+  /* La liste est répétée : c'est ce qui permet de revenir au début sans que la
+     boucle se voie. Deux exemplaires suffisent tant que la carte est plus courte
+     qu'une liste ; étirée jusqu'au bas de la colonne, elle peut la dépasser, et
+     le défilement se bloquerait en butée. On en met donc assez pour que le
+     retour au début ait toujours de quoi s'effectuer. */
+  function remplir() {
+    piste.innerHTML = liste(false) + liste(true);
+    const rail = piste.querySelector('.actus-rail');
+    const hRail = rail ? rail.getBoundingClientRect().height : 0;
+    if (!hRail) return;
+    const voulu = Math.max(2, Math.ceil(cadre.clientHeight / hRail) + 1);
+    for (let k = 2; k < voulu; k++) piste.insertAdjacentHTML('beforeend', liste(true));
+  }
+  remplir();
+
+  /* La hauteur de la carte suit celle de la colonne : si elle change, le nombre
+     d'exemplaires nécessaires change aussi. */
+  let hauteurConnue = cadre.clientHeight;
+  new ResizeObserver(() => {
+    if (Math.abs(cadre.clientHeight - hauteurConnue) < 8) return;
+    hauteurConnue = cadre.clientHeight;
+    const y = cadre.scrollTop;
+    remplir();
+    cadre.scrollTop = y;
+  }).observe(cadre);
 
   const lent = window.matchMedia('(prefers-reduced-motion: reduce)');
   const VITESSE = 14;            // pixels par seconde : on doit pouvoir lire

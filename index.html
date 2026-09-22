@@ -245,12 +245,22 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 }
 @media (min-width:768px){ .hero-left h1{ font-size:3.75rem } }
 @media (min-width:1024px){
-  .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 7rem }
+  /* Marge basse reduite : elle ne servait qu'a respirer, et c'est autant de
+     hauteur rendue a la carte des actualites, qui descend jusqu'en bas. */
+  .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 3.5rem }
   /* La colonne libre a droite revient entierement a la planete. */
   .hero-left{ grid-column:span 6 }
   /* .actus-carte est declaree plus bas dans la feuille : a specificite egale
      c'est elle qui l'emporterait, d'ou le selecteur plus precis. */
-  .partners{ width:21rem } .hero-left .actus-carte{ width:21rem }
+  .partners{ width:21rem }
+  /* La carte descend jusqu'au bas de la colonne : rien d'autre n'y vient, et
+     plus elle est haute, plus d'actualites se lisent d'un coup.
+     min-height:0 n'est pas decoratif : par defaut un element de flex refuse de
+     descendre sous la taille de son contenu, si bien que la carte enflait au
+     lieu de se limiter a la place libre. */
+  .hero-left .actus-carte{ width:21rem; flex:1 1 0; min-height:9rem;
+    display:flex; flex-direction:column }
+  .hero-left .actus-carte .actus-cadre{ flex:1 1 0; min-height:0; height:auto }
 }
 
 
