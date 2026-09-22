@@ -338,6 +338,10 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
       <label>
         <span class="t">Page</span>
         <select id="o-niveau">
+          <option value="6eme.html">Sixième</option>
+          <option value="5eme.html">Cinquième</option>
+          <option value="4eme.html">Quatrième</option>
+          <option value="3eme.html">Troisième</option>
           <option value="2nde.html">Seconde</option>
           <option value="1ere.html">Première — enseignement scientifique</option>
           <option value="terminale.html">Terminale — enseignement scientifique</option>
@@ -733,7 +737,8 @@ function extraireChapitres(html) {
 const dossierDe = (num) => num.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
   .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
-const NIVEAU_DOSSIER = { '2nde.html': '2nde', '1ere.html': '1ere', 'terminale.html': 'terminale' };
+const NIVEAU_DOSSIER = { '6eme.html': '6eme', '5eme.html': '5eme', '4eme.html': '4eme',
+  '3eme.html': '3eme', '2nde.html': '2nde', '1ere.html': '1ere', 'terminale.html': 'terminale' };
 
 /* Un nom de fichier sans accent, sans espace et sans majuscule : les adresses web
    sont sensibles à la casse et un espace s'y encode mal. */

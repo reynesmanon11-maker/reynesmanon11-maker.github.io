@@ -530,10 +530,13 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
     <nav class="primary" aria-label="Primary">
       <ul>
         <li><button data-nav="home" aria-current="page"><span>Accueil</span></button></li>
-        <li><button data-nav="works"><span>Chapitres</span></button></li>
         <li class="has-sub">
           <button data-nav="services" aria-haspopup="true"><span>Niveaux <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
+            <li><a href="6eme.html">Sixième</a></li>
+            <li><a href="5eme.html">Cinquième</a></li>
+            <li><a href="4eme.html">Quatrième</a></li>
+            <li><a href="3eme.html">Troisième</a></li>
             <li><a href="2nde.html">Seconde</a></li>
             <li><a href="1ere.html">Première</a></li>
             <li><a href="terminale.html">Terminale</a></li>
@@ -585,7 +588,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
   <div class="shell hero-grid">
     <div class="hero-left">
       <div data-reveal="up" data-gate="ready" style="--ry:10px;--rd:200ms">
-        <span class="eyebrow">Lycée — de la Seconde à la Terminale</span>
+        <span class="eyebrow">Enseignement secondaire — collège et lycée</span>
       </div>
 
       <h1 class="lines" data-lines data-gate="ready" data-stagger="120" data-delay="250">
@@ -645,7 +648,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
           <p class="flabel">En pratique</p>
           <!-- ✏️ À PERSONNALISER : adaptez ces trois lignes -->
           <div class="facts">
-            <span>Niveaux : Seconde, Première, Terminale</span>
+            <span>Niveaux : de la Sixième à la Terminale</span>
             <span>Sorties : géologie, écologie viticole, littoral</span>
             <span>Numérique : cartes, jeux sérieux, entraînement</span>
           </div>
@@ -717,6 +720,10 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
+          <li><a class="alink" href="6eme.html"><span>Sixième</span></a></li>
+          <li><a class="alink" href="5eme.html"><span>Cinquième</span></a></li>
+          <li><a class="alink" href="4eme.html"><span>Quatrième</span></a></li>
+          <li><a class="alink" href="3eme.html"><span>Troisième</span></a></li>
           <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
           <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
           <li><a class="alink" href="terminale.html"><span>Terminale</span></a></li>
@@ -1447,7 +1454,7 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 /* ============ nav overlay ============ */
 (function(){
   const NAV = [
-    { label:'Accueil', id:'home' }, { label:'Chapitres', id:'works' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' },
+    { label:'Accueil', id:'home' }, { label:'Sixième', href:'6eme.html' }, { label:'Cinquième', href:'5eme.html' }, { label:'Quatrième', href:'4eme.html' }, { label:'Troisième', href:'3eme.html' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'Terminale', href:'terminale.html' },
     { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
     { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];

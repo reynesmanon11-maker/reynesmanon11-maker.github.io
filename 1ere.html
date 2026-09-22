@@ -584,9 +584,18 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
     <nav class="primary" aria-label="Principale">
       <ul>
         <li><a href="index.html"><span>Accueil</span></a></li>
-        <li><a href="index.html#works"><span>Chapitres</span></a></li>
-        <li><a href="2nde.html"><span>Seconde</span></a></li>
-        <li><button aria-current="page"><span>Première</span></button></li>
+        <li class="has-sub">
+          <button aria-haspopup="true" aria-current="page"><span>Niveaux <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
+          <ul class="submenu">
+            <li><a href="6eme.html">Sixième</a></li>
+            <li><a href="5eme.html">Cinquième</a></li>
+            <li><a href="4eme.html">Quatrième</a></li>
+            <li><a href="3eme.html">Troisième</a></li>
+            <li><a href="2nde.html">Seconde</a></li>
+            <li><a href="1ere.html" aria-current="page">Première</a></li>
+            <li><a href="terminale.html">Terminale</a></li>
+          </ul>
+        </li>
         <li class="has-sub">
           <button class="labo-nav" aria-haspopup="true"><span>Labo <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
@@ -650,6 +659,10 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
       <div>
         <p class="ctitle">Niveaux</p>
         <ul class="clist">
+          <li><a class="alink" href="6eme.html"><span>Sixième</span></a></li>
+          <li><a class="alink" href="5eme.html"><span>Cinquième</span></a></li>
+          <li><a class="alink" href="4eme.html"><span>Quatrième</span></a></li>
+          <li><a class="alink" href="3eme.html"><span>Troisième</span></a></li>
           <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
           <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
           <li><a class="alink" href="terminale.html"><span>Terminale</span></a></li>
@@ -830,6 +843,17 @@ document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
   </section>`;
 }).join('');
 
+/* Niveau dont aucun chapitre n'est encore saisi : la page passerait sinon du
+   titre au bas de page, ce qui a tout l'air d'un site cassé. */
+if (!CHAPITRES.length) {
+  document.getElementById('themes').innerHTML = `
+  <section class="theme">
+    <div class="shell">
+      <p class="attente">Les cours de ce niveau seront déposés au fil de l'année.</p>
+    </div>
+  </section>`;
+}
+
 /* ---- horloge ---- */
 function tickClock(){
   const d = new Date();
@@ -847,7 +871,8 @@ const y = document.getElementById('year'); if (y) y.textContent = new Date().get
 (function(){
   const NAV = [
     { label:'Accueil', href:'index.html' }, { label:'Chapitres', href:'index.html#works' },
-    { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
+    { label:'Sixième', href:'6eme.html' }, { label:'Cinquième', href:'5eme.html' }, { label:'Quatrième', href:'4eme.html' }, { label:'Troisième', href:'3eme.html' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'Terminale', href:'terminale.html' },
+    { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
     { label:'La classe', href:'index.html#about' },
     { label:'Contact', modal:true },
   ];
