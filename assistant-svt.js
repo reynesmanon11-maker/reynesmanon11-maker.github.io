@@ -177,6 +177,92 @@
 
   const mots = (s) => normaliser(s).split(' ').filter(Boolean);
 
+  /* ===========================================================================
+     LES DOCUMENTS DE COURS
+
+     Le fichier cours-index.json contient le texte des PDF déposés sur le site,
+     découpé en passages. Il est fabriqué depuis la page de gestion et ne
+     contient que les documents visibles des élèves : un document masqué n'y
+     figure pas, sans quoi son contenu se lirait ici.
+
+     L'assistant ne reformule rien : il retrouve le passage et le cite tel quel,
+     avec le lien du document. C'est ce qui garantit qu'il ne peut pas inventer.
+     =========================================================================== */
+  let DOCS = null, chargementDocs = null;
+
+  function chargerDocs() {
+    if (chargementDocs) return chargementDocs;
+    chargementDocs = fetch('/cours-index.json', { cache: 'no-cache' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((j) => { DOCS = (j && Array.isArray(j.docs)) ? j.docs : []; return DOCS; })
+      .catch(() => { DOCS = []; return DOCS; });
+    return chargementDocs;
+  }
+
+  /* Les mots que toutes les questions contiennent n'aident pas à trouver. */
+  const VIDES = new Set(('le la les un une des du de et ou est sont a au aux ce cet cette ces ' +
+    'que qui quoi quel quelle quels quelles comment pourquoi quand dans sur pour par avec sans ' +
+    'son sa ses mon ma mes ton ta tes il elle ils elles on nous vous je tu me te se en y ne pas ' +
+    'plus moins tres bien alors donc mais car si tout tous toute toutes meme aussi peut peux ' +
+    'dire explique expliquer definition signifie veut').split(' '));
+
+  /* Le niveau de la page, pour préférer les documents de la classe de l'élève. */
+  const NIVEAU_PAGE = (function () {
+    const f = (location.pathname.split('/').pop() || '').toLowerCase();
+    return { '6eme.html': '6e', '5eme.html': '5e', '4eme.html': '4e', '3eme.html': '3e',
+             '2nde.html': '2de', '1ere.html': '1re', 'terminale.html': 'Tale' }[f] || '';
+  })();
+
+  function chercherDocs(requete) {
+    if (!DOCS || !DOCS.length) return [];
+    const qm = [...new Set(mots(requete))].filter((w) => w.length > 3 && !VIDES.has(w));
+    if (!qm.length) return [];
+    const out = [];
+    for (const d of DOCS) {
+      const titreN = normaliser((d.t || '') + ' ' + (d.c || ''));
+      for (const passage of d.p) {
+        const pn = normaliser(passage);
+        let score = 0, couverts = 0;
+        for (const w of qm) {
+          let n = 0, i = pn.indexOf(w);
+          while (i >= 0 && n < 3) { n++; i = pn.indexOf(w, i + w.length); }
+          if (n) { couverts++; score += 6 + (n - 1) * 2; }
+          if (titreN.includes(w)) score += 8;
+        }
+        if (!couverts) continue;
+        /* Un passage qui répond à toute la question vaut mieux que deux qui
+           n'en couvrent chacun qu'un morceau. */
+        score *= couverts / qm.length;
+        if (NIVEAU_PAGE && d.n === NIVEAU_PAGE) score += 3;
+        out.push({ d, passage, score });
+      }
+    }
+    out.sort((a, b) => b.score - a.score);
+    /* Un seul passage par document : deux extraits du même PDF n'apprennent
+       pas grand-chose de plus. */
+    const vus = new Set(), garde = [];
+    for (const r of out) {
+      if (vus.has(r.d.h)) continue;
+      vus.add(r.d.h); garde.push(r);
+      if (garde.length >= 4) break;
+    }
+    return garde;
+  }
+
+  const lienDoc = (d) =>
+    `<a class="docsrc" href="/${esc(d.h)}" target="_blank" rel="noopener">`
+    + `${esc(d.t)}<span class="ou"> — ${esc(d.c)} · ${esc(d.n)} &#8599;</span></a>`;
+
+  function blocDocs(res, titre) {
+    if (!res.length) return '';
+    let h = `<p class="titre">${titre}</p>`;
+    h += `<p class="extrait">${esc(res[0].passage)}</p>`;
+    h += `<div class="docs">${lienDoc(res[0].d)}`;
+    for (const r of res.slice(1, 3)) h += lienDoc(r.d);
+    h += '</div>';
+    return h;
+  }
+
   function chapitresActifs(etat) {
     const out = [];
     for (const [idN, niv] of Object.entries(BASE)) {
@@ -198,7 +284,15 @@
         let s = 0;
         if (q === cleN) s += 200;
         else if (q.includes(cleN) && cleN.length > 2) s += 100;
-        for (const a of alias) if (a && q.includes(a)) s += 70;
+        /* Mots entiers, et non morceaux de mots : l'alias « GES » — gaz à effet
+           de serre — se reconnaissait à l'intérieur de « gestes », si bien que
+           « les gestes d'hygiène sont-ils efficaces ? » répondait sur le climat
+           avec 70 points d'avance. */
+        for (const a of alias) {
+          if (!a) continue;
+          const motif = new RegExp('(^| )' + a.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '( |$)');
+          if (motif.test(q)) s += 70;
+        }
         for (const m of mots(cle)) if (m.length > 2 && qm.includes(m)) s += 14;
         /* Tolérance aux terminaisons. Un élève tape « stomate », le cours dit
            « stomates » : si l'un est le préfixe de l'autre à trois lettres
@@ -250,7 +344,16 @@
     }
 
     const res = chercher(texte, etat);
-    if (res.length && res[0].score >= 13) {
+    const docs = chercherDocs(texte);
+
+    /* Ce que Mme Reynes a écrit elle-même passe avant le reste, mais pas à
+       n'importe quel prix : « les gestes d'hygiène sont-ils efficaces ? »
+       effleurait une notion sans rapport, tout juste au-dessus du seuil, alors
+       que l'activité correspondante était trouvée avec un score trois fois
+       supérieur. Une notion franche (40 et plus) garde la main ; une notion
+       incertaine cède devant un document net. */
+    const docNet = docs.length && docs[0].score >= 20;
+    if (res.length && res[0].score >= 13 && !(docNet && res[0].score < 40)) {
       const n = res[0];
       let h = `<p class="titre">${esc(maj(n.cle))}</p><p>${esc(n.def)}</p>`;
       const autres = res.slice(1, 4).filter(r => r.score >= 12);
@@ -258,12 +361,25 @@
         h += `<div class="aussi">Voir aussi : ` +
           autres.map(r => `<button class="lien" data-q="${esc(r.cle)}">${esc(r.cle)}</button>`).join(' · ') + '</div>';
       }
+      const bons = docs.filter(d => d.score >= 10);
+      if (bons.length) {
+        h += `<div class="docs">Dans tes documents : ` + bons.slice(0, 3).map(r => lienDoc(r.d)).join('') + '</div>';
+      }
+      return { html: h };
+    }
+
+    /* Rien dans la base écrite, mais un passage net dans les cours : on le cite
+       mot pour mot, sans le reformuler, et on donne le document. */
+    if (docs.length && docs[0].score >= 9) {
+      let h = blocDocs(docs, 'Trouvé dans tes cours');
+      h += `<div class="note gris">Ce passage est recopié tel quel du document. `
+        + `Ouvre-le pour lire la suite, avec les schémas.</div>`;
       return { html: h };
     }
 
     /* Rien de sûr : on le dit, et on propose les pistes les plus proches
        plutôt qu'une réponse inventée. */
-    let h = `<p>Je ne trouve pas cette notion dans ce que je connais.</p>`;
+    let h = `<p>Je ne trouve pas cette notion, ni dans ce que je connais ni dans tes cours.</p>`;
     const proches = res.slice(0, 3).filter(r => r.score > 4);
     if (proches.length) {
       h += `<div class="aussi">Vouliez-vous dire : ` +
@@ -271,7 +387,7 @@
     } else {
       h += `<div class="note">Tapez <b>vocabulaire</b> pour voir tout ce que je connais.</div>`;
     }
-    h += `<div class="note gris">Je ne sais que ce que Mme Reynes a écrit dans ma base. Pour le reste, le cours et le manuel font foi.</div>`;
+    h += `<div class="note gris">Je ne sais que ce que Mme Reynes a écrit et ce qui se trouve dans les documents du site. Pour le reste, le cours et le manuel font foi.</div>`;
     return { html: h };
   }
 
@@ -437,6 +553,14 @@ header button svg{ width:1rem; height:1rem }
   border-radius:0 .4rem .4rem 0; font-size:.74rem; line-height:1.5; color:#4a453d }
 .b .note.gris{ border-left-color:#c9c2b5; color:#6b6459 }
 .b .aussi{ margin-top:.55rem; font-size:.75rem; color:#6b6459 }
+.b .extrait{ margin-top:.35rem; padding:.5rem .7rem; border-left:2px solid #cf8047;
+  background:#fbf8f3; font-size:.8rem; line-height:1.6; color:#3a352e }
+.b .docs{ margin-top:.55rem; font-size:.75rem; color:#6b6459; display:flex;
+  flex-direction:column; gap:.3rem }
+.b .docs .docsrc{ display:block; color:#8a4519; font-weight:500; text-decoration:none;
+  line-height:1.4 }
+.b .docs .docsrc:hover{ text-decoration:underline }
+.b .docs .docsrc .ou{ color:#8a8378; font-weight:400 }
 .b .lien{ color:#8a4519; text-decoration:underline; text-underline-offset:2px; font-size:.75rem }
 .b .lien:hover{ color:#111 }
 .points span{ display:inline-block; width:.35rem; height:.35rem; border-radius:999px; background:#8fb99a;
@@ -658,6 +782,11 @@ header button svg{ width:1rem; height:1rem }
         d.innerHTML = `<span class="av moi">Moi</span><div class="b">${esc(texte)}</div>`;
         fil.appendChild(d); fil.scrollTop = fil.scrollHeight;
       }
+
+      /* Chargé à la première ouverture, pas au chargement de la page : le
+         fichier pèse quelques centaines de kilo-octets et la plupart des
+         visiteurs n'ouvriront jamais l'assistant. */
+      chargerDocs();
 
       function attendre() {
         const d = document.createElement('div');

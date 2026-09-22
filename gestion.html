@@ -342,7 +342,7 @@ details code{ font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.8rem
           <option value="5eme.html">Cinquième</option>
           <option value="4eme.html">Quatrième</option>
           <option value="3eme.html">Troisième</option>
-          <option value="2nde.html">Seconde</option>
+          <option value="2nde.html" selected>Seconde</option>
           <option value="1ere.html">Première — enseignement scientifique</option>
           <option value="terminale.html">Terminale — enseignement scientifique</option>
         </select>
@@ -713,6 +713,77 @@ $('ba-publier').addEventListener('click', async () => {
     b.disabled = false;
   }
 });
+
+/* ─────────────────────────────────────────────────────────────────────────────
+   LE TEXTE DES PDF
+
+   L'assistant du site répond en citant les documents. Pour cela il lui faut
+   leur texte : il est lu ici, dans le navigateur, au moment du dépôt — rien à
+   relancer à la main, rien qui vieillisse.
+
+   Deux fichiers en découlent :
+     _donnees/textes.json  la réserve, non publiée (Jekyll ignore les dossiers
+                           en tiret bas), qui garde le texte de tous les PDF ;
+     cours-index.json      publié, lu par l'assistant, et qui ne contient que
+                           les documents visibles — un document masqué n'y
+                           figure pas, sans quoi son contenu se lirait là.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+const FICHIER_TEXTES = '_donnees/textes.json';
+const FICHIER_INDEX = 'cours-index.json';
+const NIVEAU_COURT = { '6eme.html': '6e', '5eme.html': '5e', '4eme.html': '4e',
+  '3eme.html': '3e', '2nde.html': '2de', '1ere.html': '1re', 'terminale.html': 'Tale' };
+
+/* pdf.js est chargé à la demande, et seulement si un PDF est déposé. */
+let pdfjsPret = null;
+function chargerPdfJs() {
+  if (pdfjsPret) return pdfjsPret;
+  pdfjsPret = new Promise((ok, non) => {
+    if (window.pdfjsLib) return ok(window.pdfjsLib);
+    const base = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+    const sc = document.createElement('script');
+    sc.src = base + 'pdf.min.js';
+    sc.onload = () => {
+      if (!window.pdfjsLib) return non(new Error('pdf.js chargé mais introuvable.'));
+      window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.min.js';
+      ok(window.pdfjsLib);
+    };
+    sc.onerror = () => non(new Error('impossible de charger le lecteur de PDF.'));
+    document.head.appendChild(sc);
+  });
+  return pdfjsPret;
+}
+
+async function texteDuPdf(octets) {
+  const lib = await chargerPdfJs();
+  /* pdf.js consomme le tableau : on lui en donne une copie, le même sert au dépôt. */
+  const doc = await lib.getDocument({ data: octets.slice(0) }).promise;
+  const pages = [];
+  for (let i = 1; i <= doc.numPages; i++) {
+    const p = await doc.getPage(i);
+    const c = await p.getTextContent();
+    pages.push(c.items.map(it => it.str).join(' '));
+  }
+  return pages.join('\n').replace(/[ \t\u00a0]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+/* Des morceaux d'environ 420 signes, coupés entre deux phrases : assez pour
+   faire sens, assez court pour qu'un élève lise la citation. */
+function decouper(t, cible = 420) {
+  const out = [];
+  let cour = '';
+  for (const brut of String(t || '').split(/(?<=[.!?:])\s+|\n+/)) {
+    const ph = brut.trim();
+    if (!ph) continue;
+    if (cour.length + ph.length + 1 > cible && cour.length > 120) { out.push(cour.trim()); cour = ph; }
+    else cour += (cour ? ' ' : '') + ph;
+  }
+  if (cour.length > 60) out.push(cour.trim());
+  return out;
+}
+
+/* Textes lus pendant la séance, en attente de publication. */
+let textesNeufs = {};
 
 /* ─────────────────────────────────────────────────────────────────────────────
    ONGLET 1 — les pages de cours : déposer, renommer, réordonner
@@ -1294,6 +1365,20 @@ $('o-fichier').addEventListener('change', async () => {
     try { sha = (await lireFichierBrut(chemin)).sha; } catch (e) { /* fichier neuf */ }
     await ecrireFichier(chemin, versBase64(octets), sha, (sha ? 'Remplace ' : 'Ajoute ') + chemin);
 
+    /* Le texte sert à l'assistant. S'il ne peut pas être lu — un PDF scanné, un
+       lecteur qui ne charge pas —, le dépôt reste valable : seul l'assistant
+       ignorera ce document, et le message le dit. */
+    let avertirTexte = '';
+    if (/\.pdf$/i.test(chemin)) {
+      try {
+        const t = await texteDuPdf(octets);
+        if (t.length > 200) textesNeufs[chemin] = t;
+        else avertirTexte = ' Ce PDF ne contient pas de texte (image scannée) : l\'assistant ne pourra pas le citer.';
+      } catch (e) {
+        avertirTexte = ' Son texte n\'a pas pu être lu (' + e.message + ') : l\'assistant ne le citera pas.';
+      }
+    }
+
     d.h = chemin;
     if (!d.l || d.l === 'Nouveau document') d.l = titreDepuisFichier(f.name);
     orgaModifiee();
@@ -1301,7 +1386,7 @@ $('o-fichier').addEventListener('change', async () => {
     message('o-msg', 'ok',
       `<b>${echap(f.name)} est déposé</b> dans le ${echap(c.num)}` + (sha ? ' (il en remplace un du même nom).' : '.')
       + ` Vérifiez le titre affiché, puis <b>cliquez sur « Publier les modifications »</b>`
-      + ` pour que le lien apparaisse aux élèves.`);
+      + ` pour que le lien apparaisse aux élèves.` + echap(avertirTexte));
   } catch (e) {
     message('o-msg', 'ko', `<b>${echap(f.name)} n'a pas été déposé.</b> ` + echap(e.message));
   }
@@ -1324,6 +1409,56 @@ $('o-annuler').addEventListener('click', () => {
   if (orga && orga.modifie && !confirm('Abandonner les modifications non publiées ?')) return;
   chargerOrga();
 });
+
+/* Refait les entrées de ce niveau dans l'index de l'assistant, à partir des
+   documents visibles et du texte connu. Les autres niveaux ne sont pas touchés :
+   on ne republie que ce qu'on vient de modifier. */
+async function majIndexCours() {
+  const court = NIVEAU_COURT[orga.fichier];
+  if (!court) return '';
+
+  /* la réserve de textes, complétée par ce qui a été lu pendant la séance */
+  let textes = {}, shaTextes = null;
+  try {
+    const f = await lireFichier(FICHIER_TEXTES);
+    shaTextes = f.sha;
+    textes = JSON.parse(f.texte) || {};
+  } catch (e) { /* première fois */ }
+  const nouveaux = Object.keys(textesNeufs).length;
+  Object.assign(textes, textesNeufs);
+  if (nouveaux) {
+    await ecrireFichier(FICHIER_TEXTES, texteVersBase64(JSON.stringify(textes)), shaTextes,
+      'Texte des PDF de ' + orga.fichier);
+  }
+
+  /* l'index publié : uniquement les documents visibles */
+  let index = { genere: '', docs: [] }, shaIndex = null;
+  try {
+    const f = await lireFichier(FICHIER_INDEX);
+    shaIndex = f.sha;
+    const lu = JSON.parse(f.texte);
+    if (lu && Array.isArray(lu.docs)) index = lu;
+  } catch (e) { /* première fois */ }
+
+  const autres = index.docs.filter(d => d.n !== court);
+  const miens = [];
+  let sansTexte = 0;
+  for (const c of orga.chapitres) {
+    for (const d of c.docs) {
+      if (d.cache || !d.h || !/\.pdf$/i.test(d.h)) continue;
+      const t = textes[d.h];
+      if (!t) { sansTexte++; continue; }
+      miens.push({ n: court, c: c.num, t: d.l, h: d.h, p: decouper(t) });
+    }
+  }
+  index = { genere: new Date().toISOString().slice(0, 10), docs: autres.concat(miens) };
+  await ecrireFichier(FICHIER_INDEX, texteVersBase64(JSON.stringify(index)), shaIndex,
+    'Index de l\'assistant pour ' + orga.fichier);
+  textesNeufs = {};
+
+  return ` L'assistant connaît ${miens.length} document(s) de ce niveau`
+    + (sansTexte ? `, ${sansTexte} sans texte exploitable` : '') + '.';
+}
 
 /* On reconstruit le tableau en entier — il ne contient que de la donnée, aucun
    commentaire — et on remplace uniquement ce tableau dans la page. */
@@ -1397,11 +1532,18 @@ $('o-publier').addEventListener('click', async () => {
     await ecrireFichier(chemin, texteVersBase64(JSON.stringify({ chapitres: orga.chapitres }, null, 2) + '\n'),
       shaComplet, 'Met a jour la liste complete de ' + orga.fichier);
 
+    /* L'index de l'assistant, refait pour ce niveau seulement : les autres
+       niveaux gardent leurs entrées telles quelles. */
+    let motIndex = '';
+    try { motIndex = await majIndexCours(); }
+    catch (e) { motIndex = ' (l\'index de l\'assistant n\'a pas pu être mis à jour : ' + e.message + ')'; }
+
     orga.modifie = false;
     message('o-msg', 'ok', `<b>C'est publié.</b> `
       + (masques ? `${masques} document(s) restent masqués aux élèves. ` : '')
       + `La page est à jour dans une minute environ —
-      <a href="/${echap(orga.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`);
+      <a href="/${echap(orga.fichier)}" target="_blank" rel="noopener">voir la page ↗</a>`
+      + echap(motIndex));
   } catch (e) {
     message('o-msg', 'ko', '<b>Rien n\'a été publié.</b> ' + echap(e.message));
     b.disabled = false;
