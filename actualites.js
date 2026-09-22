@@ -1,3 +1,8 @@
+/* ATTENTION — après toute modification de ce fichier, changer le jeton ?v= des
+   balises <script> qui l'appellent, dans les pages HTML. Sans cela le
+   navigateur des élèves garde l'ancienne version pendant des heures : GitHub
+   Pages demande de la conserver dix minutes, et le disque la garde plus
+   longtemps encore. Un simple rechargement ne suffit pas toujours. */
 /* ============================================================================
    Le bandeau « À voir, à lire » de la page d'accueil.
 
