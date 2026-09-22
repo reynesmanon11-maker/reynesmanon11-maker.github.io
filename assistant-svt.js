@@ -597,7 +597,7 @@ header button svg{ width:1rem; height:1rem }
 
   const ACCUEIL = {
     cours: {
-      msg: "<p>Bonjour. Je réponds à vos questions sur le cours : une définition, un mécanisme, une comparaison.</p><div class='note'>Je ne connais que ce que Mme Reynes a écrit dans ma base — je ne cherche pas sur internet et je n'invente rien.</div>",
+      msg: "<p>Bonjour, je m'appelle Terra. Je réponds à vos questions sur le cours : une définition, un mécanisme, une comparaison.</p><div class='note'>Je ne connais que ce que Mme Reynes a écrit et les documents déposés sur le site — je ne cherche pas sur internet et je n'invente rien.</div>",
       puces: ["Qu'est-ce que l'albédo ?", 'Xylème ou phloème ?', 'Explique la dormance', 'Vocabulaire']
     },
     revisions: {
@@ -644,13 +644,13 @@ header button svg{ width:1rem; height:1rem }
       vol = document.createElement('div');
       vol.className = 'vol';
       vol.setAttribute('role', 'dialog');
-      vol.setAttribute('aria-label', 'Assistant de révision SVT');
+      vol.setAttribute('aria-label', 'Terra, assistant de révision SVT');
       vol.innerHTML = `
         <header>
           <span class="ic">${ICONE_CHAT}</span>
-          <span class="t"><b>Assistant SVT</b><span>Révisions — hors ligne</span></span>
+          <span class="t"><b>Terra</b><span data-soustitre>Cours et documents — hors ligne</span></span>
           <button class="taille" aria-label="Agrandir la fenêtre" aria-pressed="false">${ICONE_GRAND}</button>
-          <button class="fermer" aria-label="Fermer l'assistant">${ICONE_X}</button>
+          <button class="fermer" aria-label="Fermer Terra">${ICONE_X}</button>
         </header>
         <div class="onglets" role="tablist">
           <button role="tab" data-mode="cours" aria-selected="true">Cours</button>
@@ -664,6 +664,16 @@ header button svg{ width:1rem; height:1rem }
           <button class="envoyer" aria-label="Envoyer">${ICONE_ENV}</button>
         </div>
         <p class="pied">Réponses issues du cours de Mme Reynes. En cas de doute, le cours fait foi.</p>`;
+      /* L'accueil annonce ce que Terra peut vraiment faire ici : sur un niveau
+         dont aucun document n'est en ligne, promettre de citer les cours serait
+         une promesse en l'air. */
+      chargerDocs().then((liste) => {
+        const n = (liste || []).filter((d) => !NIVEAU_PAGE || d.n === NIVEAU_PAGE).length;
+        const st = vol.querySelector('[data-soustitre]');
+        if (st) st.textContent = n
+          ? `${n} document${n > 1 ? 's' : ''} de cours — hors ligne`
+          : 'Cours — hors ligne';
+      });
       ombre.appendChild(vol);
 
       const fil = vol.querySelector('.fil');
