@@ -215,38 +215,17 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
    elements reellement cliquables les reprennent. */
 .hero-grid{ position:relative; z-index:20; display:flex; flex-direction:column; gap:2rem;
   padding:7rem 1.25rem 5rem; pointer-events:none }
-.hero-grid a, .hero-grid button, .hero-grid .herocard, .hero-grid .newscard,
-.hero-grid .partners{ pointer-events:auto }
-/* Colonnes empilees : sans cet ecart, la planete passerait sous le titre et
-   les boutons. L'ecart vaut son diametre, et le script vient l'y centrer. */
-@media (max-width:1023.98px){ .hero-grid{ gap:min(84vw, 24rem) } }
+.hero-grid a, .hero-grid button, .hero-grid .partners{ pointer-events:auto }
 .hero-left{ display:flex; flex-direction:column; gap:1.75rem }
+/* Tout est dans une seule colonne : sans cet ecart, la planete passerait sous
+   le titre et les boutons. L'ecart vaut son diametre, et le script vient l'y
+   centrer, entre les boutons et la carte des outils. */
+@media (max-width:1023.98px){ .hero-left .partners{ margin-top:min(84vw, 24rem) } }
 .hero-left h1{ max-width:18ch; font-size:2.25rem; font-weight:600; line-height:.98; letter-spacing:-.02em }
 .rating{ display:flex; align-items:center; gap:.75rem }
 .rating .stars{ color:#b15f2c; display:inline-flex; gap:.125rem; font-size:1rem }
 .rating .rtxt{ font-size:.875rem; font-weight:500; color:rgba(17,17,17,.7) }
 .ctarow{ display:flex; flex-wrap:wrap; gap:.75rem }
-.hero-right{ display:flex; flex-direction:column; align-items:flex-start; gap:2rem }
-.herocard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7); padding:.5rem;
-  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px) }
-.herocard .row{ display:flex; gap:.5rem; cursor:pointer; border-radius:.875rem }
-.herocard .tile{ aspect-ratio:1; width:6rem; display:grid; place-items:center; border-radius:.875rem; background:#0a0a0a; font-size:1.875rem; color:#fff; flex:none }
-.herocard .tile .ic{ color:#cf8047 }
-.herocard .panel{ flex:1; border-radius:.875rem; background:rgba(241,240,238,.7); padding:.75rem; display:flex; flex-direction:column; justify-content:space-between }
-.herocard .slot{ position:relative; min-height:3.25rem }
-.herocard .item{ position:absolute; inset:0; transition:opacity .35s ease, transform .35s cubic-bezier(.2,.8,.2,1) }
-.herocard .item.hide-up{ opacity:0; transform:translateY(-14px) }
-.herocard .item.hide-down{ opacity:0; transform:translateY(14px) }
-.herocard .cap{ font-size:.65rem; font-weight:500; text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.66) }
-.herocard .ttl{ max-width:8rem; font-size:.875rem; font-weight:500; line-height:1.35 }
-.herocard .btm{ display:flex; align-items:center; justify-content:space-between; margin-top:.5rem }
-.herocard .dots{ display:flex; align-items:center; gap:.25rem }
-.herocard .dots i{ height:.25rem; border-radius:9999px; width:.375rem; background:rgba(17,17,17,.2); transition:all .3s }
-.herocard .dots i.on{ width:1rem; background:rgba(17,17,17,.7) }
-.herocard .navb{ display:flex; gap:.25rem }
-.herocard .navb button{ width:1.75rem; height:1.75rem; display:grid; place-items:center; border-radius:9999px; background:#fff;
-  color:rgba(17,17,17,.7); box-shadow:0 0 0 1px #e6e5e2 }
-.herocard .navb button:hover{ color:#111 }
 .partners{ width:100%; max-width:24rem; border-radius:1.25rem; padding:.875rem 1rem 1rem;
   background:rgba(255,255,255,.7); backdrop-filter:blur(12px);
   box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7) }
@@ -266,30 +245,11 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 @media (min-width:768px){ .hero-left h1{ font-size:3.75rem } }
 @media (min-width:1024px){
   .hero-grid{ display:grid; min-height:100lvh; grid-template-columns:repeat(12,1fr); gap:2.5rem; padding:9rem 2rem 7rem }
-  .hero-left{ grid-column:span 7 } .hero-right{ grid-column:span 5; align-items:flex-end }
-  .herocard, .partners{ width:19rem } .partners .plabel{ text-align:right }
+  /* La colonne libre a droite revient entierement a la planete. */
+  .hero-left{ grid-column:span 6 }
+  .partners{ width:21rem }
 }
 
-
-/* ===================== actualités scientifiques (accueil) ===================== */
-.newscard{ width:100%; max-width:24rem; border-radius:1.25rem; background:rgba(255,255,255,.7);
-  box-shadow:0 1px 2px rgba(0,0,0,.05), 0 0 0 1px rgba(230,229,226,.7); backdrop-filter:blur(12px); overflow:hidden }
-.newscard .nchead{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.875rem 1rem .75rem }
-.newscard .nctitle{ display:inline-flex; align-items:center; gap:.5rem; font-size:.75rem; font-weight:600;
-  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.7) }
-.newscard .nctitle .ic{ font-size:.875rem; color:#b15f2c }
-.newscard .nclive{ display:inline-flex; align-items:center; gap:.375rem; font-size:.6rem; font-weight:500;
-  text-transform:uppercase; letter-spacing:.05em; color:rgba(17,17,17,.66) }
-.newscard .nclive i{ width:.375rem; height:.375rem; border-radius:9999px; background:#b15f2c; animation:ncpulse 2s ease-in-out infinite }
-@keyframes ncpulse{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
-.newscard ul{ display:flex; flex-direction:column }
-.newscard li a{ display:flex; gap:.75rem; padding:.75rem 1rem; border-top:1px solid rgba(230,229,226,.7); transition:background .3s }
-.newscard li a:hover{ background:rgba(241,240,238,.6) }
-.newscard .ndate{ flex:none; width:2.75rem; font-size:.65rem; font-weight:600; line-height:1.25; color:#804520; text-transform:uppercase }
-.newscard .nbody{ display:flex; flex-direction:column; gap:.15rem }
-.newscard .nh{ font-size:.8rem; font-weight:500; line-height:1.35; color:#111 }
-.newscard .nsrc{ font-size:.65rem; color:rgba(17,17,17,.66) }
-@media (min-width:1024px){ .newscard{ width:19rem } }
 
 /* ===================== about ===================== */
 #about{ background:#fff }
@@ -639,38 +599,13 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
         <button class="pill dark arrow" data-modal><span>Me contacter<span class="badge"><svg class="ic"><use href="#i-arr"/></svg></span></span></button>
         <button class="pill outline noarrow" data-go="works"><span>Voir les chapitres</span></button>
       </div>
-    </div>
-
-    <div class="hero-right">
-      <div class="herocard" data-reveal="pop" data-gate="ready" style="--rd:400ms">
-        <div class="row" id="hc-row" role="button" tabindex="0" aria-label="Next highlight">
-          <div class="tile"><svg class="ic"><use href="#i-logo"/></svg></div>
-          <div class="panel">
-            <div class="slot" id="hc-slot"></div>
-            <div class="btm">
-              <div class="dots" id="hc-dots"><i class="on"></i><i></i><i></i></div>
-              <div class="navb">
-                <button id="hc-prev" aria-label="Previous"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arr"/></svg></button>
-                <button id="hc-next" aria-label="Next"><svg class="ic"><use href="#i-arr"/></svg></button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       <div class="partners" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:550ms">
         <p class="plabel">Outils interactifs</p>
         <ul id="partners"></ul>
       </div>
-
-      <div class="newscard" data-reveal="up" data-gate="ready" style="--ry:14px;--rd:480ms">
-        <div class="nchead">
-          <span class="nctitle"><svg class="ic"><use href="#i-dot"/></svg>Actualités scientifiques</span>
-          <span class="nclive"><i></i>Veille</span>
-        </div>
-        <ul id="actus"></ul>
-      </div>
     </div>
+
   </div>
 
   <div class="shell hero-status" data-reveal="fade" data-gate="ready" style="--rd:900ms">
@@ -1048,8 +983,10 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 (function(){
   const boite = document.getElementById('terre');
   const cv = document.getElementById('terre-cv');
-  const gauche = document.querySelector('.hero-left');
-  const droite = document.querySelector('.hero-right');
+  /* Reperes du vide ou loger la planete quand tout est empile : le bas des
+     boutons, et le haut de la carte des outils. */
+  const hautBloc = document.querySelector('.hero-left .ctarow');
+  const basBloc = document.querySelector('.hero-left .partners');
   if(!boite || !cv) return;
   const ctx = cv.getContext('2d');
   const sobre = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1165,13 +1102,13 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
        empilees : on mesure la bande ouverte entre les deux et on l'y centre,
        plutot que de deviner une position qui finirait sous le texte. */
     const large = W >= 1024;
-    cx = large ? W*0.525 : W*0.5;
+    cx = large ? W*0.66 : W*0.5;
     if(large){
-      R = Math.min(W*0.225, H*0.34);
+      R = Math.min(W*0.26, H*0.38);
       cy = H*0.50;
     } else {
-      const g = gauche && gauche.getBoundingClientRect();
-      const d = droite && droite.getBoundingClientRect();
+      const g = hautBloc && hautBloc.getBoundingClientRect();
+      const d = basBloc && basBloc.getBoundingClientRect();
       if(g && d && d.top > g.bottom){
         cy = (g.bottom + d.top)/2 - r.top;
         R = Math.min(W*0.44, (d.top - g.bottom)/2 - 10);
@@ -1379,46 +1316,6 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
   requestAnimationFrame(dessiner);
 })();
 
-/* ============ hero card carousel ============ */
-(function(){
-  const items = [
-    { caption:'Seconde',            title:'Trois thèmes, neuf chapitres.' },
-    { caption:'Travaux pratiques',  title:'Manipuler avant de conclure.' },
-    { caption:'Terrain',            title:'Lire le paysage sur place.' },
-  ];
-  const slot = document.getElementById('hc-slot');
-  const dots = [...document.getElementById('hc-dots').children];
-  let i = 0, cur = null;
-
-  function node(item){
-    const d = document.createElement('div');
-    d.className = 'item';
-    d.innerHTML = `<p class="cap">${item.caption}</p><p class="ttl">${item.title}</p>`;
-    return d;
-  }
-  function render(step){
-    const next = node(items[i]);
-    next.classList.add(step > 0 ? 'hide-down' : 'hide-up');
-    slot.appendChild(next);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      next.classList.remove('hide-down', 'hide-up');
-      if (cur){
-        cur.classList.add(step > 0 ? 'hide-up' : 'hide-down');
-        const old = cur;
-        setTimeout(() => old.remove(), 400);
-      }
-      cur = next;
-    }));
-    dots.forEach((d, k) => d.classList.toggle('on', k === i));
-  }
-  function go(step){ i = (i + step + items.length) % items.length; render(step); }
-  render(1);
-  document.getElementById('hc-next').addEventListener('click', (e) => { e.stopPropagation(); go(1); });
-  document.getElementById('hc-prev').addEventListener('click', (e) => { e.stopPropagation(); go(-1); });
-  const row = document.getElementById('hc-row');
-  row.addEventListener('click', () => go(1));
-  row.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); go(1); } });
-})();
 
 /* ============ partners ============ */
 (function(){
@@ -1437,23 +1334,6 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
 })();
 
 
-/* ============ actualités scientifiques ============ */
-(function(){
-  /* ✏️ Ajoutez / modifiez vos actualités ici :
-     { date:'Mois', h:'Titre court', src:'Source', href:'https://…' } */
-  const actus = [
-    { date:'Veille', h:'Actualités en biologie et santé',    src:'Futura Sciences', href:'https://www.futura-sciences.com/sante/biologie/actualites/' },
-    { date:'Veille', h:'Recherche en sciences du vivant',     src:'CNRS Biologie',   href:'https://www.insb.cnrs.fr/fr/news-list' },
-    { date:'Veille', h:'Dernières découvertes scientifiques', src:'franceinfo',      href:'https://www.franceinfo.fr/sante/decouverte-scientifique/' },
-  ];
-  const el = document.getElementById('actus');
-  if (el) el.innerHTML = actus.map(a =>
-    `<li><a href="${a.href}" target="_blank" rel="noopener">`
-    + `<span class="ndate">${a.date}</span>`
-    + `<span class="nbody"><span class="nh">${a.h}</span><span class="nsrc">${a.src}</span></span>`
-    + `</a></li>`
-  ).join('');
-})();
 
 /* ============ portfolio ============ */
 (function(){
