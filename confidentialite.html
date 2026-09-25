@@ -10,10 +10,19 @@
 <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml" />
 <link rel="icon" href="/favicon-32.png?v=2" sizes="32x32" type="image/png" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=2" />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===================== police, servie depuis ce site =====================
+   Onest etait chargee depuis fonts.googleapis.com : l'adresse IP de chaque
+   eleve partait alors chez Google a l'ouverture de la page. Les deux fichiers
+   sont desormais heberges ici. C'est une police variable : un seul fichier par
+   jeu de caracteres couvre toutes les graisses. */
+@font-face{ font-family:'Onest'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url('/polices/onest-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF }
+@font-face{ font-family:'Onest'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url('/polices/onest-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD }
+
 *{ box-sizing:border-box; margin:0; padding:0 }
 body{ min-height:100vh; display:flex; flex-direction:column; background:#f7f6f4; color:#111;
   font-family:'Onest',system-ui,-apple-system,sans-serif; -webkit-font-smoothing:antialiased }
@@ -107,7 +116,37 @@ footer a{ color:#55504a }
     il ouvre votre logiciel de messagerie avec un message pré-rempli, que vous envoyez vous-même.
     Ce que vous écrivez ne transite donc pas par ce site : il part de votre boîte mail vers la mienne.</p>
 
-  <h2>Les outils qui font appel à une intelligence artificielle</h2>
+  <h2>Ce que votre navigateur va chercher ailleurs</h2>
+    <p>Une page web peut demander des fichiers à d'autres serveurs que celui du site.
+      Chaque demande révèle votre adresse IP au serveur contacté. Voici l'inventaire
+      complet pour ce site.</p>
+    <dl>
+      <dt>La police de caractères</dt>
+      <dd>Elle était chargée depuis Google Fonts, ce qui transmettait votre adresse IP
+        à Google à chaque ouverture de page. <b>Elle est désormais servie depuis ce
+        site</b> : plus aucune demande n'est adressée à Google pour l'affichage.</dd>
+
+      <dt>Les vignettes du bandeau « À voir, à lire »</dt>
+      <dd>Sur la page d'accueil uniquement, les images des vidéos sont chargées depuis les
+        serveurs de YouTube (Google). Elles sont demandées sans indiquer la page d'origine.
+        Les vidéos elles-mêmes ne se lancent que si vous cliquez, sur YouTube.</dd>
+
+      <dt>Le défilement fluide</dt>
+      <dd>La page d'accueil charge une petite bibliothèque d'affichage (Lenis) depuis
+        unpkg.com, qui adoucit le défilement. Si ce serveur ne répond pas, la page
+        fonctionne normalement, sans cet effet.</dd>
+
+      <dt>Les cartes et les exercices interactifs</dt>
+      <dd>Certains outils affichent des fonds de carte ou des exercices hébergés ailleurs
+        (ArcGIS, LearningApps, Genially). Ils ne se chargent que si vous ouvrez l'outil
+        concerné.</dd>
+    </dl>
+    <p>En résumé : <b>les pages de cours ne contactent aucun serveur extérieur</b>. Seule
+      la page d'accueil en contacte deux, pour les vignettes et le défilement. Aucune de ces
+      demandes ne dépose de cookie sur ce site, et aucune ne me transmet quoi que ce soit :
+      je ne reçois ni statistique, ni identifiant, ni liste de visiteurs.</p>
+
+    <h2>Les outils qui font appel à une intelligence artificielle</h2>
   <p>Deux pages du site sont des outils de travail qui interrogent un service d'IA externe.
     Elles se comportent différemment du reste, et c'est important de le savoir.</p>
   <ul>
