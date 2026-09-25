@@ -53,8 +53,12 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
 | `outils/labo_vegetal.html` | laboratoire virtuel de biologie végétale (d'après R. Pratt) |
 | `outils/labo_geologie.html` | laboratoire virtuel de géologie (TP classiques du lycée) |
 | `outils/` | autres outils interactifs autonomes |
-| `boite-a-outils.html` | vitrine des outils payants (précommande par e-mail, sans paiement en ligne) ; les jeux vendus ne sont **pas** dans le dépôt, seules leurs captures (`images/boite-a-outils/`) |
 | `TODO.md` | file d'idées, pilotée par les tâches automatiques |
+
+## Ce site est réservé aux élèves
+
+Rien de commercial ici : ni vente, ni prix, ni lien vers la future boutique.
+Les outils payants auront leur propre site, séparé, avec sa propre charte.
 
 ## Conventions
 
