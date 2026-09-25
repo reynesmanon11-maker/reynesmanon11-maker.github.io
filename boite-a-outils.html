@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>La boîte à outils — jeux et labos SVT · Mme Reynes</title>
+<meta name="description" content="Des jeux et des outils interactifs de SVT, conçus par une professeure de SVT : prêts à projeter, sans compte, sans installation, utilisables hors ligne." />
+<meta name="theme-color" content="#b15f2c" />
+<meta property="og:title" content="La boîte à outils — jeux et labos SVT" />
+<meta property="og:description" content="Des jeux et des outils interactifs de SVT, prêts à projeter, sans compte ni installation." />
+<meta property="og:image" content="https://reynesmanon11-maker.github.io/images/boite-a-outils/chronos.jpg" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<style>
+/* ===================== police, servie depuis ce site ===================== */
+@font-face{ font-family:'Onest'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url('/polices/onest-latin-ext.woff2') format('woff2');
+  unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF }
+@font-face{ font-family:'Onest'; font-style:normal; font-weight:100 900; font-display:swap;
+  src:url('/polices/onest-latin.woff2') format('woff2');
+  unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD }
+
+/* ===================== couleurs du site ===================== */
+:root{
+  --accent:#b15f2c; --accent-fonce:#8f4a1f; --accent-clair:#f3e3d6;
+  --fond:#f5f2ed; --carte:#ffffff; --encre:#23201c; --doux:#6b645b; --ligne:#e4ddd2;
+  --rayon:1.25rem;
+}
+*{ box-sizing:border-box; margin:0; padding:0 }
+html{ -webkit-font-smoothing:antialiased; scroll-behavior:smooth }
+body{ background:var(--fond); color:var(--encre); font-family:'Onest',system-ui,sans-serif; font-size:17px; line-height:1.55; overflow-x:hidden }
+a{ color:inherit }
+img{ display:block; max-width:100% }
+:focus-visible{ outline:2px solid var(--accent); outline-offset:3px }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto } *{ transition:none !important } }
+.shell{ width:100%; max-width:72rem; margin-inline:auto; padding-inline:1.25rem }
+
+/* ===================== barre du haut ===================== */
+.barre{ position:sticky; top:0; z-index:20; background:rgba(245,242,237,.92); backdrop-filter:blur(8px); border-bottom:1px solid var(--ligne) }
+.barre .shell{ display:flex; align-items:center; gap:1rem; min-height:3.6rem }
+.retour{ display:inline-flex; align-items:center; gap:.5rem; text-decoration:none; font-weight:600; font-size:.95rem }
+.retour svg{ width:1.1rem; height:1.1rem }
+.barre nav{ margin-left:auto; display:flex; gap:1.4rem; font-size:.92rem }
+.barre nav a{ text-decoration:none; color:var(--doux) }
+.barre nav a:hover{ color:var(--accent) }
+.barre .btn{ padding:.55rem 1rem; font-size:.9rem }
+@media (max-width:720px){ .barre nav{ display:none } .barre .btn{ margin-left:auto } }
+
+/* ===================== boutons ===================== */
+.btn{ display:inline-flex; align-items:center; justify-content:center; gap:.5rem; border:none; cursor:pointer;
+  font:inherit; font-weight:650; text-decoration:none; border-radius:999px; padding:.85rem 1.4rem; transition:background .15s, transform .15s }
+.btn.plein{ background:var(--accent); color:#fff }
+.btn.plein:hover{ background:var(--accent-fonce) }
+.btn.contour{ background:transparent; color:var(--encre); box-shadow:inset 0 0 0 1.5px var(--encre) }
+.btn.contour:hover{ background:var(--encre); color:#fff }
+
+/* ===================== en-tête ===================== */
+.hero{ padding:4.5rem 0 3rem }
+.surtitre{ display:inline-block; font-size:.8rem; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin-bottom:1rem }
+h1{ font-size:clamp(2.4rem, 7vw, 4.6rem); line-height:1.02; letter-spacing:-.03em; font-weight:800; max-width:16ch }
+h1 em{ font-style:normal; color:var(--accent) }
+.hero p.lead{ font-size:1.18rem; color:var(--doux); max-width:40rem; margin:1.4rem 0 2rem }
+.hero .actions{ display:flex; flex-wrap:wrap; gap:.8rem }
+.atouts{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-top:3.2rem }
+.atout{ background:var(--carte); border:1px solid var(--ligne); border-radius:var(--rayon); padding:1.1rem 1.2rem }
+.atout b{ display:block; font-size:1rem; margin-bottom:.2rem }
+.atout span{ font-size:.9rem; color:var(--doux); line-height:1.45; display:block }
+@media (max-width:900px){ .atouts{ grid-template-columns:repeat(2,1fr) } }
+@media (max-width:480px){ .atouts{ grid-template-columns:1fr } .hero{ padding-top:3rem } }
+
+/* ===================== sections ===================== */
+section.bloc{ padding:3.5rem 0; scroll-margin-top:3rem }
+h2{ font-size:clamp(1.8rem, 4.5vw, 2.6rem); line-height:1.1; letter-spacing:-.02em; font-weight:800; margin-bottom:.6rem }
+.intro{ color:var(--doux); max-width:42rem; margin-bottom:2.2rem }
+
+/* ===================== catalogue ===================== */
+.catalogue{ display:grid; grid-template-columns:repeat(2,1fr); gap:1.6rem }
+@media (max-width:820px){ .catalogue{ grid-template-columns:1fr } }
+.outil{ background:var(--carte); border:1px solid var(--ligne); border-radius:var(--rayon); overflow:hidden; display:flex; flex-direction:column }
+.outil figure{ aspect-ratio:16/10; overflow:hidden; background:#ddd; border-bottom:1px solid var(--ligne) }
+.outil figure img{ width:100%; height:100%; object-fit:cover; object-position:top center }
+.outil .corps{ padding:1.4rem 1.5rem 1.5rem; display:flex; flex-direction:column; gap:.8rem; flex:1 }
+.etiquettes{ display:flex; flex-wrap:wrap; gap:.4rem }
+.etiquette{ font-size:.75rem; font-weight:650; padding:.22rem .6rem; border-radius:999px; background:var(--accent-clair); color:var(--accent-fonce) }
+.etiquette.neutre{ background:#eeeae3; color:var(--doux) }
+.outil h3{ font-size:1.45rem; letter-spacing:-.01em; line-height:1.15 }
+.outil h3 small{ display:block; font-size:.95rem; font-weight:500; color:var(--doux); letter-spacing:0; margin-top:.2rem }
+.outil p{ font-size:.97rem }
+.outil ul{ list-style:none; font-size:.92rem; color:var(--doux); display:grid; gap:.3rem }
+.outil ul li::before{ content:"✓"; color:var(--accent); font-weight:800; margin-right:.5rem }
+.outil .pied{ margin-top:auto; padding-top:1rem; border-top:1px dashed var(--ligne); display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap }
+.prix{ font-size:1.5rem; font-weight:800; letter-spacing:-.02em }
+.prix small{ font-size:.8rem; font-weight:500; color:var(--doux); display:block; letter-spacing:0 }
+.outil .btn{ padding:.65rem 1.1rem; font-size:.92rem }
+.outil .btn.choisi{ background:var(--encre) }
+
+/* ===================== formules ===================== */
+.formules{ display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem }
+@media (max-width:900px){ .formules{ grid-template-columns:1fr } }
+.formule{ background:var(--carte); border:1px solid var(--ligne); border-radius:var(--rayon); padding:1.6rem; display:flex; flex-direction:column; gap:.7rem }
+.formule.phare{ background:var(--encre); color:#f5f2ed; border-color:var(--encre) }
+.formule.phare .doux{ color:#bdb4a8 }
+.formule h3{ font-size:1.2rem }
+.formule .prix{ font-size:2rem }
+.formule .doux{ color:var(--doux); font-size:.95rem }
+.formule ul{ list-style:none; display:grid; gap:.35rem; font-size:.93rem; margin:.3rem 0 .6rem }
+.formule ul li::before{ content:"—"; color:var(--accent); margin-right:.5rem; font-weight:700 }
+.formule .btn{ margin-top:auto }
+.formule.phare .btn.contour{ color:#f5f2ed; box-shadow:inset 0 0 0 1.5px #f5f2ed }
+.formule.phare .btn.contour:hover{ background:#f5f2ed; color:var(--encre) }
+
+/* ===================== sur mesure ===================== */
+.mesure{ display:grid; grid-template-columns:1.1fr .9fr; gap:2rem; align-items:start }
+@media (max-width:900px){ .mesure{ grid-template-columns:1fr } }
+.idees{ display:grid; gap:.8rem }
+.idee{ background:var(--carte); border:1px solid var(--ligne); border-left:4px solid var(--accent); border-radius:.8rem; padding:1rem 1.2rem }
+.idee b{ display:block }
+.idee span{ font-size:.93rem; color:var(--doux) }
+.etapes{ counter-reset:e; display:grid; gap:1rem; list-style:none }
+.etapes li{ counter-increment:e; display:grid; grid-template-columns:2.4rem 1fr; gap:.8rem; align-items:start }
+.etapes li::before{ content:counter(e); width:2.4rem; height:2.4rem; border-radius:50%; background:var(--accent); color:#fff; font-weight:800; display:grid; place-items:center }
+.etapes b{ display:block }
+.etapes span{ font-size:.93rem; color:var(--doux) }
+
+/* ===================== essais gratuits ===================== */
+.gratuits{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem }
+@media (max-width:900px){ .gratuits{ grid-template-columns:repeat(2,1fr) } }
+@media (max-width:480px){ .gratuits{ grid-template-columns:1fr } }
+.gratuit{ display:block; text-decoration:none; background:var(--carte); border:1px solid var(--ligne); border-radius:var(--rayon); padding:1.2rem; transition:transform .15s, border-color .15s }
+.gratuit:hover{ transform:translateY(-3px); border-color:var(--accent) }
+.gratuit .emo{ font-size:1.8rem; line-height:1 }
+.gratuit b{ display:block; margin:.6rem 0 .2rem }
+.gratuit span{ font-size:.9rem; color:var(--doux) }
+
+/* ===================== formulaire ===================== */
+.demande{ background:var(--carte); border:1px solid var(--ligne); border-radius:1.6rem; padding:2rem; display:grid; grid-template-columns:.9fr 1.1fr; gap:2.4rem }
+@media (max-width:900px){ .demande{ grid-template-columns:1fr; padding:1.4rem } }
+.demande .rassure{ background:var(--accent-clair); border-radius:1rem; padding:1rem 1.2rem; font-size:.93rem; margin-top:1.2rem }
+form{ display:grid; gap:1rem }
+fieldset{ border:none; display:grid; gap:.5rem }
+legend, label.titre{ font-weight:700; font-size:.92rem; margin-bottom:.35rem }
+.choix{ display:flex; flex-wrap:wrap; gap:.5rem }
+.choix label{ display:inline-flex; align-items:center; gap:.45rem; font-size:.92rem; background:var(--fond); border:1px solid var(--ligne); border-radius:999px; padding:.45rem .85rem; cursor:pointer }
+.choix input{ accent-color:var(--accent) }
+.champs{ display:grid; grid-template-columns:1fr 1fr; gap:1rem }
+@media (max-width:560px){ .champs{ grid-template-columns:1fr } }
+.champ{ display:grid; gap:.3rem }
+.champ input, .champ textarea{ font:inherit; font-size:.97rem; padding:.7rem .9rem; border:1px solid #d4cabb; border-radius:.75rem; background:#fff; color:var(--encre); width:100% }
+.champ textarea{ min-height:7rem; resize:vertical }
+.note{ font-size:.85rem; color:var(--doux) }
+#message-envoi{ font-size:.93rem; font-weight:600; color:var(--accent-fonce); min-height:1.2em }
+
+/* ===================== questions ===================== */
+.faq{ display:grid; gap:.7rem; max-width:48rem }
+.faq details{ background:var(--carte); border:1px solid var(--ligne); border-radius:1rem; padding:1rem 1.2rem }
+.faq summary{ cursor:pointer; font-weight:700; list-style:none; display:flex; justify-content:space-between; gap:1rem }
+.faq summary::-webkit-details-marker{ display:none }
+.faq summary::after{ content:"+"; color:var(--accent); font-size:1.3rem; line-height:1 }
+.faq details[open] summary::after{ content:"−" }
+.faq details p{ margin-top:.6rem; color:var(--doux); font-size:.95rem }
+
+footer{ border-top:1px solid var(--ligne); padding:2rem 0 3rem; margin-top:2rem; font-size:.9rem; color:var(--doux) }
+footer .shell{ display:flex; flex-wrap:wrap; gap:1rem 2rem; justify-content:space-between }
+</style>
+</head>
+<body>
+
+<header class="barre">
+  <div class="shell">
+    <a class="retour" href="index.html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+      Mme Reynes · SVT
+    </a>
+    <nav aria-label="Dans cette page">
+      <a href="#catalogue">Les outils</a>
+      <a href="#formules">Formules</a>
+      <a href="#sur-mesure">Sur mesure</a>
+      <a href="#questions">Questions</a>
+    </nav>
+    <a class="btn plein" href="#demande">Réserver</a>
+  </div>
+</header>
+
+<main>
+  <!-- ============ EN-TÊTE ============ -->
+  <section class="hero">
+    <div class="shell">
+      <span class="surtitre">La boîte à outils</span>
+      <h1>Des jeux de SVT que vos élèves <em>réclament.</em></h1>
+      <p class="lead">Jeux de cartes, jeu de plateau, exploration en 3D : des outils conçus par une professeure de SVT, collés au programme, prêts à projeter ou à distribuer dès demain matin.</p>
+      <div class="actions">
+        <a class="btn plein" href="#catalogue">Voir les outils</a>
+        <a class="btn contour" href="#sur-mesure">Commander un outil sur mesure</a>
+      </div>
+
+      <div class="atouts">
+        <div class="atout"><b>Un seul fichier</b><span>On l'ouvre dans le navigateur, sur l'ordinateur de la salle comme sur celui de l'élève.</span></div>
+        <div class="atout"><b>Sans compte</b><span>Ni inscription, ni mot de passe, ni ENT à configurer.</span></div>
+        <div class="atout"><b>Aucune donnée élève</b><span>Rien n'est envoyé sur internet : rien à déclarer au délégué à la protection des données.</span></div>
+        <div class="atout"><b>Pensé pour la classe</b><span>Notions du programme, niveaux de difficulté, parties courtes.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CATALOGUE ============ -->
+  <section class="bloc" id="catalogue">
+    <div class="shell">
+      <h2>Les outils</h2>
+      <p class="intro">Chaque outil se joue seul contre l'ordinateur ou à plusieurs. Prix de lancement, licence pour un·e enseignant·e et ses classes.</p>
+
+      <div class="catalogue">
+        <article class="outil" data-outil="CHRONOS">
+          <figure><img src="images/boite-a-outils/chronos.jpg" alt="Partie de CHRONOS : une frise chronologique avec une carte posée en 1851, et six cartes de découvertes à placer dans la main du joueur." width="1280" height="800" loading="lazy" /></figure>
+          <div class="corps">
+            <div class="etiquettes"><span class="etiquette">Tous niveaux du lycée</span><span class="etiquette neutre">Histoire des sciences</span><span class="etiquette neutre">10 à 20 min</span></div>
+            <h3>CHRONOS<small>La frise des découvertes</small></h3>
+            <p>De l'extinction des dinosaures à la structure de l'ADN : l'élève range des découvertes réelles sur une frise, date cachée. Plus ancienne ou plus récente que ses voisines ?</p>
+            <ul>
+              <li>44 cartes, sept disciplines</li>
+              <li>Solo, ou contre l'ordinateur en trois niveaux</li>
+              <li>Idéal en début d'heure ou en fin de chapitre</li>
+            </ul>
+            <div class="pied"><div class="prix">9&nbsp;€<small>prix de lancement</small></div><button class="btn plein" type="button" data-choisir>Je le veux</button></div>
+          </div>
+        </article>
+
+        <article class="outil" data-outil="SVT List">
+          <figure><img src="images/boite-a-outils/svtlist.jpg" alt="Partie de SVT List : le thème « Hormones et procréation humaine » est tiré, et le joueur a huit lettres en main pour proposer des notions." width="1280" height="800" loading="lazy" /></figure>
+          <div class="corps">
+            <div class="etiquettes"><span class="etiquette">Seconde</span><span class="etiquette neutre">Vocabulaire</span><span class="etiquette neutre">15 min</span></div>
+            <h3>SVT List<small>Le jeu de lettres du programme</small></h3>
+            <p>Un thème du programme est tiré ; chacun pose une lettre et doit trouver une notion qui commence par elle. Des lettres piégées forcent l'adversaire à piocher.</p>
+            <ul>
+              <li>18 thèmes repris des trois thématiques de Seconde</li>
+              <li>Chrono réglable, arbitrage par l'enseignant</li>
+              <li>Révise le vocabulaire sans en avoir l'air</li>
+            </ul>
+            <div class="pied"><div class="prix">9&nbsp;€<small>prix de lancement</small></div><button class="btn plein" type="button" data-choisir>Je le veux</button></div>
+          </div>
+        </article>
+
+        <article class="outil" data-outil="Géolipoly">
+          <figure><img src="images/boite-a-outils/geolipoly.jpg" alt="Plateau de Géolipoly : des cases de roches et de gisements, comme la coulée basaltique, le massif granitique ou le bassin houiller." width="1280" height="800" loading="lazy" /></figure>
+          <div class="corps">
+            <div class="etiquettes"><span class="etiquette">Seconde → Terminale</span><span class="etiquette neutre">Géologie</span><span class="etiquette neutre">2 à 4 joueurs</span></div>
+            <h3>Géolipoly<small>Le jeu de plateau de la géologie</small></h3>
+            <p>On achète des gisements, on exploite des filons, on finit en zone de subduction. Les familles de roches deviennent des propriétés à collectionner.</p>
+            <ul>
+              <li>Roches sédimentaires, magmatiques, métamorphiques et ressources</li>
+              <li>Partie rapide pour tenir dans une heure de cours</li>
+              <li>Joueurs humains ou ordinateur</li>
+            </ul>
+            <div class="pied"><div class="prix">15&nbsp;€<small>prix de lancement</small></div><button class="btn plein" type="button" data-choisir>Je le veux</button></div>
+          </div>
+        </article>
+
+        <article class="outil" data-outil="GéoCraft 3D">
+          <figure><img src="images/boite-a-outils/geocraft.jpg" alt="GéoCraft 3D : un paysage en cubes et la fiche de mission « Le géologue de terrain » : identifier une roche de chaque famille, descendre à moins trente mètres et trouver le diamant." width="1280" height="800" loading="lazy" /></figure>
+          <div class="corps">
+            <div class="etiquettes"><span class="etiquette">Seconde → Terminale</span><span class="etiquette neutre">Terrain &amp; ressources</span><span class="etiquette neutre">3D</span></div>
+            <h3>GéoCraft 3D<small>Le géologue de terrain</small></h3>
+            <p>Un monde en cubes à explorer au clavier : l'élève creuse, traverse les couches, identifie les roches et suit les indices géologiques jusqu'à la ressource cachée.</p>
+            <ul>
+              <li>Quatre terrains : île, volcan, massif, vallée</li>
+              <li>Carnet d'objectifs et collection de roches</li>
+              <li>Celui qui fait lever les yeux des téléphones</li>
+            </ul>
+            <div class="pied"><div class="prix">19&nbsp;€<small>prix de lancement</small></div><button class="btn plein" type="button" data-choisir>Je le veux</button></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORMULES ============ -->
+  <section class="bloc" id="formules">
+    <div class="shell">
+      <h2>Les formules</h2>
+      <p class="intro">Pour soi, pour toute l'équipe, ou avec les outils à venir.</p>
+      <div class="formules">
+        <div class="formule">
+          <h3>À l'unité</h3>
+          <div class="prix">9 à 19&nbsp;€</div>
+          <p class="doux">Un outil, pour vous et toutes vos classes.</p>
+          <ul><li>Le fichier, à garder</li><li>Les corrections à vie</li></ul>
+          <a class="btn contour" href="#catalogue">Choisir un outil</a>
+        </div>
+        <div class="formule phare">
+          <h3>Le pack complet</h3>
+          <div class="prix">39&nbsp;€</div>
+          <p class="doux">Les quatre outils, au lieu de 52&nbsp;€.</p>
+          <ul><li>CHRONOS, SVT List, Géolipoly, GéoCraft 3D</li><li>Les prochains outils à prix réduit</li></ul>
+          <button class="btn plein" type="button" data-formule="Pack complet">Réserver le pack</button>
+        </div>
+        <div class="formule">
+          <h3>Établissement</h3>
+          <div class="prix">99&nbsp;€</div>
+          <p class="doux">Tout le pack, pour toute l'équipe de SVT d'un lycée.</p>
+          <ul><li>Facture au nom de l'établissement</li><li>Utilisable par tous les collègues</li></ul>
+          <button class="btn contour" type="button" data-formule="Licence établissement">Demander un devis</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SUR MESURE ============ -->
+  <section class="bloc" id="sur-mesure">
+    <div class="shell">
+      <h2>Un outil qui n'existe pas encore&nbsp;?</h2>
+      <p class="intro">Vous avez en tête l'activité parfaite pour un chapitre, mais pas le temps de la fabriquer. Décrivez-la : je la construis pour vous.</p>
+      <div class="mesure">
+        <div class="idees">
+          <div class="idee"><b>La carte géologique de votre région</b><span>Vos carrières, vos affleurements, vos sorties de terrain, sur une carte interactive.</span></div>
+          <div class="idee"><b>Un jeu sur votre chapitre</b><span>Cartes, plateau ou quiz, avec vos notions et votre vocabulaire.</span></div>
+          <div class="idee"><b>Une expérience impossible en classe</b><span>Croisements, glycémie, cinétique enzymatique : un simulateur avec des valeurs réalistes.</span></div>
+          <div class="idee"><b>Un entraînement aux évaluations pratiques</b><span>Des jeux de données différents pour chaque élève, avec la grille de correction.</span></div>
+        </div>
+        <div>
+          <ol class="etapes">
+            <li><div><b>Vous décrivez votre besoin</b><span>Niveau, notions visées, durée, usage en classe ou en autonomie.</span></div></li>
+            <li><div><b>Je vous propose un devis</b><span>Un prix fixe et un délai, à partir de 150&nbsp;€ selon l'ampleur.</span></div></li>
+            <li><div><b>Vous testez une première version</b><span>Une série de retouches est comprise.</span></div></li>
+            <li><div><b>Vous recevez votre outil</b><span>Un fichier à vous, prêt pour vos classes.</span></div></li>
+          </ol>
+          <p style="margin-top:1.4rem"><button class="btn plein" type="button" data-formule="Outil sur mesure">Décrire mon projet</button></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ESSAIS GRATUITS ============ -->
+  <section class="bloc" id="gratuits">
+    <div class="shell">
+      <h2>Voir avant d'acheter</h2>
+      <p class="intro">Ces outils sont en accès libre sur le site : ils vous donnent une idée de la qualité de ce que je fabrique.</p>
+      <div class="gratuits">
+        <a class="gratuit" href="outils/labo_geologie.html"><span class="emo" aria-hidden="true">🌋</span><b>Labo de géologie</b><span>Un laboratoire virtuel complet, avec fiches de correction.</span></a>
+        <a class="gratuit" href="outils/labo_vegetal.html"><span class="emo" aria-hidden="true">🌱</span><b>Labo de biologie</b><span>Photosynthèse, respiration, pigments : les manipulations classiques.</span></a>
+        <a class="gratuit" href="outils/carte_geol_aude_v5.html"><span class="emo" aria-hidden="true">🗺️</span><b>Carte géologique</b><span>L'exemple de l'Aude, modèle de la carte sur mesure.</span></a>
+        <a class="gratuit" href="outils/cycle_des_roches_2nde.html"><span class="emo" aria-hidden="true">🔄</span><b>Cycle des roches</b><span>Un schéma interactif pour la Seconde.</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ DEMANDE ============ -->
+  <section class="bloc" id="demande">
+    <div class="shell">
+      <div class="demande">
+        <div>
+          <h2>Réserver</h2>
+          <p class="intro" style="margin-bottom:0">Dites-moi ce qui vous intéresse : je vous réponds personnellement, en général sous 48&nbsp;heures.</p>
+          <div class="rassure"><b>Aucun paiement en ligne.</b> Ce formulaire ne vous engage à rien : il ouvre simplement votre messagerie avec un e-mail pré-rempli, que vous relisez avant de l'envoyer.</div>
+          <p class="note" style="margin-top:1.2rem">Bientôt&nbsp;: des ateliers pour apprendre à fabriquer vos propres outils avec l'IA. Cochez la case dans le formulaire pour être prévenu·e.</p>
+        </div>
+
+        <form id="form-demande" novalidate>
+          <fieldset>
+            <legend>Ce qui vous intéresse</legend>
+            <div class="choix" id="choix-outils">
+              <label><input type="checkbox" name="outil" value="CHRONOS" /> CHRONOS</label>
+              <label><input type="checkbox" name="outil" value="SVT List" /> SVT List</label>
+              <label><input type="checkbox" name="outil" value="Géolipoly" /> Géolipoly</label>
+              <label><input type="checkbox" name="outil" value="GéoCraft 3D" /> GéoCraft 3D</label>
+              <label><input type="checkbox" name="outil" value="Pack complet" /> Le pack complet</label>
+              <label><input type="checkbox" name="outil" value="Licence établissement" /> Licence établissement</label>
+              <label><input type="checkbox" name="outil" value="Outil sur mesure" /> Un outil sur mesure</label>
+              <label><input type="checkbox" name="outil" value="Ateliers IA (me prévenir)" /> Les ateliers IA</label>
+            </div>
+          </fieldset>
+          <div class="champs">
+            <div class="champ"><label class="titre" for="f-nom">Nom</label><input id="f-nom" name="nom" autocomplete="name" /></div>
+            <div class="champ"><label class="titre" for="f-etab">Établissement et ville</label><input id="f-etab" name="etab" autocomplete="organization" /></div>
+          </div>
+          <div class="champ"><label class="titre" for="f-msg">Votre message</label><textarea id="f-msg" name="msg" placeholder="Vos niveaux, vos questions, ou l'outil sur mesure dont vous rêvez…"></textarea></div>
+          <div><button class="btn plein" type="submit">Préparer mon e-mail</button></div>
+          <p id="message-envoi" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUESTIONS ============ -->
+  <section class="bloc" id="questions">
+    <div class="shell">
+      <h2>Questions fréquentes</h2>
+      <div class="faq">
+        <details><summary>Faut-il installer quelque chose&nbsp;?</summary><p>Non. Chaque outil est un fichier que l'on ouvre avec un navigateur récent (Firefox, Chrome, Edge, Safari). On peut le copier sur une clé USB, le déposer dans l'ENT ou le projeter depuis l'ordinateur de la salle.</p></details>
+        <details><summary>Les données de mes élèves sont-elles collectées&nbsp;?</summary><p>Non. Les outils ne créent aucun compte et n'envoient rien sur internet. Rien n'est à déclarer au titre du RGPD.</p></details>
+        <details><summary>Que couvre la licence&nbsp;?</summary><p>La licence individuelle couvre vos classes, toutes les années. La licence établissement couvre toute l'équipe de SVT d'un même lycée. Le partage public du fichier (sur internet, en dehors de l'établissement) n'est pas autorisé.</p></details>
+        <details><summary>Mon établissement peut-il payer&nbsp;?</summary><p>Oui : la licence établissement donne lieu à un devis puis à une facture au nom du lycée.</p></details>
+        <details><summary>Et si je trouve une erreur&nbsp;?</summary><p>Écrivez-moi : je corrige, et vous recevez la version à jour gratuitement.</p></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="shell">
+    <span>La boîte à outils — conçue par Mme Reynes, professeure de SVT.</span>
+    <span><a href="index.html">Retour au site</a> · <a href="confidentialite.html">Confidentialité</a></span>
+  </div>
+</footer>
+
+<script>
+"use strict";
+/* Adresse de réception des demandes : rien ne passe par un service externe,
+   le formulaire ouvre la messagerie de la personne avec un e-mail pré-rempli. */
+var ADRESSE = "reynesmanon11@gmail.com";
+
+var form = document.getElementById("form-demande");
+
+// Coche une case du formulaire, puis descend jusqu'à lui
+function choisir(valeur){
+  var cases = form.querySelectorAll('input[name="outil"]');
+  for (var i = 0; i < cases.length; i++) {
+    if (cases[i].value === valeur) cases[i].checked = true;
+  }
+  document.getElementById("demande").scrollIntoView({ behavior: "smooth" });
+}
+
+// Boutons « Je le veux » des fiches d'outil
+document.querySelectorAll("[data-choisir]").forEach(function(btn){
+  btn.addEventListener("click", function(){
+    var nom = btn.closest("[data-outil]").getAttribute("data-outil");
+    btn.textContent = "Ajouté ✓";
+    btn.classList.add("choisi");
+    choisir(nom);
+  });
+});
+
+// Boutons des formules et du sur-mesure
+document.querySelectorAll("[data-formule]").forEach(function(btn){
+  btn.addEventListener("click", function(){ choisir(btn.getAttribute("data-formule")); });
+});
+
+form.addEventListener("submit", function(e){
+  e.preventDefault();
+  var retour = document.getElementById("message-envoi");
+  var choix = Array.prototype.map.call(form.querySelectorAll('input[name="outil"]:checked'), function(c){ return c.value; });
+  var msg = form.msg.value.trim();
+  if (!choix.length && !msg) {
+    retour.textContent = "Cochez au moins un outil, ou écrivez-moi un message.";
+    return;
+  }
+  var corps =
+    "Bonjour,\n\n" +
+    "Je suis intéressé·e par : " + (choix.length ? choix.join(", ") : "—") + "\n\n" +
+    "Nom : " + (form.nom.value.trim() || "—") + "\n" +
+    "Établissement : " + (form.etab.value.trim() || "—") + "\n\n" +
+    (msg ? msg + "\n\n" : "") +
+    "Merci !";
+  var objet = "La boîte à outils — " + (choix.length ? choix.join(", ") : "une question");
+  window.location.href = "mailto:" + ADRESSE + "?subject=" + encodeURIComponent(objet) + "&body=" + encodeURIComponent(corps);
+  retour.textContent = "Votre messagerie s'ouvre : il ne reste qu'à relire et envoyer. Rien ne s'est ouvert ? Écrivez directement à " + ADRESSE + ".";
+});
+</script>
+</body>
+</html>
