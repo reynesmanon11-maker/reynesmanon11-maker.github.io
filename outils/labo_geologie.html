@@ -509,6 +509,7 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 .ro-comp .etiq.g{ left:8px } .ro-comp .etiq.d{ right:8px }
 .ro-planche{ margin:11px 0 0; font-size:12px; color:var(--gris) }
 .ro-planche a{ color:var(--pt); font-weight:600 }
+.cr-rien{ margin:22px 0 0; font-size:12px; color:var(--gris-clair) }
 .ro-credit{ margin:6px 0 0; font-size:10.5px; color:var(--gris-clair) }
 .ro-credit a{ color:var(--gris-clair); text-decoration:underline }
 .ro-credit a:hover{ color:var(--pt) }
@@ -956,8 +957,9 @@ header.top .marque b{ letter-spacing:-.015em }
        (R = vitesse de refroidissement en °C/h). L'exposant, proche de −1/3, est de l'ordre de
        grandeur admis ; la constante a été ajustée sur deux repères : un pluton granitique
        (cristaux centimétriques) et une coulée basaltique (microlites de quelques centièmes de mm).</p>
-    <p><b>C'est un dessin, pas une photographie de lame mince</b> : la texture est construite par
-       le programme. L'allure et le sens des variations sont fidèles, les détails non.</p>
+    <p><b>La lame mince du haut est un dessin</b> : la texture est construite par le programme,
+       l'allure et le sens des variations sont fidèles, les détails non. <b>Celle du bas est une
+       photographie</b> de la roche réelle, quand elle existe au catalogue : c'est elle qui fait foi.</p>
   </div></div>
 
   <div class="grille deux">
@@ -1009,6 +1011,7 @@ header.top .marque b{ letter-spacing:-.015em }
           <button class="btn mini" id="cr-zoom">Changer de grossissement</button>
           <button class="btn mini" id="cr-relance">Autre champ de la lame</button>
         </div>
+        <div id="cr-reel"></div>
       </div>
 
       <div class="carte">
@@ -1990,6 +1993,15 @@ const TEXTURES = [
   {min:0.03,  id:'microlithique',n:"Microlithique", e:"microlites baignant dans du verre"},
   {min:0,     id:'vitreuse',     n:"Vitreuse",      e:"pas de cristal : le magma a été figé"}
 ];
+/* Le tableau à double entrée nomme une roche ; quand une photographie de cette
+   roche existe, autant la montrer à côté de la lame simulée. Toutes n'en ont
+   pas : les textures microgrenues et les verres autres que l'obsidienne
+   n'ont pas d'échantillon au catalogue. */
+const ROCHE_DU_NOM = {
+  'Granite':'granite', 'Diorite':'diorite', 'Gabbro':'gabbro',
+  'Rhyolite':'rhyolite', 'Andésite':'andesite', 'Basalte':'basalte',
+  'Obsidienne':'obsidienne'
+};
 const NOMS = {
   grenue:       {f:"Granite",     i:"Diorite",      m:"Gabbro"},
   microgrenue:  {f:"Microgranite",i:"Microdiorite", m:"Dolérite"},
@@ -2008,6 +2020,94 @@ const MINERAUX = {
 };
 const chimie = s => s >= 66 ? 'f' : s >= 52 ? 'i' : 'm';
 const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafique (pauvre en silice)"};
+
+/* ==========================================================================
+   PHOTOGRAPHIES DES ROCHES — machinerie commune
+   La paillasse d'identification et le module de cristallisation montrent les
+   mêmes clichés : le chargement, le comparateur et le crédit sont donc ici,
+   en dehors des deux.
+   La page est servie telle quelle, sans programme sur le serveur : elle ne
+   peut pas lister un dossier. Elle essaie donc les fichiers un par un —
+   granite-1.jpg, granite-2.jpg… — et s'arrête au premier absent. Rien à
+   déclarer nulle part : déposer le fichier suffit. Conséquence assumée : la
+   console signale une requête en échec par série, celle du numéro manquant.
+   ========================================================================== */
+const CACHE_PHOTOS = {};
+function seriePhotos(id, suffixe, fini){
+  const trouvees = [];
+  (function essaie(n){
+    if(n > 12) return fini(trouvees);
+    const img = new Image();
+    img.onload  = () => { trouvees.push(img.src); essaie(n+1); };
+    img.onerror = () => fini(trouvees);
+    img.src = '../images/roches/' + id + suffixe + n + '.jpg';
+  })(1);
+}
+function chargePhotos(id, fini){
+  if(CACHE_PHOTOS[id]) return fini(CACHE_PHOTOS[id]);
+  seriePhotos(id, '-', macro => seriePhotos(id, '-micro-', micro => {
+    CACHE_PHOTOS[id] = {macro, micro};
+    fini(CACHE_PHOTOS[id]);
+  }));
+}
+/* Le volet glissant : la photo du dessus est rognée à droite du curseur, si
+   bien qu'on découvre celle du dessous en tirant vers la gauche. Pointeur,
+   doigt et flèches du clavier mènent au même réglage. */
+function activeComparateur(z){
+  if(!z) return;
+  const p = z.querySelector('.poignee');
+  const pose = v => {
+    const x = Math.max(0, Math.min(100, v));
+    z.style.setProperty('--x', x.toFixed(1) + '%');
+    p.setAttribute('aria-valuenow', Math.round(x));
+  };
+  const depuis = e => { const r = z.getBoundingClientRect(); pose((e.clientX - r.left) / r.width * 100); };
+  let tire = false;
+  z.addEventListener('pointerdown', e => {
+    if(e.target.closest('.etiq')) return;        /* clic sur une étiquette : agrandissement */
+    tire = true; z.setPointerCapture(e.pointerId); depuis(e); e.preventDefault();
+  });
+  z.addEventListener('pointermove', e => { if(tire) depuis(e); });
+  ['pointerup','pointercancel'].forEach(t => z.addEventListener(t, () => { tire = false; }));
+  p.addEventListener('keydown', e => {
+    const d = e.key === 'ArrowLeft' ? -4 : e.key === 'ArrowRight' ? 4
+            : e.key === 'Home' ? -100 : e.key === 'End' ? 100 : 0;
+    if(!d) return;
+    e.preventDefault();
+    pose(parseFloat(p.getAttribute('aria-valuenow')) + d);
+  });
+}
+/* Deux lames du même champ sous un curseur, étiquetées LPNA et LPA. */
+function blocComparateur(photos, alt, legende){
+  return '<figure class="ro-principale"><div class="ro-comp" style="--x:50%">' +
+    '<img class="fond" src="' + photos[1] + '" alt="' + alt + ', entre nicols croisés">' +
+    '<div class="dessus"><img src="' + photos[0] + '" alt="' + alt + ', sans analyseur"></div>' +
+    '<button class="etiq g" data-photo="' + photos[0] + '" title="Agrandir la vue LPNA">LPNA</button>' +
+    '<button class="etiq d" data-photo="' + photos[1] + '" title="Agrandir la vue LPA">LPA</button>' +
+    '<div class="poignee" role="slider" tabindex="0" aria-label="Curseur de comparaison" ' +
+    'aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>' +
+    '</div><figcaption>' + legende + '</figcaption></figure>';
+}
+/* La citation de l'auteur et de la fiche d'origine, exigée par la lithothèque. */
+function creditPhoto(id, vue){
+  const c = (CREDITS[id] || {})[vue];
+  if(!c) return '';
+  const source = c.u
+    ? '<a href="' + c.u + '" target="_blank" rel="noopener">Lithothèque ENS de Lyon' +
+      (c.t ? ' — ' + ech(c.t) : '') + ' ↗</a>'
+    : '<a href="https://lithotheque.ens-lyon.fr/" target="_blank" rel="noopener">Lithothèque ENS de Lyon ↗</a>';
+  return '<p class="ro-credit">Photographie : ' + ech(c.a) + ' · ' + source + '</p>';
+}
+/* agrandissement au clic, pour tous les modules */
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-photo]');
+  if(!v) return;
+  const o = document.createElement('div');
+  o.className = 'ro-loupe';
+  o.innerHTML = '<img src="' + v.dataset.photo + '" alt="">';
+  o.addEventListener('click', () => o.remove());
+  document.body.appendChild(o);
+});
 
 (function cristallisation(){
   const cv = $('#cr-cv'), cvc = $('#cr-courbe');
@@ -2194,12 +2294,45 @@ const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafiq
       e.t.n.toLowerCase() + '</b>, ' + e.t.e + '. Avec ' + silice + ' % de silice, la roche s\'appelle <b>' +
       e.nom + '</b>.' +
       (phenos && e.t.id !== 'grenue' ? " Les phénocristaux, eux, se sont formés lentement en profondeur avant l'éruption : une même roche garde ainsi la trace de deux vitesses de refroidissement." : "");
-    dessineLame(); dessineCourbe(); rendTable();
+    dessineLame(); dessineCourbe(); rendTable(); rendReel(e.nom);
     Labo.note('cristal', 'Situation', LIEUX[lieu].n);
     Labo.note('cristal', 'Taille des cristaux', (e.d>=1?fr(e.d,1):fr(e.d,3)) + ' mm');
     Labo.note('cristal', 'Texture', e.t.n);
     Labo.note('cristal', 'Roche obtenue', e.nom + ' (' + silice + ' % SiO₂)');
   }
+  /* ---------- la roche réelle, en vis-à-vis de la lame simulée ---------- */
+  let reelAffiche = null;
+  function rendReel(nom){
+    const bac = $('#cr-reel'); if(!bac) return;
+    const id = ROCHE_DU_NOM[nom];
+    if(reelAffiche === (id || nom)) return;      /* déjà à l'écran : on ne redessine pas */
+    reelAffiche = id || nom;
+    if(!id){
+      bac.innerHTML = '<p class="cr-rien">Pas de photographie au catalogue pour une roche ' +
+        'de ce nom : les textures microgrenues et les verres autres que l\'obsidienne n\'y ' +
+        'figurent pas.</p>';
+      return;
+    }
+    chargePhotos(id, jeux => {
+      if(reelAffiche !== id) return;             /* l'élève a déjà changé de réglage */
+      const titre = '<div class="partie-titre" style="margin:22px 0 9px">La roche réelle — ' +
+                    ech(nom) + '</div>';
+      if(jeux.micro.length > 1){
+        bac.innerHTML = titre +
+          blocComparateur(jeux.micro, ech(nom),
+            ech(nom) + ' — lame mince · glissez le curseur pour passer d\'une vue à l\'autre') +
+          creditPhoto(id, 'micro');
+        activeComparateur(bac.querySelector('.ro-comp'));
+      } else if(jeux.macro.length){
+        bac.innerHTML = titre +
+          '<figure class="ro-principale"><button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
+          '<img src="' + jeux.macro[0] + '" alt="' + ech(nom) + '"></button>' +
+          '<figcaption>' + ech(nom) + ' — échantillon de main</figcaption></figure>' +
+          creditPhoto(id, 'macro');
+      } else bac.innerHTML = '';
+    });
+  }
+
   $('#cr-lieu').addEventListener('change', e => { lieu = e.target.value; maj(); });
   $('#cr-silice').addEventListener('input', e => { silice = +e.target.value; maj(); });
   $('#cr-phenos').addEventListener('change', e => { phenos = e.target.checked; maj(); });
@@ -2657,35 +2790,7 @@ const TESTS = [
 
   const courante = () => ROCHES.find(r => r.id === (mode === 'libre' ? choix : mystere));
 
-  /* ---------- photographies réelles déposées dans images/roches/ ----------
-     La page est servie telle quelle, sans programme sur le serveur : elle ne
-     peut pas lister un dossier. Elle essaie donc les fichiers un par un —
-     granite-1.jpg, granite-2.jpg… — et s'arrête au premier absent. Rien à
-     déclarer nulle part : déposer le fichier suffit.
-     Conséquence assumée : la console du navigateur signale une requête en
-     échec par roche ouverte, celle du numéro manquant. C'est le seul moyen,
-     sans programme sur le serveur, de savoir qu'un fichier n'existe pas. */
-  const CACHE_PHOTOS = {};
   let vuePhoto = 'macro';               /* le choix suit l'élève d'une roche à l'autre */
-  /* Une série s'arrête au premier numéro manquant : granite-1, granite-2… pour
-     l'œil nu, granite-micro-1, granite-micro-2… pour le microscope. */
-  function serie(id, suffixe, fini){
-    const trouvees = [];
-    (function essaie(n){
-      if(n > 12) return fini(trouvees);
-      const img = new Image();
-      img.onload  = () => { trouvees.push(img.src); essaie(n+1); };
-      img.onerror = () => fini(trouvees);
-      img.src = '../images/roches/' + id + suffixe + n + '.jpg';
-    })(1);
-  }
-  function chargePhotos(id, fini){
-    if(CACHE_PHOTOS[id]) return fini(CACHE_PHOTOS[id]);
-    serie(id, '-', macro => serie(id, '-micro-', micro => {
-      CACHE_PHOTOS[id] = {macro, micro};
-      fini(CACHE_PHOTOS[id]);
-    }));
-  }
   /* Le dessin n'est qu'un pis-aller : dès qu'une photographie existe pour la
      roche, elle prend sa place et le dessin disparaît. Le dessin ne revient
      que pour les roches sans photo, et en roche mystère tant que la loupe n'a
@@ -2776,53 +2881,9 @@ const TESTS = [
           return '<p class="ro-credit">Photographie : ' + ech(c.a) + ' · ' + source + '</p>';
         })();
       if(deux) segment($('#ro-vue'), d => { vuePhoto = d.vue; rendPhotos(); });
-      if(comp) activeComparateur();
+      if(comp) activeComparateur($('#ro-photos .ro-comp'));
     });
   }
-  /* Le volet glissant : la photo du dessus est rognée à droite du curseur, si
-     bien qu'on découvre celle du dessous en tirant vers la gauche. Pointeur,
-     doigt et flèches du clavier mènent au même réglage. */
-  function activeComparateur(){
-    const z = $('.ro-comp'); if(!z) return;
-    const p = z.querySelector('.poignee');
-    const pose = v => {
-      const x = Math.max(0, Math.min(100, v));
-      z.style.setProperty('--x', x.toFixed(1) + '%');
-      p.setAttribute('aria-valuenow', Math.round(x));
-    };
-    const depuis = e => {
-      const r = z.getBoundingClientRect();
-      pose((e.clientX - r.left) / r.width * 100);
-    };
-    let tire = false;
-    z.addEventListener('pointerdown', e => {
-      if(e.target.closest('.etiq')) return;      /* clic sur une étiquette : agrandissement */
-      tire = true; z.setPointerCapture(e.pointerId); depuis(e); e.preventDefault();
-    });
-    z.addEventListener('pointermove', e => { if(tire) depuis(e); });
-    ['pointerup','pointercancel'].forEach(t => z.addEventListener(t, () => { tire = false; }));
-    p.addEventListener('keydown', e => {
-      const d = e.key === 'ArrowLeft' ? -4 : e.key === 'ArrowRight' ? 4
-              : e.key === 'Home' ? -100 : e.key === 'End' ? 100 : 0;
-      if(!d) return;
-      e.preventDefault();
-      pose(parseFloat(p.getAttribute('aria-valuenow')) + d);
-    });
-  }
-
-  /* agrandissement au clic */
-  document.addEventListener('click', e => {
-    const v = e.target.closest('[data-photo]');
-    if(v){
-      const o = document.createElement('div');
-      o.className = 'ro-loupe';
-      o.innerHTML = '<img src="' + v.dataset.photo + '" alt="">';
-      o.addEventListener('click', () => o.remove());
-      document.body.appendChild(o);
-      return;
-    }
-  });
-
   /* ---------- dessin de l'échantillon ---------- */
   function dessine(){
     const {ctx, l, h} = dimensionne(cv, 260);
