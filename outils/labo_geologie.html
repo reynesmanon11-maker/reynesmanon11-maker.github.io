@@ -6,7 +6,8 @@
 <title>Laboratoire virtuel — Géologie au lycée</title>
 <meta name="description" content="Simulations de travaux pratiques de géologie au lycée : tri granulométrique et sédimentation, cristallisation et texture des roches magmatiques, viscosité des magmas et style éruptif, paillasse d'identification des roches, liste de matériel.">
 <meta name="theme-color" content="#a8660f">
-<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=3" sizes="32x32" type="image/png">
 <style>
 /* ===================== police, servie depuis ce site =====================
    Onest etait chargee depuis fonts.googleapis.com : l'adresse IP de chaque
@@ -509,6 +510,10 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 .ro-comp .etiq.g{ left:8px } .ro-comp .etiq.d{ right:8px }
 .ro-planche{ margin:11px 0 0; font-size:12px; color:var(--gris) }
 .ro-planche a{ color:var(--pt); font-weight:600 }
+/* la planche doit se repérer d'un coup d'œil : c'est la ressource que l'élève
+   ouvre à côté de lui pendant qu'il regarde une lame */
+.btn.planche{ background:#fdf3d6; border-color:#e6cf92; color:#6d5312; font-weight:600 }
+.btn.planche:hover{ background:#f8e8bd; border-color:#d9bd6e }
 .cr-rien{ margin:22px 0 0; font-size:12px; color:var(--gris-clair) }
 .ro-credit{ margin:6px 0 0; font-size:10.5px; color:var(--gris-clair) }
 .ro-credit a{ color:var(--gris-clair); text-decoration:underline }
@@ -951,6 +956,7 @@ header.top .marque b{ letter-spacing:-.015em }
     <span class="ref">TP « cristallisation » · texture des roches magmatiques</span>
     <button class="btn mini no-print" data-va="preparer" data-fiche="cristallisation"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+    <a class="btn mini planche no-print" href="../ressources/geologie/planche-mineraux-roches-volcaniques.pdf" target="_blank" rel="noopener" style="margin-left:8px; vertical-align:2px" title="Olivine, pyroxènes, amphiboles, micas, feldspaths, quartz — en LPNA puis en LPA">Planche des minéraux (PDF) ↗</a>
   </div>
   <div class="avert"><span class="marque">i</span><div>
     <p><b>Valeurs simulées, non mesurées.</b> La taille des cristaux suit d = 0,37 × R<sup>−0,28</sup>
@@ -1128,12 +1134,13 @@ header.top .marque b{ letter-spacing:-.015em }
 <section class="module" id="mod-roches" role="tabpanel">
   <div class="intro-mod" data-wm="HCl">
     <h2>Paillasse — identifier une roche</h2>
-    <p>Seize échantillons et six tests. On choisit une roche, on lui fait subir les tests que l'on
+    <p>Vingt-trois échantillons et six tests. On choisit une roche, on lui fait subir les tests que l'on
        veut, et on conclut. En mode « roche mystère », l'échantillon est caché : il faut le
        reconnaître avec le moins de tests possible, comme devant une caisse d'échantillons.</p>
     <span class="ref">TP « reconnaissance et classification des roches » · « identification des minéraux »</span>
     <button class="btn mini no-print" data-va="preparer" data-fiche="roches"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
+    <a class="btn mini planche no-print" href="../ressources/geologie/planche-mineraux-roches-volcaniques.pdf" target="_blank" rel="noopener" style="margin-left:8px; vertical-align:2px" title="Olivine, pyroxènes, amphiboles, micas, feldspaths, quartz — en LPNA puis en LPA">Planche des minéraux (PDF) ↗</a>
   </div>
   <div class="grille deux">
     <div>
