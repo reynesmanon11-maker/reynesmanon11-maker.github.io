@@ -120,6 +120,13 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
 - **Les deux labos portent une pancarte « Work in progress =) »** dans la barre
   du haut : ils s'étoffent encore, et qui arrive dessus doit le savoir. La
   retirer quand Manon le dira, pas avant.
+- **Les photographies de roches viennent de la lithothèque de l'ENS de Lyon**,
+  dont les conditions autorisent « l'utilisation de ressources […] par des
+  enseignants dans leur cadre professionnel » en échange de la citation de
+  l'origine et de l'auteur. D'où la table `CREDITS`, par roche et par série :
+  le photographe change d'un cliché à l'autre, et l'adresse de la fiche
+  d'origine est affichée sous la photo. **Ne jamais publier une photographie de
+  roche sans son entrée dans `CREDITS`.**
 - Interface et commentaires de code en français.
 - Les données que saisit un élève (carnet de manip, panier de matériel,
   placard) restent dans son navigateur via `localStorage` : rien n'est envoyé

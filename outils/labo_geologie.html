@@ -510,6 +510,8 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 .ro-planche{ margin:11px 0 0; font-size:12px; color:var(--gris) }
 .ro-planche a{ color:var(--pt); font-weight:600 }
 .ro-credit{ margin:6px 0 0; font-size:10.5px; color:var(--gris-clair) }
+.ro-credit a{ color:var(--gris-clair); text-decoration:underline }
+.ro-credit a:hover{ color:var(--pt) }
 .ro-compo{ margin:0; padding-left:18px; font-size:13px; line-height:1.55 }
 .ro-compo li{ margin:0 0 5px }
 .ro-compo li b{ color:var(--pt) }
@@ -2463,6 +2465,27 @@ const STYLES = [
    dessin. tex : ce que montre la loupe · hcl : effervescence à l'acide ·
    dur : comportement à la rayure · rho : masse volumique (g/cm³).
    ========================================================================== */
+/* Le photographe change d'un cliché à l'autre, et la lithothèque de l'ENS de Lyon
+   autorise l'usage pédagogique à condition de citer l'origine et l'auteur : on
+   garde donc, par roche et par série, le nom et l'adresse de la fiche d'origine. */
+const CREDITS = {
+  granite:    {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  gabbro:     {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  basalte:    {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  rhyolite:   {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  andesite:   {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  conglomerat:{macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
+  obsidienne: {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL50", t:"Obsidienne"}},
+  ponce:      {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MC.DO27", t:"Ponce (Ponce fibreuse rhyolitique)"}},
+  calcaire:   {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C21.12", t:"Calcaire à crinoïdes"}, micro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C22.18", t:"Calcaire gréseux à Discocyclina et Nummulites"}},
+  craie:      {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C28.9", t:"Craie et bélemnite (Craie contenant un rostre de bélemnite)"}},
+  gres:       {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=AP118", t:"Grès turbiditique (Grès et brèches du Champsaur)"}},
+  marne:      {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C18.6", t:"Marne à gastéropodes"}},
+  sel:        {macro:{a:"Vincent Conion", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=E3.11", t:"Halite (Sel gemme)"}},
+  gneiss:     {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A65.7", t:"Gneiss à sillimanite"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A73.12", t:"Granulite à sillimanite (Paragneiss de la série de Valpelline)"}},
+  micaschiste: {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MA.VD7", t:"Micaschiste à grenat et chloritoïde (Micaschiste de Bois-de-Céné)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MA.VD6", t:"Micaschiste à grenat et chloritoïde (Micaschiste de Bois-de-Céné)"}},
+  marbre:     {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A63.6", t:"Marbre (Marbre de Carrare)"}},
+};
 const ROCHES = [
 {id:'granite', n:"Granite", fam:'magmatique', cat:"Magmatique plutonique", asp:'grenue',
  tex:"Grenue : tous les cristaux sont visibles à l'œil nu, jointifs, sans orientation.",
@@ -2691,7 +2714,18 @@ const TESTS = [
             ' target="_blank" rel="noopener">Planche d\'identification des minéraux (PDF) ↗</a> — ' +
             'ce que donne chaque minéral sans analyseur, puis entre nicols croisés.</p>'
           : '') +
-        '<p class="ro-credit">Photographies : Damien Mollex</p>';
+        (function(){
+          /* Citer l'auteur du cliché affiché et la fiche d'où il vient : c'est la
+             contrepartie de l'autorisation d'usage pédagogique de la lithothèque. */
+          const c = (CREDITS[r.id] || {})[vue];
+          if(!c) return '';
+          const source = c.u
+            ? '<a href="' + c.u + '" target="_blank" rel="noopener">Lithothèque ENS de Lyon' +
+              (c.t ? ' — ' + ech(c.t) : '') + ' ↗</a>'
+            : '<a href="https://lithotheque.ens-lyon.fr/" target="_blank" rel="noopener">' +
+              'Lithothèque ENS de Lyon ↗</a>';
+          return '<p class="ro-credit">Photographie : ' + ech(c.a) + ' · ' + source + '</p>';
+        })();
       if(deux) segment($('#ro-vue'), d => { vuePhoto = d.vue; rendPhotos(); });
       if(comp) activeComparateur();
     });
