@@ -107,10 +107,16 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   `gestion.html` dépose les photos selon la vue choisie : ne pas changer la
   convention sans mettre à jour ces deux endroits. Dès qu'une série compte deux
   photos, un bouton « Comparer les deux » superpose les deux premières sous un
-  curseur glissant. La photo 1 occupe la gauche, la 2 la droite. Dans la série
-  au microscope, elles sont étiquetées **LPNA** puis **LPA** : c'est une
-  convention d'ordre de dépôt, rappelée dans `gestion.html` et dans le
-  LISEZ-MOI, pas une reconnaissance automatique.
+  curseur glissant. **Au microscope, dès qu'il y a deux photographies, le
+  comparateur s'affiche d'emblée** — pas de bouton à trouver : la comparaison
+  est l'exercice. Elles sont étiquetées **LPNA** à gauche et **LPA** à droite,
+  et chaque étiquette agrandit sa vue au clic. C'est une convention d'ordre de
+  dépôt, rappelée dans `gestion.html` et dans le LISEZ-MOI, pas une
+  reconnaissance automatique. À l'œil nu, pas de comparateur ni d'étiquette.
+- **Chaque roche porte sa composition minéralogique** (champ `mineraux`), listée
+  sous les résultats **en mode exploration seulement** : en roche mystère, elle
+  donnerait la réponse avant le premier test. Le champ `min`, plus court, reste
+  celui que lit le test « Minéraux identifiables » à la loupe.
 - **Les deux labos portent une pancarte « Work in progress =) »** dans la barre
   du haut : ils s'étoffent encore, et qui arrive dessus doit le savoir. La
   retirer quand Manon le dira, pas avant.

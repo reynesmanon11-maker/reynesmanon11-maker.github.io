@@ -501,11 +501,17 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 .ro-comp .poignee:focus-visible{ outline:none }
 .ro-comp .poignee:focus-visible::after{ box-shadow:0 0 0 3px var(--pt), 0 2px 10px rgba(23,20,15,.4) }
 /* en haut : les échelles micrométriques sont presque toujours en bas de la photo */
-.ro-comp .etiq{ position:absolute; top:8px; font-size:11px; font-weight:700; line-height:1;
-  color:#fff; background:rgba(23,20,15,.62); border-radius:6px; padding:4px 8px; pointer-events:none }
+.ro-comp .etiq{ position:absolute; top:8px; width:auto; display:inline-block;
+  font-size:11px; font-weight:700; line-height:1;
+  color:#fff; background:rgba(23,20,15,.7); border:0; border-radius:6px; padding:5px 9px;
+  cursor:zoom-in; font-family:inherit; letter-spacing:.04em }
+.ro-comp .etiq:hover{ background:rgba(23,20,15,.9) }
 .ro-comp .etiq.g{ left:8px } .ro-comp .etiq.d{ right:8px }
+.ro-compo{ margin:0; padding-left:18px; font-size:13px; line-height:1.55 }
+.ro-compo li{ margin:0 0 5px }
+.ro-compo li b{ color:var(--pt) }
 .ro-principale{ margin:0 }
-.ro-principale button{ display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in }
+.ro-principale > button{ display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in }
 .ro-principale img{ width:100%; display:block; border-radius:11px; border:1px solid var(--ptbd) }
 .ro-principale figcaption{ font-size:11.5px; color:var(--gris-clair); margin-top:6px }
 .ro-galerie{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px }
@@ -1121,11 +1127,6 @@ header.top .marque b{ letter-spacing:-.015em }
     <button class="btn mini no-print" data-va="preparer" data-fiche="roches"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
   </div>
-  <div class="avert"><span class="marque">i</span><div>
-    <p><b>Ici, rien n'est simulé.</b> Une vraie caisse de roches ne se remplace pas pour autant :
-       <b>le but est de préparer la séance ou de la réviser</b>, pas de s'en passer.</p>
-  </div></div>
-
   <div class="grille deux">
     <div>
       <div class="carte">
@@ -2463,81 +2464,97 @@ const ROCHES = [
 {id:'granite', n:"Granite", fam:'magmatique', cat:"Magmatique plutonique", asp:'grenue',
  tex:"Grenue : tous les cristaux sont visibles à l'œil nu, jointifs, sans orientation.",
  hcl:'nulle', dur:'verre', rho:2.7, min:["quartz gris vitreux","feldspaths blancs ou roses","micas noirs (biotite)"],
+ mineraux:["Quartz — gris vitreux, sans forme propre, il remplit les creux", "Orthose — feldspath alcalin, blanc à rose, sections rectangulaires", "Plagioclases — feldspaths blancs, finement striés", "Biotite — mica noir, en paillettes brillantes qui se détachent à l'ongle", "Muscovite — mica blanc argenté, pas toujours présent", "Amphibole (hornblende) — en baguettes noires, dans certains granites"],
  div:"Cassure irrégulière. Aucune orientation des minéraux : c'est ce qui la distingue d'un gneiss.",
  coul:['#e8cdc2','#e6e2da','#f4f1ea','#3a3129']},
 {id:'gabbro', n:"Gabbro", fam:'magmatique', cat:"Magmatique plutonique", asp:'grenue',
  tex:"Grenue, sombre : cristaux visibles, dominés par des minéraux verts et noirs.",
  hcl:'nulle', dur:'verre', rho:2.95, min:["plagioclase blanc","pyroxène vert sombre","parfois olivine vert olive"],
+ mineraux:["Plagioclases — feldspaths blancs à gris, souvent dominants", "Pyroxène (augite) — vert sombre à noir, sections trapues", "Olivine — vert olive, en grains arrondis, pas toujours présente", "Amphibole — noire, quand le magma contenait de l'eau"],
  div:"Nettement plus lourd qu'un granite de même taille : c'est la roche des planchers océaniques.",
  coul:['#eae7de','#56644a','#89a266','#2b2723']},
 {id:'basalte', n:"Basalte", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
  tex:"Microlithique : pâte sombre où la loupe ne montre que de fines baguettes claires, parfois quelques cristaux plus gros.",
  hcl:'nulle', dur:'verre', rho:2.9, min:["microlites de plagioclase","phénocristaux d'olivine ou de pyroxène"],
+ mineraux:["Plagioclases — en microlites, fines baguettes claires dans la pâte", "Pyroxène (augite) — en petits cristaux noirs", "Olivine — vert olive, en phénocristaux visibles à l'œil nu", "Verre — le reste de la pâte, trop vite refroidi pour cristalliser"],
  div:"Souvent vacuolaire en surface de coulée. Se débite parfois en prismes (orgues).",
  coul:['#3b3a33','#eae7de','#89a266']},
 {id:'rhyolite', n:"Rhyolite", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
  tex:"Microlithique claire : pâte beige à rosée, quelques phénocristaux de quartz vitreux.",
  hcl:'nulle', dur:'verre', rho:2.5, min:["quartz en phénocristaux","feldspath alcalin","pâte vitreuse"],
+ mineraux:["Quartz — en phénocristaux vitreux, à cassure conchoïdale", "Feldspath alcalin (sanidine) — blanc, en tablettes", "Biotite — mica noir, en paillettes éparses", "Verre — pâte claire qui enrobe le tout"],
  div:"Même chimie qu'un granite, mais refroidie en surface. Souvent litée par l'écoulement.",
  coul:['#6d6558','#e8cdc2','#e6e2da']},
 {id:'andesite', n:"Andésite", fam:'magmatique', cat:"Magmatique volcanique", asp:'microlithique',
  tex:"Microlithique grise : pâte intermédiaire, phénocristaux blancs de plagioclase bien visibles.",
  hcl:'nulle', dur:'verre', rho:2.7, min:["plagioclase","amphibole en baguettes noires"],
+ mineraux:["Plagioclases — phénocristaux blancs bien visibles, striés", "Amphibole (hornblende) — baguettes noires allongées", "Pyroxène — petits cristaux sombres", "Pâte microlithique — microlites et verre"],
  div:"La roche des volcans de subduction — Andes, Japon, Antilles.",
  coul:['#5b564a','#efece4','#4b5a45']},
 {id:'obsidienne', n:"Obsidienne", fam:'magmatique', cat:"Magmatique volcanique (verre)", asp:'vitreuse',
  tex:"Aucune structure : un verre noir brillant, homogène.",
  hcl:'nulle', dur:'verre', rho:2.4, min:["aucun cristal : verre volcanique"],
+ mineraux:["Aucun minéral : la roche est entièrement vitreuse", "La trempe a été trop brutale pour qu'un cristal ait le temps de se former"],
  div:"Cassure conchoïdale, en écailles à bords tranchants — c'est pourquoi elle a servi à faire des outils.",
  coul:['#1d1b19','#2e2a26']},
 {id:'ponce', n:"Ponce", fam:'magmatique', cat:"Magmatique volcanique (verre)", asp:'vacuolaire',
  tex:"Mousse de verre : criblée de vacuoles, claire, très légère.",
  hcl:'nulle', dur:'acier', rho:0.6, min:["verre vésiculé"],
+ mineraux:["Verre vésiculé — la roche n'est qu'une mousse de verre", "Quelques microlites, rares et minuscules"],
  div:"Flotte sur l'eau : sa masse volumique apparente est inférieure à 1. C'est le magma figé sur ses bulles.",
  coul:['#ded7c8','#f2ece0']},
 {id:'calcaire', n:"Calcaire", fam:'sedimentaire', cat:"Sédimentaire biochimique", asp:'cristalline',
  tex:"Grain fin à cristallin, souvent des débris de coquilles visibles à la loupe.",
  hcl:'vive', dur:'acier', rho:2.7, min:["calcite","fossiles ou débris coquilliers"],
+ mineraux:["Calcite — carbonate de calcium, elle fait tout ou presque", "Débris de coquilles et de squelettes, souvent reconnaissables", "Argiles et grains de quartz, en quantité variable"],
  div:"Rayé par une pointe d'acier, il raye l'ongle. Effervescence vive et durable à froid.",
  coul:['#e7ddc6','#d9cdb2','#f0e9d8']},
 {id:'craie', n:"Craie", fam:'sedimentaire', cat:"Sédimentaire biochimique", asp:'cristalline',
  tex:"Pas de grain visible : une poudre blanche cohérente, très poreuse.",
  hcl:'vive', dur:'ongle', rho:1.9, min:["calcite (coccolithes)"],
+ mineraux:["Calcite — sous forme de coccolithes, des plaques microscopiques d'algues", "Très peu d'autre chose : c'est un calcaire presque pur"],
  div:"Tache les doigts, se raye à l'ongle, absorbe l'eau. Calcaire, mais tendre et léger.",
  coul:['#f6f3ea','#eae5d8']},
 {id:'gres', n:"Grès", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
  tex:"Grains de sable visibles à la loupe, arrondis, soudés par un ciment.",
  hcl:'nulle', dur:'verre', rho:2.4, min:["quartz en grains","ciment siliceux"],
+ mineraux:["Quartz — les grains, arrondis et jointifs, qui font la roche", "Ciment siliceux ou calcitique, qui les soude", "Feldspaths et micas, en petite quantité, hérités de la roche d'origine"],
  div:"Rugueux au toucher, comme du papier de verre. Un grès à ciment calcaire fait effervescence : le ciment, pas les grains.",
  coul:['#dcc396','#c9ab77','#e6d3ad']},
 {id:'conglomerat', n:"Conglomérat (poudingue)", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
  tex:"Galets arrondis de plusieurs millimètres à centimètres, pris dans une matrice plus fine.",
  hcl:'faible', dur:'verre', rho:2.5, min:["galets de roches variées","matrice sableuse"],
+ mineraux:["Les galets — chacun garde les minéraux de la roche dont il vient", "Le ciment — sable et carbonate, qui les prend en masse"],
  div:"Les galets arrondis disent un transport long par l'eau. S'ils sont anguleux, on parle de brèche.",
  coul:['#c2a884','#9e8565','#ddc9a6','#7b6f64']},
 {id:'marne', n:"Marne", fam:'sedimentaire', cat:"Sédimentaire détritique", asp:'detritique',
  tex:"Aucun grain visible : une roche terne, grise à beige, à cassure mate.",
  hcl:'faible', dur:'ongle', rho:2.3, min:["argiles","calcite (25 à 65 %)"],
+ mineraux:["Calcite — la part carbonatée, celle qui fait l'effervescence", "Argiles — la part fine, celle qui rend la roche tendre et plastique"],
  div:"Odeur d'argile mouillée quand on souffle dessus. Effervescence faible : elle contient du calcaire, mais mélangé d'argile.",
  coul:['#b7ae9a','#a59c88']},
 {id:'sel', n:"Sel gemme (halite)", fam:'sedimentaire', cat:"Sédimentaire évaporitique", asp:'cristalline',
  tex:"Cristaux cubiques translucides, parfois roses ou gris.",
  hcl:'nulle', dur:'ongle', rho:2.2, min:["halite (NaCl)"],
+ mineraux:["Halite — chlorure de sodium, en cubes transparents à blancs", "Gypse et anhydrite, parfois associés dans les mêmes dépôts"],
  div:"Soluble dans l'eau, et de saveur salée — le seul test gustatif encore utilisé en géologie. Né de l'évaporation d'une mer.",
  coul:['#f0ece2','#e3d9c9','#efd9d5']},
 {id:'gneiss', n:"Gneiss", fam:'metamorphique', cat:"Métamorphique", asp:'foliee',
  tex:"Lits clairs et lits sombres alternés : les minéraux sont orientés en bandes.",
  hcl:'nulle', dur:'verre', rho:2.7, min:["quartz","feldspaths","micas alignés"],
+ mineraux:["Quartz et feldspaths — rassemblés dans les lits clairs", "Biotite — mica noir, rassemblé dans les lits sombres : c'est lui qui dessine la foliation", "Grenat — en grains rouges arrondis, dans les gneiss les plus transformés", "Sillimanite — en fines aiguilles, signe des hautes températures"],
  div:"Mêmes minéraux qu'un granite, mais organisés en lits : c'est cette orientation qui signe le métamorphisme.",
  coul:['#e6e2da','#e8cdc2','#3a3129','#f4f1ea']},
 {id:'micaschiste', n:"Micaschiste", fam:'metamorphique', cat:"Métamorphique", asp:'foliee',
  tex:"Feuillets brillants qui se séparent à la main : les micas sont alignés dans un même plan.",
  hcl:'nulle', dur:'acier', rho:2.8, min:["micas abondants","quartz","parfois grenat rouge"],
+ mineraux:["Micas (biotite et muscovite) — abondants et tous orientés, ils font briller la cassure", "Quartz — en grains ou en lits, entre les feuillets de mica", "Grenat — en grains rouges, souvent bien formés", "Staurotide — en cristaux bruns maclés, dans certains micaschistes"],
  div:"Éclat argenté ou doré selon le mica. Se débite en plaques — la schistosité.",
  coul:['#7c7263','#b9b0a0','#5b5348','#8e2f2a']},
 {id:'marbre', n:"Marbre", fam:'metamorphique', cat:"Métamorphique", asp:'grenue',
  tex:"Grains de calcite jointifs, d'aspect sucré (saccharoïde), brillants à la cassure.",
  hcl:'vive', dur:'acier', rho:2.7, min:["calcite recristallisée"],
+ mineraux:["Calcite — recristallisée en grains jointifs, qui scintillent à la lumière", "Dolomite, dans les marbres issus de calcaires magnésiens", "Micas et graphite, qui donnent les veines et les teintes"],
  div:"Un calcaire recuit : même chimie, mais les fossiles ont disparu et les cristaux ont grossi.",
  coul:['#f2efe6','#e4ded0','#d8d0bd']}
 ];
@@ -2575,7 +2592,6 @@ const TESTS = [
      sans programme sur le serveur, de savoir qu'un fichier n'existe pas. */
   const CACHE_PHOTOS = {};
   let vuePhoto = 'macro';               /* le choix suit l'élève d'une roche à l'autre */
-  let compare = false;                  /* vue comparée : deux photos sous un curseur */
   /* Une série s'arrête au premier numéro manquant : granite-1, granite-2… pour
      l'œil nu, granite-micro-1, granite-micro-2… pour le microscope. */
   function serie(id, suffixe, fini){
@@ -2625,21 +2641,18 @@ const TESTS = [
       const nom = vue === 'micro' ? 'au microscope' : "à l'œil nu";
       /* Comparer n'a de sens qu'à partir de deux photographies de la même série :
          deux lames minces du même champ, l'une sans analyseur et l'autre avec. */
-      const comparable = photos.length > 1, comp = comparable && compare;
       /* Au microscope, les deux premières photographies d'une roche sont, par
          convention de dépôt, le même champ sans analyseur puis entre nicols
-         croisés : on peut donc les nommer. À l'œil nu, rien à dire de tel. */
-      const etiq = vue === 'micro' ? ['LPNA', 'LPA'] : ['1', '2'];
+         croisés. Dès qu'elles sont là, on les montre d'emblée sous le curseur :
+         c'est la comparaison elle-même qui est l'exercice, pas un bouton à
+         trouver. À l'œil nu, il n'y a rien de tel à comparer. */
+      const comp = vue === 'micro' && photos.length > 1;
+      const etiq = ['LPNA', 'LPA'];
       bac.innerHTML =
-        '<div class="ro-barre">' +
-        (deux ? '<div class="segment" id="ro-vue">' +
+        (deux ? '<div class="ro-barre"><div class="segment" id="ro-vue">' +
           '<button data-vue="macro" aria-pressed="' + (vue === 'macro') + '">À l\'œil nu</button>' +
           '<button data-vue="micro" aria-pressed="' + (vue === 'micro') + '">Au microscope</button>' +
-          '</div>' : '<span></span>') +
-        (comparable ? '<button class="btn mini" id="ro-comparer" aria-pressed="' + comp + '"' +
-          (vue === 'micro' ? ' title="Le même champ sans analyseur, puis entre nicols croisés"' : '') +
-          '>' + (comp ? 'Une seule photo' : 'Comparer les deux') + '</button>' : '') +
-        '</div>' +
+          '</div></div>' : '') +
         (comp
           ? '<figure class="ro-principale"><div class="ro-comp" style="--x:50%">' +
             /* la photo du dessous occupe la droite, celle du dessus la gauche :
@@ -2647,28 +2660,30 @@ const TESTS = [
             '<img class="fond" src="' + photos[1] + '" alt="' + ech(r.n) + ', ' + nom + ', seconde vue">' +
             '<div class="dessus"><img src="' + photos[0] + '" alt="' + ech(r.n) + ', ' + nom +
             ', première vue"></div>' +
-            '<span class="etiq g">' + etiq[0] + '</span>' +
-            '<span class="etiq d">' + etiq[1] + '</span>' +
+            '<button class="etiq g" data-photo="' + photos[0] + '" title="Agrandir la vue ' +
+            etiq[0] + '">' + etiq[0] + '</button>' +
+            '<button class="etiq d" data-photo="' + photos[1] + '" title="Agrandir la vue ' +
+            etiq[1] + '">' + etiq[1] + '</button>' +
             '<div class="poignee" role="slider" tabindex="0" aria-label="Curseur de comparaison" ' +
             'aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>' +
             '</div><figcaption>' + ech(r.n) + ' — ' + nom +
-            ' · glissez le curseur pour passer d\'une photographie à l\'autre</figcaption></figure>'
+            ' · glissez le curseur pour passer d\'une vue à l\'autre, ou cliquez une étiquette ' +
+            'pour l\'agrandir</figcaption></figure>'
           : '<figure class="ro-principale"><button data-photo="' + photos[0] + '" title="Agrandir">' +
             '<img src="' + photos[0] + '" alt="' + ech(r.n) + ', ' + nom + '"></button>' +
             '<figcaption>' + ech(r.n) + ' — ' + nom +
-            (vue === 'micro' && comparable ? ', ' + etiq[0] : '') +
+
             (photos.length > 1 ? ' · ' + photos.length + ' photographies' : '') + '</figcaption></figure>') +
-        (photos.length > 1 && !comp
-          ? '<div class="ro-galerie" style="margin-top:9px">' + photos.slice(1).map((src,i) => {
-              const t = vue === 'micro' && i === 0 ? etiq[1] : 'vue ' + (i+2);
+        /* sous le comparateur, il ne reste que les photographies au-delà des deux */
+        (photos.length > (comp ? 2 : 1)
+          ? '<div class="ro-galerie" style="margin-top:9px">' + photos.slice(comp ? 2 : 1).map((src,i) => {
+              const t = 'vue ' + (i + (comp ? 3 : 2));
               return '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir — ' + t + '">' +
                 '<img src="' + src + '" alt="' + ech(r.n) + ', ' + nom + ', ' + t + '" loading="lazy">' +
                 '</button>';
             }).join('') + '</div>'
           : '');
       if(deux) segment($('#ro-vue'), d => { vuePhoto = d.vue; rendPhotos(); });
-      const bc = $('#ro-comparer');
-      if(bc) bc.addEventListener('click', () => { compare = !compare; rendPhotos(); });
       if(comp) activeComparateur();
     });
   }
@@ -2689,6 +2704,7 @@ const TESTS = [
     };
     let tire = false;
     z.addEventListener('pointerdown', e => {
+      if(e.target.closest('.etiq')) return;      /* clic sur une étiquette : agrandissement */
       tire = true; z.setPointerCapture(e.pointerId); depuis(e); e.preventDefault();
     });
     z.addEventListener('pointermove', e => { if(tire) depuis(e); });
@@ -2860,12 +2876,22 @@ const TESTS = [
   function rendResultats(){
     const r = courante();
     const l = TESTS.filter(t => faits.has(t.id));
-    $('#ro-resultats').innerHTML = l.length
+    /* La composition minéralogique n'a sa place qu'en exploration : en roche
+       mystère, elle donnerait la réponse avant le premier test. */
+    const compo = mode === 'libre' && r.mineraux
+      ? '<div class="partie-titre" style="margin:20px 0 8px">Les minéraux de cette roche</div>' +
+        '<ul class="ro-compo">' + r.mineraux.map(m => {
+          const c = m.split(' — ');
+          return '<li><b>' + ech(c[0]) + '</b>' +
+                 (c.length > 1 ? ' — ' + ech(c.slice(1).join(' — ')) : '') + '</li>';
+        }).join('') + '</ul>'
+      : '';
+    $('#ro-resultats').innerHTML = (l.length
       ? l.map(t => '<div style="border-left:3px solid var(--pt); padding:4px 0 4px 12px; margin-bottom:10px">' +
           '<div style="font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--gris-clair); font-weight:600">' +
           t.n + '</div><div style="font-size:13px">' + ech(t.lit(r)) + '</div></div>').join('') +
         (mode === 'libre' ? '<div class="note"><b>' + r.n + '</b> — ' + r.cat + '.</div>' : '')
-      : '<p style="font-size:13px; color:var(--gris)">Aucun test lancé pour l\'instant.</p>';
+      : '<p style="font-size:13px; color:var(--gris)">Aucun test lancé pour l\'instant.</p>') + compo;
   }
   $('#ro-tests').addEventListener('click', e => {
     const b = e.target.closest('[data-test]'); if(!b) return;
