@@ -25,6 +25,18 @@ pas et la photo disponible est montrée directement.
 La première photo de chaque série s'affiche en grand ; les suivantes deviennent
 des vignettes sous elle. Un clic agrandit n'importe laquelle en plein écran.
 
+## Le comparateur
+
+Dès qu'une série compte **deux photos ou plus**, un bouton « Comparer les deux »
+apparaît : les deux premières se superposent sous un curseur que l'on glisse à
+la souris, au doigt ou aux flèches du clavier. La photo **1** occupe la gauche,
+la **2** la droite.
+
+C'est fait pour une paire au microscope : **le même champ** sans analyseur puis
+entre nicols croisés. Déposez donc ces deux-là en premier, dans cet ordre — le
+comparateur ne dit rien d'intéressant si les deux vues ne montrent pas la même
+zone au même grossissement.
+
 ## Les seize identifiants
 
 `granite` · `gabbro` · `basalte` · `rhyolite` · `andesite` · `obsidienne` ·

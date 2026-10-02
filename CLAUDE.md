@@ -105,7 +105,10 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   Quand les deux séries existent, une bascule « À l'œil nu / Au microscope »
   apparaît. Le nommage est documenté dans `images/roches/LISEZ-MOI.md`, et
   `gestion.html` dépose les photos selon la vue choisie : ne pas changer la
-  convention sans mettre à jour ces deux endroits.
+  convention sans mettre à jour ces deux endroits. Dès qu'une série compte deux
+  photos, un bouton « Comparer les deux » superpose les deux premières sous un
+  curseur glissant — pensé pour une lame mince vue sans analyseur puis entre
+  nicols croisés. La photo 1 occupe la gauche, la 2 la droite.
 - **Les deux labos portent une pancarte « Work in progress =) »** dans la barre
   du haut : ils s'étoffent encore, et qui arrive dessus doit le savoir. La
   retirer quand Manon le dira, pas avant.
