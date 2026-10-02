@@ -107,8 +107,10 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   `gestion.html` dépose les photos selon la vue choisie : ne pas changer la
   convention sans mettre à jour ces deux endroits. Dès qu'une série compte deux
   photos, un bouton « Comparer les deux » superpose les deux premières sous un
-  curseur glissant — pensé pour une lame mince vue sans analyseur puis entre
-  nicols croisés. La photo 1 occupe la gauche, la 2 la droite.
+  curseur glissant. La photo 1 occupe la gauche, la 2 la droite. Dans la série
+  au microscope, elles sont étiquetées **LPNA** puis **LPA** : c'est une
+  convention d'ordre de dépôt, rappelée dans `gestion.html` et dans le
+  LISEZ-MOI, pas une reconnaissance automatique.
 - **Les deux labos portent une pancarte « Work in progress =) »** dans la barre
   du haut : ils s'étoffent encore, et qui arrive dessus doit le savoir. La
   retirer quand Manon le dira, pas avant.

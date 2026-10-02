@@ -32,10 +32,18 @@ apparaît : les deux premières se superposent sous un curseur que l'on glisse �
 la souris, au doigt ou aux flèches du clavier. La photo **1** occupe la gauche,
 la **2** la droite.
 
-C'est fait pour une paire au microscope : **le même champ** sans analyseur puis
-entre nicols croisés. Déposez donc ces deux-là en premier, dans cet ordre — le
-comparateur ne dit rien d'intéressant si les deux vues ne montrent pas la même
-zone au même grossissement.
+Dans la série **au microscope**, les deux premières photos sont étiquetées
+**LPNA** et **LPA** : le laboratoire part du principe que vous avez déposé
+d'abord la vue sans analyseur, puis celle du **même champ** entre nicols
+croisés. C'est une convention d'ordre, pas une reconnaissance automatique — si
+vous déposez dans l'autre sens, les étiquettes seront fausses.
+
+Le comparateur ne dit rien d'intéressant si les deux vues ne montrent pas la
+même zone au même grossissement : c'est tout l'intérêt de voir le même cristal
+passer du gris au multicolore.
+
+Dans la série **à l'œil nu**, les étiquettes restent « 1 » et « 2 » : il n'y a
+rien de particulier à y nommer.
 
 ## Les seize identifiants
 

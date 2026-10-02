@@ -500,7 +500,8 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
   letter-spacing:1px; line-height:1; box-shadow:0 2px 10px rgba(23,20,15,.4) }
 .ro-comp .poignee:focus-visible{ outline:none }
 .ro-comp .poignee:focus-visible::after{ box-shadow:0 0 0 3px var(--pt), 0 2px 10px rgba(23,20,15,.4) }
-.ro-comp .etiq{ position:absolute; bottom:8px; font-size:11px; font-weight:700; line-height:1;
+/* en haut : les échelles micrométriques sont presque toujours en bas de la photo */
+.ro-comp .etiq{ position:absolute; top:8px; font-size:11px; font-weight:700; line-height:1;
   color:#fff; background:rgba(23,20,15,.62); border-radius:6px; padding:4px 8px; pointer-events:none }
 .ro-comp .etiq.g{ left:8px } .ro-comp .etiq.d{ right:8px }
 .ro-principale{ margin:0 }
@@ -2625,14 +2626,19 @@ const TESTS = [
       /* Comparer n'a de sens qu'à partir de deux photographies de la même série :
          deux lames minces du même champ, l'une sans analyseur et l'autre avec. */
       const comparable = photos.length > 1, comp = comparable && compare;
+      /* Au microscope, les deux premières photographies d'une roche sont, par
+         convention de dépôt, le même champ sans analyseur puis entre nicols
+         croisés : on peut donc les nommer. À l'œil nu, rien à dire de tel. */
+      const etiq = vue === 'micro' ? ['LPNA', 'LPA'] : ['1', '2'];
       bac.innerHTML =
         '<div class="ro-barre">' +
         (deux ? '<div class="segment" id="ro-vue">' +
           '<button data-vue="macro" aria-pressed="' + (vue === 'macro') + '">À l\'œil nu</button>' +
           '<button data-vue="micro" aria-pressed="' + (vue === 'micro') + '">Au microscope</button>' +
           '</div>' : '<span></span>') +
-        (comparable ? '<button class="btn mini" id="ro-comparer" aria-pressed="' + comp + '">' +
-          (comp ? 'Une seule photo' : 'Comparer les deux') + '</button>' : '') +
+        (comparable ? '<button class="btn mini" id="ro-comparer" aria-pressed="' + comp + '"' +
+          (vue === 'micro' ? ' title="Le même champ sans analyseur, puis entre nicols croisés"' : '') +
+          '>' + (comp ? 'Une seule photo' : 'Comparer les deux') + '</button>' : '') +
         '</div>' +
         (comp
           ? '<figure class="ro-principale"><div class="ro-comp" style="--x:50%">' +
@@ -2641,7 +2647,8 @@ const TESTS = [
             '<img class="fond" src="' + photos[1] + '" alt="' + ech(r.n) + ', ' + nom + ', seconde vue">' +
             '<div class="dessus"><img src="' + photos[0] + '" alt="' + ech(r.n) + ', ' + nom +
             ', première vue"></div>' +
-            '<span class="etiq g">1</span><span class="etiq d">2</span>' +
+            '<span class="etiq g">' + etiq[0] + '</span>' +
+            '<span class="etiq d">' + etiq[1] + '</span>' +
             '<div class="poignee" role="slider" tabindex="0" aria-label="Curseur de comparaison" ' +
             'aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"></div>' +
             '</div><figcaption>' + ech(r.n) + ' — ' + nom +
@@ -2649,12 +2656,15 @@ const TESTS = [
           : '<figure class="ro-principale"><button data-photo="' + photos[0] + '" title="Agrandir">' +
             '<img src="' + photos[0] + '" alt="' + ech(r.n) + ', ' + nom + '"></button>' +
             '<figcaption>' + ech(r.n) + ' — ' + nom +
+            (vue === 'micro' && comparable ? ', ' + etiq[0] : '') +
             (photos.length > 1 ? ' · ' + photos.length + ' photographies' : '') + '</figcaption></figure>') +
         (photos.length > 1 && !comp
-          ? '<div class="ro-galerie" style="margin-top:9px">' + photos.slice(1).map((src,i) =>
-              '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir">' +
-              '<img src="' + src + '" alt="' + ech(r.n) + ', ' + nom + ', vue ' + (i+2) + '" loading="lazy">' +
-              '</button>').join('') + '</div>'
+          ? '<div class="ro-galerie" style="margin-top:9px">' + photos.slice(1).map((src,i) => {
+              const t = vue === 'micro' && i === 0 ? etiq[1] : 'vue ' + (i+2);
+              return '<button class="ro-vignette" data-photo="' + src + '" title="Agrandir — ' + t + '">' +
+                '<img src="' + src + '" alt="' + ech(r.n) + ', ' + nom + ', ' + t + '" loading="lazy">' +
+                '</button>';
+            }).join('') + '</div>'
           : '');
       if(deux) segment($('#ro-vue'), d => { vuePhoto = d.vue; rendPhotos(); });
       const bc = $('#ro-comparer');

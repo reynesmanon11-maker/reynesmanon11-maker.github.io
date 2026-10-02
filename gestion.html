@@ -921,7 +921,11 @@ function majPhotosActuelles() {
     zone.innerHTML = `<p class="mini-note">Chaque roche a deux séries, cherchées automatiquement
       par la page : <b>à l'œil nu</b> et <b>au microscope</b>. Choisissez la vue ci-dessus avant de
       déposer — c'est elle qui décide du nom du fichier, et donc de la série. Quand les deux
-      existent, une bascule apparaît dans le labo. Pour retirer une photo, dites-le-moi.</p>`;
+      existent, une bascule apparaît dans le labo. Pour retirer une photo, dites-le-moi.</p>
+      <p class="mini-note"><b>Au microscope, l'ordre compte :</b> déposez d'abord la vue
+      <b>sans analyseur</b> (LPNA), puis celle du <b>même champ entre nicols croisés</b> (LPA).
+      Ce sont ces deux-là que le comparateur à curseur superpose, et c'est dans cet ordre qu'il
+      les étiquette.</p>`;
     return;
   }
   const dej = (photosLabo.rep[labo] || {})[cible] || [];
