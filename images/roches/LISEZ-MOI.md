@@ -27,10 +27,11 @@ des vignettes sous elle. Un clic agrandit n'importe laquelle en plein écran.
 
 ## Le comparateur
 
-Dès qu'une série compte **deux photos ou plus**, un bouton « Comparer les deux »
-apparaît : les deux premières se superposent sous un curseur que l'on glisse à
-la souris, au doigt ou aux flèches du clavier. La photo **1** occupe la gauche,
-la **2** la droite.
+Dès qu'une série **au microscope** compte deux photos ou plus, les deux
+premières se superposent d'emblée sous un curseur que l'on glisse à la souris,
+au doigt ou aux flèches du clavier — pas de bouton à trouver : la comparaison
+est l'exercice. La photo **1** occupe la gauche, la **2** la droite. À l'œil nu,
+un bouton « Comparer les deux » reste nécessaire.
 
 Dans la série **au microscope**, les deux premières photos sont étiquetées
 **LPNA** et **LPA** : le laboratoire part du principe que vous avez déposé
@@ -45,11 +46,21 @@ passer du gris au multicolore.
 Dans la série **à l'œil nu**, les étiquettes restent « 1 » et « 2 » : il n'y a
 rien de particulier à y nommer.
 
-## Les seize identifiants
+## Les identifiants
+
+Les vingt-trois roches de la paillasse d'identification :
 
 `granite` · `gabbro` · `basalte` · `rhyolite` · `andesite` · `obsidienne` ·
-`ponce` · `calcaire` · `craie` · `gres` · `conglomerat` · `marne` · `sel` ·
-`gneiss` · `micaschiste` · `marbre`
+`ponce` · `peridotite` · `diorite` · `calcaire` · `craie` · `gres` ·
+`conglomerat` · `marne` · `sel` · `gneiss` · `micaschiste` · `marbre` ·
+`serpentinite` · `metagabbro` · `schiste-bleu` · `eclogite` · `migmatite`
+
+Cinq autres n'existent que pour le module de **cristallisation**, où ils
+remplissent des cases du tableau à double entrée que la paillasse ne traite
+pas :
+
+`microgranite` · `dolerite` · `tachylite` · `andesite-porphyrique` ·
+`basalte-porphyrique`
 
 Pas d'accent, pas de majuscule, pas d'espace : `andesite` et non `andésite`.
 

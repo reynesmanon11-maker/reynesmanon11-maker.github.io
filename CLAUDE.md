@@ -113,6 +113,16 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   et chaque étiquette agrandit sa vue au clic. C'est une convention d'ordre de
   dépôt, rappelée dans `gestion.html` et dans le LISEZ-MOI, pas une
   reconnaissance automatique. À l'œil nu, pas de comparateur ni d'étiquette.
+- **Le module de cristallisation ne dessine plus de lame.** Chaque case du
+  tableau à double entrée (texture × chimie) renvoie, par `LAMES_CRISTAL`, à une
+  lame mince photographiée, avec son comparateur LPNA/LPA et son crédit. Deux
+  cases restent vides — microdiorite et verre andésitique n'ont pas de lame à la
+  lithothèque — et la page le dit : ne pas y mettre une roche voisine « pour
+  remplir ». Cocher les phénocristaux change la lame pour sa variante
+  porphyrique quand elle existe. Les identifiants `microgranite`, `dolerite`,
+  `tachylite`, `andesite-porphyrique` et `basalte-porphyrique` n'existent que
+  pour ce module : ils ne figurent pas dans `ROCHES`, mais suivent la même
+  convention de nommage et doivent figurer dans `CREDITS`.
 - **Chaque roche porte sa composition minéralogique** (champ `mineraux`), listée
   sous les résultats **en mode exploration seulement** : en roche mystère, elle
   donnerait la réponse avant le premier test. Le champ `min`, plus court, reste

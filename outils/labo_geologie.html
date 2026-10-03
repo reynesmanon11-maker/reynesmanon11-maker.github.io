@@ -952,7 +952,8 @@ header.top .marque b{ letter-spacing:-.015em }
     <h2>Cristallisation — la vitesse de refroidissement fait la texture</h2>
     <p>En classe on le montre au sulfate de cuivre ou à l'alun : une solution refroidie lentement
        donne de gros cristaux, refroidie brutalement de la poudre. Un magma fait exactement
-       pareil. Ici on choisit où il refroidit, et la lame mince se dessine.</p>
+       pareil. Ici on choisit où il refroidit, et la lame mince correspondante
+       s'affiche — une vraie, photographiée au microscope polarisant.</p>
     <span class="ref">TP « cristallisation » · texture des roches magmatiques</span>
     <button class="btn mini no-print" data-va="preparer" data-fiche="cristallisation"
             style="margin-left:8px; vertical-align:2px">Faire cette manip en vrai →</button>
@@ -963,9 +964,11 @@ header.top .marque b{ letter-spacing:-.015em }
        (R = vitesse de refroidissement en °C/h). L'exposant, proche de −1/3, est de l'ordre de
        grandeur admis ; la constante a été ajustée sur deux repères : un pluton granitique
        (cristaux centimétriques) et une coulée basaltique (microlites de quelques centièmes de mm).</p>
-    <p><b>La lame mince du haut est un dessin</b> : la texture est construite par le programme,
-       l'allure et le sens des variations sont fidèles, les détails non. <b>Celle du bas est une
-       photographie</b> de la roche réelle, quand elle existe au catalogue : c'est elle qui fait foi.</p>
+    <p><b>Les lames minces sont des photographies</b>, prises à la lithothèque de l'ENS de
+       Lyon : rien n'est dessiné. Chacune illustre la case du tableau où tombe le réglage —
+       une roche réelle de cette texture et de cette chimie —, et non l'échantillon qu'aurait
+       donné la vitesse affichée au centième de degré près. Deux cases restent vides, faute
+       de lame : on le dit plutôt que d'y mettre une autre roche.</p>
   </div></div>
 
   <div class="grille deux">
@@ -1005,18 +1008,14 @@ header.top .marque b{ letter-spacing:-.015em }
 
     <div>
       <div class="carte">
-        <h3>La lame mince</h3>
+        <h3>La lame mince au microscope polarisant</h3>
         <div class="mesures">
           <div class="mesure"><div class="t">Refroidissement</div><div class="v" id="cr-m-r">—</div><div class="u">°C par heure</div></div>
           <div class="mesure"><div class="t">Cristaux</div><div class="v" id="cr-m-d">—</div><div class="u">mm</div></div>
           <div class="mesure"><div class="t">Texture</div><div class="v" id="cr-m-t" style="font-size:15px">—</div><div class="u">observée</div></div>
           <div class="mesure"><div class="t">Roche</div><div class="v" id="cr-m-n" style="font-size:15px">—</div><div class="u">nommée</div></div>
         </div>
-        <canvas id="cr-cv" height="330" style="width:100%; display:block; border-radius:11px"></canvas>
-        <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
-          <button class="btn mini" id="cr-zoom">Changer de grossissement</button>
-          <button class="btn mini" id="cr-relance">Autre champ de la lame</button>
-        </div>
+        <div id="cr-lame"></div>
         <div id="cr-reel"></div>
       </div>
 
@@ -2000,30 +1999,41 @@ const TEXTURES = [
   {min:0.03,  id:'microlithique',n:"Microlithique", e:"microlites baignant dans du verre"},
   {min:0,     id:'vitreuse',     n:"Vitreuse",      e:"pas de cristal : le magma a été figé"}
 ];
-/* Le tableau à double entrée nomme une roche ; quand une photographie de cette
-   roche existe, autant la montrer à côté de la lame simulée. Toutes n'en ont
-   pas : les textures microgrenues et les verres autres que l'obsidienne
-   n'ont pas d'échantillon au catalogue. */
+/* Le tableau à double entrée nomme une roche ; à chacune de ses cases répond
+   une lame mince photographiée à la lithothèque de l'ENS de Lyon. C'est en les
+   parcourant, du verre figé au cristal centimétrique, qu'on voit la
+   cristallisation avancer. Deux cases restent vides : la microdiorite et le
+   verre andésitique n'ont pas de lame là-bas, et mettre une roche voisine à
+   leur place serait mentir.
+     id : la lame de la case.  ph : sa variante porphyrique, montrée quand on
+     coche les phénocristaux.  p : la précision à donner quand l'échantillon
+     photographié ne porte pas exactement le nom de la case. */
+const LAMES_CRISTAL = {
+  'grenue.f':        {id:'granite'},
+  'grenue.i':        {id:'diorite',      p:"la diorite « pied de poule » de la Parata"},
+  'grenue.m':        {id:'gabbro'},
+  'microgrenue.f':   {id:'microgranite', p:"un granophyre d'Islande, faute de microgranite à la lithothèque"},
+  'microgrenue.i':   {},
+  'microgrenue.m':   {id:'dolerite'},
+  'microlithique.f': {id:'rhyolite'},
+  'microlithique.i': {id:'andesite',     ph:'andesite-porphyrique'},
+  'microlithique.m': {id:'basalte',      ph:'basalte-porphyrique'},
+  'vitreuse.f':      {id:'obsidienne'},
+  'vitreuse.i':      {},
+  'vitreuse.m':      {id:'tachylite',    p:"une hyaloclastite : du verre basaltique trempé dans l'eau"}
+};
+/* L'échantillon de main que l'on montre sous la lame, quand le catalogue en a un. */
 const ROCHE_DU_NOM = {
   'Granite':'granite', 'Diorite':'diorite', 'Gabbro':'gabbro',
-  'Rhyolite':'rhyolite', 'Andésite':'andesite', 'Basalte':'basalte',
-  'Obsidienne':'obsidienne'
+  'Dolérite':'dolerite', 'Rhyolite':'rhyolite', 'Andésite':'andesite',
+  'Basalte':'basalte', 'Obsidienne':'obsidienne',
+  'Verre basaltique (tachylite)':'tachylite'
 };
 const NOMS = {
   grenue:       {f:"Granite",     i:"Diorite",      m:"Gabbro"},
   microgrenue:  {f:"Microgranite",i:"Microdiorite", m:"Dolérite"},
   microlithique:{f:"Rhyolite",    i:"Andésite",     m:"Basalte"},
   vitreuse:     {f:"Obsidienne",  i:"Verre andésitique", m:"Verre basaltique (tachylite)"}
-};
-const MINERAUX = {
-  f:[{n:"quartz",     c:'#e6e2da', p:26},{n:"feldspath alcalin", c:'#e8cdc2', p:34},
-     {n:"plagioclase",c:'#f4f1ea', p:22},{n:"biotite",           c:'#3a3129', p:14},
-     {n:"amphibole",  c:'#4b5a45', p:4}],
-  i:[{n:"plagioclase",c:'#efece4', p:44},{n:"amphibole", c:'#4b5a45', p:28},
-     {n:"biotite",    c:'#3a3129', p:16},{n:"quartz",    c:'#e6e2da', p:8},
-     {n:"oxydes",     c:'#2b2723', p:4}],
-  m:[{n:"plagioclase",c:'#eae7de', p:46},{n:"pyroxène",  c:'#56644a', p:34},
-     {n:"olivine",    c:'#89a266', p:16},{n:"oxydes",    c:'#2b2723', p:4}]
 };
 const chimie = s => s >= 66 ? 'f' : s >= 52 ? 'i' : 'm';
 const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafique (pauvre en silice)"};
@@ -2117,118 +2127,54 @@ document.addEventListener('click', e => {
 });
 
 (function cristallisation(){
-  const cv = $('#cr-cv'), cvc = $('#cr-courbe');
-  if(!cv) return;
-  let lieu = 'coulee', silice = 70, phenos = false, zoom = 1, champVariante = 1;
+  const cvc = $('#cr-courbe');
+  if(!cvc) return;
+  let lieu = 'coulee', silice = 70, phenos = false;
 
   const tailleCristaux = R => 0.37*Math.pow(R, -0.283);
   const texture = d => TEXTURES.find(t => d >= t.min);
 
   function etat(){
     const R = LIEUX[lieu].R, d = tailleCristaux(R), t = texture(d), ch = chimie(silice);
-    return {R, d, t, ch, nom:NOMS[t.id][ch], mineraux:MINERAUX[ch]};
+    return {R, d, t, ch, nom:NOMS[t.id][ch]};
   }
 
-  /* ---------- la lame mince ---------- */
-  function tire(rnd, mineraux){
-    let x = rnd()*100, c = 0;
-    for(const m of mineraux){ c += m.p; if(x <= c) return m; }
-    return mineraux[mineraux.length-1];
-  }
-  function dessineLame(){
-    const {ctx, l, h} = dimensionne(cv, 330);
-    const e = etat();
-    /* champ de vision : une texture grenue se lit à huit cristaux de large,
-       une texture microlithique demande d'en voir des centaines */
-    const grains = (e.t.id === 'grenue' || e.t.id === 'microgrenue') ? 8 : 42;
-    const champ = Math.max(0.3, e.d*grains)/zoom;  /* largeur du champ, en mm */
-    const rnd = graine(Math.round(silice*97 + LIEUX[lieu].R*13 + champVariante*7919 + zoom*31));
-    ctx.fillStyle = '#f7f4ee'; ctx.fillRect(0,0,l,h);
-    const px = l/champ;                            /* pixels par millimètre */
-
-    if(e.t.id === 'grenue' || e.t.id === 'microgrenue'){
-      /* pavage de cristaux jointifs : sommets partagés entre voisins */
-      const pas = Math.max(9, e.d*px);
-      const nx = Math.ceil(l/pas)+1, ny = Math.ceil(h/pas)+1;
-      const P = [];
-      for(let j=0;j<=ny;j++){ P[j]=[];
-        for(let i=0;i<=nx;i++) P[j][i] = [i*pas + (rnd()-0.5)*pas*0.55,
-                                          j*pas + (rnd()-0.5)*pas*0.55]; }
-      for(let j=0;j<ny;j++) for(let i=0;i<nx;i++){
-        const m = tire(rnd, e.mineraux);
-        ctx.beginPath();
-        ctx.moveTo(P[j][i][0],P[j][i][1]); ctx.lineTo(P[j][i+1][0],P[j][i+1][1]);
-        ctx.lineTo(P[j+1][i+1][0],P[j+1][i+1][1]); ctx.lineTo(P[j+1][i][0],P[j+1][i][1]);
-        ctx.closePath();
-        ctx.fillStyle = m.c; ctx.fill();
-        ctx.strokeStyle = 'rgba(60,54,46,.35)'; ctx.lineWidth = 0.7; ctx.stroke();
-        /* clivages des micas et des pyroxènes */
-        if(m.n === 'biotite' || m.n === 'pyroxène'){
-          ctx.save(); ctx.clip();
-          ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 0.8;
-          const a = rnd()*Math.PI;
-          for(let k=-4;k<=4;k++){
-            const ox = Math.cos(a+Math.PI/2)*k*pas*0.16, oy = Math.sin(a+Math.PI/2)*k*pas*0.16;
-            ctx.beginPath();
-            ctx.moveTo(P[j][i][0]+ox-pas, P[j][i][1]+oy-Math.tan(a)*pas);
-            ctx.lineTo(P[j][i][0]+ox+pas*2, P[j][i][1]+oy+Math.tan(a)*pas*2);
-            ctx.stroke();
-          }
-          ctx.restore();
-        }
-      }
-    } else {
-      /* pâte vitreuse + microlites en baguettes */
-      const fond = e.ch === 'm' ? '#3b3a33' : e.ch === 'i' ? '#5b564a' : '#6d6558';
-      ctx.fillStyle = fond; ctx.fillRect(0,0,l,h);
-      /* verre : on laisse voir des nuances */
-      for(let i=0;i<40;i++){
-        ctx.beginPath();
-        ctx.arc(rnd()*l, rnd()*h, 18+rnd()*46, 0, Math.PI*2);
-        ctx.fillStyle = 'rgba(255,255,255,' + (0.012+rnd()*0.03) + ')'; ctx.fill();
-      }
-      if(e.t.id === 'microlithique'){
-        const L = Math.max(3, e.d*px), n = Math.round(l*h/(L*L*2.2));
-        for(let i=0;i<n;i++){
-          const x = rnd()*l, y = rnd()*h, a = rnd()*Math.PI;
-          ctx.save(); ctx.translate(x,y); ctx.rotate(a);
-          ctx.fillStyle = e.mineraux[0].c;
-          ctx.globalAlpha = 0.85;
-          ctx.fillRect(-L/2, -Math.max(0.8, L*0.16)/2, L, Math.max(0.8, L*0.16));
-          ctx.restore();
-        }
-        ctx.globalAlpha = 1;
-      }
+  /* ---------- la lame mince, photographiée ---------- */
+  let lameAffichee = null;
+  function rendLame(e){
+    const bac = $('#cr-lame'); if(!bac) return;
+    const c = LAMES_CRISTAL[e.t.id + '.' + e.ch] || {};
+    const volcanique = e.t.id === 'microlithique';
+    const porphyre = phenos && volcanique && !!c.ph;
+    const manque   = phenos && volcanique && !c.ph;   /* coché, mais pas de lame porphyrique */
+    const id = porphyre ? c.ph : c.id;
+    const signe = (id || e.nom) + (porphyre ? '|p' : manque ? '|n' : '');
+    if(lameAffichee === signe) return;        /* déjà à l'écran : on ne recharge pas */
+    lameAffichee = signe;
+    if(!id){
+      bac.innerHTML = '<p class="cr-rien">La lithothèque de l\'ENS de Lyon n\'a pas de lame de ' +
+        ech(e.nom.toLowerCase()) + '. La case reste vide plutôt que de montrer une autre roche : ' +
+        'déplacez le curseur de silice, ou changez de situation.</p>';
+      return;
     }
-    /* phénocristaux : cristaux formés avant l'arrivée en surface */
-    if(phenos && e.t.id !== 'grenue'){
-      const n = 3 + Math.round(rnd()*3);
-      for(let i=0;i<n;i++){
-        const r = 16+rnd()*24, x = r+rnd()*(l-2*r), y = r+rnd()*(h-2*r);
-        const m = e.mineraux[rnd() < 0.6 ? 0 : 1];
-        ctx.beginPath();
-        const k = 4+Math.floor(rnd()*3);
-        for(let s=0;s<k;s++){
-          const a = s/k*Math.PI*2 + rnd()*0.2, rr = r*(0.75+rnd()*0.4);
-          s ? ctx.lineTo(x+Math.cos(a)*rr, y+Math.sin(a)*rr*0.7)
-            : ctx.moveTo(x+Math.cos(a)*rr, y+Math.sin(a)*rr*0.7);
-        }
-        ctx.closePath();
-        ctx.fillStyle = m.c; ctx.fill();
-        ctx.strokeStyle = 'rgba(40,36,30,.6)'; ctx.lineWidth = 1.1; ctx.stroke();
-      }
-    }
-    /* champ du microscope : coins assombris */
-    const v = ctx.createRadialGradient(l/2,h/2,Math.min(l,h)*0.32, l/2,h/2,Math.max(l,h)*0.72);
-    v.addColorStop(0,'rgba(0,0,0,0)'); v.addColorStop(1,'rgba(30,26,20,.22)');
-    ctx.fillStyle = v; ctx.fillRect(0,0,l,h);
-    /* échelle */
-    const mm = pas(champ/5, 1);                    /* une graduation ronde */
-    const lg = mm*px;
-    ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillRect(12, h-30, lg+12, 22);
-    ctx.fillStyle = '#23201c'; ctx.fillRect(18, h-14, lg, 2.5);
-    ctx.font = '11px system-ui,sans-serif'; ctx.textAlign = 'left';
-    ctx.fillText((mm < 1 ? fr(mm, mm < 0.1 ? 3 : 2) : fr(mm,0)) + ' mm', 18, h-18);
+    chargePhotos(id, jeux => {
+      if(lameAffichee !== signe) return;      /* l'élève a déjà changé de réglage */
+      if(!jeux.micro.length){ bac.innerHTML = ''; return; }
+      const nom = e.nom + (porphyre ? ' porphyrique' : '');
+      const precision = porphyre ? "les phénocristaux ont grossi lentement en profondeur, la pâte s'est figée en surface"
+                                 : c.p;
+      const sousTitre = precision ? ' — <i>' + ech(precision) + '</i>' : '';
+      const corps = jeux.micro.length > 1
+        ? blocComparateur(jeux.micro, ech(nom),
+            ech(nom) + ' — lame mince · glissez le curseur pour passer de la lumière naturelle à la lumière polarisée analysée' + sousTitre)
+        : '<figure class="ro-principale"><button data-photo="' + jeux.micro[0] + '" title="Agrandir">' +
+          '<img src="' + jeux.micro[0] + '" alt="' + ech(nom) + ' en lame mince"></button>' +
+          '<figcaption>' + ech(nom) + ' — lame mince' + sousTitre + '</figcaption></figure>';
+      bac.innerHTML = corps + creditPhoto(id, 'micro') +
+        (manque ? '<p class="cr-rien">Pas de lame porphyrique de cette chimie à la ' +
+            'lithothèque : la lame montrée reste celle sans phénocristaux.</p>' : '');
+      activeComparateur(bac.querySelector('.ro-comp'));
+    });
   }
 
   /* ---------- courbe taille = f(vitesse de refroidissement) ---------- */
@@ -2290,8 +2236,10 @@ document.addEventListener('click', e => {
   function maj(){
     const e = etat();
     $('#cr-silice-v').textContent = silice + ' % — magma ' + NOM_CHIMIE[e.ch];
-    $('#cr-m-r').textContent = e.R < 0.01 ? e.R.toExponential(0).replace('e','×10^').replace('+','')
-                                          : (e.R < 1 ? fr(e.R,2) : String(e.R));
+    $('#cr-m-r').textContent = e.R < 0.01
+      ? e.R.toExponential(0).replace(/e([+-])(\d+)/, (_, s, c) =>
+          ' × 10' + (s === '-' ? '⁻' : '') + c.replace(/[0-9]/g, d => '⁰¹²³⁴⁵⁶⁷⁸⁹'[+d]))
+      : (e.R < 1 ? fr(e.R,2) : String(e.R));
     $('#cr-m-d').textContent = e.d >= 1 ? fr(e.d,1) : fr(e.d,3);
     $('#cr-m-t').textContent = e.t.n;
     $('#cr-m-n').textContent = e.nom;
@@ -2301,7 +2249,7 @@ document.addEventListener('click', e => {
       e.t.n.toLowerCase() + '</b>, ' + e.t.e + '. Avec ' + silice + ' % de silice, la roche s\'appelle <b>' +
       e.nom + '</b>.' +
       (phenos && e.t.id !== 'grenue' ? " Les phénocristaux, eux, se sont formés lentement en profondeur avant l'éruption : une même roche garde ainsi la trace de deux vitesses de refroidissement." : "");
-    dessineLame(); dessineCourbe(); rendTable(); rendReel(e.nom);
+    rendLame(e); dessineCourbe(); rendTable(); rendReel(e.nom);
     Labo.note('cristal', 'Situation', LIEUX[lieu].n);
     Labo.note('cristal', 'Taille des cristaux', (e.d>=1?fr(e.d,1):fr(e.d,3)) + ' mm');
     Labo.note('cristal', 'Texture', e.t.n);
@@ -2314,50 +2262,35 @@ document.addEventListener('click', e => {
     const id = ROCHE_DU_NOM[nom];
     if(reelAffiche === (id || nom)) return;      /* déjà à l'écran : on ne redessine pas */
     reelAffiche = id || nom;
-    if(!id){
-      bac.innerHTML = '<p class="cr-rien">Pas de photographie au catalogue pour une roche ' +
-        'de ce nom : les textures microgrenues et les verres autres que l\'obsidienne n\'y ' +
-        'figurent pas.</p>';
-      return;
-    }
+    if(!id){ bac.innerHTML = ''; return; }
     chargePhotos(id, jeux => {
       if(reelAffiche !== id) return;             /* l'élève a déjà changé de réglage */
-      const titre = '<div class="partie-titre" style="margin:22px 0 9px">La roche réelle — ' +
-                    ech(nom) + '</div>';
-      if(jeux.micro.length > 1){
-        bac.innerHTML = titre +
-          blocComparateur(jeux.micro, ech(nom),
-            ech(nom) + ' — lame mince · glissez le curseur pour passer d\'une vue à l\'autre') +
-          creditPhoto(id, 'micro');
-        activeComparateur(bac.querySelector('.ro-comp'));
-      } else if(jeux.macro.length){
-        bac.innerHTML = titre +
-          '<figure class="ro-principale"><button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
-          '<img src="' + jeux.macro[0] + '" alt="' + ech(nom) + '"></button>' +
-          '<figcaption>' + ech(nom) + ' — échantillon de main</figcaption></figure>' +
-          creditPhoto(id, 'macro');
-      } else bac.innerHTML = '';
+      if(!jeux.macro.length){ bac.innerHTML = ''; return; }
+      bac.innerHTML =
+        '<div class="partie-titre" style="margin:22px 0 9px">La même roche à l\'œil nu</div>' +
+        '<figure class="ro-principale"><button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
+        '<img src="' + jeux.macro[0] + '" alt="' + ech(nom) + '"></button>' +
+        '<figcaption>' + ech(nom) + ' — échantillon de main</figcaption></figure>' +
+        creditPhoto(id, 'macro');
     });
   }
 
   $('#cr-lieu').addEventListener('change', e => { lieu = e.target.value; maj(); });
   $('#cr-silice').addEventListener('input', e => { silice = +e.target.value; maj(); });
   $('#cr-phenos').addEventListener('change', e => { phenos = e.target.checked; maj(); });
-  $('#cr-zoom').addEventListener('click', () => { zoom = zoom === 1 ? 4 : 1; maj(); });
-  $('#cr-relance').addEventListener('click', () => { champVariante++; dessineLame(); });
 
   $('#cr-questions').innerHTML = blocQuestions([
     ["Un granite et une rhyolite ont la même composition chimique. Pourquoi ne se ressemblent-elles pas ?",
      "Parce qu'elles n'ont pas refroidi au même endroit. Le granite a cristallisé dans un pluton, à plusieurs kilomètres de profondeur, où la chaleur s'évacue si lentement que les cristaux atteignent le centimètre. La rhyolite est le même magma arrivé en surface : refroidi en quelques jours, il n'a formé que des microlites. Même chimie, deux textures, deux noms."],
     ["Comment reconnaît-on, dans une lave, qu'une partie du magma avait déjà cristallisé avant l'éruption ?",
-     "À la présence de phénocristaux : de gros cristaux bien formés noyés dans une pâte microlithique. Les premiers se sont développés lentement dans le réservoir magmatique, la seconde s'est figée en quelques jours après l'émission. Cochez « phénocristaux » pour faire apparaître cette texture, dite porphyrique — c'est une des observations les plus utiles du programme."],
+     "À la présence de phénocristaux : de gros cristaux bien formés noyés dans une pâte microlithique. Les premiers se sont développés lentement dans le réservoir magmatique, la seconde s'est figée en quelques jours après l'émission. Cochez « phénocristaux » : la lame est alors celle d'une andésite ou d'un basalte porphyriques, photographiés. Cette texture, dite porphyrique, est une des observations les plus utiles du programme."],
     ["Pourquoi obtient-on du verre, et non des cristaux, lorsque la lave entre dans l'eau ?",
      "Un cristal a besoin de temps : les atomes doivent se déplacer et s'ordonner. Une trempe fait chuter la température de mille degrés en quelques secondes ; le liquide se fige avant que l'ordre ne s'installe. On obtient un solide non cristallin, un verre — l'obsidienne pour un magma felsique, la tachylite pour un basalte."],
     ["Le TP de cristallisation d'un sel reproduit-il vraiment cela ?",
      "Il reproduit la relation, pas le matériau. En refroidissant lentement une solution saturée de sulfate de cuivre ou d'alun on obtient de gros cristaux, en la refroidissant brutalement une poudre : la même loi qualitative que pour les magmas. Mais il s'agit d'une cristallisation depuis une solution aqueuse, pas depuis un liquide silicaté à 1000 °C. C'est un modèle analogique, et cela vaut la peine de le dire aux élèves."]
   ]);
 
-  Labo.surAffichage.cristal = () => { dessineLame(); dessineCourbe(); };
+  Labo.surAffichage.cristal = () => { dessineCourbe(); };
   maj();
 })();
 </script>
@@ -2615,7 +2548,7 @@ const CREDITS = {
   rhyolite   : {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=4.6.3.1.2", t:"Rhyolite (Rhyolite blanche)"}},
   andesite   : {macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=EO.LI20_LM", t:"Andésite à hypersthène"}},
   conglomerat:{macro:{a:"Damien Mollex"}, micro:{a:"Damien Mollex"}},
-  obsidienne: {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL50", t:"Obsidienne"}},
+  obsidienne: {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL50", t:"Obsidienne"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=4.6.3.5.1", t:"Obsidienne"}},
   ponce:      {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MC.DO27", t:"Ponce (Ponce fibreuse rhyolitique)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=4.6.3.6.1", t:"Ponce"}},
   calcaire:   {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C21.12", t:"Calcaire à crinoïdes"}, micro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C22.18", t:"Calcaire gréseux à Discocyclina et Nummulites"}},
   craie:      {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=C28.9", t:"Craie et bélemnite (Craie contenant un rostre de bélemnite)"}},
@@ -2626,11 +2559,19 @@ const CREDITS = {
   micaschiste: {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MA.VD7", t:"Micaschiste à grenat et chloritoïde (Micaschiste de Bois-de-Céné)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MA.VD6", t:"Micaschiste à grenat et chloritoïde (Micaschiste de Bois-de-Céné)"}},
   marbre:     {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A63.6", t:"Marbre (Marbre de Carrare)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=6.3.2.0.5", t:"Marbre"}},
   'peridotite': {macro:{a:"Vincent Conion", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=AP121", t:"Lherzolite (Péridotite de Lanzo)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=7.1.1.1.4", t:"Lherzolite à phlogopite (Péridotite de Finero)"}},
-  'diorite':    {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=CO21", t:"Diorite (Diorite de la Parata)"}},
+  'diorite':    {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=CO21", t:"Diorite (Diorite de la Parata)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=CO20", t:"Diorite (Diorite « pied de poule » de la Parata)"}},
   'serpentinite': {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=AP182", t:"Serpentinite"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=7.1.3.1.1", t:"Serpentinite"}},
   'eclogite':   {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A133.4", t:"Éclogite à grenat et disthène"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=AP183", t:"Éclogite"}},
   'metagabbro': {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A69.13", t:"Amphibolite à grenat (Méta-gabbro)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=6.3.4.0.1", t:"Amphibolite"}},
   'migmatite':  {macro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A79.8", t:"Migmatite"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=6.8.3.1.1", t:"Migmatite"}},
+  /* les lames du module de cristallisation : ces roches-là ne figurent pas au
+     catalogue d'identification, elles ne servent qu'à remplir le tableau à
+     double entrée — mais la citation leur est due comme aux autres. */
+  'microgranite': {micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL83-7_LM", t:"Plagiogranite (Xénolite de granophyre)"}},
+  'dolerite':   {macro:{a:"Vincent Conion", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=SOC6", t:"Dolérite"}, micro:{a:"Vincent Conion", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=SOC6_LM", t:"Dolérite"}},
+  'tachylite':  {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL68", t:"Hyaloclastite"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=ISL68_LM", t:"Hyaloclastite"}},
+  'andesite-porphyrique': {micro:{a:"Vincent Conion", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=MX371_LM", t:"Andésite porphyrique à amphibole"}},
+  'basalte-porphyrique':  {micro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=VI.NYA1_LM", t:"Basalte porphyrique à augite et olivine"}},
   'schiste-bleu': {macro:{a:"Fanny Magot", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=F12.10", t:"Schiste bleu à glaucophane et épidote (Glaucophanite de Groix)"}, micro:{a:"Damien Mollex", u:"https://lithotheque.ens-lyon.fr/Lithotheque/FormRech/page.php?recup=A50.5", t:"Glaucophanite (Schiste bleu)"}},
 };
 const ROCHES = [
