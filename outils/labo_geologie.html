@@ -1003,6 +1003,13 @@ header.top .marque b{ letter-spacing:-.015em }
         <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px">
           Deux échelles logarithmiques : six ordres de grandeur sur la vitesse de refroidissement,
           quatre sur la taille des cristaux.</p>
+        <p style="font-size:11.5px; color:var(--gris-clair); margin-top:6px">
+          <b>Le point ne se déplace qu'avec la situation.</b> Changer la teneur en silice ne le
+          bouge pas, et c'est voulu : la vitesse de refroidissement fait la <i>texture</i>, la
+          chimie fait le <i>nom</i>. C'est tout le sens du tableau à double entrée — on descend
+          d'une ligne en refroidissant plus vite, on change de colonne en changeant de magma.
+          (Dans la réalité un magma felsique, plus visqueux, cristallise un peu plus
+          difficilement : cette loi-ci ne le dit pas.)</p>
       </div>
     </div>
 
@@ -1117,6 +1124,7 @@ header.top .marque b{ letter-spacing:-.015em }
       <div class="carte">
         <h3>Ce que l'on observerait sur le terrain</h3>
         <div id="ma-terrain"></div>
+        <div id="ma-roche"></div>
       </div>
 
       <div class="carte">
@@ -2308,6 +2316,17 @@ const MAGMAS = {
   andesite:{s:60, T:1000, e:30, n:"Andésite"},
   rhyolite:{s:72, T:850,  e:45, n:"Rhyolite"}
 };
+/* La roche que ce magma laisse derrière lui, photographiée. Tant que
+   l'éruption reste coulante, c'est la lave elle-même qui se retrouve au sol ;
+   dès qu'elle devient explosive et que le magma est assez riche en silice,
+   c'est de la ponce que l'on ramasse — du verre figé sur ses bulles. */
+const ROCHE_DU_MAGMA = {
+  f:{id:'rhyolite', n:"Rhyolite", q:"La lave felsique figée : une pâte claire où la loupe ne distingue presque rien, quelques phénocristaux de quartz."},
+  i:{id:'andesite', n:"Andésite", q:"La lave intermédiaire figée : pâte grise et lattes blanches de plagioclase, bien visibles en lame."},
+  m:{id:'basalte',  n:"Basalte",  q:"La lave mafique figée : une pâte sombre criblée de microlites, souvent quelques olivines vert olive."}
+};
+const PONCE_DU_MAGMA = {id:'ponce', n:"Ponce",
+  q:"Ce que l'on ramasse après une éruption explosive : une mousse de verre, figée sur les bulles de gaz qui l'ont déchirée. Elle flotte sur l'eau."};
 const STYLES = [
   {max:1,   n:"Effusif — hawaïen", c:'#c0392b',
    t:"Fontaines et coulées très fluides, cônes larges et plats (volcans boucliers). Le gaz s'échappe sans résistance.",
@@ -2466,6 +2485,35 @@ const STYLES = [
     ctx.fillStyle = '#a8660f'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
   }
 
+  /* ---------- la roche laissée par ce magma, photographiée ---------- */
+  let rocheAffichee = null;
+  function rendRoche(e){
+    const bac = $('#ma-roche'); if(!bac) return;
+    const ch = chimie(silice);
+    const r = (e.ex >= 3.2 && ch !== 'm') ? PONCE_DU_MAGMA : ROCHE_DU_MAGMA[ch];
+    if(rocheAffichee === r.id) return;        /* déjà à l'écran : on ne recharge pas */
+    rocheAffichee = r.id;
+    chargePhotos(r.id, jeux => {
+      if(rocheAffichee !== r.id) return;      /* l'élève a déjà bougé un curseur */
+      const titre = '<div class="partie-titre" style="margin:20px 0 9px">La roche que laisse ce magma</div>';
+      const texte = '<p style="font-size:12.5px; color:var(--gris); margin:0 0 10px">' +
+                    '<b>' + ech(r.n) + '</b> — ' + ech(r.q) + '</p>';
+      let corps = '';
+      if(jeux.macro.length)
+        corps += '<figure class="ro-principale" style="margin-bottom:12px">' +
+          '<button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
+          '<img src="' + jeux.macro[0] + '" alt="' + ech(r.n) + '"></button>' +
+          '<figcaption>' + ech(r.n) + ' — échantillon de main</figcaption></figure>' +
+          creditPhoto(r.id, 'macro');
+      if(jeux.micro.length > 1)
+        corps += blocComparateur(jeux.micro, ech(r.n),
+            ech(r.n) + ' — lame mince · glissez le curseur pour passer de la lumière naturelle à la lumière polarisée analysée') +
+          creditPhoto(r.id, 'micro');
+      bac.innerHTML = corps ? titre + texte + corps : '';
+      activeComparateur(bac.querySelector('.ro-comp'));
+    });
+  }
+
   function maj(){
     const e = etat();
     $('#ma-silice-v').textContent = silice + ' %';
@@ -2490,7 +2538,7 @@ const STYLES = [
       '<div class="note">Indice d\'explosivité calculé à partir de la silice et de l\'eau dissoute : ' +
       fr(e.ex,2) + '. C\'est un indicateur de ce module, pas une échelle officielle — l\'indice ' +
       'd\'explosivité volcanique (VEI) se mesure, lui, sur le volume de matériaux émis.</div>';
-    dessine(); dessineCourbe();
+    dessine(); dessineCourbe(); rendRoche(e);
     Labo.note('magma', 'Magma réglé', silice + ' % SiO₂, ' + temp + ' °C, ' + fr(e.H,1) + ' % H₂O');
     Labo.note('magma', 'Viscosité', '10^' + fr(e.le,1) + ' Pa·s');
     Labo.note('magma', "Vitesse d'écoulement", vv + ' ' + vu + ' (pente ' + pente + '°)');

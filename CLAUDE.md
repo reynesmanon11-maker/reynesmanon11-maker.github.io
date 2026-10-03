@@ -123,6 +123,16 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   `tachylite`, `andesite-porphyrique` et `basalte-porphyrique` n'existent que
   pour ce module : ils ne figurent pas dans `ROCHES`, mais suivent la même
   convention de nommage et doivent figurer dans `CREDITS`.
+- **Le module de viscosité montre la roche que laisse le magma** : la lave
+  figée (basalte, andésite ou rhyolite selon la silice), ou la ponce dès que le
+  style devient très explosif — échantillon de main puis lame mince, par
+  `ROCHE_DU_MAGMA` et `PONCE_DU_MAGMA`. Même machinerie et mêmes crédits que
+  partout ailleurs.
+- **Dans la cristallisation, le graphe ne dépend que de la vitesse de
+  refroidissement** : déplacer la silice ne bouge pas le point, et la page
+  l'explique sous le graphe plutôt que de laisser croire à une panne. La
+  vitesse fait la texture, la chimie fait le nom — c'est le tableau à double
+  entrée.
 - **Chaque roche porte sa composition minéralogique** (champ `mineraux`), listée
   sous les résultats **en mode exploration seulement** : en roche mystère, elle
   donnerait la réponse avant le premier test. Le champ `min`, plus court, reste
