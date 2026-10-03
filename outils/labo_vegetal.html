@@ -199,6 +199,35 @@ table.tab th{ font-size:11px; text-transform:uppercase; letter-spacing:.04em; co
 canvas{ display:block; max-width:100%; touch-action:pan-y }
 #ex-enceinte,#ex-graphe,#ex-serie,#ex-defi,#pi-spectre,#pi-fluo,
 #en-graphe,#en-gamme,#en-serie,#en-defi,#hi-coupe{ width:100% }
+
+/* ===================== comparateur schéma / photographie =====================
+   Même pièce que dans le laboratoire de géologie : la photographie du dessous
+   est découverte en tirant le curseur. Ici le schéma reste cliquable — on ne
+   fait donc glisser que par la poignée, jamais en cliquant dans l'image. */
+.ro-comp{ position:relative; overflow:hidden; border-radius:12px; border:1px solid var(--ptbd);
+  background:#fbfaf7; touch-action:none; user-select:none }
+.ro-comp .fond{ width:100%; height:100%; object-fit:cover; display:block; background:#fbfaf7 }
+.ro-comp .dessus{ position:absolute; inset:0; clip-path:inset(0 calc(100% - var(--x)) 0 0) }
+.ro-comp .dessus canvas{ width:100%; height:100%; display:block }
+.ro-comp .poignee{ position:absolute; top:0; bottom:0; left:var(--x); width:3px; margin-left:-1.5px;
+  background:rgba(255,255,255,.92); box-shadow:0 0 0 1px rgba(35,32,28,.25); cursor:ew-resize }
+.ro-comp .poignee::after{ content:'‹ ›'; position:absolute; top:50%; left:50%; width:34px; height:34px;
+  margin:-17px 0 0 -17px; border-radius:50%; background:#fff; color:#23201c; font-size:13px;
+  display:flex; align-items:center; justify-content:center; box-shadow:0 2px 10px rgba(23,20,15,.3) }
+.ro-comp .poignee:focus-visible{ outline:none }
+.ro-comp .poignee:focus-visible::after{ box-shadow:0 0 0 3px var(--pt), 0 2px 10px rgba(23,20,15,.4) }
+.ro-comp .etiq{ position:absolute; top:8px; width:auto; display:inline-block;
+  padding:3px 9px; border:0; border-radius:7px; background:rgba(23,20,15,.72); color:#fff;
+  font:600 11px/1.3 inherit; letter-spacing:.02em; cursor:zoom-in }
+.ro-comp .etiq:hover{ background:rgba(23,20,15,.9) }
+.ro-comp .etiq.g{ left:8px; cursor:default } .ro-comp .etiq.d{ right:8px }
+.mo-comp{ aspect-ratio:1; max-width:440px; flex:1 1 300px }
+.ro-credit{ margin:6px 0 0; font-size:10.5px; color:var(--gris-clair) }
+.ro-credit a{ color:var(--gris-clair); text-decoration:underline }
+.ro-credit a:hover{ color:var(--pt) }
+.ro-loupe{ position:fixed; inset:0; z-index:200; background:rgba(25,22,18,.86); cursor:zoom-out;
+  display:flex; align-items:center; justify-content:center; padding:22px }
+.ro-loupe img{ max-width:100%; max-height:100%; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.5) }
 /* Ces deux-là ont une largeur fixe : elle doit venir du CSS, jamais de
    l'attribut width, que le tracé réécrit. */
 /* Hauteur explicite pour les graphiques des défis : tant qu'aucun défi n'a été
@@ -1203,7 +1232,7 @@ header.top .marque b{ letter-spacing:-.015em }
        href="https://biologie.ens-lyon.fr/collections/collections/FormRech/histo.php"
        target="_blank" rel="noopener">Voir de vraies coupes (collection ENS Lyon) ↗</a>
   </div>
-  <div class="avert"><span class="marque">i</span><div><p><b>Dessins, non photographies.</b> Les coupes sont construites par le programme, tissu par tissu et cellule par cellule : chaque tissu a sa taille de cellule, l'épaisseur de ses parois et la taille de son lumen, et le contour de l'organe n'est jamais un cercle parfait.</p><p>L'agencement des tissus et l'effet des colorants sont fidèles, mais cela reste un dessin : <b>comparez avec de vraies photographies</b> — le lien ci-dessus mène à la collection de l'ENS Lyon.</p></div></div>
+  <div class="avert"><span class="marque">i</span><div><p><b>À gauche du curseur, un schéma ; à droite, une photographie.</b> La coupe de gauche est construite par le programme, tissu par tissu et cellule par cellule : chaque tissu a sa taille de cellule, l'épaisseur de ses parois et la taille de son lumen, et le contour de l'organe n'est jamais un cercle parfait. C'est elle que l'on clique pour identifier un tissu.</p><p>Celle de droite est une vraie coupe, photographiée au microscope. <b>Ce n'est pas la même espèce</b> : la collection libre dont elles viennent travaille sur le tournesol, le maïs, la renoncule, le tilleul et le lilas, pas sur le lamier ni sur le lierre. L'agencement des tissus, lui, est le même — c'est ce qu'il faut comparer. Le colorant de la photographie ne suit pas non plus le réglage de gauche.</p></div></div>
 
   <div class="grille deux">
     <div>
@@ -1252,7 +1281,17 @@ header.top .marque b{ letter-spacing:-.015em }
     <div>
       <div class="carte">
         <div style="display:flex; gap:18px; flex-wrap:wrap; align-items:flex-start">
-          <canvas id="hi-coupe" width="420" height="420" style="flex:1 1 300px; max-width:440px; cursor:crosshair; border-radius:12px; background:#fdfcfa"></canvas>
+          <div style="flex:1 1 300px; max-width:440px">
+            <div class="ro-comp mo-comp" style="--x:55%">
+              <img class="fond" id="hi-reel" src="" alt="">
+              <div class="dessus"><canvas id="hi-coupe" width="420" height="420" style="cursor:crosshair"></canvas></div>
+              <span class="etiq g">Le schéma</span>
+              <button class="etiq d" id="hi-zoom" data-photo="" title="Agrandir la photographie">En vrai</button>
+              <div class="poignee" role="slider" tabindex="0" aria-label="Curseur entre le schéma et la photographie"
+                   aria-valuemin="0" aria-valuemax="100" aria-valuenow="55"></div>
+            </div>
+            <div id="hi-credit"></div>
+          </div>
           <div style="flex:1 1 220px; min-width:0">
             <div id="hi-info">
               <p style="font-size:13px; color:var(--gris)">Cliquez sur un tissu de la coupe.</p>
@@ -1446,6 +1485,72 @@ header.top .marque b{ letter-spacing:-.015em }
    OUTILS COMMUNS
    ========================================================================== */
 const $  = (s, r=document) => r.querySelector(s);
+
+/* ==========================================================================
+   PHOTOGRAPHIES — coupes histologiques réelles
+   Elles viennent de la Berkshire Community College Bioscience Image Library,
+   versée au domaine public sous licence CC0 : aucune contrainte, mais on cite
+   quand même l'origine, parce que c'est elle qui a fait le travail.
+   Ne jamais déposer un fichier dans images/histologie/ sans son entrée ici.
+   ========================================================================== */
+const COUPES_REELLES = {
+  'tige-dico':     {f:'tige-dico.jpg',     e:"Tournesol (<i>Helianthus</i>), tige jeune",
+    leg:"Les faisceaux conducteurs en couronne, le parenchyme cortical au-dessus, la moelle au centre : la disposition d'une tige de dicotylédone."},
+  'tige-mono':     {f:'tige-mono.jpg',     e:"Maïs (<i>Zea mays</i>), tige",
+    leg:"Les faisceaux sont dispersés dans tout le parenchyme, sans couronne : c'est la signature d'une monocotylédone. Chaque faisceau montre ses deux gros vaisseaux ronds."},
+  'racine-dico':   {f:'racine-dico.jpg',   e:"Renoncule (<i>Ranunculus</i>), racine âgée",
+    leg:"Le cylindre central réduit, au milieu d'un vaste parenchyme cortical : la racine de dicotylédone, celle du TP sur la ficaire — même genre."},
+  'racine-mono':   {f:'racine-mono.jpg',   e:"Maïs (<i>Zea mays</i>), racine",
+    leg:"La racine entière, avec sa couronne de poils absorbants. Le cylindre central occupe une part bien plus grande que dans la tige."},
+  'feuille-dico':  {f:'feuille-dico.jpg',  e:"Lilas (<i>Syringa</i>), limbe",
+    leg:"Le parenchyme palissadique en haut, serré et vertical ; le parenchyme lacuneux en bas, troué de chambres sous-stomatiques ; la nervure au milieu."},
+  'feuille-mono':  {f:'feuille-mono.jpg',  e:"Maïs (<i>Zea mays</i>), limbe",
+    leg:"Pas de palissade ni de lacuneux séparés : un mésophylle homogène, et des faisceaux alignés, chacun dans sa gaine. La feuille de monocotylédone est symétrique."},
+  'tige-ligneuse': {f:'tige-ligneuse.jpg', e:"Tilleul (<i>Tilia</i>), tige de trois ans",
+    leg:"Trois cernes de bois, le liber en rayons clairs vers l'extérieur, le périderme au bord : la tige ligneuse s'épaissit chaque année par son cambium."}
+};
+const CREDIT_COUPES = {
+  a:"Berkshire Community College Bioscience Image Library",
+  l:"CC0 — domaine public",
+  lu:"https://creativecommons.org/publicdomain/zero/1.0/deed.fr",
+  u:"https://www.flickr.com/photos/146824358@N03/albums"
+};
+/* Le volet glissant. Le schéma reste cliquable : on ne fait donc glisser que
+   par la poignée, au doigt, à la souris ou aux flèches du clavier. */
+function activeComparateur(z){
+  if(!z) return;
+  const p = z.querySelector('.poignee');
+  if(!p) return;
+  const pose = x => {
+    const v = Math.max(0, Math.min(100, x));
+    z.style.setProperty('--x', v.toFixed(1) + '%');
+    p.setAttribute('aria-valuenow', Math.round(v));
+  };
+  const depuis = e => { const r = z.getBoundingClientRect(); pose((e.clientX - r.left)/r.width*100); };
+  let tire = false;
+  p.addEventListener('pointerdown', e => {
+    tire = true; p.setPointerCapture(e.pointerId); e.preventDefault();
+  });
+  p.addEventListener('pointermove', e => { if(tire) depuis(e); });
+  ['pointerup','pointercancel'].forEach(t => p.addEventListener(t, () => { tire = false; }));
+  p.addEventListener('keydown', e => {
+    const d = e.key === 'ArrowLeft' ? -4 : e.key === 'ArrowRight' ? 4
+            : e.key === 'Home' ? -100 : e.key === 'End' ? 100 : 0;
+    if(!d) return;
+    e.preventDefault();
+    pose(parseFloat(p.getAttribute('aria-valuenow')) + d);
+  });
+}
+/* agrandissement au clic, pour toute la page */
+document.addEventListener('click', e => {
+  const v = e.target.closest('[data-photo]');
+  if(!v || !v.dataset.photo) return;
+  const o = document.createElement('div');
+  o.className = 'ro-loupe';
+  o.innerHTML = '<img src="' + v.dataset.photo + '" alt="">';
+  o.addEventListener('click', () => o.remove());
+  document.body.appendChild(o);
+});
 const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
 const borne = (v,a,b) => Math.max(a, Math.min(b, v));
 const fr = (v,d=2) => v.toLocaleString('fr-FR',{minimumFractionDigits:d, maximumFractionDigits:d});
@@ -4740,8 +4845,28 @@ function coupe(nom){
   }
 
   /* ---------- commandes ---------- */
+  /* ---------- la coupe réelle, en vis-à-vis du schéma ---------- */
+  let coupeAffichee = null;
+  function rendReelle(){
+    const img = $('#hi-reel'), bac = $('#hi-credit');
+    if(!img || !bac) return;
+    const c = COUPES_REELLES[organe];
+    if(!c || coupeAffichee === organe) return;
+    coupeAffichee = organe;
+    img.src = '../images/histologie/' + c.f;
+    img.alt = 'Coupe réelle — ' + c.e.replace(/<[^>]+>/g, '');
+    const z = $('#hi-zoom'); if(z) z.dataset.photo = img.src;
+    const k = CREDIT_COUPES;
+    bac.innerHTML =
+      '<p style="font-size:12px; color:var(--gris); margin:9px 0 0"><b>Coupe réelle :</b> ' + c.e +
+      '. ' + c.leg + '</p>' +
+      '<p class="ro-credit">Photographie : ' + k.a + ' · ' +
+      '<a href="' + k.lu + '" target="_blank" rel="noopener">' + k.l + '</a> · ' +
+      '<a href="' + k.u + '" target="_blank" rel="noopener">la collection ↗</a></p>';
+  }
+
   $('#hi-org').addEventListener('change', () => {
-    organe = $('#hi-org').value; selection = null; dessine(); cle();
+    organe = $('#hi-org').value; selection = null; dessine(); cle(); rendReelle();
     if(mode === 'quiz') nouvelleQuestion(); else info(null);
   });
   segment($('#hi-color'), d => { coloration = d.c; dessine(); cle(); if(mode === 'obs') info(selection); });
@@ -4776,7 +4901,8 @@ function coupe(nom){
     ["À quoi servent les cellules bulliformes de la feuille de brome ?",
      "En perdant leur eau, elles se dégonflent et la feuille s'enroule sur elle-même. Les stomates se retrouvent enfermés dans le cylindre ainsi formé, ce qui limite fortement la transpiration en cas de sécheresse."]
   ]);
-  dessine(); cle();
+  dessine(); cle(); rendReelle();
+  activeComparateur($('#mod-histologie .ro-comp'));
   Labo.surAffichage.histologie = dessine;
 })();
 

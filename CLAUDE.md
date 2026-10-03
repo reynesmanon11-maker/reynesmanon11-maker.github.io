@@ -172,6 +172,16 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   cette altération finit par faire (`PAYSAGE_ALT` : lapiaz pour les carbonates,
   latérite pour le basalte). Le schéma du bécher reste : il montre la perte de
   masse, ce qu'aucune photographie ne ferait.
+- **L'histologie végétale a le même curseur** : le schéma cliquable à gauche,
+  une coupe réelle à droite (`COUPES_REELLES`, un fichier par organe dans
+  `images/histologie/`). Ces photographies viennent de la **Berkshire Community
+  College Bioscience Image Library**, en CC0 ; on cite quand même l'origine.
+  Deux honnêtetés à garder dans l'avertissement : **ce n'est pas la même
+  espèce** que celle du schéma (tournesol, maïs, renoncule, tilleul, lilas) et
+  **le colorant de la photographie ne suit pas le réglage** de gauche.
+  Particularité du comparateur côté biologie : on ne fait glisser que par la
+  poignée, jamais en cliquant dans l'image — sinon le clic qui identifie un
+  tissu ne passe plus.
 - **Chaque roche porte sa composition minéralogique** (champ `mineraux`), listée
   sous les résultats **en mode exploration seulement** : en roche mystère, elle
   donnerait la réponse avant le premier test. Le champ `min`, plus court, reste
