@@ -6,8 +6,8 @@
 <title>Laboratoire virtuel — Géologie au lycée</title>
 <meta name="description" content="Simulations de travaux pratiques de géologie au lycée : tri granulométrique et sédimentation, cristallisation et texture des roches magmatiques, viscosité des magmas et style éruptif, paillasse d'identification des roches, liste de matériel.">
 <meta name="theme-color" content="#a8660f">
-<link rel="icon" href="../favicon.svg?v=3" type="image/svg+xml">
-<link rel="icon" href="../favicon-32.png?v=3" sizes="32x32" type="image/png">
+<link rel="icon" href="../favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=4" sizes="32x32" type="image/png">
 <style>
 /* ===================== police, servie depuis ce site =====================
    Onest etait chargee depuis fonts.googleapis.com : l'adresse IP de chaque
@@ -531,6 +531,8 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 /* Le modèle et la photographie, superposés sous un même curseur : à gauche
    ce que calcule le programme, à droite ce que l'on verrait. */
 .mo-comp{ aspect-ratio:3/2; max-height:400px }
+/* la gouttière est un dispositif large et plat : sa boîte l'est aussi */
+.mo-comp.plat{ aspect-ratio:12/5 }
 .mo-comp .fond{ width:100%; height:100%; object-fit:cover }
 .mo-comp .dessus canvas{ width:100%; height:100%; display:block }
 .mo-comp .etiq.g{ cursor:default }
@@ -818,8 +820,19 @@ header.top .marque b{ letter-spacing:-.015em }
           <div class="mesure"><div class="t">Déposé</div><div class="v" id="se-m-d">0</div><div class="u">% de la masse</div></div>
           <div class="mesure"><div class="t">Sorti du bac</div><div class="v" id="se-m-s">0</div><div class="u">% de la masse</div></div>
         </div>
-        <canvas id="se-cv" height="250" style="width:100%; display:block; border-radius:11px"></canvas>
+        <figure class="ro-principale" style="margin:0">
+          <div class="ro-comp mo-comp plat" style="--x:52%">
+            <img class="fond" id="se-reel" src="" alt="">
+            <div class="dessus"><canvas id="se-cv"></canvas></div>
+            <span class="etiq g">Le modèle</span>
+            <button class="etiq d" id="se-zoom" data-photo="" title="Agrandir la photographie">En vrai</button>
+            <div class="poignee" role="slider" tabindex="0" aria-label="Curseur entre le modèle et la photographie"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="52"></div>
+          </div>
+        </figure>
+        <div id="se-terrain"></div>
         <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px" id="se-legende"></p>
+        <div id="se-roche"></div>
       </div>
 
       <div class="carte">
@@ -1649,429 +1662,6 @@ const CATALOGUE = [
 
 <script>
 /* ==========================================================================
-   MODULE SÉDIMENTATION — érosion, transport, dépôt
-   Deux lois, toutes deux classiques :
-   · vitesse de chute d'un grain — Stokes pour les fins, régime turbulent
-     pour les gros, on retient la plus petite des deux ;
-   · vitesse d'arrachement — ajustement de la courbe de Hjulström, avec sa
-     remontée vers les argiles due à la cohésion.
-   Les constantes donnent les bons ordres de grandeur, rien de plus.
-   ========================================================================== */
-const CLASSES = [
-  {id:'argile',  n:"Argile",         d:0.002, c:'#9a8d78'},
-  {id:'silt',    n:"Silt (limon)",   d:0.03,  c:'#c0ac8a'},
-  {id:'sfin',    n:"Sable fin",      d:0.15,  c:'#e2cb91'},
-  {id:'sgros',   n:"Sable grossier", d:0.7,   c:'#c9a15a'},
-  {id:'gravier', n:"Gravier",        d:5,     c:'#9e8566'},
-  {id:'galet',   n:"Galet",          d:30,    c:'#7b6f64'}
-];
-const MELANGES = {
-  alluvions:[10,20,25,25,15, 5],
-  sable:    [ 2, 6,62,26, 4, 0],
-  moraine:  [18,17,17,17,16,15],
-  limon:    [35,42,18, 5, 0, 0],
-  galets:   [ 2, 3,10,15,35,35]
-};
-/* vitesse de chute, en cm/s, pour un diamètre en mm */
-function vChute(dmm){
-  const d = dmm/1000;
-  const stokes = 1650*9.81*d*d/(18*1e-3);
-  const turbulent = 1.1*Math.sqrt(1.65*9.81*d);
-  return Math.min(stokes, turbulent)*100;
-}
-/* vitesse d'arrachement du fond, en cm/s (Hjulström ajusté) */
-function vArrache(dmm){
-  return Math.max(30*Math.sqrt(dmm), dmm < 0.3 ? 20*Math.pow(0.3/dmm, 0.4) : 0);
-}
-
-(function sedimentation(){
-  const cv = $('#se-cv'), hj = $('#se-hj');
-  if(!cv) return;
-  const NB = 64;
-  let v = 45, pente = 4, melange = 'alluvions', vegetal = 0, mode = 'gouttiere';
-  let marche = false, anim = null, particules = [], depot = [], sorti = 0, verse = 0;
-
-  function razDepot(){
-    depot = Array.from({length:NB}, () => CLASSES.map(() => 0));
-    particules = []; sorti = 0; verse = 0;
-  }
-  razDepot();
-
-  /* --- où se dépose une classe : 0 = tout en haut, 1 = sortie du bac --- */
-  const X_BASSIN = 0.42;
-  function fractionParcours(i){
-    const vc = vChute(CLASSES[i].d);
-    if(v <= vc) return 0;
-    const xf = borne((v/vc - 1)/9, 0, 1);
-    if(mode !== 'delta' || xf < X_BASSIN) return xf;
-    /* dans le bassin, le courant s'étale et meurt : ce qu'il portait encore
-       se dépose progressivement, les plus gros à l'embouchure */
-    return borne(X_BASSIN + 0.08*Math.log(v/vc), X_BASSIN, 1);
-  }
-  /* masse réellement mise en mouvement, le couvert végétal retenant le sol */
-  function masseMobilisee(){ return 1 - vegetal/100*0.85; }
-
-  /* ---------- état de chaque classe ---------- */
-  function etatClasse(i){
-    const c = CLASSES[i], vc = vChute(c.d), va = vArrache(c.d);
-    if(v >= va) return {e:'arrache', t:"arrachée", b:'orange'};
-    if(v > vc)  return {e:'transport', t:"transportée", b:'bleu'};
-    return {e:'depot', t:"déposée", b:'vert'};
-  }
-  function rendClasses(){
-    const p = MELANGES[melange];
-    $('#se-classes').innerHTML =
-      '<table class="tab"><thead><tr><th>Classe</th><th>Taille</th>' +
-      '<th>Seuils<br><span style="font-weight:400;text-transform:none">chute · arrachement</span></th>' +
-      '<th>Ici</th></tr></thead><tbody>' +
-      CLASSES.map((c,i) => {
-        const et = etatClasse(i);
-        return '<tr' + (p[i] ? '' : ' style="opacity:.4"') + '>' +
-          '<td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' +
-          c.c + ';margin-right:6px"></span>' + c.n + '</td>' +
-          '<td>' + (c.d < 1 ? fr(c.d,3) : fr(c.d,0)) + '&nbsp;mm</td>' +
-          '<td style="white-space:nowrap">' + fr(vChute(c.d), vChute(c.d)<1?2:0) +
-          ' <span style="color:var(--gris-clair)">·</span> ' + fr(vArrache(c.d),0) + '</td>' +
-          '<td><span class="badge ' + et.b + '">' + et.t + '</span></td></tr>';
-      }).join('') + '</tbody></table>' +
-      '<p style="font-size:11px; color:var(--gris-clair); margin-top:8px">' +
-      'Seuils en cm/s : vitesse de chute du grain, puis vitesse du courant qui l\'arrache du fond. ' +
-      '« Arrachée » veut dire que le courant suffit à la reprendre sur le fond ; « déposée » ' +
-      'qu\'elle tombe plus vite que le courant ne l\'emporte.</p>';
-  }
-
-  /* ---------- géométrie du dispositif ---------- */
-  function geom(l, h){
-    const x0 = 6, x1 = l-6, sol = h-26;
-    /* la pente réelle donnerait un trait presque horizontal : on l'exagère
-       verticalement pour que le dispositif se lise, et on le dit en légende */
-    const chute = borne(Math.tan(pente*Math.PI/180)*(x1-x0)*1.6, 16, h-104);
-    const yHaut = borne(sol - chute, 26, sol-2);
-    const xBassin = mode === 'delta' ? x0 + (x1-x0)*X_BASSIN : x1;
-    return {x0, x1, sol, yHaut, xBassin};
-  }
-  function ySol(g, xf){          /* xf : 0 → 1 sur la largeur utile */
-    const xb = (g.xBassin - g.x0)/(g.x1 - g.x0);
-    if(mode === 'delta' && xf > xb) return g.sol;
-    const t = mode === 'delta' ? xf/xb : xf;
-    return g.yHaut + (g.sol - g.yHaut)*t;
-  }
-
-  /* ---------- tracé ---------- */
-  function dessine(){
-    const {ctx, l, h} = dimensionne(cv, 250);
-    const g = geom(l, h);
-    /* fond */
-    ctx.fillStyle = '#eef2f4'; ctx.fillRect(0,0,l,h);
-    /* corps de la gouttière, sous le fond */
-    ctx.beginPath();
-    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
-    ctx.lineTo(g.x1, h); ctx.lineTo(g.x0, h); ctx.closePath();
-    ctx.fillStyle = '#ded8cc'; ctx.fill();
-    /* lame d'eau : une hauteur constante au-dessus du fond */
-    const EAU = mode === 'delta' ? 34 : 46;
-    ctx.beginPath();
-    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)-EAU):ctx.moveTo(x,ySol(g,xf)-EAU); }
-    for(let i=NB;i>=0;i--){ const xf=i/NB; ctx.lineTo(g.x0+(g.x1-g.x0)*xf, ySol(g,xf)); }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(120,175,205,.34)'; ctx.fill();
-    if(mode === 'delta'){
-      /* le bassin : une tranche d'eau bien plus épaisse, où le courant meurt */
-      ctx.fillStyle = 'rgba(120,175,205,.34)';
-      ctx.fillRect(g.xBassin, g.sol-96, g.x1-g.xBassin, 96);
-      ctx.strokeStyle = 'rgba(70,130,170,.6)'; ctx.lineWidth = 1.2;
-      ctx.beginPath(); ctx.moveTo(g.xBassin, g.sol-96); ctx.lineTo(g.x1, g.sol-96); ctx.stroke();
-    }
-    /* dépôt : lissé sur cinq cases et empilé de la classe la plus grossière à
-       la plus fine, pour obtenir un banc et non un histogramme */
-    const liss = [];
-    for(let i=0;i<NB;i++) liss[i] = CLASSES.map((c,k) => {
-      let som = 0, n = 0;
-      for(let j=Math.max(0,i-2); j<=Math.min(NB-1,i+2); j++){ som += depot[j][k]; n++; }
-      return Math.min(som/n*1.7, 58);
-    });
-    const cumul = new Array(NB).fill(0);
-    for(let k=CLASSES.length-1;k>=0;k--){
-      if(liss.every(col => col[k] < 0.4)) continue;
-      ctx.beginPath();
-      for(let i=0;i<NB;i++){
-        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
-        const y=ySol(g,xf)-cumul[i]-liss[i][k];
-        i?ctx.lineTo(x,y):ctx.moveTo(x,y);
-      }
-      for(let i=NB-1;i>=0;i--){
-        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
-        ctx.lineTo(x, ySol(g,xf)-cumul[i]);
-      }
-      ctx.closePath();
-      ctx.fillStyle = CLASSES[k].c; ctx.fill();
-      for(let i=0;i<NB;i++) cumul[i] += liss[i][k];
-    }
-    /* fond de la gouttière */
-    ctx.beginPath();
-    for(let i=0;i<=NB;i++){ const xf=i/NB; const x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
-    ctx.strokeStyle = '#8d8579'; ctx.lineWidth = 2; ctx.stroke();
-    /* talus végétalisé */
-    if(vegetal > 0){
-      ctx.strokeStyle = '#4b8a5e'; ctx.lineWidth = 1.4;
-      const n = Math.round(vegetal/8);
-      for(let i=0;i<n;i++){
-        const xf = 0.02 + i/(n*1.35), x = g.x0+(g.x1-g.x0)*xf, y = ySol(g,xf);
-        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-3,y-9); ctx.moveTo(x,y); ctx.lineTo(x+3,y-8);
-        ctx.moveTo(x,y); ctx.lineTo(x,y-11); ctx.stroke();
-      }
-    }
-    /* grains en mouvement */
-    particules.forEach(p => {
-      const xf = borne(p.x,0,1), x = g.x0+(g.x1-g.x0)*xf;
-      ctx.beginPath();
-      ctx.arc(x, ySol(g,xf)-10-p.h, 1.6+Math.log10(CLASSES[p.k].d*1000)*0.9, 0, Math.PI*2);
-      ctx.fillStyle = CLASSES[p.k].c; ctx.fill();
-    });
-    /* repères */
-    ctx.fillStyle = '#6f6a60'; ctx.font = '11px system-ui,sans-serif';
-    ctx.fillText('amont', g.x0+4, 16);
-    ctx.textAlign = 'right'; ctx.fillText(mode==='delta' ? 'bassin' : 'aval', g.x1-4, 16);
-    ctx.textAlign = 'left';
-    ctx.fillStyle = 'rgba(47,107,168,.85)';
-    ctx.fillText('courant ' + v + ' cm/s', g.x0+4, 32);
-  }
-
-  /* ---------- animation ---------- */
-  function pasAnim(){
-    const p = MELANGES[melange], mob = masseMobilisee();
-    /* on verse régulièrement le mélange en tête */
-    if(verse < 100){
-      const lot = Math.min(2.2, 100 - verse);   /* la dernière louche complète juste les 100 % */
-      verse += lot;
-      CLASSES.forEach((c,k) => {
-        const part = p[k]/100*lot*mob;
-        if(part <= 0) return;
-        for(let i=0;i<Math.max(1,Math.round(part*1.6));i++)
-          particules.push({x:0.01, k, h:Math.random()*14, m:part/Math.max(1,Math.round(part*1.6))});
-      });
-    }
-    /* déplacement et dépôt */
-    const restantes = [];
-    particules.forEach(part => {
-      const xf = fractionParcours(part.k);
-      part.x += 0.012 + v/2600;
-      if(part.x >= xf){
-        /* une classe que le courant porte jusqu'au bout quitte le dispositif :
-           elle ne doit pas s'entasser dans la dernière case du dépôt */
-        if(xf >= 0.995){ sorti += part.m; return; }
-        /* les grains d'une même classe ne tombent pas tous au même point :
-           sans cette dispersion le dépôt serait une barre et non un banc */
-        const xr = xf + (Math.random()-0.5)*Math.max(0.13, xf*0.5);
-        /* ce que la dispersion pousse au-delà du bord quitte le dispositif :
-           sans cela les grains s'entasseraient contre la dernière case */
-        if(xr >= 0.98){ sorti += part.m; return; }
-        const bin = borne(Math.floor(Math.max(0,xr)*NB), 0, NB-1);
-        depot[bin][part.k] += part.m*4.2;
-        return;
-      }
-      part.h *= 0.97;
-      restantes.push(part);
-    });
-    particules = restantes;
-    dessine(); majMesures();
-    if(verse >= 100 && !particules.length){ marche = false; $('#se-go').textContent = "Ouvrir l'eau"; }
-    if(marche) anim = requestAnimationFrame(pasAnim);
-  }
-
-  function majMesures(){
-    const p = MELANGES[melange], mob = masseMobilisee();
-    let dep = 0;
-    depot.forEach(col => col.forEach(m => dep += m/4.2));
-    const enVol = particules.reduce((s,x)=>s+x.m, 0);
-    $('#se-m-v').textContent = v;
-    $('#se-m-t').textContent = Math.round(enVol);
-    $('#se-m-d').textContent = Math.round(dep);
-    $('#se-m-s').textContent = Math.round(sorti);
-    /* légende du tri obtenu */
-    const ordre = CLASSES.map((c,i)=>({n:c.n, x:fractionParcours(i), p:p[i]})).filter(o=>o.p>0);
-    ordre.sort((a,b)=>a.x-b.x);
-    $('#se-legende').textContent = ordre.length
-      ? "De l'amont vers l'aval : " + ordre.map(o => o.n.toLowerCase() + (o.x>=0.995?' (exporté)':'')).join(', ') +
-        ". La pente du dessin est exagérée verticalement pour rester lisible."
-      : '';
-    Labo.note('sediment', 'Courant réglé', v + ' cm/s');
-    Labo.note('sediment', 'Masse exportée hors du bac', Math.round(sorti) + ' %');
-    const argile = etatClasse(0);
-    Labo.note('sediment', "Sort de l'argile", argile.t);
-  }
-
-  /* ---------- diagramme de Hjulström ---------- */
-  function dessineHj(){
-    const {ctx, l, h} = dimensionne(hj, 260);
-    const mg = 44, md = 10, mh = 12, mb = 30;
-    const X = d => mg + (Math.log10(d)+3)/5*(l-mg-md);        /* 0,001 → 100 mm */
-    const Y = w => h-mb - (Math.log10(w)+1)/4*(h-mh-mb);      /* 0,1 → 1000 cm/s */
-    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
-    fondGraphe(ctx, hj, mg, mh, l-mg-md, h-mh-mb);
-    /* grille */
-    ctx.strokeStyle = '#eee8dd'; ctx.lineWidth = 1;
-    ctx.fillStyle = '#a9a294'; ctx.font = '10px system-ui,sans-serif';
-    for(let e=-3;e<=2;e++){
-      const x = X(Math.pow(10,e));
-      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
-      ctx.textAlign='center';
-      ctx.fillText(e<0 ? '0,'+'0'.repeat(-e-1)+'1' : String(Math.pow(10,e)), x, h-mb+13);
-    }
-    for(let e=-1;e<=3;e++){
-      const y = Y(Math.pow(10,e));
-      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
-      ctx.textAlign='right';
-      ctx.fillText(e<0 ? '0,1' : String(Math.pow(10,e)), mg-6, y+3);
-    }
-    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
-    ctx.fillText('taille des grains (mm)', (mg+l-md)/2, h-6);
-    ctx.save(); ctx.translate(11, (mh+h-mb)/2); ctx.rotate(-Math.PI/2);
-    ctx.fillText('vitesse du courant (cm/s)', 0, 0); ctx.restore();
-    /* deux courbes */
-    const courbe = (f, coul, larg) => {
-      ctx.beginPath();
-      for(let i=0;i<=160;i++){
-        const d = Math.pow(10, -3 + i/160*5), x = X(d), y = Y(Math.max(0.1, f(d)));
-        i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
-      }
-      ctx.strokeStyle = coul; ctx.lineWidth = larg; ctx.stroke();
-    };
-    courbe(vArrache, '#c0392b', 2.2);
-    courbe(vChute,   '#2f6ba8', 2.2);
-    /* zones */
-    ctx.font = '600 11px system-ui,sans-serif';
-    ctx.fillStyle = 'rgba(192,57,43,.85)';  ctx.fillText('ÉROSION',  mg+58, mh+16);
-    ctx.fillStyle = 'rgba(47,107,168,.85)'; ctx.fillText('TRANSPORT', (mg+l-md)/2, h-mb-52);
-    ctx.fillStyle = 'rgba(63,125,95,.9)';   ctx.fillText('DÉPÔT', l-md-52, h-mb-12);
-    /* courant réglé */
-    if(v > 0){
-      const y = Y(Math.max(0.1,v));
-      ctx.setLineDash([5,4]); ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.4;
-      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke(); ctx.setLineDash([]);
-    }
-    /* les classes du mélange */
-    const p = MELANGES[melange];
-    CLASSES.forEach((c,i) => {
-      if(!p[i]) return;
-      const x = X(c.d), y = Y(Math.max(0.1,v));
-      ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2);
-      ctx.fillStyle = c.c; ctx.fill();
-      ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.2; ctx.stroke();
-    });
-  }
-
-  /* ---------- interface ---------- */
-  function maj(){
-    $('#se-debit-v').textContent = v + ' cm/s';
-    $('#se-pente-v').textContent = pente + '°';
-    rendClasses(); dessine(); dessineHj(); majMesures();
-    const p = MELANGES[melange];
-    const exportees = CLASSES.filter((c,i)=>p[i] && fractionParcours(i) >= 0.995).map(c=>c.n.toLowerCase());
-    const bloquees  = CLASSES.filter((c,i)=>p[i] && v < vArrache(c.d)).map(c=>c.n.toLowerCase());
-    $('#se-note').innerHTML =
-      (exportees.length ? "<b>Quitte le bac :</b> " + exportees.join(', ') + ". " : "") +
-      (bloquees.length ? "<b>Que le courant ne peut pas reprendre sur le fond :</b> " +
-        bloquees.join(', ') + ". " : "") +
-      (vegetal ? "Le couvert végétal retient " + Math.round(vegetal*0.85) + " % du sol du talus." :
-        "Sol nu : tout le matériau est mobilisable.");
-  }
-  $('#se-debit').addEventListener('input', e => { v = +e.target.value; maj(); });
-  $('#se-pente').addEventListener('input', e => { pente = +e.target.value; maj(); });
-  $('#se-melange').addEventListener('change', e => { melange = e.target.value; razDepot(); maj(); });
-  segment($('#se-vegetal'), d => { vegetal = +d.v; razDepot(); maj(); });
-  segment($('#se-mode'), d => { mode = d.m; razDepot(); maj(); });
-  $('#se-go').addEventListener('click', () => {
-    marche = !marche;
-    $('#se-go').textContent = marche ? "Fermer l'eau" : "Ouvrir l'eau";
-    if(marche){ if(verse >= 100 && !particules.length) razDepot(); pasAnim(); }
-    else cancelAnimationFrame(anim);
-  });
-  $('#se-vider').addEventListener('click', () => {
-    marche = false; cancelAnimationFrame(anim); $('#se-go').textContent = "Ouvrir l'eau";
-    razDepot(); maj();
-  });
-
-  $('#se-questions').innerHTML = blocQuestions([
-    ["Pourquoi les graviers se déposent-ils près de l'amont et les sables fins beaucoup plus loin ?",
-     "Un grain se dépose quand le courant ne le soutient plus, c'est-à-dire quand sa vitesse de chute dépasse ce que le courant peut compenser. Un gravier tombe à environ 30 cm/s, un sable fin à 2 cm/s : le premier est abandonné tout de suite, le second voyage quinze fois plus loin. C'est le tri granulométrique, et c'est pourquoi on lit le régime d'un cours d'eau ancien dans la taille de ses dépôts."],
-    ["Réglez le courant à 100 cm/s. L'argile est-elle emportée ? Est-elle arrachée du fond ?",
-     "Les deux réponses diffèrent, et c'est tout l'intérêt du diagramme. Une argile déjà en suspension est emportée dès quelques millimètres par seconde. Mais pour l'arracher du fond il faut dépasser environ 150 cm/s, parce que les particules d'argile se collent entre elles. Le sable fin, lui, s'arrache dès 25 cm/s : il est plus fragile qu'une argile, alors qu'il est plus gros."],
-    ["Que change le couvert végétal ?",
-     "Il retient le sol : la masse mise en mouvement diminue fortement, jusqu'à environ 85 % avec une prairie dense. Les racines maintiennent les agrégats et les feuilles amortissent l'impact des gouttes. C'est l'argument central des haies, des couverts d'hiver et du maintien de la ripisylve."],
-    ["Passez en mode « bac à delta ». Où se dépose le sable, où se dépose l'argile ?",
-     "À l'entrée du bassin le courant s'étale et ralentit brutalement : les sables sont abandonnés en un éventail juste à l'embouchure, tandis que les argiles poursuivent en suspension et se déposent bien plus loin, dans les eaux calmes. Un delta est donc trié de la même façon, mais dans l'espace : sables à l'amont, argiles au large."],
-    ["Augmentez la pente sans toucher au débit. Le tri change-t-il ?",
-     "Dans ce modèle, la pente change la géométrie du dépôt mais pas les seuils, qui ne dépendent que de la vitesse du courant. Dans une vraie gouttière, augmenter la pente augmente la vitesse : c'est pourquoi les deux réglages sont séparés ici, pour faire apparaître que c'est bien la vitesse, et non la pente en elle-même, qui commande le tri."]
-  ]);
-
-  Labo.surAffichage.sediment = () => { dessine(); dessineHj(); };
-  maj();
-})();
-</script>
-
-<script>
-/* ==========================================================================
-   MODULE CRISTALLISATION — vitesse de refroidissement, taille, texture
-   d (mm) = 0,37 × R^(−0,283), R en °C/h. L'exposant est proche du −1/3
-   habituellement retenu ; la constante est calée sur deux repères, un pluton
-   granitique et une coulée basaltique. Le nom de la roche, lui, ne doit rien
-   au calcul : c'est le tableau à double entrée de la pétrographie.
-   ========================================================================== */
-const LIEUX = {
-  pluton:   {R:1e-5,  n:"Pluton profond",        d:"10 km de profondeur, refroidi en ~1 million d'années"},
-  laccolite:{R:1e-3,  n:"Petit massif intrusif", d:"2 km, quelques milliers d'années"},
-  filon:    {R:0.5,   n:"Filon de quelques mètres", d:"quelques mois"},
-  coulee:   {R:50,    n:"Coulée de lave à l'air", d:"quelques jours"},
-  bombe:    {R:8000,  n:"Projection en l'air",   d:"quelques minutes"},
-  trempe:   {R:1e5,   n:"Lave entrant dans l'eau", d:"quelques secondes"}
-};
-const TEXTURES = [
-  {min:1,     id:'grenue',       n:"Grenue",        e:"tous les cristaux visibles à l'œil nu"},
-  {min:0.3,   id:'microgrenue',  n:"Microgrenue",   e:"cristaux visibles à la loupe seulement"},
-  {min:0.03,  id:'microlithique',n:"Microlithique", e:"microlites baignant dans du verre"},
-  {min:0,     id:'vitreuse',     n:"Vitreuse",      e:"pas de cristal : le magma a été figé"}
-];
-/* Le tableau à double entrée nomme une roche ; à chacune de ses cases répond
-   une lame mince photographiée à la lithothèque de l'ENS de Lyon. C'est en les
-   parcourant, du verre figé au cristal centimétrique, qu'on voit la
-   cristallisation avancer. Deux cases restent vides : la microdiorite et le
-   verre andésitique n'ont pas de lame là-bas, et mettre une roche voisine à
-   leur place serait mentir.
-     id : la lame de la case.  ph : sa variante porphyrique, montrée quand on
-     coche les phénocristaux.  p : la précision à donner quand l'échantillon
-     photographié ne porte pas exactement le nom de la case. */
-const LAMES_CRISTAL = {
-  'grenue.f':        {id:'granite'},
-  'grenue.i':        {id:'diorite',      p:"la diorite « pied de poule » de la Parata"},
-  'grenue.m':        {id:'gabbro'},
-  'microgrenue.f':   {id:'microgranite', p:"un granophyre d'Islande, faute de microgranite à la lithothèque"},
-  'microgrenue.i':   {},
-  'microgrenue.m':   {id:'dolerite'},
-  'microlithique.f': {id:'rhyolite'},
-  'microlithique.i': {id:'andesite',     ph:'andesite-porphyrique'},
-  'microlithique.m': {id:'basalte',      ph:'basalte-porphyrique'},
-  'vitreuse.f':      {id:'obsidienne'},
-  'vitreuse.i':      {},
-  'vitreuse.m':      {id:'tachylite',    p:"une hyaloclastite : du verre basaltique trempé dans l'eau"}
-};
-/* L'échantillon de main que l'on montre sous la lame, quand le catalogue en a un. */
-const ROCHE_DU_NOM = {
-  'Granite':'granite', 'Diorite':'diorite', 'Gabbro':'gabbro',
-  'Dolérite':'dolerite', 'Rhyolite':'rhyolite', 'Andésite':'andesite',
-  'Basalte':'basalte', 'Obsidienne':'obsidienne',
-  'Verre basaltique (tachylite)':'tachylite'
-};
-const NOMS = {
-  grenue:       {f:"Granite",     i:"Diorite",      m:"Gabbro"},
-  microgrenue:  {f:"Microgranite",i:"Microdiorite", m:"Dolérite"},
-  microlithique:{f:"Rhyolite",    i:"Andésite",     m:"Basalte"},
-  vitreuse:     {f:"Obsidienne",  i:"Verre andésitique", m:"Verre basaltique (tachylite)"}
-};
-const chimie = s => s >= 66 ? 'f' : s >= 52 ? 'i' : 'm';
-const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafique (pauvre en silice)"};
-
-/* ==========================================================================
    PHOTOGRAPHIES DES ROCHES — machinerie commune
    La paillasse d'identification et le module de cristallisation montrent les
    mêmes clichés : le chargement, le comparateur et le crédit sont donc ici,
@@ -2207,6 +1797,24 @@ const TERRAIN = {
     leg:"Une nuée ardente dévalant le flanc du Mayon (Philippines) : un mélange de gaz brûlants, de cendres et de blocs qui descend à plus de cent kilomètres par heure, en épousant le relief.",
     v:"https://commons.wikimedia.org/wiki/File:Tongan_Eruption_Ripples_Around_the_Globe.webm",
     vl:"L'éruption du Hunga Tonga en 2022 vue par satellite — NOAA, domaine public"},
+  vase: {f:'vase.jpg', a:"Hannes Grobe", l:"CC BY-SA 2.5",
+    u:"https://commons.wikimedia.org/wiki/File:Desiccation-cracks_hg.jpg",
+    leg:"Des fentes de dessiccation dans une vase. Il n'y a plus de courant du tout : les argiles, restées en suspension jusque-là, ont fini par se déposer, puis ont craquelé en séchant."},
+  rides: {f:'rides.jpg', a:"Hans Hillewaert", l:"CC BY-SA 3.0",
+    u:"https://commons.wikimedia.org/wiki/File:Sand_ripple_marks.jpg",
+    leg:"Des rides de courant dans un sable fin. Les grains roulent sur le fond et s'organisent d'eux-mêmes en vagues, perpendiculaires à l'écoulement — la même figure se fossilise dans les grès."},
+  tresses: {f:'tresses.jpg', a:"Tangopaso", l:"Domaine public",
+    u:"https://commons.wikimedia.org/wiki/File:Giffre_as_braided_river.jpg",
+    leg:"Le Giffre, rivière en tresses (Haute-Savoie). Le courant transporte plus de graviers qu'il n'en peut porter : il les abandonne en bancs, se divise, et recommence un peu plus loin."},
+  blocs: {f:'blocs.jpg', a:"Walter Siegmund", l:"CC BY-SA 3.0",
+    u:"https://commons.wikimedia.org/wiki/File:White_River_5965.JPG",
+    leg:"La White River (État de Washington) en crue glaciaire. À cette vitesse, même les galets et les blocs roulent : le lit s'élargit en une plaine de cailloux, et il ne reste aucun sédiment fin."},
+  delta: {f:'delta.jpg', a:"kallerna", l:"CC BY-SA 4.0",
+    u:"https://commons.wikimedia.org/wiki/File:Po_River_Delta_aerial_1.jpg",
+    leg:"Le delta du Pô, vu d'avion. Le fleuve entre dans la mer, son courant meurt d'un coup : il dépose tout ce qu'il portait, le plus grossier d'abord, et construit sa propre plaine."},
+  granoclassement: {f:'granoclassement.jpg', a:"Osumi Akari", l:"CC BY-SA 4.0",
+    u:"https://commons.wikimedia.org/wiki/File:Graded-bedding_with_hammer_in_Hamamoroiso_Miura.jpg",
+    leg:"Un granoclassement fossilisé (Miura, Japon) : les gros éléments au bas du lit, les fins au sommet. C'est le tri de la gouttière, figé dans la roche — chaque lit raconte un courant qui a faibli."},
   lapiaz: {f:'lapiaz.jpg', a:"Parchaco", l:"CC0",
     u:"https://commons.wikimedia.org/wiki/File:Lapiaz_in_Sulegg.jpg",
     leg:"Un lapiaz (Sulegg, Suisse). Le calcaire est parti en solution le long des fissures, et il n'a presque rien laissé : pas de sable, pas de sol — la roche nue, creusée."},
@@ -2259,6 +1867,514 @@ document.addEventListener('click', e => {
   o.addEventListener('click', () => o.remove());
   document.body.appendChild(o);
 });
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE SÉDIMENTATION — érosion, transport, dépôt
+   Deux lois, toutes deux classiques :
+   · vitesse de chute d'un grain — Stokes pour les fins, régime turbulent
+     pour les gros, on retient la plus petite des deux ;
+   · vitesse d'arrachement — ajustement de la courbe de Hjulström, avec sa
+     remontée vers les argiles due à la cohésion.
+   Les constantes donnent les bons ordres de grandeur, rien de plus.
+   ========================================================================== */
+/* Le courant réglé place le dispositif quelque part entre une vase immobile et
+   un torrent qui roule des blocs. À chaque régime répond un paysage réel. */
+const REGIMES = [
+  {max:8,   ph:'vase',    n:"Eau dormante : seules les argiles se déposent"},
+  {max:25,  ph:'rides',   n:"Le sable fin roule et se met en rides"},
+  {max:70,  ph:'tresses', n:"Graviers en bancs : la rivière tresse son lit"},
+  {max:999, ph:'blocs',   n:"Galets et blocs roulent : lit de cailloux"}
+];
+/* La roche que ce dépôt-là finira par devenir, quand il sera enfoui et cimenté. */
+const ROCHE_DU_DEPOT = {
+  galet:  {id:'conglomerat', n:"Conglomérat", q:"des galets arrondis pris dans un ciment : la roche garde la taille et la forme que le courant leur avait données."},
+  gravier:{id:'conglomerat', n:"Conglomérat", q:"des galets arrondis pris dans un ciment : la roche garde la taille et la forme que le courant leur avait données."},
+  sgros:  {id:'gres',        n:"Grès",        q:"des grains de sable soudés : on les voit encore un par un à la loupe, et on sent la roche râper sous l'ongle."},
+  sfin:   {id:'gres',        n:"Grès",        q:"des grains de sable soudés : on les voit encore un par un à la loupe, et on sent la roche râper sous l'ongle."},
+  silt:   {id:'marne',       n:"Marne",       q:"un mélange d'argile et de calcaire, tendre, qui se débite en plaquettes et fait effervescence."},
+  argile: {id:'marne',       n:"Marne",       q:"un mélange d'argile et de calcaire, tendre, qui se débite en plaquettes et fait effervescence."}
+};
+const CLASSES = [
+  {id:'argile',  n:"Argile",         d:0.002, c:'#9a8d78'},
+  {id:'silt',    n:"Silt (limon)",   d:0.03,  c:'#c0ac8a'},
+  {id:'sfin',    n:"Sable fin",      d:0.15,  c:'#e2cb91'},
+  {id:'sgros',   n:"Sable grossier", d:0.7,   c:'#c9a15a'},
+  {id:'gravier', n:"Gravier",        d:5,     c:'#9e8566'},
+  {id:'galet',   n:"Galet",          d:30,    c:'#7b6f64'}
+];
+const MELANGES = {
+  alluvions:[10,20,25,25,15, 5],
+  sable:    [ 2, 6,62,26, 4, 0],
+  moraine:  [18,17,17,17,16,15],
+  limon:    [35,42,18, 5, 0, 0],
+  galets:   [ 2, 3,10,15,35,35]
+};
+/* vitesse de chute, en cm/s, pour un diamètre en mm */
+function vChute(dmm){
+  const d = dmm/1000;
+  const stokes = 1650*9.81*d*d/(18*1e-3);
+  const turbulent = 1.1*Math.sqrt(1.65*9.81*d);
+  return Math.min(stokes, turbulent)*100;
+}
+/* vitesse d'arrachement du fond, en cm/s (Hjulström ajusté) */
+function vArrache(dmm){
+  return Math.max(30*Math.sqrt(dmm), dmm < 0.3 ? 20*Math.pow(0.3/dmm, 0.4) : 0);
+}
+
+(function sedimentation(){
+  const cv = $('#se-cv'), hj = $('#se-hj');
+  if(!cv) return;
+  const NB = 64;
+  let v = 45, pente = 4, melange = 'alluvions', vegetal = 0, mode = 'gouttiere';
+  let marche = false, anim = null, particules = [], depot = [], sorti = 0, verse = 0;
+
+  function razDepot(){
+    depot = Array.from({length:NB}, () => CLASSES.map(() => 0));
+    particules = []; sorti = 0; verse = 0;
+  }
+  razDepot();
+
+  /* --- où se dépose une classe : 0 = tout en haut, 1 = sortie du bac --- */
+  const X_BASSIN = 0.42;
+  function fractionParcours(i){
+    const vc = vChute(CLASSES[i].d);
+    if(v <= vc) return 0;
+    const xf = borne((v/vc - 1)/9, 0, 1);
+    if(mode !== 'delta' || xf < X_BASSIN) return xf;
+    /* dans le bassin, le courant s'étale et meurt : ce qu'il portait encore
+       se dépose progressivement, les plus gros à l'embouchure */
+    return borne(X_BASSIN + 0.08*Math.log(v/vc), X_BASSIN, 1);
+  }
+  /* masse réellement mise en mouvement, le couvert végétal retenant le sol */
+  function masseMobilisee(){ return 1 - vegetal/100*0.85; }
+
+  /* ---------- état de chaque classe ---------- */
+  function etatClasse(i){
+    const c = CLASSES[i], vc = vChute(c.d), va = vArrache(c.d);
+    if(v >= va) return {e:'arrache', t:"arrachée", b:'orange'};
+    if(v > vc)  return {e:'transport', t:"transportée", b:'bleu'};
+    return {e:'depot', t:"déposée", b:'vert'};
+  }
+  function rendClasses(){
+    const p = MELANGES[melange];
+    $('#se-classes').innerHTML =
+      '<table class="tab"><thead><tr><th>Classe</th><th>Taille</th>' +
+      '<th>Seuils<br><span style="font-weight:400;text-transform:none">chute · arrachement</span></th>' +
+      '<th>Ici</th></tr></thead><tbody>' +
+      CLASSES.map((c,i) => {
+        const et = etatClasse(i);
+        return '<tr' + (p[i] ? '' : ' style="opacity:.4"') + '>' +
+          '<td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:' +
+          c.c + ';margin-right:6px"></span>' + c.n + '</td>' +
+          '<td>' + (c.d < 1 ? fr(c.d,3) : fr(c.d,0)) + '&nbsp;mm</td>' +
+          '<td style="white-space:nowrap">' + fr(vChute(c.d), vChute(c.d)<1?2:0) +
+          ' <span style="color:var(--gris-clair)">·</span> ' + fr(vArrache(c.d),0) + '</td>' +
+          '<td><span class="badge ' + et.b + '">' + et.t + '</span></td></tr>';
+      }).join('') + '</tbody></table>' +
+      '<p style="font-size:11px; color:var(--gris-clair); margin-top:8px">' +
+      'Seuils en cm/s : vitesse de chute du grain, puis vitesse du courant qui l\'arrache du fond. ' +
+      '« Arrachée » veut dire que le courant suffit à la reprendre sur le fond ; « déposée » ' +
+      'qu\'elle tombe plus vite que le courant ne l\'emporte.</p>';
+  }
+
+  /* ---------- géométrie du dispositif ---------- */
+  function geom(l, h){
+    /* tout est en proportion de la boîte : le comparateur change de hauteur
+       avec la largeur de l'écran, le dispositif doit suivre */
+    const x0 = 6, x1 = l-6;
+    /* la pente réelle donnerait un trait presque horizontal : on l'exagère
+       verticalement pour que le dispositif se lise, et on le dit en légende.
+       La gouttière est centrée sur la boîte : à pente faible elle se contente
+       du milieu, à pente forte elle occupe toute la hauteur. */
+    const chute = borne(Math.tan(pente*Math.PI/180)*(x1-x0)*1.6, h*0.06, h*0.46);
+    const milieu = h*0.60;
+    const yHaut = milieu - chute/2, sol = milieu + chute/2;
+    const xBassin = mode === 'delta' ? x0 + (x1-x0)*X_BASSIN : x1;
+    return {x0, x1, sol, yHaut, xBassin};
+  }
+  function ySol(g, xf){          /* xf : 0 → 1 sur la largeur utile */
+    const xb = (g.xBassin - g.x0)/(g.x1 - g.x0);
+    if(mode === 'delta' && xf > xb) return g.sol;
+    const t = mode === 'delta' ? xf/xb : xf;
+    return g.yHaut + (g.sol - g.yHaut)*t;
+  }
+
+  /* ---------- tracé ---------- */
+  function dessine(){
+    /* le canevas épouse la boîte du comparateur, qui change de hauteur avec
+       la largeur de l'écran : on la relit à chaque tracé */
+    const boite = cv.parentElement;
+    const hb = Math.round(boite.clientHeight || 0);
+    if(hb < 60) return;
+    const {ctx, l, h} = dimensionne(cv, hb);
+    const g = geom(l, h);
+    /* fond */
+    ctx.fillStyle = '#eef2f4'; ctx.fillRect(0,0,l,h);
+    /* corps de la gouttière, sous le fond */
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
+    ctx.lineTo(g.x1, h); ctx.lineTo(g.x0, h); ctx.closePath();
+    ctx.fillStyle = '#ded8cc'; ctx.fill();
+    /* lame d'eau : une hauteur constante au-dessus du fond */
+    const EAU = h * (mode === 'delta' ? 0.15 : 0.20);
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB, x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)-EAU):ctx.moveTo(x,ySol(g,xf)-EAU); }
+    for(let i=NB;i>=0;i--){ const xf=i/NB; ctx.lineTo(g.x0+(g.x1-g.x0)*xf, ySol(g,xf)); }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(120,175,205,.34)'; ctx.fill();
+    if(mode === 'delta'){
+      /* le bassin : une tranche d'eau bien plus épaisse, où le courant meurt */
+      ctx.fillStyle = 'rgba(120,175,205,.34)';
+      const hb = h*0.42;
+      ctx.fillRect(g.xBassin, g.sol-hb, g.x1-g.xBassin, hb);
+      ctx.strokeStyle = 'rgba(70,130,170,.6)'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(g.xBassin, g.sol-hb); ctx.lineTo(g.x1, g.sol-hb); ctx.stroke();
+    }
+    /* dépôt : lissé sur cinq cases et empilé de la classe la plus grossière à
+       la plus fine, pour obtenir un banc et non un histogramme */
+    const liss = [];
+    for(let i=0;i<NB;i++) liss[i] = CLASSES.map((c,k) => {
+      let som = 0, n = 0;
+      for(let j=Math.max(0,i-2); j<=Math.min(NB-1,i+2); j++){ som += depot[j][k]; n++; }
+      return Math.min(som/n*1.7*(h/250), h*0.24);
+    });
+    const cumul = new Array(NB).fill(0);
+    for(let k=CLASSES.length-1;k>=0;k--){
+      if(liss.every(col => col[k] < 0.4)) continue;
+      ctx.beginPath();
+      for(let i=0;i<NB;i++){
+        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
+        const y=ySol(g,xf)-cumul[i]-liss[i][k];
+        i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+      }
+      for(let i=NB-1;i>=0;i--){
+        const xf=(i+0.5)/NB, x=g.x0+(g.x1-g.x0)*xf;
+        ctx.lineTo(x, ySol(g,xf)-cumul[i]);
+      }
+      ctx.closePath();
+      ctx.fillStyle = CLASSES[k].c; ctx.fill();
+      for(let i=0;i<NB;i++) cumul[i] += liss[i][k];
+    }
+    /* fond de la gouttière */
+    ctx.beginPath();
+    for(let i=0;i<=NB;i++){ const xf=i/NB; const x=g.x0+(g.x1-g.x0)*xf; i?ctx.lineTo(x,ySol(g,xf)):ctx.moveTo(x,ySol(g,xf)); }
+    ctx.strokeStyle = '#8d8579'; ctx.lineWidth = 2; ctx.stroke();
+    /* talus végétalisé */
+    if(vegetal > 0){
+      ctx.strokeStyle = '#4b8a5e'; ctx.lineWidth = 1.4;
+      const n = Math.round(vegetal/8);
+      for(let i=0;i<n;i++){
+        const xf = 0.02 + i/(n*1.35), x = g.x0+(g.x1-g.x0)*xf, y = ySol(g,xf);
+        ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-3,y-9); ctx.moveTo(x,y); ctx.lineTo(x+3,y-8);
+        ctx.moveTo(x,y); ctx.lineTo(x,y-11); ctx.stroke();
+      }
+    }
+    /* grains en mouvement */
+    particules.forEach(p => {
+      const xf = borne(p.x,0,1), x = g.x0+(g.x1-g.x0)*xf;
+      ctx.beginPath();
+      ctx.arc(x, ySol(g,xf)-h*0.045-p.h, 1.6+Math.log10(CLASSES[p.k].d*1000)*0.9, 0, Math.PI*2);
+      ctx.fillStyle = CLASSES[p.k].c; ctx.fill();
+    });
+    /* repères, posés en bas : le haut est pris par l'étiquette du comparateur,
+       et la vitesse du courant est déjà affichée dans les mesures */
+    ctx.fillStyle = '#6f6a60'; ctx.font = '11px system-ui,sans-serif';
+    ctx.textAlign = 'left';  ctx.fillText('amont', g.x0+4, h-8);
+    ctx.textAlign = 'right'; ctx.fillText(mode==='delta' ? 'bassin' : 'aval', g.x1-4, h-8);
+    ctx.textAlign = 'left';
+  }
+
+  /* ---------- animation ---------- */
+  function pasAnim(){
+    const p = MELANGES[melange], mob = masseMobilisee();
+    /* on verse régulièrement le mélange en tête */
+    if(verse < 100){
+      const lot = Math.min(2.2, 100 - verse);   /* la dernière louche complète juste les 100 % */
+      verse += lot;
+      CLASSES.forEach((c,k) => {
+        const part = p[k]/100*lot*mob;
+        if(part <= 0) return;
+        for(let i=0;i<Math.max(1,Math.round(part*1.6));i++)
+          particules.push({x:0.01, k, h:Math.random()*14, m:part/Math.max(1,Math.round(part*1.6))});
+      });
+    }
+    /* déplacement et dépôt */
+    const restantes = [];
+    particules.forEach(part => {
+      const xf = fractionParcours(part.k);
+      part.x += 0.012 + v/2600;
+      if(part.x >= xf){
+        /* une classe que le courant porte jusqu'au bout quitte le dispositif :
+           elle ne doit pas s'entasser dans la dernière case du dépôt */
+        if(xf >= 0.995){ sorti += part.m; return; }
+        /* les grains d'une même classe ne tombent pas tous au même point :
+           sans cette dispersion le dépôt serait une barre et non un banc */
+        const xr = xf + (Math.random()-0.5)*Math.max(0.13, xf*0.5);
+        /* ce que la dispersion pousse au-delà du bord quitte le dispositif :
+           sans cela les grains s'entasseraient contre la dernière case */
+        if(xr >= 0.98){ sorti += part.m; return; }
+        const bin = borne(Math.floor(Math.max(0,xr)*NB), 0, NB-1);
+        depot[bin][part.k] += part.m*4.2;
+        return;
+      }
+      part.h *= 0.97;
+      restantes.push(part);
+    });
+    particules = restantes;
+    dessine(); majMesures();
+    if(verse >= 100 && !particules.length){ marche = false; $('#se-go').textContent = "Ouvrir l'eau"; }
+    if(marche) anim = requestAnimationFrame(pasAnim);
+  }
+
+  /* ---------- le paysage réel, en vis-à-vis du modèle ---------- */
+  let regimeAffiche = null;
+  function rendTerrain(){
+    const img = $('#se-reel'), bac = $('#se-terrain');
+    if(!img || !bac) return;
+    const r = mode === 'delta' ? {ph:'delta', n:"Le courant meurt dans le bassin : tout se dépose"}
+                               : REGIMES.find(x => v < x.max);
+    if(regimeAffiche === r.ph) return;         /* même régime : on ne recharge pas */
+    regimeAffiche = r.ph;
+    img.src = '../images/terrain/' + TERRAIN[r.ph].f;
+    img.alt = r.n;
+    const z = $('#se-zoom'); if(z) z.dataset.photo = img.src;
+    bac.innerHTML = '<p style="font-size:12.5px; font-weight:600; color:var(--pt); margin:9px 0 0">' +
+      ech(r.n) + '</p>' + legendeTerrain(r.ph);
+  }
+
+  /* ---------- la roche que ce dépôt deviendra ---------- */
+  let rocheAffichee = null;
+  function rendRoche(){
+    const bac = $('#se-roche'); if(!bac) return;
+    /* la classe la plus abondante parmi celles qui se sont déposées dans le bac */
+    let total = 0, meilleure = null, best = 0;
+    CLASSES.forEach((c,k) => {
+      let m = 0;
+      depot.forEach(col => m += col[k]);
+      total += m;
+      if(m > best){ best = m; meilleure = c.id; }
+    });
+    const r = total > 2 ? ROCHE_DU_DEPOT[meilleure] : null;
+    const cle = r ? r.id + '-' + meilleure : null;
+    if(rocheAffichee === cle) return;
+    rocheAffichee = cle;
+    if(!r){
+      bac.innerHTML = '<p class="cr-rien">Rien n\'est encore déposé : ouvrez l\'eau, et la roche ' +
+        'que ce dépôt deviendra s\'affichera ici.</p>';
+      return;
+    }
+    chargePhotos(r.id, jeux => {
+      if(rocheAffichee !== cle) return;
+      if(!jeux.macro.length){ bac.innerHTML = ''; return; }
+      bac.innerHTML =
+        '<div class="partie-titre" style="margin:20px 0 9px">La roche que ce dépôt deviendra</div>' +
+        '<p style="font-size:12.5px; color:var(--gris); margin:0 0 10px"><b>' + ech(r.n) +
+        '</b> — ' + ech(r.q) + '</p>' +
+        '<figure class="ro-principale"><button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
+        '<img src="' + jeux.macro[0] + '" alt="' + ech(r.n) + '" loading="lazy"></button>' +
+        '<figcaption>' + ech(r.n) + ' — échantillon de main</figcaption></figure>' +
+        creditPhoto(r.id, 'macro') +
+        '<div class="partie-titre" style="margin:18px 0 9px">Et le tri, figé dans le lit</div>' +
+        figureTerrain('granoclassement');
+    });
+  }
+  function majMesures(){
+    const p = MELANGES[melange], mob = masseMobilisee();
+    let dep = 0;
+    depot.forEach(col => col.forEach(m => dep += m/4.2));
+    const enVol = particules.reduce((s,x)=>s+x.m, 0);
+    $('#se-m-v').textContent = v;
+    $('#se-m-t').textContent = Math.round(enVol);
+    $('#se-m-d').textContent = Math.round(dep);
+    $('#se-m-s').textContent = Math.round(sorti);
+    /* légende du tri obtenu */
+    const ordre = CLASSES.map((c,i)=>({n:c.n, x:fractionParcours(i), p:p[i]})).filter(o=>o.p>0);
+    ordre.sort((a,b)=>a.x-b.x);
+    $('#se-legende').textContent = ordre.length
+      ? "De l'amont vers l'aval : " + ordre.map(o => o.n.toLowerCase() + (o.x>=0.995?' (exporté)':'')).join(', ') +
+        ". La pente du dessin est exagérée verticalement pour rester lisible."
+      : '';
+    rendTerrain(); rendRoche();
+    Labo.note('sediment', 'Courant réglé', v + ' cm/s');
+    Labo.note('sediment', 'Masse exportée hors du bac', Math.round(sorti) + ' %');
+    const argile = etatClasse(0);
+    Labo.note('sediment', "Sort de l'argile", argile.t);
+  }
+
+  /* ---------- diagramme de Hjulström ---------- */
+  function dessineHj(){
+    const {ctx, l, h} = dimensionne(hj, 260);
+    const mg = 44, md = 10, mh = 12, mb = 30;
+    const X = d => mg + (Math.log10(d)+3)/5*(l-mg-md);        /* 0,001 → 100 mm */
+    const Y = w => h-mb - (Math.log10(w)+1)/4*(h-mh-mb);      /* 0,1 → 1000 cm/s */
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,l,h);
+    fondGraphe(ctx, hj, mg, mh, l-mg-md, h-mh-mb);
+    /* grille */
+    ctx.strokeStyle = '#eee8dd'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#a9a294'; ctx.font = '10px system-ui,sans-serif';
+    for(let e=-3;e<=2;e++){
+      const x = X(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(x,mh); ctx.lineTo(x,h-mb); ctx.stroke();
+      ctx.textAlign='center';
+      ctx.fillText(e<0 ? '0,'+'0'.repeat(-e-1)+'1' : String(Math.pow(10,e)), x, h-mb+13);
+    }
+    for(let e=-1;e<=3;e++){
+      const y = Y(Math.pow(10,e));
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke();
+      ctx.textAlign='right';
+      ctx.fillText(e<0 ? '0,1' : String(Math.pow(10,e)), mg-6, y+3);
+    }
+    ctx.textAlign='center'; ctx.fillStyle='#7d776c';
+    ctx.fillText('taille des grains (mm)', (mg+l-md)/2, h-6);
+    ctx.save(); ctx.translate(11, (mh+h-mb)/2); ctx.rotate(-Math.PI/2);
+    ctx.fillText('vitesse du courant (cm/s)', 0, 0); ctx.restore();
+    /* deux courbes */
+    const courbe = (f, coul, larg) => {
+      ctx.beginPath();
+      for(let i=0;i<=160;i++){
+        const d = Math.pow(10, -3 + i/160*5), x = X(d), y = Y(Math.max(0.1, f(d)));
+        i ? ctx.lineTo(x,y) : ctx.moveTo(x,y);
+      }
+      ctx.strokeStyle = coul; ctx.lineWidth = larg; ctx.stroke();
+    };
+    courbe(vArrache, '#c0392b', 2.2);
+    courbe(vChute,   '#2f6ba8', 2.2);
+    /* zones */
+    ctx.font = '600 11px system-ui,sans-serif';
+    ctx.fillStyle = 'rgba(192,57,43,.85)';  ctx.fillText('ÉROSION',  mg+58, mh+16);
+    ctx.fillStyle = 'rgba(47,107,168,.85)'; ctx.fillText('TRANSPORT', (mg+l-md)/2, h-mb-52);
+    ctx.fillStyle = 'rgba(63,125,95,.9)';   ctx.fillText('DÉPÔT', l-md-52, h-mb-12);
+    /* courant réglé */
+    if(v > 0){
+      const y = Y(Math.max(0.1,v));
+      ctx.setLineDash([5,4]); ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.moveTo(mg,y); ctx.lineTo(l-md,y); ctx.stroke(); ctx.setLineDash([]);
+    }
+    /* les classes du mélange */
+    const p = MELANGES[melange];
+    CLASSES.forEach((c,i) => {
+      if(!p[i]) return;
+      const x = X(c.d), y = Y(Math.max(0.1,v));
+      ctx.beginPath(); ctx.arc(x, y, 4.5, 0, Math.PI*2);
+      ctx.fillStyle = c.c; ctx.fill();
+      ctx.strokeStyle = '#23201c'; ctx.lineWidth = 1.2; ctx.stroke();
+    });
+  }
+
+  /* ---------- interface ---------- */
+  function maj(){
+    $('#se-debit-v').textContent = v + ' cm/s';
+    $('#se-pente-v').textContent = pente + '°';
+    rendClasses(); dessine(); dessineHj(); majMesures();
+    const p = MELANGES[melange];
+    const exportees = CLASSES.filter((c,i)=>p[i] && fractionParcours(i) >= 0.995).map(c=>c.n.toLowerCase());
+    const bloquees  = CLASSES.filter((c,i)=>p[i] && v < vArrache(c.d)).map(c=>c.n.toLowerCase());
+    $('#se-note').innerHTML =
+      (exportees.length ? "<b>Quitte le bac :</b> " + exportees.join(', ') + ". " : "") +
+      (bloquees.length ? "<b>Que le courant ne peut pas reprendre sur le fond :</b> " +
+        bloquees.join(', ') + ". " : "") +
+      (vegetal ? "Le couvert végétal retient " + Math.round(vegetal*0.85) + " % du sol du talus." :
+        "Sol nu : tout le matériau est mobilisable.");
+  }
+  $('#se-debit').addEventListener('input', e => { v = +e.target.value; maj(); });
+  $('#se-pente').addEventListener('input', e => { pente = +e.target.value; maj(); });
+  $('#se-melange').addEventListener('change', e => { melange = e.target.value; razDepot(); maj(); });
+  segment($('#se-vegetal'), d => { vegetal = +d.v; razDepot(); maj(); });
+  segment($('#se-mode'), d => { mode = d.m; razDepot(); maj(); });
+  $('#se-go').addEventListener('click', () => {
+    marche = !marche;
+    $('#se-go').textContent = marche ? "Fermer l'eau" : "Ouvrir l'eau";
+    if(marche){ if(verse >= 100 && !particules.length) razDepot(); pasAnim(); }
+    else cancelAnimationFrame(anim);
+  });
+  $('#se-vider').addEventListener('click', () => {
+    marche = false; cancelAnimationFrame(anim); $('#se-go').textContent = "Ouvrir l'eau";
+    razDepot(); maj();
+  });
+
+  $('#se-questions').innerHTML = blocQuestions([
+    ["Pourquoi les graviers se déposent-ils près de l'amont et les sables fins beaucoup plus loin ?",
+     "Un grain se dépose quand le courant ne le soutient plus, c'est-à-dire quand sa vitesse de chute dépasse ce que le courant peut compenser. Un gravier tombe à environ 30 cm/s, un sable fin à 2 cm/s : le premier est abandonné tout de suite, le second voyage quinze fois plus loin. C'est le tri granulométrique, et c'est pourquoi on lit le régime d'un cours d'eau ancien dans la taille de ses dépôts."],
+    ["Réglez le courant à 100 cm/s. L'argile est-elle emportée ? Est-elle arrachée du fond ?",
+     "Les deux réponses diffèrent, et c'est tout l'intérêt du diagramme. Une argile déjà en suspension est emportée dès quelques millimètres par seconde. Mais pour l'arracher du fond il faut dépasser environ 150 cm/s, parce que les particules d'argile se collent entre elles. Le sable fin, lui, s'arrache dès 25 cm/s : il est plus fragile qu'une argile, alors qu'il est plus gros."],
+    ["Que change le couvert végétal ?",
+     "Il retient le sol : la masse mise en mouvement diminue fortement, jusqu'à environ 85 % avec une prairie dense. Les racines maintiennent les agrégats et les feuilles amortissent l'impact des gouttes. C'est l'argument central des haies, des couverts d'hiver et du maintien de la ripisylve."],
+    ["Passez en mode « bac à delta ». Où se dépose le sable, où se dépose l'argile ?",
+     "À l'entrée du bassin le courant s'étale et ralentit brutalement : les sables sont abandonnés en un éventail juste à l'embouchure, tandis que les argiles poursuivent en suspension et se déposent bien plus loin, dans les eaux calmes. Un delta est donc trié de la même façon, mais dans l'espace : sables à l'amont, argiles au large."],
+    ["Augmentez la pente sans toucher au débit. Le tri change-t-il ?",
+     "Dans ce modèle, la pente change la géométrie du dépôt mais pas les seuils, qui ne dépendent que de la vitesse du courant. Dans une vraie gouttière, augmenter la pente augmente la vitesse : c'est pourquoi les deux réglages sont séparés ici, pour faire apparaître que c'est bien la vitesse, et non la pente en elle-même, qui commande le tri."]
+  ]);
+
+  Labo.surAffichage.sediment = () => { dessine(); dessineHj(); };
+  activeComparateur($('#mod-sediment .mo-comp'));
+  addEventListener('resize', () => { if(!marche) dessine(); });
+  maj();
+})();
+</script>
+
+<script>
+/* ==========================================================================
+   MODULE CRISTALLISATION — vitesse de refroidissement, taille, texture
+   d (mm) = 0,37 × R^(−0,283), R en °C/h. L'exposant est proche du −1/3
+   habituellement retenu ; la constante est calée sur deux repères, un pluton
+   granitique et une coulée basaltique. Le nom de la roche, lui, ne doit rien
+   au calcul : c'est le tableau à double entrée de la pétrographie.
+   ========================================================================== */
+const LIEUX = {
+  pluton:   {R:1e-5,  n:"Pluton profond",        d:"10 km de profondeur, refroidi en ~1 million d'années"},
+  laccolite:{R:1e-3,  n:"Petit massif intrusif", d:"2 km, quelques milliers d'années"},
+  filon:    {R:0.5,   n:"Filon de quelques mètres", d:"quelques mois"},
+  coulee:   {R:50,    n:"Coulée de lave à l'air", d:"quelques jours"},
+  bombe:    {R:8000,  n:"Projection en l'air",   d:"quelques minutes"},
+  trempe:   {R:1e5,   n:"Lave entrant dans l'eau", d:"quelques secondes"}
+};
+const TEXTURES = [
+  {min:1,     id:'grenue',       n:"Grenue",        e:"tous les cristaux visibles à l'œil nu"},
+  {min:0.3,   id:'microgrenue',  n:"Microgrenue",   e:"cristaux visibles à la loupe seulement"},
+  {min:0.03,  id:'microlithique',n:"Microlithique", e:"microlites baignant dans du verre"},
+  {min:0,     id:'vitreuse',     n:"Vitreuse",      e:"pas de cristal : le magma a été figé"}
+];
+/* Le tableau à double entrée nomme une roche ; à chacune de ses cases répond
+   une lame mince photographiée à la lithothèque de l'ENS de Lyon. C'est en les
+   parcourant, du verre figé au cristal centimétrique, qu'on voit la
+   cristallisation avancer. Deux cases restent vides : la microdiorite et le
+   verre andésitique n'ont pas de lame là-bas, et mettre une roche voisine à
+   leur place serait mentir.
+     id : la lame de la case.  ph : sa variante porphyrique, montrée quand on
+     coche les phénocristaux.  p : la précision à donner quand l'échantillon
+     photographié ne porte pas exactement le nom de la case. */
+const LAMES_CRISTAL = {
+  'grenue.f':        {id:'granite'},
+  'grenue.i':        {id:'diorite',      p:"la diorite « pied de poule » de la Parata"},
+  'grenue.m':        {id:'gabbro'},
+  'microgrenue.f':   {id:'microgranite', p:"un granophyre d'Islande, faute de microgranite à la lithothèque"},
+  'microgrenue.i':   {},
+  'microgrenue.m':   {id:'dolerite'},
+  'microlithique.f': {id:'rhyolite'},
+  'microlithique.i': {id:'andesite',     ph:'andesite-porphyrique'},
+  'microlithique.m': {id:'basalte',      ph:'basalte-porphyrique'},
+  'vitreuse.f':      {id:'obsidienne'},
+  'vitreuse.i':      {},
+  'vitreuse.m':      {id:'tachylite',    p:"une hyaloclastite : du verre basaltique trempé dans l'eau"}
+};
+/* L'échantillon de main que l'on montre sous la lame, quand le catalogue en a un. */
+const ROCHE_DU_NOM = {
+  'Granite':'granite', 'Diorite':'diorite', 'Gabbro':'gabbro',
+  'Dolérite':'dolerite', 'Rhyolite':'rhyolite', 'Andésite':'andesite',
+  'Basalte':'basalte', 'Obsidienne':'obsidienne',
+  'Verre basaltique (tachylite)':'tachylite'
+};
+const NOMS = {
+  grenue:       {f:"Granite",     i:"Diorite",      m:"Gabbro"},
+  microgrenue:  {f:"Microgranite",i:"Microdiorite", m:"Dolérite"},
+  microlithique:{f:"Rhyolite",    i:"Andésite",     m:"Basalte"},
+  vitreuse:     {f:"Obsidienne",  i:"Verre andésitique", m:"Verre basaltique (tachylite)"}
+};
+const chimie = s => s >= 66 ? 'f' : s >= 52 ? 'i' : 'm';
+const NOM_CHIMIE = {f:"felsique (riche en silice)", i:"intermédiaire", m:"mafique (pauvre en silice)"};
+
 
 (function cristallisation(){
   const cvc = $('#cr-courbe');
@@ -2806,7 +2922,7 @@ const STYLES = [
   ]);
 
   Labo.surAffichage.magma = () => { dessine(); dessineCourbe(); };
-  activeComparateur($('.mo-comp'));
+  activeComparateur($('#mod-magma .mo-comp'));
   addEventListener('resize', () => { if(!marche) dessine(); });
   maj();
 })();

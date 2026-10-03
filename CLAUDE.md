@@ -153,6 +153,20 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   décale du cratère, c'était le cas avant. Les photographies ne suivent pas les
   quatre styles nommés mais `ECHELONS`, **huit** crans d'explosivité : entre une
   coulée tranquille et une colonne plinienne la nature n'a pas quatre marches.
+- **Le module d'érosion a le même curseur** (`.mo-comp.plat`, plus large que
+  haut car une gouttière l'est) : le schéma à gauche, un paysage réel à droite,
+  choisi par `REGIMES` selon la vitesse du courant — vase craquelée, rides de
+  courant, rivière en tresses, lit à blocs — ou le delta du Pô en mode bassin.
+  Dessous, `ROCHE_DU_DEPOT` montre la roche que ce dépôt deviendra (conglomérat,
+  grès ou marne, selon la classe la plus abondante déposée) et un granoclassement
+  fossilisé. La géométrie de la gouttière est elle aussi proportionnelle à la
+  boîte, et centrée sur elle.
+- **La machinerie des photographies est déclarée avant le premier module qui
+  s'en sert** (son propre bloc `<script>`, au-dessus de la gouttière) : les
+  tables `TERRAIN`, `LICENCES` et les fonctions `chargePhotos`,
+  `activeComparateur`, `figureTerrain`, `legendeTerrain` sont lues à
+  l'exécution du module, pas au chargement — la déplacer plus bas casse
+  l'érosion.
 - **Le module d'altération montre la roche avant le bécher** (échantillon de
   main puis lame mince, par `PHOTO_ALT`) et, quand il y en a un, le paysage que
   cette altération finit par faire (`PAYSAGE_ALT` : lapiaz pour les carbonates,
