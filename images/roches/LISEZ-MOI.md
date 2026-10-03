@@ -92,3 +92,18 @@ le serveur, de savoir qu'un fichier n'est pas là. Rien n'est cassé.
 Ouvrez le laboratoire avec `?retouche` dans l'adresse (ou `Ctrl + Alt + E`) :
 les roches sans photographie l'indiquent alors à l'écran, avec le nom de
 fichier attendu. Les élèves, eux, ne voient jamais ce rappel.
+
+## Et les photographies de paysage ?
+
+Elles ne sont pas ici. Les roches viennent de la lithothèque de l'ENS de Lyon ;
+les paysages et les éruptions viennent de **Wikimedia Commons**, et vivent dans
+`images/terrain/`. Les licences n'y sont pas toutes les mêmes — domaine public,
+CC0, CC BY, CC BY-SA — alors on cite l'auteur **et** la licence, avec un lien
+vers la fiche d'origine. La table `TERRAIN`, dans `outils/labo_geologie.html`,
+porte tout cela : ne jamais déposer un fichier dans `images/terrain/` sans son
+entrée.
+
+Les vidéos, elles, ne sont pas hébergées : un laboratoire doit rester un seul
+fichier utilisable hors ligne, et une vidéo d'éruption correcte pèse vingt à
+quatre-vingts mégaoctets. Chaque dynamisme éruptif porte donc un lien vers une
+vidéo libre sur Commons, qui se lit dans le navigateur sans publicité.

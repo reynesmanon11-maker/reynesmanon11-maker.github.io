@@ -525,6 +525,9 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 .ro-principale > button{ display:block; width:100%; padding:0; border:0; background:none; cursor:zoom-in }
 .ro-principale img{ width:100%; display:block; border-radius:11px; border:1px solid var(--ptbd) }
 .ro-principale figcaption{ font-size:11.5px; color:var(--gris-clair); margin-top:6px }
+/* Une photographie de terrain en portrait occuperait toute la carte : on la
+   recadre à l'écran, le clic montre l'image entière. */
+.ro-terrain img{ max-height:380px; object-fit:cover }
 .ro-galerie{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px }
 .ro-vignette{ padding:0; border:1px solid var(--ptbd); border-radius:10px; overflow:hidden;
   background:var(--papier); aspect-ratio:4/3; display:block; transition:transform .2s, box-shadow .2s }
@@ -913,6 +916,7 @@ header.top .marque b{ letter-spacing:-.015em }
         </div>
         <canvas id="al-cv" height="240" style="width:100%; display:block"></canvas>
         <p style="font-size:11.5px; color:var(--gris-clair); margin-top:8px" id="al-legende"></p>
+        <div id="al-photo"></div>
       </div>
 
       <div class="carte">
@@ -927,6 +931,7 @@ header.top .marque b{ letter-spacing:-.015em }
         <p class="sous">C'est le partage qui fait le paysage : ce qui part en solution alimente les
            rivières, ce qui reste sur place devient le sol, puis le sédiment.</p>
         <div id="al-bilan"></div>
+        <div id="al-paysage"></div>
       </div>
 
       <div class="carte">
@@ -1123,6 +1128,7 @@ header.top .marque b{ letter-spacing:-.015em }
 
       <div class="carte">
         <h3>Ce que l'on observerait sur le terrain</h3>
+        <div id="ma-photo"></div>
         <div id="ma-terrain"></div>
         <div id="ma-roche"></div>
       </div>
@@ -2123,6 +2129,73 @@ function creditPhoto(id, vue){
     : '<a href="https://lithotheque.ens-lyon.fr/" target="_blank" rel="noopener">Lithothèque ENS de Lyon ↗</a>';
   return '<p class="ro-credit">Photographie : ' + ech(c.a) + ' · ' + source + '</p>';
 }
+/* ==========================================================================
+   PHOTOGRAPHIES DE TERRAIN — Wikimedia Commons
+   Les roches viennent de la lithothèque de Lyon ; les paysages et les
+   éruptions, eux, viennent de Commons, où les licences ne sont pas toutes les
+   mêmes : domaine public, CC0, CC BY, CC BY-SA. On cite donc l'auteur ET la
+   licence, avec un lien vers la fiche d'origine et vers le texte de la
+   licence. Ne jamais déposer une image dans images/terrain/ sans son entrée
+   ici. Les vidéos, elles, ne sont pas embarquées : voir le commentaire de
+   figureTerrain.
+   ========================================================================== */
+const LICENCES = {
+  'CC0'          : 'https://creativecommons.org/publicdomain/zero/1.0/deed.fr',
+  'CC BY 2.0'    : 'https://creativecommons.org/licenses/by/2.0/deed.fr',
+  'CC BY 3.0'    : 'https://creativecommons.org/licenses/by/3.0/deed.fr',
+  'CC BY-SA 2.5' : 'https://creativecommons.org/licenses/by-sa/2.5/deed.fr',
+  'CC BY-SA 3.0' : 'https://creativecommons.org/licenses/by-sa/3.0/deed.fr',
+  'CC BY-SA 4.0' : 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr'
+};
+const TERRAIN = {
+  hawaiien: {f:'hawaiien.jpg', a:"J. D. Griggs, U.S. Geological Survey", l:"Domaine public",
+    u:"https://commons.wikimedia.org/wiki/File:Pahoeoe_fountain_edit2.jpg",
+    leg:"Fontaine de lave du Pu'u 'Ō'ō, Kīlauea (Hawaï). Le basalte est si fluide que le gaz s'en échappe sans résistance : la lave jaillit, elle n'explose pas.",
+    v:"https://commons.wikimedia.org/wiki/File:Lava_cascade_in_Hawaii.webm",
+    vl:"Une cascade de lave à Hawaï — Hawaii Volcanoes National Park, domaine public"},
+  strombolien: {f:'strombolien.jpg', a:"Wolfgang Beyer", l:"CC BY-SA 3.0",
+    u:"https://commons.wikimedia.org/wiki/File:Stromboli_Eruption.jpg",
+    leg:"Explosion au Stromboli (Italie). Le magma est un peu plus visqueux : les bulles s'accumulent, crèvent par à-coups et projettent des lambeaux de lave.",
+    v:"https://commons.wikimedia.org/wiki/File:Paroxysm_at_Etna,_16-17_November_2013.webm",
+    vl:"Un paroxysme de l'Etna filmé par Boris Behncke, volcanologue à l'INGV — CC BY 3.0"},
+  vulcanien: {f:'vulcanien.jpg', a:"Taro Taylor, retouche de Richard Bartz", l:"CC BY 2.0",
+    u:"https://commons.wikimedia.org/wiki/File:Tavurvur_volcano_edit.jpg",
+    leg:"Le Tavurvur (Papouasie-Nouvelle-Guinée). Le magma visqueux bouche le conduit ; la pression s'accumule, puis se libère d'un coup en un panache de cendres.",
+    v:"https://commons.wikimedia.org/wiki/File:Taal_volcano_2021_eruption_captured_using_IP_camera.webm",
+    vl:"Le Taal en 2021, filmé par le PHIVOLCS — domaine public"},
+  plinien: {f:'plinien.jpg', a:"Richard P. Hoblitt, U.S. Geological Survey", l:"Domaine public",
+    u:"https://commons.wikimedia.org/wiki/File:Pinatubo91eruption_clark_air_base.jpg",
+    leg:"Le Pinatubo (Philippines) le 12 juin 1991, vu de la base de Clark. La colonne monte à plus de trente kilomètres : c'est la plus grosse éruption de la fin du XX<sup>e</sup> siècle.",
+    v:"https://commons.wikimedia.org/wiki/File:Tongan_Eruption_Ripples_Around_the_Globe.webm",
+    vl:"L'éruption du Hunga Tonga en 2022 vue par satellite — NOAA, domaine public"},
+  lapiaz: {f:'lapiaz.jpg', a:"Parchaco", l:"CC0",
+    u:"https://commons.wikimedia.org/wiki/File:Lapiaz_in_Sulegg.jpg",
+    leg:"Un lapiaz (Sulegg, Suisse). Le calcaire est parti en solution le long des fissures, et il n'a presque rien laissé : pas de sable, pas de sol — la roche nue, creusée."},
+  laterite: {f:'laterite.jpg', a:"Vinayaraj", l:"CC BY-SA 4.0",
+    u:"https://commons.wikimedia.org/wiki/File:Laterite_quarry_-_laterite_mining_at_Kalliad_2014_(15).jpg",
+    leg:"Front de taille dans une latérite (Kalliad, Kerala, Inde). Sous un climat chaud et humide, l'altération emporte presque tout en solution et laisse sur place les oxydes de fer : la terre rouge des pays chauds, épaisse ici de plusieurs mètres."}
+};
+/* La photographie, sa légende, son crédit, et — quand elle existe — l'adresse
+   d'une vidéo libre. On ne l'incorpore pas dans la page : un laboratoire doit
+   rester un seul fichier utilisable hors ligne, et les vidéos d'éruption
+   assez bonnes pour servir pèsent vingt à quatre-vingts mégaoctets. Le lien
+   mène à Wikimedia Commons, qui les lit dans le navigateur, sans publicité
+   ni mouchard. */
+function figureTerrain(id){
+  const t = TERRAIN[id]; if(!t) return '';
+  const lic = LICENCES[t.l]
+    ? '<a href="' + LICENCES[t.l] + '" target="_blank" rel="noopener">' + t.l + '</a>' : t.l;
+  return '<figure class="ro-principale ro-terrain" style="margin:0 0 10px">' +
+    '<button data-photo="../images/terrain/' + t.f + '" title="Agrandir">' +
+    '<img src="../images/terrain/' + t.f + '" alt="" loading="lazy"></button>' +
+    '<figcaption>' + t.leg + '</figcaption></figure>' +
+    '<p class="ro-credit">Photographie : ' + ech(t.a) + ' · ' + lic +
+    ' · <a href="' + t.u + '" target="_blank" rel="noopener">Wikimedia Commons ↗</a></p>' +
+    (t.v ? '<p class="ro-credit" style="margin-top:4px">▶ <a href="' + t.v +
+      '" target="_blank" rel="noopener">Voir une vidéo de ce dynamisme ↗</a> — ' +
+      ech(t.vl) + '</p>' : '');
+}
+
 /* agrandissement au clic, pour tous les modules */
 document.addEventListener('click', e => {
   const v = e.target.closest('[data-photo]');
@@ -2328,16 +2401,16 @@ const ROCHE_DU_MAGMA = {
 const PONCE_DU_MAGMA = {id:'ponce', n:"Ponce",
   q:"Ce que l'on ramasse après une éruption explosive : une mousse de verre, figée sur les bulles de gaz qui l'ont déchirée. Elle flotte sur l'eau."};
 const STYLES = [
-  {max:1,   n:"Effusif — hawaïen", c:'#c0392b',
+  {max:1,   n:"Effusif — hawaïen", c:'#c0392b', ph:'hawaiien',
    t:"Fontaines et coulées très fluides, cônes larges et plats (volcans boucliers). Le gaz s'échappe sans résistance.",
    r:"Coulées basaltiques, cheveux de Pelé, parfois lacs de lave."},
-  {max:2,   n:"Effusif à explosions — strombolien", c:'#cf6a2c',
+  {max:2,   n:"Effusif à explosions — strombolien", c:'#cf6a2c', ph:'strombolien',
    t:"Explosions rythmées projetant des lambeaux de lave, coulées plus courtes, cônes de scories.",
    r:"Bombes, scories, lapilli et coulées."},
-  {max:3.2, n:"Explosif — vulcanien", c:'#c08a1e',
+  {max:3.2, n:"Explosif — vulcanien", c:'#c08a1e', ph:'vulcanien',
    t:"Le magma visqueux bouche le conduit ; la pression s'accumule et se libère par explosions violentes.",
    r:"Cendres, blocs, panaches de plusieurs kilomètres."},
-  {max:99,  n:"Très explosif — péléen à plinien", c:'#6e5fa8',
+  {max:99,  n:"Très explosif — péléen à plinien", c:'#6e5fa8', ph:'plinien',
    t:"Magma si visqueux qu'il forme un dôme ou une aiguille ; son effondrement engendre des nuées ardentes, ou la colonne s'effondre en écoulements pyroclastiques.",
    r:"Ponces, cendres fines, ignimbrites, dômes de lave."}
 ];
@@ -2485,6 +2558,15 @@ const STYLES = [
     ctx.fillStyle = '#a8660f'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
   }
 
+  /* ---------- le dynamisme éruptif, photographié ---------- */
+  let styleAffiche = null;
+  function rendStyle(e){
+    const bac = $('#ma-photo'); if(!bac) return;
+    if(styleAffiche === e.style.ph) return;   /* même style : on ne recharge pas */
+    styleAffiche = e.style.ph;
+    bac.innerHTML = figureTerrain(e.style.ph);
+  }
+
   /* ---------- la roche laissée par ce magma, photographiée ---------- */
   let rocheAffichee = null;
   function rendRoche(e){
@@ -2538,7 +2620,7 @@ const STYLES = [
       '<div class="note">Indice d\'explosivité calculé à partir de la silice et de l\'eau dissoute : ' +
       fr(e.ex,2) + '. C\'est un indicateur de ce module, pas une échelle officielle — l\'indice ' +
       'd\'explosivité volcanique (VEI) se mesure, lui, sur le volume de matériaux émis.</div>';
-    dessine(); dessineCourbe(); rendRoche(e);
+    dessine(); dessineCourbe(); rendStyle(e); rendRoche(e);
     Labo.note('magma', 'Magma réglé', silice + ' % SiO₂, ' + temp + ' °C, ' + fr(e.H,1) + ' % H₂O');
     Labo.note('magma', 'Viscosité', '10^' + fr(e.le,1) + ' Pa·s');
     Labo.note('magma', "Vitesse d'écoulement", vv + ' ' + vu + ' (pente ' + pente + '°)');
@@ -4063,6 +4145,16 @@ const PROGRAMMES = [
    en une heure dans du vinaigre, et presque rien dans de l'eau de pluie.
    Les vitesses de terrain, elles, sont citées et non calculées.
    ========================================================================== */
+/* Le paysage que laisse, au bout du compte, l'altération de cette roche-là.
+   Le granite, le gneiss et les grès n'en ont pas : faute d'une photographie
+   d'arène granitique libre de droits qui soit lisible, on n'en met pas. */
+const PAYSAGE_ALT = {calcaire:'lapiaz', craie:'lapiaz', marbre:'lapiaz', basalte:'laterite'};
+/* L'échantillon du bécher est un schéma : il montre la perte de masse, pas la
+   roche. Dessous, la roche elle-même, photographiée — échantillon de main puis
+   lame mince. Le grès à ciment calcaire et le grès siliceux partagent la même
+   photographie : c'est le ciment qui les distingue, pas l'aspect. */
+const PHOTO_ALT = {calcaire:'calcaire', craie:'craie', marbre:'marbre', gres_c:'gres',
+                   gres:'gres', granite:'granite', gneiss:'gneiss', basalte:'basalte'};
 const ROCHES_ALT = {
   calcaire:{n:"Calcaire", k:1, max:100, poro:6, eff:'vive', c:['#e7ddc6','#d9cdb2','#f0e9d8'],
     sol:"Ca²⁺ et HCO₃⁻", ca:true,
@@ -4395,7 +4487,47 @@ const TAILLES = {bloc:{n:"Bloc", s:0.35, n_frag:1}, gravier:{n:"Gravillons", s:1
       ? "Les traits clairs sont les fissures ouvertes par la glace."
       : (r.eff ? "Les bulles sont du dioxyde de carbone : l'acide attaque le carbonate."
                : "Pas d'effervescence : cette roche ne contient pas de carbonate.");
-    dessine(); dessineCourbe(); rendBilan(); rendTests(); majMesures();
+    dessine(); dessineCourbe(); rendBilan(); rendTests(); majMesures(); rendPhoto(); rendPaysage();
+  }
+
+  /* ---------- le paysage, sous le bilan ---------- */
+  let paysageAffiche = null;
+  function rendPaysage(){
+    const bac = $('#al-paysage'); if(!bac) return;
+    const id = PAYSAGE_ALT[roche] || null;
+    if(paysageAffiche === id) return;
+    paysageAffiche = id;
+    bac.innerHTML = id
+      ? '<div class="partie-titre" style="margin:20px 0 9px">Le paysage que cela finit par faire</div>' +
+        figureTerrain(id)
+      : '';
+  }
+
+  /* ---------- la roche elle-même, sous le schéma du bécher ---------- */
+  let photoAffichee = null;
+  function rendPhoto(){
+    const bac = $('#al-photo'); if(!bac) return;
+    const id = PHOTO_ALT[roche];
+    if(photoAffichee === id) return;          /* déjà à l'écran : on ne recharge pas */
+    photoAffichee = id;
+    if(!id){ bac.innerHTML = ''; return; }
+    chargePhotos(id, jeux => {
+      if(photoAffichee !== id) return;        /* l'élève a déjà changé d'échantillon */
+      const nom = ROCHES_ALT[roche].n;
+      let corps = '<div class="partie-titre" style="margin:20px 0 9px">La roche, avant le bécher</div>';
+      if(jeux.macro.length)
+        corps += '<figure class="ro-principale" style="margin-bottom:12px">' +
+          '<button data-photo="' + jeux.macro[0] + '" title="Agrandir">' +
+          '<img src="' + jeux.macro[0] + '" alt="' + ech(nom) + '"></button>' +
+          '<figcaption>' + ech(nom) + ' — échantillon de main</figcaption></figure>' +
+          creditPhoto(id, 'macro');
+      if(jeux.micro.length > 1)
+        corps += blocComparateur(jeux.micro, ech(nom),
+            ech(nom) + ' — lame mince · glissez le curseur pour passer de la lumière naturelle à la lumière polarisée analysée') +
+          creditPhoto(id, 'micro');
+      bac.innerHTML = jeux.macro.length || jeux.micro.length ? corps : '';
+      activeComparateur(bac.querySelector('.ro-comp'));
+    });
   }
 
   /* ---------- interface ---------- */

@@ -133,6 +133,23 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   l'explique sous le graphe plutôt que de laisser croire à une panne. La
   vitesse fait la texture, la chimie fait le nom — c'est le tableau à double
   entrée.
+- **Les paysages et les éruptions viennent de Wikimedia Commons**, pas de la
+  lithothèque : ils vivent dans `images/terrain/` et sont décrits par la table
+  `TERRAIN`. Les licences y sont variées (domaine public, CC0, CC BY, CC BY-SA)
+  donc on cite l'auteur **et** la licence, avec un lien vers la fiche et vers le
+  texte de la licence. **Ne jamais déposer un fichier dans `images/terrain/`
+  sans son entrée dans `TERRAIN`.**
+- **Pas de vidéo embarquée dans un labo.** Un outil de `outils/` reste un seul
+  fichier utilisable hors ligne : pas d'iframe YouTube (mouchards sur une page
+  destinée à des mineurs, filtrage possible par le lycée), et pas de fichier
+  vidéo hébergé — les éruptions filmées correctes pèsent 20 à 80 Mo. Chaque
+  dynamisme éruptif porte à la place un lien vers une vidéo libre de Wikimedia
+  Commons, qui se lit dans le navigateur.
+- **Le module d'altération montre la roche avant le bécher** (échantillon de
+  main puis lame mince, par `PHOTO_ALT`) et, quand il y en a un, le paysage que
+  cette altération finit par faire (`PAYSAGE_ALT` : lapiaz pour les carbonates,
+  latérite pour le basalte). Le schéma du bécher reste : il montre la perte de
+  masse, ce qu'aucune photographie ne ferait.
 - **Chaque roche porte sa composition minéralogique** (champ `mineraux`), listée
   sous les résultats **en mode exploration seulement** : en roche mystère, elle
   donnerait la réponse avant le premier test. Le champ `min`, plus court, reste
