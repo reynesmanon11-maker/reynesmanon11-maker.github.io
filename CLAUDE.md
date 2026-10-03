@@ -145,6 +145,14 @@ Les outils payants auront leur propre site, séparé, avec sa propre charte.
   vidéo hébergé — les éruptions filmées correctes pèsent 20 à 80 Mo. Chaque
   dynamisme éruptif porte à la place un lien vers une vidéo libre de Wikimedia
   Commons, qui se lit dans le navigateur.
+- **Dans la viscosité, le schéma du volcan et la photographie partagent un
+  curseur** (`.mo-comp`) : à gauche ce que calcule le programme, à droite ce
+  qu'on verrait, sans avoir à défiler. Toute la géométrie du dessin est
+  proportionnelle à la boîte (fonction `geo()`), et l'évent sert à la fois au
+  cône, à la coulée et aux projections — si les deux divergent, le panache se
+  décale du cratère, c'était le cas avant. Les photographies ne suivent pas les
+  quatre styles nommés mais `ECHELONS`, **huit** crans d'explosivité : entre une
+  coulée tranquille et une colonne plinienne la nature n'a pas quatre marches.
 - **Le module d'altération montre la roche avant le bécher** (échantillon de
   main puis lame mince, par `PHOTO_ALT`) et, quand il y en a un, le paysage que
   cette altération finit par faire (`PAYSAGE_ALT` : lapiaz pour les carbonates,

@@ -528,6 +528,12 @@ nav.onglets button[data-mod="preparer"][aria-selected="true"]{ background:#a8660
 /* Une photographie de terrain en portrait occuperait toute la carte : on la
    recadre à l'écran, le clic montre l'image entière. */
 .ro-terrain img{ max-height:380px; object-fit:cover }
+/* Le modèle et la photographie, superposés sous un même curseur : à gauche
+   ce que calcule le programme, à droite ce que l'on verrait. */
+.mo-comp{ aspect-ratio:3/2; max-height:400px }
+.mo-comp .fond{ width:100%; height:100%; object-fit:cover }
+.mo-comp .dessus canvas{ width:100%; height:100%; display:block }
+.mo-comp .etiq.g{ cursor:default }
 .ro-galerie{ display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:8px }
 .ro-vignette{ padding:0; border:1px solid var(--ptbd); border-radius:10px; overflow:hidden;
   background:var(--papier); aspect-ratio:4/3; display:block; transition:transform .2s, box-shadow .2s }
@@ -1066,9 +1072,14 @@ header.top .marque b{ letter-spacing:-.015em }
        d'Arrhenius, calée sur deux repères réels : basalte à 1200 °C (≈ 100 Pa·s) et rhyolite
        sèche à 850 °C (≈ 10⁹ Pa·s). La vitesse d'écoulement vient de l'écoulement d'un fluide
        visqueux sur un plan incliné.</p>
+    <p><b>À gauche du curseur, le modèle ; à droite, une photographie.</b> Le volcan dessiné n'est
+       qu'un schéma — la pente, le cratère et le panache suivent les réglages, le reste est
+       décor. La photographie, elle, montre le dynamisme le plus proche de ce que calcule le
+       module parmi huit échelons : c'est un voisin, pas un résultat.</p>
     <p>Les ordres de grandeur sont justes et les variations ont le bon sens.
        <b>Les nombres ne sont pas des mesures</b>, et un magma réel contient des cristaux et des
-       bulles qui changent tout.</p>
+       bulles qui changent tout. La vitesse est celle d'une coulée idéale d'un mètre d'épaisseur,
+       sans croûte figée en surface : elle majore beaucoup la réalité.</p>
   </div></div>
 
   <div class="grille deux">
@@ -1118,7 +1129,17 @@ header.top .marque b{ letter-spacing:-.015em }
           <div class="mesure"><div class="t">Parcours en 1 h</div><div class="v" id="ma-m-d">—</div><div class="u" id="ma-m-du">m</div></div>
           <div class="mesure"><div class="t">Style</div><div class="v" id="ma-m-s" style="font-size:15px">—</div><div class="u">éruptif</div></div>
         </div>
-        <canvas id="ma-cv" height="300" style="width:100%; display:block; border-radius:11px"></canvas>
+        <figure class="ro-principale" style="margin:0">
+          <div class="ro-comp mo-comp" style="--x:52%">
+            <img class="fond" id="ma-reel" src="" alt="">
+            <div class="dessus"><canvas id="ma-cv"></canvas></div>
+            <span class="etiq g">Le modèle</span>
+            <button class="etiq d" id="ma-zoom" data-photo="" title="Agrandir la photographie">En vrai</button>
+            <div class="poignee" role="slider" tabindex="0" aria-label="Curseur entre le modèle et la photographie"
+                 aria-valuemin="0" aria-valuemax="100" aria-valuenow="52"></div>
+          </div>
+        </figure>
+        <div id="ma-legende"></div>
         <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:10px" class="no-print">
           <button class="btn primaire" id="ma-go">Déclencher l'éruption</button>
           <button class="btn" id="ma-stop">Arrêter</button>
@@ -1127,7 +1148,6 @@ header.top .marque b{ letter-spacing:-.015em }
 
       <div class="carte">
         <h3>Ce que l'on observerait sur le terrain</h3>
-        <div id="ma-photo"></div>
         <div id="ma-terrain"></div>
         <div id="ma-roche"></div>
       </div>
@@ -2167,6 +2187,26 @@ const TERRAIN = {
     leg:"Le Pinatubo (Philippines) le 12 juin 1991, vu de la base de Clark. La colonne monte à plus de trente kilomètres : c'est la plus grosse éruption de la fin du XX<sup>e</sup> siècle.",
     v:"https://commons.wikimedia.org/wiki/File:Tongan_Eruption_Ripples_Around_the_Globe.webm",
     vl:"L'éruption du Hunga Tonga en 2022 vue par satellite — NOAA, domaine public"},
+  coulee: {f:'coulee.jpg', a:"Brocken Inaglory", l:"CC BY-SA 3.0",
+    u:"https://commons.wikimedia.org/wiki/File:P%C4%81hoehoe_and_Aa_flows_at_Hawaii.jpg",
+    leg:"Une coulée pāhoehoe, lisse et cordée, débordant sur une coulée ʻaʻā hérissée de scories (Kīlauea). Aucune explosion : ce magma pauvre en silice et très chaud s'écoule comme un sirop brûlant.",
+    v:"https://commons.wikimedia.org/wiki/File:Lava_cascade_in_Hawaii.webm",
+    vl:"Une cascade de lave à Hawaï — Hawaii Volcanoes National Park, domaine public"},
+  fissure: {f:'fissure.jpg', a:"Boaworm", l:"CC BY 3.0",
+    u:"https://commons.wikimedia.org/wiki/File:Fimmvorduhals_2010_03_27_dawn.jpg",
+    leg:"Fontaines alignées sur une fissure, Fimmvörðuháls (Islande, 2010). Les projections retombent autour de l'évent et construisent, nuit après nuit, un cône de scories.",
+    v:"https://commons.wikimedia.org/wiki/File:Paroxysm_at_Etna,_16-17_November_2013.webm",
+    vl:"Un paroxysme de l'Etna filmé par Boris Behncke, volcanologue à l'INGV — CC BY 3.0"},
+  dome: {f:'dome.jpg', a:"USGS Volcanoes", l:"Domaine public",
+    u:"https://commons.wikimedia.org/wiki/File:Dome_inside_Mount_St._Helens_crater.jpg",
+    leg:"Le dôme de lave dans le cratère du mont Saint Helens. Le magma est trop visqueux pour couler : il s'empile sur l'évent en une aiguille, qui peut s'effondrer d'un seul coup.",
+    v:"https://commons.wikimedia.org/wiki/File:Taal_volcano_2021_eruption_captured_using_IP_camera.webm",
+    vl:"Le Taal en 2021, filmé par le PHIVOLCS — domaine public"},
+  nuee: {f:'nuee.jpg', a:"Jaycee Esmeria", l:"CC BY-SA 4.0",
+    u:"https://commons.wikimedia.org/wiki/File:Mayon_Volcano_eruption_at_Daraga_Church.jpg",
+    leg:"Une nuée ardente dévalant le flanc du Mayon (Philippines) : un mélange de gaz brûlants, de cendres et de blocs qui descend à plus de cent kilomètres par heure, en épousant le relief.",
+    v:"https://commons.wikimedia.org/wiki/File:Tongan_Eruption_Ripples_Around_the_Globe.webm",
+    vl:"L'éruption du Hunga Tonga en 2022 vue par satellite — NOAA, domaine public"},
   lapiaz: {f:'lapiaz.jpg', a:"Parchaco", l:"CC0",
     u:"https://commons.wikimedia.org/wiki/File:Lapiaz_in_Sulegg.jpg",
     leg:"Un lapiaz (Sulegg, Suisse). Le calcaire est parti en solution le long des fissures, et il n'a presque rien laissé : pas de sable, pas de sol — la roche nue, creusée."},
@@ -2188,6 +2228,20 @@ function figureTerrain(id){
     '<button data-photo="../images/terrain/' + t.f + '" title="Agrandir">' +
     '<img src="../images/terrain/' + t.f + '" alt="" loading="lazy"></button>' +
     '<figcaption>' + t.leg + '</figcaption></figure>' +
+    '<p class="ro-credit">Photographie : ' + ech(t.a) + ' · ' + lic +
+    ' · <a href="' + t.u + '" target="_blank" rel="noopener">Wikimedia Commons ↗</a></p>' +
+    (t.v ? '<p class="ro-credit" style="margin-top:4px">▶ <a href="' + t.v +
+      '" target="_blank" rel="noopener">Voir une vidéo de ce dynamisme ↗</a> — ' +
+      ech(t.vl) + '</p>' : '');
+}
+
+/* La même chose sans la figure : quand la photographie est déjà à l'écran
+   sous un curseur, il ne reste qu'à la légender et à la créditer. */
+function legendeTerrain(id){
+  const t = TERRAIN[id]; if(!t) return '';
+  const lic = LICENCES[t.l]
+    ? '<a href="' + LICENCES[t.l] + '" target="_blank" rel="noopener">' + t.l + '</a>' : t.l;
+  return '<p style="font-size:11.5px; color:var(--gris-clair); margin:7px 0 0">' + t.leg + '</p>' +
     '<p class="ro-credit">Photographie : ' + ech(t.a) + ' · ' + lic +
     ' · <a href="' + t.u + '" target="_blank" rel="noopener">Wikimedia Commons ↗</a></p>' +
     (t.v ? '<p class="ro-credit" style="margin-top:4px">▶ <a href="' + t.v +
@@ -2399,17 +2453,33 @@ const ROCHE_DU_MAGMA = {
 };
 const PONCE_DU_MAGMA = {id:'ponce', n:"Ponce",
   q:"Ce que l'on ramasse après une éruption explosive : une mousse de verre, figée sur les bulles de gaz qui l'ont déchirée. Elle flotte sur l'eau."};
+/* Quatre styles nommés, mais une échelle continue : entre une coulée tranquille
+   et une colonne plinienne il n'y a pas quatre marches, il y en a autant qu'on
+   veut. Voici huit échelons photographiés, rangés par indice d'explosivité, de
+   quoi voir le passage se faire au lieu de sauter d'un cran à l'autre.
+   L'indice va de 0 (basalte sec) à 5,3 (rhyolite gorgée d'eau). */
+const ECHELONS = [
+  {max:0.6, ph:'coulee',      n:"La lave coule, sans rien projeter"},
+  {max:1.1, ph:'hawaiien',    n:"Fontaines de lave"},
+  {max:1.7, ph:'strombolien', n:"Explosions rythmées, projections"},
+  {max:2.4, ph:'fissure',     n:"Fontaines de fissure, cône de scories"},
+  {max:3.2, ph:'vulcanien',   n:"Panache de cendres"},
+  {max:4.0, ph:'dome',        n:"Dôme de lave sur l'évent"},
+  {max:4.7, ph:'nuee',        n:"Nuées ardentes"},
+  {max:99,  ph:'plinien',     n:"Colonne plinienne"}
+];
+const echelon = ex => ECHELONS.find(x => ex < x.max);
 const STYLES = [
-  {max:1,   n:"Effusif — hawaïen", c:'#c0392b', ph:'hawaiien',
+  {max:1,   n:"Effusif — hawaïen", c:'#c0392b',
    t:"Fontaines et coulées très fluides, cônes larges et plats (volcans boucliers). Le gaz s'échappe sans résistance.",
    r:"Coulées basaltiques, cheveux de Pelé, parfois lacs de lave."},
-  {max:2,   n:"Effusif à explosions — strombolien", c:'#cf6a2c', ph:'strombolien',
+  {max:2,   n:"Effusif à explosions — strombolien", c:'#cf6a2c',
    t:"Explosions rythmées projetant des lambeaux de lave, coulées plus courtes, cônes de scories.",
    r:"Bombes, scories, lapilli et coulées."},
-  {max:3.2, n:"Explosif — vulcanien", c:'#c08a1e', ph:'vulcanien',
+  {max:3.2, n:"Explosif — vulcanien", c:'#c08a1e',
    t:"Le magma visqueux bouche le conduit ; la pression s'accumule et se libère par explosions violentes.",
    r:"Cendres, blocs, panaches de plusieurs kilomètres."},
-  {max:99,  n:"Très explosif — péléen à plinien", c:'#6e5fa8', ph:'plinien',
+  {max:99,  n:"Très explosif — péléen à plinien", c:'#6e5fa8',
    t:"Magma si visqueux qu'il forme un dôme ou une aiguille ; son effondrement engendre des nuées ardentes, ou la colonne s'effondre en écoulements pyroclastiques.",
    r:"Ponces, cendres fines, ignimbrites, dômes de lave."}
 ];
@@ -2445,69 +2515,149 @@ const STYLES = [
   }
 
   /* ---------- le volcan ---------- */
-  function dessine(){
-    const {ctx, l, h} = dimensionne(cv, 300);
+  /* ---------- le volcan, en vis-à-vis de la photographie ----------
+     Toute la géométrie est proportionnelle à la boîte : le comparateur change
+     de hauteur selon la largeur de l'écran, et le cône doit suivre. Le profil
+     du cône vient de h(d) = hc · (1 − (d/R)^p) : un exposant supérieur à 1
+     donne un volcan bouclier, large et bombé ; inférieur à 1, un stratovolcan
+     étroit aux flancs concaves. C'est la viscosité qui règle les deux. */
+  function geo(){
+    const boite = cv.parentElement;
+    const h = Math.round(boite.clientHeight || 0), l = Math.round(boite.clientWidth || 0);
+    if(h < 60 || l < 60) return null;
     const e = etat();
-    const sol = h-24, sommet = 118, xv = l*0.28;   /* du ciel au-dessus du cratère pour le panache */
-    ctx.fillStyle = '#e9eef1'; ctx.fillRect(0,0,l,h);
-    /* le cône : pente d'autant plus raide que la lave est visqueuse */
-    const raideur = borne(0.12 + e.le*0.075, 0.12, 1.1);
-    const base = xv + (sol-sommet)/raideur;
-    ctx.beginPath();
-    ctx.moveTo(0, sol);
-    ctx.lineTo(xv - (sol-sommet)/raideur*0.55, sol);
-    ctx.lineTo(xv-12, sommet); ctx.lineTo(xv+12, sommet);
-    ctx.lineTo(Math.min(l, base), sol); ctx.lineTo(l, sol); ctx.lineTo(l, h); ctx.lineTo(0,h);
-    ctx.closePath();
-    ctx.fillStyle = '#8a8071'; ctx.fill();
-    ctx.strokeStyle = '#6e6659'; ctx.lineWidth = 1.5; ctx.stroke();
-    /* coulée ou panache */
-    if(e.ex < 2.4){
-      const portee = borne(Math.log10(Math.max(1e-6, e.v))+6, 0.3, 6.6)/6.6;
-      const long = (Math.min(l,base)-xv)*portee*(marche ? Math.min(1, t/70) : 1);
+    const raide = borne((e.le + 1) / 11, 0, 1);      /* log η de −1 à 10 → 0 à 1 */
+    const sol = h*0.90, xv = l*0.30;                 /* l'évent reste du côté « modèle » */
+    const hc = h * (0.24 + 0.40*raide);              /* un bouclier est bas, un strato est haut */
+    const R  = l * (0.46 - 0.23*raide);              /* et large, contre étroit */
+    const p  = 2.0 - 1.25*raide;
+    const profil = x => {
+      const d = Math.abs(x - xv) / R;
+      return d >= 1 ? sol : sol - hc*(1 - Math.pow(d, p));
+    };
+    return {e, l, h, sol, xv, hc, R, p, profil, sommet: sol - hc, raide};
+  }
+
+  function dessine(){
+    const g = geo(); if(!g) return;
+    const {ctx, l, h} = dimensionne(cv, g.h);
+    const {e, sol, xv, R, hc, profil, sommet, raide} = g;
+    const rnd = graine(Math.round(silice*31 + temp + eau*7));
+
+    /* ciel et plaine */
+    const ciel = ctx.createLinearGradient(0, 0, 0, sol);
+    ciel.addColorStop(0, '#a9c6da'); ciel.addColorStop(1, '#e4edf2');
+    ctx.fillStyle = ciel; ctx.fillRect(0, 0, l, h);
+    ctx.fillStyle = '#9aa189'; ctx.fillRect(0, sol, l, h-sol);
+
+    /* le cône */
+    const trace = () => {
+      ctx.beginPath(); ctx.moveTo(0, sol);
+      for(let x = 0; x <= l; x += 2) ctx.lineTo(x, profil(x));
+      ctx.lineTo(l, sol);
+    };
+    trace(); ctx.lineTo(l, h); ctx.lineTo(0, h); ctx.closePath();
+    const roche = ctx.createLinearGradient(0, sommet, 0, h);
+    roche.addColorStop(0, '#766d5e'); roche.addColorStop(0.55, '#8c8273'); roche.addColorStop(1, '#5e584e');
+    ctx.fillStyle = roche; ctx.fill();
+
+    /* les couches empilées : un volcan n'est pas un bloc, il s'est construit
+       coulée après coulée. Elles suivent le profil, donc elles se resserrent
+       vers le sommet comme sur une coupe réelle. */
+    ctx.save();
+    trace(); ctx.lineTo(l, h); ctx.lineTo(0, h); ctx.closePath(); ctx.clip();
+    ctx.strokeStyle = 'rgba(55,50,42,.13)'; ctx.lineWidth = 1;
+    for(let k = 1; k <= 7; k++){
+      const f = k/8;
       ctx.beginPath();
-      ctx.moveTo(xv-10, sommet+4);
-      ctx.lineTo(xv+10, sommet+4);
-      ctx.lineTo(xv+10+long, sommet+4+(sol-sommet)*portee*(marche?Math.min(1,t/70):1));
-      ctx.lineTo(xv-10+long*0.94, sommet+16+(sol-sommet)*portee*(marche?Math.min(1,t/70):1));
-      ctx.closePath();
-      const g = ctx.createLinearGradient(xv, sommet, xv+long, sol);
-      g.addColorStop(0,'#ffd24a'); g.addColorStop(0.45,'#ef6d2a'); g.addColorStop(1,'#8e2f18');
-      ctx.fillStyle = g; ctx.fill();
+      for(let x = 0; x <= l; x += 3){
+        const y = sol - (sol - profil(x))*f;
+        x ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.stroke();
     }
+    ctx.restore();
+
+    /* le cratère, centré sur l'évent */
+    const rc = Math.max(10, R*0.09), pc = Math.max(7, hc*0.09);
+    ctx.beginPath();
+    ctx.moveTo(xv - rc, profil(xv - rc));
+    ctx.lineTo(xv - rc*0.42, sommet + pc);
+    ctx.lineTo(xv + rc*0.42, sommet + pc);
+    ctx.lineTo(xv + rc, profil(xv + rc));
+    ctx.closePath();
+    ctx.fillStyle = '#4b453c'; ctx.fill();
+    ctx.strokeStyle = 'rgba(40,36,30,.5)'; ctx.lineWidth = 1.2; ctx.stroke();
+
+    /* la coulée, posée sur le flanc : elle le suit au lieu de flotter */
+    if(e.ex < 2.4){
+      const avance = marche ? Math.min(1, t/70) : 1;
+      const portee = borne(Math.log10(Math.max(1e-6, e.v)) + 6, 0.3, 6.6)/6.6;
+      const depart = xv + rc*0.42;
+      const fin = Math.min(l - 2, depart + (R - rc)*portee*avance + l*0.03);
+      const ep = Math.max(6, h*0.045);
+      ctx.beginPath();
+      ctx.moveTo(depart, sommet + pc);
+      for(let x = depart; x <= fin; x += 2) ctx.lineTo(x, profil(x) - 1);
+      for(let x = fin; x >= depart; x -= 2) ctx.lineTo(x, profil(x) + ep);
+      ctx.closePath();
+      const lave = ctx.createLinearGradient(depart, sommet, fin, profil(fin));
+      lave.addColorStop(0, '#ffe88c'); lave.addColorStop(0.3, '#ff9a2e');
+      lave.addColorStop(0.75, '#e2561d'); lave.addColorStop(1, '#8e2f18');
+      ctx.save(); ctx.globalAlpha = .35; ctx.filter = 'blur(5px)';
+      ctx.fillStyle = '#ff8a3d'; ctx.fill(); ctx.restore();
+      ctx.fillStyle = lave; ctx.fill();
+    }
+
+    /* un panache même à l'arrêt : sans lui le volcan explosif n'est qu'un
+       triangle. Il part de l'évent, et s'élargit d'autant plus qu'on explose. */
+    if(e.ex >= 1 && !marche){
+      const n = 34 + Math.round(e.ex*18);
+      const hp = hc*(0.40 + e.ex*0.46), gris = e.ex >= 2.4;
+      ctx.save(); ctx.filter = 'blur(4px)';
+      for(let i = 0; i < n; i++){
+        const f = i/n;
+        const y = sommet + pc - f*hp;
+        const dx = (rnd()-0.5) * rc * (1.1 + f*(gris ? 7 : 2.4));
+        const r = rc*(gris ? 0.30 + f*0.95 : 0.16 + f*0.25);
+        ctx.beginPath(); ctx.arc(xv + dx, y, r, 0, Math.PI*2);
+        ctx.fillStyle = gris ? 'rgba(122,114,104,' + (0.26 - f*0.15).toFixed(2) + ')'
+                             : 'rgba(228,112,42,' + (0.34 - f*0.24).toFixed(2) + ')';
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    /* projections et panache animés, émis exactement à l'évent */
     if(marche && e.ex >= 1){
-      /* projections et panache */
-      jets.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
-        ctx.fillStyle = e.ex >= 2.4 ? 'rgba(120,112,102,' + p.a + ')'
-                                    : 'rgba(230,110,40,' + p.a + ')';
+      jets.forEach(q => {
+        ctx.beginPath(); ctx.arc(q.x, q.y, q.r, 0, Math.PI*2);
+        ctx.fillStyle = e.ex >= 2.4 ? 'rgba(118,110,100,' + q.a + ')'
+                                    : 'rgba(235,115,40,' + q.a + ')';
         ctx.fill();
       });
     }
-    /* légende */
-    ctx.fillStyle = '#5c564c'; ctx.font = '11px system-ui,sans-serif';
-    ctx.fillText('pente du versant : ' + pente + '°', 10, 16);
-    ctx.fillStyle = e.style.c; ctx.font = '600 12px system-ui,sans-serif';
-    ctx.fillText(e.style.n, 10, 33);
   }
+
   function pasAnim(){
-    const e = etat();
+    const g = geo();
     t++;
-    const l = cv.clientWidth, xv = l*0.22;
-    if(e.ex >= 1 && t % Math.max(2, Math.round(9 - e.ex*1.8)) === 0){
-      const n = 1 + Math.round(e.ex);
-      for(let i=0;i<n;i++)
-        jets.push({x:xv + (Math.random()-0.5)*16, y:118,
-                   vx:(Math.random()-0.5)*(0.6+e.ex*0.35), vy:-(2+Math.random()*e.ex*1.6),
-                   r:2+Math.random()*(1+e.ex), a:0.85});
+    if(g){
+      const {e, xv, sommet} = g;
+      if(e.ex >= 1 && t % Math.max(2, Math.round(9 - e.ex*1.8)) === 0){
+        const n = 1 + Math.round(e.ex);
+        for(let i=0;i<n;i++)
+          jets.push({x: xv + (Math.random()-0.5)*Math.max(10, g.R*0.08), y: sommet + 4,
+                     vx:(Math.random()-0.5)*(0.6+e.ex*0.35), vy:-(2+Math.random()*e.ex*1.6),
+                     r:2+Math.random()*(1+e.ex), a:0.85});
+      }
+      jets = jets.filter(q => {
+        q.x += q.vx; q.y += q.vy; q.vy += e.ex >= 2.4 ? -0.02 : 0.09;
+        q.a -= e.ex >= 2.4 ? 0.006 : 0.012;
+        if(e.ex >= 2.4) q.r += 0.22;
+        return q.a > 0.03 && q.y < g.h + 20;
+      });
     }
-    jets = jets.filter(p => {
-      p.x += p.vx; p.y += p.vy; p.vy += e.ex >= 2.4 ? -0.02 : 0.09;
-      p.a -= e.ex >= 2.4 ? 0.006 : 0.012;
-      if(e.ex >= 2.4) p.r += 0.22;
-      return p.a > 0.03 && p.y < 320;
-    });
     dessine();
     if(marche) anim = requestAnimationFrame(pasAnim);
   }
@@ -2557,13 +2707,19 @@ const STYLES = [
     ctx.fillStyle = '#a8660f'; ctx.fill(); ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
   }
 
-  /* ---------- le dynamisme éruptif, photographié ---------- */
-  let styleAffiche = null;
+  /* ---------- le dynamisme éruptif, photographié sous le curseur ---------- */
+  let echAffiche = null;
   function rendStyle(e){
-    const bac = $('#ma-photo'); if(!bac) return;
-    if(styleAffiche === e.style.ph) return;   /* même style : on ne recharge pas */
-    styleAffiche = e.style.ph;
-    bac.innerHTML = figureTerrain(e.style.ph);
+    const img = $('#ma-reel'), bac = $('#ma-legende');
+    if(!img || !bac) return;
+    const ech8 = echelon(e.ex);
+    if(echAffiche === ech8.ph) return;        /* même échelon : on ne recharge pas */
+    echAffiche = ech8.ph;
+    img.src = '../images/terrain/' + TERRAIN[ech8.ph].f;
+    img.alt = ech8.n;
+    const z = $('#ma-zoom'); if(z) z.dataset.photo = img.src;
+    bac.innerHTML = '<p style="font-size:12.5px; font-weight:600; color:' + e.style.c +
+      '; margin:9px 0 0">' + ech(ech8.n) + '</p>' + legendeTerrain(ech8.ph);
   }
 
   /* ---------- la roche laissée par ce magma, photographiée ---------- */
@@ -2614,7 +2770,7 @@ const STYLES = [
       '<div class="note">Indice d\'explosivité calculé à partir de la silice et de l\'eau dissoute : ' +
       fr(e.ex,2) + '. C\'est un indicateur de ce module, pas une échelle officielle — l\'indice ' +
       'd\'explosivité volcanique (VEI) se mesure, lui, sur le volume de matériaux émis.</div>';
-    dessine(); dessineCourbe(); rendStyle(e); rendRoche(e);
+    rendStyle(e); dessine(); dessineCourbe(); rendRoche(e);
     Labo.note('magma', 'Magma réglé', silice + ' % SiO₂, ' + temp + ' °C, ' + fr(e.H,1) + ' % H₂O');
     Labo.note('magma', 'Viscosité', '10^' + fr(e.le,1) + ' Pa·s');
     Labo.note('magma', "Vitesse d'écoulement", vv + ' ' + vu + ' (pente ' + pente + '°)');
@@ -2650,6 +2806,8 @@ const STYLES = [
   ]);
 
   Labo.surAffichage.magma = () => { dessine(); dessineCourbe(); };
+  activeComparateur($('.mo-comp'));
+  addEventListener('resize', () => { if(!marche) dessine(); });
   maj();
 })();
 </script>
