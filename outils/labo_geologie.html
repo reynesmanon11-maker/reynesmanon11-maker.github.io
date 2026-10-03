@@ -1099,7 +1099,6 @@ header.top .marque b{ letter-spacing:-.015em }
             <button aria-pressed="false" data-t="rhyolite">Rhyolite</button>
           </div>
         </div>
-        <div class="note" id="ma-note"></div>
       </div>
 
       <div class="carte">
@@ -2607,11 +2606,6 @@ const STYLES = [
     const [vv,vu] = vitesseLisible(e.v); $('#ma-m-v').textContent = vv; $('#ma-m-vu').textContent = vu;
     const [dd,du] = distanceLisible(e.v*3600); $('#ma-m-d').textContent = dd; $('#ma-m-du').textContent = du;
     $('#ma-m-s').textContent = e.style.n.split(' — ')[0];
-    $('#ma-note').innerHTML = "Viscosité <b>10<sup>" + fr(e.le,1) + "</sup> Pa·s</b> — pour mémoire, l'eau vaut 10<sup>−3</sup>, le miel environ 10, le bitume 10<sup>8</sup>. " +
-      "L'eau dissoute <b>fluidifie</b> le magma en profondeur, mais elle s'échappe à la remontée et c'est elle qui fait l'explosion : " +
-      "les deux rôles sont opposés, et ce modèle ne rend compte que du premier.<br>" +
-      "La vitesse est celle d'une coulée d'un mètre d'épaisseur, sans croûte ni cristaux : c'est une " +
-      "<b>valeur idéale, donc majorante</b>. Une coulée réelle est freinée par la croûte qui se fige à sa surface.";
     $('#ma-terrain').innerHTML =
       '<div style="border-left:3px solid ' + e.style.c + '; padding:2px 0 2px 12px">' +
       '<div style="font-weight:600; font-size:14px; color:' + e.style.c + '">' + e.style.n + '</div>' +
