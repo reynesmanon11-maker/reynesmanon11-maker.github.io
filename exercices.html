@@ -366,6 +366,44 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 .ex-bilan .liste li{ font-size:.875rem; line-height:1.5; padding:.6rem 0; border-top:1px solid #f1f0ee }
 .ex-bilan .liste li:first-child{ border-top:0 }
 @media (min-width:640px){ .exos{ padding-inline:2rem } }
+/* l'échiquier de croisement */
+.ex-aide{ font-size:.85rem; color:rgba(17,17,17,.68); margin-bottom:.9rem; line-height:1.5 }
+.ex-grille{ overflow-x:auto; padding-bottom:.3rem }
+.ex-grille table{ border-collapse:separate; border-spacing:.4rem; min-width:min(100%,22rem) }
+.ex-grille th{ font-size:.8rem; font-weight:600; color:#3c71a3; padding:.3rem .5rem; white-space:nowrap }
+.ex-grille th[scope="row"]{ text-align:right }
+.ex-grille td{ padding:0 }
+.ex-case{ width:100%; min-width:8.5rem; padding:.65rem .7rem; font:inherit; font-size:.9rem;
+  text-align:center; border-radius:.8rem; border:1px solid #e6e5e2; background:#fff }
+.ex-case:focus-visible{ outline:2px solid #b15f2c; outline-offset:1px }
+.ex-case.juste{ border-color:#397d58; background:#edf7f0 }
+.ex-case.faux{ border-color:#a65275; background:#fbedf3 }
+.ex-attendu{ display:block; margin-top:.25rem; font-size:.75rem; font-weight:600; color:#8e4664 }
+.ex-attendu::before{ content:'attendu : '; font-weight:400; color:rgba(17,17,17,.62) }
+/* remettre dans l'ordre */
+.ex-ordre{ display:grid; gap:.5rem; list-style:none; margin:0; padding:0 }
+.ex-ordre li{ display:flex; align-items:center; gap:.7rem; border:1px solid #e6e5e2;
+  border-radius:1rem; padding:.7rem .85rem; background:#fff; font-size:.9375rem; line-height:1.4 }
+.ex-ordre .rang{ flex:none; width:1.5rem; height:1.5rem; border-radius:50%; display:grid;
+  place-items:center; background:#f1f0ee; font-size:.72rem; font-weight:700; color:#5c574f }
+.ex-ordre .lib{ flex:1 }
+.ex-ordre .fleches{ flex:none; display:flex; gap:.25rem }
+.ex-ordre .fleches button{ width:1.9rem; height:1.9rem; border-radius:.5rem; border:1px solid #ddd8ce;
+  background:#fbfaf8; color:#5c574f; font-size:.8rem }
+.ex-ordre .fleches button:hover:not(:disabled){ border-color:#999; color:#111 }
+.ex-ordre .fleches button:disabled{ opacity:.35; cursor:default }
+.ex-ordre.corrigee li.juste{ border-color:#397d58; background:#edf7f0 }
+.ex-ordre.corrigee li.faux{ border-color:#a65275; background:#fbedf3 }
+.ex-bonordre{ margin-top:.9rem; padding:.9rem 1rem .9rem 2.2rem; border-radius:1rem;
+  background:#f7f6f4; font-size:.875rem; line-height:1.6; color:#3a352e }
+/* texte à trous */
+.ex-texte{ font-size:1rem; line-height:2.2 }
+.ex-trou{ font:inherit; font-size:.9rem; padding:.3rem .45rem; border-radius:.5rem;
+  border:1px solid #c9c2b5; background:#fbfaf8; max-width:14rem }
+.ex-trou:focus-visible{ outline:2px solid #b15f2c; outline-offset:1px }
+.ex-trou.juste{ border-color:#397d58; background:#edf7f0 }
+.ex-trou.faux{ border-color:#a65275; background:#fbedf3 }
+.ex-texte .ex-attendu{ display:inline-block; margin:0 0 0 .3rem }
 /* ===================== footer ===================== */
 /* Pastille de confidentialite du pied de page. Elle ne certifie rien — aucun
    organisme ne delivre de logo RGPD — et c'est pourquoi elle mene a la page
@@ -848,8 +886,8 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
-<script src="/exercices.js?v=2026-10-04a"></script>
-<script src="/atelier-exos.js?v=2026-10-04a" defer></script>
+<script src="/exercices.js?v=2026-10-04b"></script>
+<script src="/atelier-exos.js?v=2026-10-04b" defer></script>
 <script src="/assistant-svt.js?v=2026-09-22a" defer></script>
 
 <script>

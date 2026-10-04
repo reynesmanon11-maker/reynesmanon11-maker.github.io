@@ -11,6 +11,9 @@
    rappelle les questions ratées avec leur explication, parce que c'est la
    seule partie qu'il vaut la peine de relire.
 
+   Six types de question. Chacun fournit trois choses : de quoi se dessiner,
+   de quoi dire si l'élève a fini de répondre, et de quoi se corriger.
+
    Rien n'est envoyé nulle part : tout se passe dans le navigateur de l'élève.
    ========================================================================== */
 (function () {
@@ -22,13 +25,37 @@
 
   const ech = (t) => String(t == null ? '' : t)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  /* Les énoncés portent du gras et des exposants écrits à la main ; rien de ce
+     que tape un élève ne passe par là. */
+  const mep = (t) => String(t == null ? '' : t);
   const LETTRES = ['A', 'B', 'C', 'D', 'E', 'F'];
 
-  /* Les énoncés contiennent du gras et des exposants écrits à la main ; les
-     réponses des élèves, jamais. On échappe donc les unes et pas les autres. */
-  const mep = (t) => String(t == null ? '' : t);
+  /* Deux génotypes sont les mêmes quels que soient l'ordre des allèles, les
+     parenthèses, les espaces et le nombre de barres obliques : « vg // vg+ »,
+     « (vg+/vg) » et « vg+//vg » décrivent la même drosophile. On corrige une
+     méthode, pas une façon d'écrire. */
+  function normaliserGenotype(t) {
+    return String(t == null ? '' : t)
+      .toLowerCase()
+      .replace(/[()[\]]/g, '')
+      .replace(/\s+/g, '')
+      .split(/\/+/)
+      .filter(Boolean)
+      .sort()
+      .join('//');
+  }
+
+  const melanger = (tab) => {
+    const a = tab.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  };
 
   let serie = null, i = 0, reponses = [];
+  let lireReponse = () => null;     // posée par chaque type au moment du dessin
 
   /* ---- le choix des séries ---------------------------------------------- */
   function dessinerChoix() {
@@ -59,27 +86,68 @@
     choix.scrollIntoView({ block: 'start', behavior: 'smooth' });
   }
 
+  /* ---- le corps de chaque type ------------------------------------------ */
+  function corpsQcm(q) {
+    return `<div class="ex-opts">` + q.o.map((o, k) =>
+      `<button class="ex-opt" data-rep="${k}" aria-pressed="false">
+         <span class="lettre">${LETTRES[k]}</span><span>${ech(o)}</span></button>`).join('') + `</div>`;
+  }
+  const corpsVf = () => `<div class="ex-opts">
+      <button class="ex-opt" data-rep="1" aria-pressed="false"><span class="lettre">V</span><span>Vrai</span></button>
+      <button class="ex-opt" data-rep="0" aria-pressed="false"><span class="lettre">F</span><span>Faux</span></button>
+    </div>`;
+  const corpsNum = (q) => `<div class="ex-num">
+      <input type="number" inputmode="numeric" id="ex-saisie" aria-label="Votre réponse" placeholder="…" />
+      <span class="unite">${ech(q.unite || '')}</span>
+    </div>`;
+
+  function corpsCroisement(q) {
+    const entete = q.colonnes.map((c) => `<th scope="col">♀ (${ech(c)})</th>`).join('');
+    const corps = q.lignes.map((l, li) => `<tr>
+        <th scope="row">♂ (${ech(l)})</th>` + q.colonnes.map((c, ci) =>
+        `<td><input type="text" class="ex-case" data-li="${li}" data-ci="${ci}"
+            autocomplete="off" autocapitalize="off" spellcheck="false"
+            aria-label="Case ligne ${li + 1}, colonne ${ci + 1}" /></td>`).join('') + `</tr>`).join('');
+    return `${q.aide ? `<p class="ex-aide">${mep(q.aide)}</p>` : ''}
+      <div class="ex-grille"><table><thead><tr><td></td>${entete}</tr></thead><tbody>${corps}</tbody></table></div>`;
+  }
+
+  function corpsOrdre(q) {
+    /* Mélangé à chaque passage — et jamais rendu déjà dans l'ordre. */
+    let melange = melanger(q.items);
+    if (melange.join('|') === q.items.join('|')) melange = melanger(q.items);
+    return `<ul class="ex-ordre">` + melange.map((t) => `
+      <li data-item="${ech(t)}"><span class="rang"></span><span class="lib">${ech(t)}</span>
+        <span class="fleches">
+          <button data-monter aria-label="Monter">↑</button>
+          <button data-descendre aria-label="Descendre">↓</button>
+        </span></li>`).join('') + `</ul>`;
+  }
+
+  function corpsTrous(q) {
+    const banque = q.banque.slice().sort((a, b) => a.localeCompare(b, 'fr'));
+    const texte = mep(q.q).replace(/\{(\d+)\}/g, (_, n) =>
+      `<select class="ex-trou" data-trou="${+n - 1}" aria-label="Mot ${n}">
+         <option value="">…</option>` +
+      banque.map((m) => `<option value="${ech(m)}">${ech(m)}</option>`).join('') + `</select>`);
+    return `<p class="ex-texte">${texte}</p>`;
+  }
+
   /* ---- une question ------------------------------------------------------ */
   function dessinerQuestion() {
     const q = serie.questions[i];
     const pct = Math.round((i / serie.questions.length) * 100);
-    let corps;
+    const corps = q.t === 'qcm' ? corpsQcm(q)
+      : q.t === 'vf' ? corpsVf()
+      : q.t === 'num' ? corpsNum(q)
+      : q.t === 'croisement' ? corpsCroisement(q)
+      : q.t === 'ordre' ? corpsOrdre(q)
+      : corpsTrous(q);
 
-    if (q.t === 'qcm') {
-      corps = `<div class="ex-opts">` + q.o.map((o, k) =>
-        `<button class="ex-opt" data-rep="${k}" aria-pressed="false">
-           <span class="lettre">${LETTRES[k]}</span><span>${ech(o)}</span></button>`).join('') + `</div>`;
-    } else if (q.t === 'vf') {
-      corps = `<div class="ex-opts">
-        <button class="ex-opt" data-rep="1" aria-pressed="false"><span class="lettre">V</span><span>Vrai</span></button>
-        <button class="ex-opt" data-rep="0" aria-pressed="false"><span class="lettre">F</span><span>Faux</span></button>
-      </div>`;
-    } else {
-      corps = `<div class="ex-num">
-        <input type="number" inputmode="numeric" id="ex-saisie" aria-label="Votre réponse" placeholder="…" />
-        <span class="unite">${ech(q.unite || '')}</span>
-      </div>`;
-    }
+    /* Pour les textes à trous, l'énoncé EST le corps : on ne le répète pas. */
+    const enonce = q.t === 'trous'
+      ? '<p class="ex-q">Complétez le texte.</p>'
+      : `<p class="ex-q">${mep(q.q)}</p>`;
 
     jeu.innerHTML = `
       <div class="ex-tete">
@@ -87,58 +155,158 @@
         <button data-quitter>Changer de série</button>
       </div>
       <div class="ex-jauge"><i style="width:${pct}%"></i></div>
-      <p class="ex-q">${mep(q.q)}</p>
+      ${enonce}
       ${corps}
       <div class="ex-actions"><button class="pill dark noarrow" data-valider disabled><span>Valider</span></button></div>`;
 
     const valider = jeu.querySelector('[data-valider]');
     jeu.querySelector('[data-quitter]').addEventListener('click', quitter);
+    const pret = (ok) => { valider.disabled = !ok; };
 
     if (q.t === 'num') {
       const champ = jeu.querySelector('#ex-saisie');
-      champ.addEventListener('input', () => { valider.disabled = champ.value.trim() === ''; });
+      champ.addEventListener('input', () => pret(champ.value.trim() !== ''));
       champ.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !valider.disabled) { e.preventDefault(); valider.click(); }
       });
       champ.focus();
-      valider.addEventListener('click', () => corriger(Number(champ.value)));
-    } else {
+      lireReponse = () => Number(champ.value);
+
+    } else if (q.t === 'qcm' || q.t === 'vf') {
       let choisi = null;
       jeu.querySelectorAll('[data-rep]').forEach((b) => b.addEventListener('click', () => {
         choisi = +b.dataset.rep;
-        jeu.querySelectorAll('[data-rep]').forEach((x) =>
-          x.setAttribute('aria-pressed', String(x === b)));
-        valider.disabled = false;
+        jeu.querySelectorAll('[data-rep]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+        pret(true);
       }));
-      valider.addEventListener('click', () => corriger(choisi));
+      lireReponse = () => choisi;
+
+    } else if (q.t === 'croisement') {
+      const cases = [...jeu.querySelectorAll('.ex-case')];
+      const verifierRemplissage = () => pret(cases.every((c) => c.value.trim() !== ''));
+      cases.forEach((c, k) => {
+        c.addEventListener('input', verifierRemplissage);
+        c.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          if (k < cases.length - 1) cases[k + 1].focus();
+          else if (!valider.disabled) valider.click();
+        });
+      });
+      cases[0].focus();
+      lireReponse = () => cases.map((c) => c.value);
+
+    } else if (q.t === 'ordre') {
+      const liste = jeu.querySelector('.ex-ordre');
+      const renumeroter = () => [...liste.children].forEach((li, k) => {
+        li.querySelector('.rang').textContent = k + 1;
+        li.querySelector('[data-monter]').disabled = k === 0;
+        li.querySelector('[data-descendre]').disabled = k === liste.children.length - 1;
+      });
+      liste.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-monter],[data-descendre]');
+        if (!b) return;
+        const li = b.closest('li');
+        if (b.hasAttribute('data-monter')) li.previousElementSibling?.before(li);
+        else li.nextElementSibling?.after(li);
+        renumeroter();
+        pret(true);
+      });
+      renumeroter();
+      pret(true);   /* l'ordre proposé est déjà une réponse : on peut valider */
+      lireReponse = () => [...liste.children].map((li) => li.dataset.item);
+
+    } else {
+      const trous = [...jeu.querySelectorAll('.ex-trou')];
+      const verifierRemplissage = () => pret(trous.every((t) => t.value !== ''));
+      trous.forEach((t) => t.addEventListener('change', verifierRemplissage));
+      lireReponse = () => trous.map((t) => t.value);
     }
+
+    valider.addEventListener('click', () => corriger(lireReponse()));
   }
 
   /* ---- la correction ----------------------------------------------------- */
   function corriger(donnee) {
     const q = serie.questions[i];
-    const attendu = q.t === 'vf' ? (q.r ? 1 : 0) : q.r;
-    const juste = donnee === attendu;
-    reponses.push({ q, donnee, juste });
+    let juste, bonne;
 
-    /* Plus de retour en arrière : la réponse est posée, on la regarde en face. */
-    jeu.querySelectorAll('.ex-opt').forEach((b) => {
-      b.disabled = true;
-      const k = +b.dataset.rep;
-      if (k === attendu) b.classList.add('juste');
-      else if (k === donnee) b.classList.add('faux');
-    });
-    const champ = jeu.querySelector('#ex-saisie');
-    if (champ) champ.disabled = true;
+    if (q.t === 'qcm' || q.t === 'vf') {
+      const attendu = q.t === 'vf' ? (q.r ? 1 : 0) : q.r;
+      juste = donnee === attendu;
+      bonne = q.t === 'vf' ? (q.r ? 'Vrai' : 'Faux') : LETTRES[q.r] + '. ' + q.o[q.r];
+      jeu.querySelectorAll('.ex-opt').forEach((b) => {
+        b.disabled = true;
+        const k = +b.dataset.rep;
+        if (k === attendu) b.classList.add('juste');
+        else if (k === donnee) b.classList.add('faux');
+      });
 
-    const bonne = q.t === 'vf' ? (q.r ? 'Vrai' : 'Faux')
-      : q.t === 'num' ? String(q.r).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
-      : LETTRES[q.r] + '. ' + q.o[q.r];
+    } else if (q.t === 'num') {
+      juste = donnee === q.r;
+      bonne = String(q.r).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+      jeu.querySelector('#ex-saisie').disabled = true;
+
+    } else if (q.t === 'croisement') {
+      const attendues = [].concat(...q.cases);
+      juste = true;
+      [...jeu.querySelectorAll('.ex-case')].forEach((c, k) => {
+        c.disabled = true;
+        const ok = normaliserGenotype(c.value) === normaliserGenotype(attendues[k]);
+        c.classList.add(ok ? 'juste' : 'faux');
+        if (!ok) {
+          juste = false;
+          const attendu = document.createElement('span');
+          attendu.className = 'ex-attendu';
+          attendu.textContent = attendues[k];
+          c.after(attendu);
+        }
+      });
+      bonne = 'voir l’échiquier';
+
+    } else if (q.t === 'ordre') {
+      juste = donnee.join('|') === q.items.join('|');
+      bonne = 'voir la liste';
+      const liste = jeu.querySelector('.ex-ordre');
+      liste.classList.add('corrigee');
+      [...liste.children].forEach((li, k) => {
+        li.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+        li.classList.add(li.dataset.item === q.items[k] ? 'juste' : 'faux');
+      });
+      if (!juste) {
+        const bon = document.createElement('ol');
+        bon.className = 'ex-bonordre';
+        bon.innerHTML = q.items.map((t) => `<li>${ech(t)}</li>`).join('');
+        liste.after(bon);
+      }
+
+    } else {
+      juste = true;
+      [...jeu.querySelectorAll('.ex-trou')].forEach((t, k) => {
+        t.disabled = true;
+        const ok = t.value === q.r[k];
+        t.classList.add(ok ? 'juste' : 'faux');
+        if (!ok) {
+          juste = false;
+          const attendu = document.createElement('span');
+          attendu.className = 'ex-attendu';
+          attendu.textContent = q.r[k];
+          t.after(attendu);
+        }
+      });
+      bonne = 'voir le texte';
+    }
+
+    reponses.push({ q, juste });
 
     const corr = document.createElement('div');
     corr.className = 'ex-corr ' + (juste ? 'ok' : 'ko');
     corr.setAttribute('role', 'status');
-    corr.innerHTML = `<span class="verdict">${juste ? 'C’est juste.' : 'Pas tout à fait — la réponse est : ' + ech(bonne)}</span>${mep(q.e)}`;
+    const tete = juste ? 'C’est juste.'
+      : (q.t === 'croisement' || q.t === 'ordre' || q.t === 'trous')
+        ? 'Pas tout à fait — les réponses attendues sont indiquées ci-dessus.'
+        : 'Pas tout à fait — la réponse est : ' + ech(bonne);
+    corr.innerHTML = `<span class="verdict">${tete}</span>${mep(q.e)}`;
     jeu.querySelector('.ex-actions').before(corr);
 
     const act = jeu.querySelector('.ex-actions');
@@ -170,7 +338,7 @@
         </div>
         ${ratees.length ? `<div class="liste">
           <h3>À revoir — ${ratees.length} question${ratees.length > 1 ? 's' : ''}</h3>
-          <ul>${ratees.map((r) => `<li><b>${mep(r.q.q)}</b><br>${mep(r.q.e)}</li>`).join('')}</ul>
+          <ul>${ratees.map((r) => `<li><b>${mep(r.q.t === 'trous' ? 'Texte à compléter' : r.q.q)}</b><br>${mep(r.q.e)}</li>`).join('')}</ul>
         </div>` : ''}
       </div>`;
     jeu.querySelector('[data-refaire]').addEventListener('click', () => {

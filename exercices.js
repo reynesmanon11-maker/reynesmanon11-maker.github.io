@@ -10,10 +10,17 @@
    c'est l'explication qui suit — d'où le soin mis à ce qu'elle redise la
    notion plutôt que de se contenter d'un « oui » ou d'un « non ».
 
-   Trois formes de question :
-     qcm  une seule bonne réponse, index dans `o`
-     vf   vrai ou faux, `r` vaut true ou false
-     num  un nombre à saisir, `r` est ce nombre
+   Six formes de question :
+     qcm        une seule bonne réponse, index dans `o`
+     vf         vrai ou faux, `r` vaut true ou false
+     num        un nombre à saisir, `r` est ce nombre
+     croisement un échiquier de croisement à remplir, case par case
+     ordre      des étapes à remettre dans l'ordre
+     trous      un texte lacunaire, complété depuis une banque de mots
+
+   L'échiquier compare les génotypes après les avoir normalisés : « vg // vg+ »,
+   « (vg+//vg) » et « vg+/vg » sont acceptés comme une seule et même réponse.
+   On corrige une méthode, pas une façon d'écrire.
 
    Pièges volontairement tendus, parce que ce sont ceux que les élèves
    rencontrent vraiment : confondre chromosome et chromatide, croire qu'une
@@ -141,6 +148,80 @@ window.EXERCICES = [
         q: 'L’ADN est répliqué une seconde fois entre la méiose I et la méiose II.',
         r: false,
         e: 'Une <b>seule</b> réplication, avant la méiose I. C’est exactement ce qui permet de passer de 2n à n : deux divisions successives pour une seule réplication. S’il y en avait une seconde, les gamètes resteraient diploïdes.' },
+    ]
+  },
+  {
+    id: 'tale-drosophile-croisements',
+    niveau: 'Terminale',
+    matiere: 'Spécialité SVT',
+    titre: 'Drosophile : croisements et échiquiers',
+    sous: 'Remplir un échiquier, lire un croisement-test, reconnaître les recombinés.',
+    questions: [
+
+      { t: 'croisement',
+        q: 'Chez la drosophile, l’allèle <b>vg<sup>+</sup></b> (ailes longues) domine l’allèle <b>vg</b> (ailes vestigiales). On croise entre elles deux drosophiles de génotype <b>vg<sup>+</sup>//vg</b>. Complétez l’échiquier.',
+        aide: 'Écrivez chaque génotype sous la forme <b>vg+//vg</b>. L’ordre des deux allèles est sans importance.',
+        lignes: ['vg+', 'vg'],
+        colonnes: ['vg+', 'vg'],
+        cases: [['vg+//vg+', 'vg+//vg'],
+                ['vg+//vg', 'vg//vg']],
+        e: 'Chaque parent hétérozygote produit deux types de gamètes en proportions égales : (vg<sup>+</sup>) et (vg). L’échiquier donne 1 <b>vg<sup>+</sup>//vg<sup>+</sup></b>, 2 <b>vg<sup>+</sup>//vg</b>, 1 <b>vg//vg</b>, soit les proportions génotypiques 1/4, 2/4, 1/4. Comme vg<sup>+</sup> domine, les <b>phénotypes</b> se répartissent en 3/4 [ailes longues] et 1/4 [ailes vestigiales] : c’est le fameux rapport 3:1.' },
+
+      { t: 'croisement',
+        q: 'Croisement-test : on croise une femelle F1 de génotype <b>vg<sup>+</sup>//vg</b> avec un mâle <b>vg//vg</b>. Complétez l’échiquier.',
+        aide: 'Le mâle double récessif ne produit qu’un seul type de gamète.',
+        lignes: ['vg+', 'vg'],
+        colonnes: ['vg'],
+        cases: [['vg+//vg'],
+                ['vg//vg']],
+        e: 'C’est tout l’intérêt du croisement-test : le parent récessif n’apporte que l’allèle <b>vg</b>, donc <b>le phénotype des descendants révèle directement le gamète venu de la F1</b>. Ici, 1/2 [ailes longues] et 1/2 [ailes vestigiales] : la F1 a bien produit les deux gamètes en proportions égales.' },
+
+      { t: 'croisement',
+        q: 'Deux gènes portés par le <b>même</b> chromosome : couleur du corps (b<sup>+</sup> gris, b noir) et taille des ailes (vg<sup>+</sup> longues, vg vestigiales). Une F1 <b>(b<sup>+</sup> vg<sup>+</sup> // b vg)</b> est croisée avec un double récessif <b>(b vg // b vg)</b>. La F1 produit quatre types de gamètes : deux parentaux, deux recombinés. Complétez l’échiquier.',
+        aide: 'Chaque case est un génotype à deux gènes, par exemple <b>b+ vg+ // b vg</b>.',
+        lignes: ['b+ vg+', 'b vg', 'b+ vg', 'b vg+'],
+        colonnes: ['b vg'],
+        cases: [['b+ vg+ // b vg'],
+                ['b vg // b vg'],
+                ['b+ vg // b vg'],
+                ['b vg+ // b vg']],
+        e: 'Les deux premiers gamètes, <b>(b<sup>+</sup> vg<sup>+</sup>)</b> et <b>(b vg)</b>, reproduisent les associations d’allèles des grands-parents : ce sont les <b>parentaux</b>, les plus nombreux. Les deux autres, <b>(b<sup>+</sup> vg)</b> et <b>(b vg<sup>+</sup>)</b>, n’apparaissent que si un <b>crossing-over</b> a eu lieu entre les deux locus en prophase I : ce sont les <b>recombinés</b>, toujours minoritaires. Plus les deux gènes sont éloignés sur le chromosome, plus les recombinés sont nombreux.' },
+
+      { t: 'qcm',
+        q: 'Dans un croisement-test portant sur deux gènes liés, on obtient quatre phénotypes dans les proportions 41 % – 41 % – 9 % – 9 %. Que peut-on en conclure ?',
+        o: ['les deux gènes sont indépendants',
+            'les deux gènes sont liés, et 18 % des gamètes sont recombinés',
+            'les deux gènes sont liés, et 82 % des gamètes sont recombinés',
+            'il y a eu une anomalie de méiose'],
+        r: 1,
+        e: 'Deux gènes <b>indépendants</b> donneraient quatre phénotypes équiprobables (25 % chacun). Ici deux classes dominent nettement : les gènes sont <b>liés</b>. Les classes minoritaires sont les recombinés : 9 % + 9 % = <b>18 %</b>. Cette proportion mesure la distance entre les deux locus — ici 18 centimorgans.' },
+
+      { t: 'ordre',
+        q: 'Remettez les étapes de la méiose dans l’ordre.',
+        items: ['Prophase I — les homologues s’apparient, des crossing-over ont lieu',
+                'Métaphase I — les paires d’homologues s’alignent sur la plaque équatoriale',
+                'Anaphase I — les chromosomes homologues se séparent',
+                'Métaphase II — les chromosomes s’alignent en un seul rang',
+                'Anaphase II — les chromatides sœurs se séparent',
+                'Télophase II — quatre cellules haploïdes à une chromatide'],
+        e: 'Deux divisions pour une seule réplication. La <b>première</b> sépare les homologues : c’est elle qui fait passer de 2n à n, d’où son nom de division réductionnelle. Entre les deux, en télophase I, les cellules sont <b>déjà haploïdes</b> mais leurs chromosomes ont encore deux chromatides. La <b>seconde</b> sépare les chromatides sœurs, comme une mitose.' },
+
+      { t: 'trous',
+        q: 'Une cellule {1} possède deux exemplaires de chaque chromosome. Ces deux exemplaires portent les mêmes gènes aux mêmes {2} : ce sont des chromosomes {3}. Lorsque les deux allèles d’un gène diffèrent, l’individu est {4} pour ce gène.',
+        banque: ['diploïde', 'haploïde', 'locus', 'centromères', 'homologues', 'identiques', 'hétérozygote', 'homozygote'],
+        r: ['diploïde', 'locus', 'homologues', 'hétérozygote'],
+        e: 'Attention au piège de « identiques » : des chromosomes homologues portent les mêmes gènes, mais pas forcément les mêmes allèles. C’est précisément cette différence qui rend le brassage utile.' },
+
+      { t: 'trous',
+        q: 'Le brassage {1} résulte de la répartition au hasard des paires d’homologues en {2}. Le brassage {3}, lui, résulte des {4} qui se produisent en prophase I.',
+        banque: ['interchromosomique', 'intrachromosomique', 'anaphase I', 'anaphase II', 'crossing-over', 'mitoses'],
+        r: ['interchromosomique', 'anaphase I', 'intrachromosomique', 'crossing-over'],
+        e: '<b>Inter</b> = entre les chromosomes : les paires se répartissent indépendamment les unes des autres, en anaphase I. <b>Intra</b> = à l’intérieur d’un chromosome : des portions de chromatides s’échangent entre homologues, en prophase I. Les deux brassages s’ajoutent, puis la fécondation en ajoute un troisième.' },
+
+      { t: 'num',
+        q: 'Dans un croisement-test, on compte 1 000 descendants dont 120 présentent un phénotype recombiné. Quel est le pourcentage de recombinaison entre les deux gènes ?',
+        r: 12, unite: '%',
+        e: '120 / 1 000 = <b>12 %</b>. Ce pourcentage est aussi la distance entre les deux locus : 12 centimorgans. Il ne dépasse jamais 50 % — au-delà, les gènes se comportent comme s’ils étaient indépendants.' },
     ]
   },
 ];
