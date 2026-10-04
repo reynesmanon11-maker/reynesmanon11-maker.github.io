@@ -17,6 +17,7 @@
      croisement un échiquier de croisement à remplir, case par case
      ordre      des étapes à remettre dans l'ordre
      trous      un texte lacunaire, complété depuis une banque de mots
+     paires     des chromosomes à apparier deux à deux
 
    L'échiquier compare les génotypes après les avoir normalisés : « vg // vg+ »,
    « (vg+//vg) » et « vg+/vg » sont acceptés comme une seule et même réponse.
@@ -217,6 +218,21 @@ window.EXERCICES = [
         banque: ['interchromosomique', 'intrachromosomique', 'anaphase I', 'anaphase II', 'crossing-over', 'mitoses'],
         r: ['interchromosomique', 'anaphase I', 'intrachromosomique', 'crossing-over'],
         e: '<b>Inter</b> = entre les chromosomes : les paires se répartissent indépendamment les unes des autres, en anaphase I. <b>Intra</b> = à l’intérieur d’un chromosome : des portions de chromatides s’échangent entre homologues, en prophase I. Les deux brassages s’ajoutent, puis la fécondation en ajoute un troisième.' },
+
+      { t: 'paires',
+        q: 'Voici les huit chromosomes d’une cellule, dessinés après la réplication. Reconstituez les <b>quatre paires d’homologues</b>.',
+        aide: 'Cliquez un chromosome, puis celui que vous pensez être son homologue. Cliquez une paire déjà formée pour la défaire. Les lettres indiquent les allèles portés par le chromosome.',
+        chromosomes: [
+          { id: 1, paire: 'I',   taille: 1.00, centro: 0.30, alleles: ['A', 'B'] },
+          { id: 2, paire: 'III', taille: 1.00, centro: 0.62, alleles: ['E', 'F'] },
+          { id: 3, paire: 'II',  taille: 0.78, centro: 0.50, alleles: ['C', 'd'] },
+          { id: 4, paire: 'IV',  taille: 0.55, centro: 0.26, alleles: ['g'] },
+          { id: 5, paire: 'I',   taille: 1.00, centro: 0.30, alleles: ['a', 'B'] },
+          { id: 6, paire: 'II',  taille: 0.78, centro: 0.50, alleles: ['c', 'd'] },
+          { id: 7, paire: 'IV',  taille: 0.55, centro: 0.26, alleles: ['G'] },
+          { id: 8, paire: 'III', taille: 1.00, centro: 0.62, alleles: ['e', 'f'] },
+        ],
+        e: 'Trois critères, et il faut les <b>trois</b> : même taille, centromère au même endroit, et surtout <b>mêmes gènes aux mêmes locus</b>. Les allèles, eux, peuvent différer — c’est même tout l’intérêt : le chromosome 1 porte <b>A</b> là où le 5 porte <b>a</b>.<br><br>Le piège est entre les paires I et III : <b>même longueur</b>, mais leur centromère n’est pas placé pareil et ils ne portent pas les mêmes gènes. Deux chromosomes de même taille ne sont donc pas forcément homologues. À l’inverse, les deux <b>chromatides</b> d’un même chromosome, elles, sont identiques et tiennent ensemble par le centromère : ce ne sont pas des homologues, c’est un seul chromosome.' },
 
       { t: 'num',
         q: 'Dans un croisement-test, on compte 1 000 descendants dont 120 présentent un phénotype recombiné. Quel est le pourcentage de recombinaison entre les deux gènes ?',

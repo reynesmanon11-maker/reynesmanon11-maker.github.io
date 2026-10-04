@@ -404,6 +404,39 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 .ex-trou.juste{ border-color:#397d58; background:#edf7f0 }
 .ex-trou.faux{ border-color:#a65275; background:#fbedf3 }
 .ex-texte .ex-attendu{ display:inline-block; margin:0 0 0 .3rem }
+/* apparier les chromosomes */
+.chr-table{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:center;
+  gap:.6rem; padding:1rem .4rem; border-radius:1.25rem; background:#faf9f7 }
+.chr{ position:relative; display:flex; flex-direction:column; align-items:center; gap:.3rem;
+  padding:.7rem .5rem .55rem; border-radius:.9rem; border:1px solid transparent;
+  background:transparent; cursor:pointer; transition:.2s }
+/* Le survol ne doit pas effacer la couleur d'une paire déjà formée :
+   plus spécifique que .chr.t1, il la masquait, et le doigt laissant l'état
+   de survol collé, la paire perdait sa couleur dès qu'on l'avait touchée. */
+.chr:not(.appariee):not(.juste):not(.faux):hover:not(:disabled){ background:#fff; border-color:#ddd8ce }
+.chr .num{ font-size:.68rem; font-weight:700; color:rgba(17,17,17,.45) }
+.chr .all{ display:flex; gap:.2rem }
+.chr .all i{ font-style:normal; font-size:.72rem; font-weight:700; color:#5c574f;
+  background:#efece5; border-radius:.3rem; padding:.05rem .28rem }
+.chr .chr-bras rect{ fill:#b9b4ab }
+.chr .chr-centro{ fill:#7d776d }
+.chr.choisi{ background:#fff; border-color:#0a0a0a }
+.chr.choisi .chr-bras rect{ fill:#4a4a4a }
+.chr.appariee{ background:#fff }
+/* une teinte par paire, pour voir d'un coup d'œil ce qui est déjà associé */
+.chr.t1{ border-color:#4f93d4 } .chr.t1 .chr-bras rect{ fill:#4f93d4 } .chr.t1 .chr-centro{ fill:#3c71a3 }
+.chr.t2{ border-color:#4ba574 } .chr.t2 .chr-bras rect{ fill:#4ba574 } .chr.t2 .chr-centro{ fill:#397d58 }
+.chr.t3{ border-color:#d97b3f } .chr.t3 .chr-bras rect{ fill:#d97b3f } .chr.t3 .chr-centro{ fill:#a25c2f }
+.chr.t4{ border-color:#8f76cf } .chr.t4 .chr-bras rect{ fill:#8f76cf } .chr.t4 .chr-centro{ fill:#7560a9 }
+.chr.t5{ border-color:#d56a97 } .chr.t5 .chr-bras rect{ fill:#d56a97 } .chr.t5 .chr-centro{ fill:#a65275 }
+.chr.t6{ border-color:#3ba39b } .chr.t6 .chr-bras rect{ fill:#3ba39b } .chr.t6 .chr-centro{ fill:#2c7b75 }
+.chr .etiq{ font-size:.62rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+  color:rgba(17,17,17,.5) }
+.chr.juste{ border-color:#397d58; background:#edf7f0 }
+.chr.faux{ border-color:#a65275; background:#fbedf3 }
+.chr.faux .chr-bras rect{ fill:#d08fab } .chr.faux .chr-centro{ fill:#a65275 }
+.chr .etiq.attendu{ color:#8e4664 }
+.chr:disabled{ cursor:default }
 /* ===================== footer ===================== */
 /* Pastille de confidentialite du pied de page. Elle ne certifie rien — aucun
    organisme ne delivre de logo RGPD — et c'est pourquoi elle mene a la page
@@ -886,8 +919,8 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
-<script src="/exercices.js?v=2026-10-04b"></script>
-<script src="/atelier-exos.js?v=2026-10-04b" defer></script>
+<script src="/exercices.js?v=2026-10-04d"></script>
+<script src="/atelier-exos.js?v=2026-10-04d" defer></script>
 <script src="/assistant-svt.js?v=2026-09-22a" defer></script>
 
 <script>

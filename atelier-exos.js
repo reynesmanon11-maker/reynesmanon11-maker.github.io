@@ -54,6 +54,24 @@
     return a;
   };
 
+  /* Un chromosome répliqué : deux chromatides sœurs tenues par un centromère.
+     La hauteur dit la taille, la position du étranglement dit celle du
+     centromère, et les lettres sont les allèles portés. Ces trois éléments
+     sont précisément les critères d'homologie que l'exercice fait manipuler. */
+  function dessinerChromosome(c) {
+    const H = 44 + 86 * c.taille;          // hauteur totale en pixels
+    const L = 30;                          // largeur du dessin
+    const y = 6 + (H - 12) * c.centro;     // hauteur du centromère
+    const bras = (x) => `
+      <rect x="${x}" y="6" width="8" height="${y - 9}" rx="4" />
+      <rect x="${x}" y="${y + 3}" width="8" height="${H - 9 - y}" rx="4" />`;
+    return `<svg viewBox="0 0 ${L} ${H}" width="${L}" height="${H}" role="img"
+         aria-label="chromosome ${c.id}">
+        <g class="chr-bras">${bras(5)}${bras(17)}</g>
+        <circle class="chr-centro" cx="15" cy="${y}" r="4.5" />
+      </svg>`;
+  }
+
   let serie = null, i = 0, reponses = [];
   let lireReponse = () => null;     // posée par chaque type au moment du dessin
 
@@ -124,6 +142,18 @@
         </span></li>`).join('') + `</ul>`;
   }
 
+  function corpsPaires(q) {
+    const cartes = melanger(q.chromosomes).map((c) => `
+      <button class="chr" data-chr="${c.id}" aria-pressed="false"
+        aria-label="Chromosome ${c.id}, allèles ${ech(c.alleles.join(' et '))}">
+        <span class="num">${c.id}</span>
+        ${dessinerChromosome(c)}
+        <span class="all">${c.alleles.map((a) => `<i>${ech(a)}</i>`).join('')}</span>
+      </button>`).join('');
+    return `${q.aide ? `<p class="ex-aide">${mep(q.aide)}</p>` : ''}
+      <div class="chr-table">${cartes}</div>`;
+  }
+
   function corpsTrous(q) {
     const banque = q.banque.slice().sort((a, b) => a.localeCompare(b, 'fr'));
     const texte = mep(q.q).replace(/\{(\d+)\}/g, (_, n) =>
@@ -142,6 +172,7 @@
       : q.t === 'num' ? corpsNum(q)
       : q.t === 'croisement' ? corpsCroisement(q)
       : q.t === 'ordre' ? corpsOrdre(q)
+      : q.t === 'paires' ? corpsPaires(q)
       : corpsTrous(q);
 
     /* Pour les textes à trous, l'énoncé EST le corps : on ne le répète pas. */
@@ -216,6 +247,49 @@
       pret(true);   /* l'ordre proposé est déjà une réponse : on peut valider */
       lireReponse = () => [...liste.children].map((li) => li.dataset.item);
 
+    } else if (q.t === 'paires') {
+      /* Deux clics forment une paire ; un clic sur une paire la défait. On ne
+         dit rien de juste ou de faux avant la validation : sinon l'élève
+         trouverait par tâtonnement au lieu de raisonner. */
+      const TEINTES = ['t1', 't2', 't3', 't4', 't5', 't6'];
+      const cartes = [...jeu.querySelectorAll('.chr')];
+      const paires = [];                   // [[idA, idB], …]
+      let choisi = null;
+
+      const paireDe = (id) => paires.find((p) => p.indexOf(id) >= 0);
+
+      function redessiner() {
+        cartes.forEach((b) => {
+          const id = +b.dataset.chr;
+          const p = paireDe(id);
+          b.className = 'chr' + (p ? ' appariee ' + TEINTES[paires.indexOf(p) % TEINTES.length] : '')
+            + (choisi === id ? ' choisi' : '');
+          b.setAttribute('aria-pressed', String(choisi === id || !!p));
+          const e = b.querySelector('.etiq');
+          if (e) e.remove();
+          if (p) {
+            const t = document.createElement('span');
+            t.className = 'etiq';
+            t.textContent = 'paire ' + (paires.indexOf(p) + 1);
+            b.appendChild(t);
+          }
+        });
+        pret(paires.length * 2 === cartes.length);
+      }
+
+      cartes.forEach((b) => b.addEventListener('click', () => {
+        const id = +b.dataset.chr;
+        const p = paireDe(id);
+        if (p) { paires.splice(paires.indexOf(p), 1); choisi = null; return redessiner(); }
+        if (choisi === null) { choisi = id; return redessiner(); }
+        if (choisi === id) { choisi = null; return redessiner(); }
+        paires.push([choisi, id]);
+        choisi = null;
+        redessiner();
+      }));
+      redessiner();
+      lireReponse = () => paires.map((p) => p.slice());
+
     } else {
       const trous = [...jeu.querySelectorAll('.ex-trou')];
       const verifierRemplissage = () => pret(trous.every((t) => t.value !== ''));
@@ -280,6 +354,31 @@
         liste.after(bon);
       }
 
+    } else if (q.t === 'paires') {
+      const parId = {};
+      q.chromosomes.forEach((c) => { parId[c.id] = c; });
+      juste = donnee.every(([a, b]) => parId[a].paire === parId[b].paire);
+      bonne = 'voir les chromosomes';
+      const correct = {};
+      donnee.forEach(([a, b]) => {
+        const ok = parId[a].paire === parId[b].paire;
+        correct[a] = ok; correct[b] = ok;
+      });
+      jeu.querySelectorAll('.chr').forEach((el) => {
+        el.disabled = true;
+        const id = +el.dataset.chr;
+        el.classList.remove('choisi');
+        el.classList.add(correct[id] ? 'juste' : 'faux');
+        if (!correct[id]) {
+          /* On nomme l'homologue attendu : sans cela l'élève voit qu'il s'est
+             trompé sans savoir avec quoi il aurait dû l'apparier. */
+          const vrai = q.chromosomes.find((c) => c.paire === parId[id].paire && c.id !== id);
+          const t = el.querySelector('.etiq') || el.appendChild(document.createElement('span'));
+          t.className = 'etiq attendu';
+          t.textContent = 'va avec le ' + vrai.id;
+        }
+      });
+
     } else {
       juste = true;
       [...jeu.querySelectorAll('.ex-trou')].forEach((t, k) => {
@@ -303,7 +402,7 @@
     corr.className = 'ex-corr ' + (juste ? 'ok' : 'ko');
     corr.setAttribute('role', 'status');
     const tete = juste ? 'C’est juste.'
-      : (q.t === 'croisement' || q.t === 'ordre' || q.t === 'trous')
+      : (q.t === 'croisement' || q.t === 'ordre' || q.t === 'trous' || q.t === 'paires')
         ? 'Pas tout à fait — les réponses attendues sont indiquées ci-dessus.'
         : 'Pas tout à fait — la réponse est : ' + ech(bonne);
     corr.innerHTML = `<span class="verdict">${tete}</span>${mep(q.e)}`;
