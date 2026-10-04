@@ -566,6 +566,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
             <li><a href="terminale.html">Terminale</a></li>
           </ul>
         </li>
+        <li><a href="/exercices.html"><span>S'entraîner</span></a></li>
         <li class="has-sub">
           <button data-nav="about" aria-haspopup="true"><span>La classe <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
@@ -751,6 +752,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
           <li><a class="alink" href="2nde.html"><span>Seconde</span></a></li>
           <li><a class="alink" href="1ere.html"><span>Première</span></a></li>
           <li><a class="alink" href="terminale.html"><span>Terminale</span></a></li>
+          <li><a class="alink" href="/exercices.html"><span>S'entraîner</span></a></li>
           <li><a class="alink" href="#services"><span>Méthodes</span></a></li>
         </ul>
       </div>
@@ -1488,7 +1490,7 @@ const TECTO_VOLCANS = "k0NZkxNZlgNZRthXSdhXRqhXSahXXJVQXqVQXHVQX3VQfUBOfzBOwTROC
   const NAV = [
     { label:'Accueil', id:'home' }, { label:'Sixième', href:'6eme.html' }, { label:'Cinquième', href:'5eme.html' }, { label:'Quatrième', href:'4eme.html' }, { label:'Troisième', href:'3eme.html' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'Terminale', href:'terminale.html' },
     { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
-    { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
+    { label:'S\'entraîner', href:'exercices.html' }, { label:'La classe', id:'about' }, { label:'Contact', id:'contact' },
   ];
   const menu = document.getElementById('navmenu');
   document.getElementById('navlist').innerHTML = NAV.map((n, i) => `

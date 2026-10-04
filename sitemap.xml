@@ -9,6 +9,12 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://reynesmanon11-maker.github.io/exercices.html</loc>
+    <lastmod>2026-10-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://reynesmanon11-maker.github.io/6eme.html</loc>
     <lastmod>2026-09-22</lastmod>
     <changefreq>weekly</changefreq>

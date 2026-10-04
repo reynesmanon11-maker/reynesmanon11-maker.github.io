@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Sixième — SVT · Mme Reynes</title>
-<meta name="description" content="Programme de SVT en classe de Sixième : les chapitres, avec cours, activités et documents à télécharger." />
+<title>S'entraîner — SVT · Mme Reynes</title>
+<meta name="description" content="Exercices d'entraînement en SVT, avec la correction expliquée après chaque question : génétique, méiose, chromosomes homologues." />
 <meta name="theme-color" content="#0a0a0a" />
 <style>
 /* ===================== police, servie depuis ce site =====================
@@ -305,6 +305,67 @@ svg.ic{ width:1em; height:1em; display:block; flex:none }
 @media (min-width:768px){ .statsec .panel{ padding-inline:4rem } .statsec h2{ font-size:2.25rem } .statsec .num{ font-size:4.5rem } }
 @media (min-width:1024px){ .statsec .inner{ padding-bottom:7rem } .statsec ul{ grid-template-columns:repeat(4,1fr) } }
 
+
+/* ===================== atelier d'entraînement ===================== */
+.exos{ background:#fff; padding:3.5rem 1.25rem 5rem }
+.exos .shell{ max-width:46rem }
+/* le choix des séries */
+.serie{ display:block; width:100%; text-align:left; border:1px solid #e6e5e2; border-radius:1.25rem;
+  padding:1.25rem 1.4rem; background:#fff; transition:.3s cubic-bezier(.22,1,.36,1) }
+.serie + .serie{ margin-top:.75rem }
+.serie:hover{ border-color:#0a0a0a; transform:translateY(-2px) }
+.serie .meta{ font-size:.68rem; font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+  color:#3c71a3 }
+.serie h2{ font-size:1.125rem; font-weight:600; letter-spacing:-.01em; margin:.35rem 0 .3rem }
+.serie p{ font-size:.875rem; color:rgba(17,17,17,.68); line-height:1.5 }
+.serie .nb{ display:inline-block; margin-top:.7rem; font-size:.75rem; color:rgba(17,17,17,.62) }
+/* la barre de progression */
+.ex-tete{ display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:.6rem }
+.ex-tete .ou{ font-size:.75rem; font-weight:600; letter-spacing:.04em; color:rgba(17,17,17,.62) }
+.ex-tete button{ font-size:.75rem; color:rgba(17,17,17,.62); text-decoration:underline }
+.ex-tete button:hover{ color:#111 }
+.ex-jauge{ height:.3rem; border-radius:9999px; background:#eceae6; overflow:hidden; margin-bottom:2rem }
+.ex-jauge i{ display:block; height:100%; background:#3c71a3; border-radius:9999px; transition:width .4s ease }
+/* la question */
+.ex-q{ font-size:1.125rem; font-weight:600; line-height:1.4; letter-spacing:-.01em; margin-bottom:1.1rem }
+.ex-opts{ display:grid; gap:.5rem }
+.ex-opt{ display:flex; align-items:flex-start; gap:.7rem; width:100%; text-align:left;
+  border:1px solid #e6e5e2; border-radius:1rem; padding:.85rem 1rem; background:#fff;
+  font-size:.9375rem; line-height:1.45; transition:.25s }
+.ex-opt:hover:not(:disabled){ border-color:#9a948a }
+.ex-opt .lettre{ flex:none; width:1.5rem; height:1.5rem; border-radius:50%; display:grid;
+  place-items:center; background:#f1f0ee; font-size:.72rem; font-weight:700; color:#5c574f }
+.ex-opt[aria-pressed="true"]{ border-color:#0a0a0a }
+.ex-opt.juste{ border-color:#397d58; background:#edf7f0 }
+.ex-opt.juste .lettre{ background:#397d58; color:#fff }
+.ex-opt.faux{ border-color:#a65275; background:#fbedf3 }
+.ex-opt.faux .lettre{ background:#a65275; color:#fff }
+.ex-opt:disabled{ cursor:default }
+/* la saisie d'un nombre */
+.ex-num{ display:flex; gap:.6rem; align-items:center; flex-wrap:wrap }
+.ex-num input{ width:9rem; padding:.7rem .9rem; font:inherit; font-size:1rem; border-radius:.9rem;
+  border:1px solid #e6e5e2; background:#fff }
+.ex-num input:focus-visible{ outline:2px solid #b15f2c; outline-offset:1px }
+.ex-num .unite{ font-size:.875rem; color:rgba(17,17,17,.62) }
+/* la correction */
+.ex-corr{ margin-top:1.1rem; border-radius:1rem; padding:1rem 1.15rem; font-size:.9375rem;
+  line-height:1.6; border-left:3px solid }
+.ex-corr.ok{ background:#edf7f0; border-color:#397d58 }
+.ex-corr.ko{ background:#fbedf3; border-color:#a65275 }
+.ex-corr .verdict{ display:block; font-weight:700; margin-bottom:.35rem }
+.ex-corr.ok .verdict{ color:#2f6b4a }
+.ex-corr.ko .verdict{ color:#8e4664 }
+.ex-actions{ display:flex; gap:.7rem; flex-wrap:wrap; margin-top:1.4rem }
+/* le bilan */
+.ex-bilan{ text-align:center; padding:1rem 0 }
+.ex-bilan .score{ font-size:3rem; font-weight:700; letter-spacing:-.03em; line-height:1 }
+.ex-bilan .mot{ margin:.7rem auto 1.6rem; max-width:34ch; font-size:.9375rem; color:rgba(17,17,17,.68) }
+.ex-bilan .liste{ text-align:left; margin-top:2rem; border-top:1px solid #e6e5e2; padding-top:1.4rem }
+.ex-bilan .liste h3{ font-size:.72rem; font-weight:700; letter-spacing:.09em; text-transform:uppercase;
+  color:rgba(17,17,17,.62); margin-bottom:.8rem }
+.ex-bilan .liste li{ font-size:.875rem; line-height:1.5; padding:.6rem 0; border-top:1px solid #f1f0ee }
+.ex-bilan .liste li:first-child{ border-top:0 }
+@media (min-width:640px){ .exos{ padding-inline:2rem } }
 /* ===================== footer ===================== */
 /* Pastille de confidentialite du pied de page. Elle ne certifie rien — aucun
    organisme ne delivre de logo RGPD — et c'est pourquoi elle mene a la page
@@ -582,20 +643,20 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 <link rel="apple-touch-icon" href="apple-touch-icon.png?v=4" />
 <!-- Apercu de partage : ce qui s'affiche quand le lien est colle -->
 <!--      dans l'ENT, Pronote, un mail ou une messagerie. -->
-<link rel="canonical" href="https://reynesmanon11-maker.github.io/6eme.html" />
+<link rel="canonical" href="https://reynesmanon11-maker.github.io/exercices.html" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Mme Reynes — SVT" />
 <meta property="og:locale" content="fr_FR" />
-<meta property="og:url" content="https://reynesmanon11-maker.github.io/6eme.html" />
-<meta property="og:title" content="Sixième — SVT · Mme Reynes" />
-<meta property="og:description" content="Programme de SVT en classe de Sixième : les chapitres, avec cours, activités et documents à télécharger." />
+<meta property="og:url" content="https://reynesmanon11-maker.github.io/exercices.html" />
+<meta property="og:title" content="S'entraîner — SVT · Mme Reynes" />
+<meta property="og:description" content="Exercices d'entraînement en SVT, avec la correction expliquée après chaque question : génétique, méiose, chromosomes homologues." />
 <meta property="og:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="Mme Reynes — SVT : comprendre le vivant et notre planete" />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content="Sixième — SVT · Mme Reynes" />
-<meta name="twitter:description" content="Programme de SVT en classe de Sixième : les chapitres, avec cours, activités et documents à télécharger." />
+<meta name="twitter:title" content="S'entraîner — SVT · Mme Reynes" />
+<meta name="twitter:description" content="Exercices d'entraînement en SVT, avec la correction expliquée après chaque question : génétique, méiose, chromosomes homologues." />
 <meta name="twitter:image" content="https://reynesmanon11-maker.github.io/images/partage.jpg" />
 </head>
 <body>
@@ -635,7 +696,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
             <li><a href="terminale.html">Terminale</a></li>
           </ul>
         </li>
-        <li><a href="/exercices.html"><span>S'entraîner</span></a></li>
+        <li><a href="/exercices.html" aria-current="page"><span>S'entraîner</span></a></li>
         <li class="has-sub">
           <button class="labo-nav" aria-haspopup="true"><span>Labo <svg class="caret" width="9" height="6" viewBox="0 0 10 6" aria-hidden="true"><path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span></button>
           <ul class="submenu">
@@ -663,16 +724,21 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 <main id="main">
 <section class="lvl-head">
-  <div class="wm">6<sup style="font-size:.45em">E</sup></div>
+  <div class="wm">?</div>
   <div class="shell in2">
-    <span class="eyebrow">Classe de Sixième</span>
-    <h1>Sixième</h1>
-    <p class="sub">Cette page se remplira au fil de l'année : pour chaque chapitre, les
-      activités, les documents d'aide et le bilan de cours.</p>
+    <span class="eyebrow">Exercices d'entraînement</span>
+    <h1>S'entraîner</h1>
+    <p class="sub">Des séries courtes, à faire autant de fois qu'on veut. Après chaque
+      réponse, la correction explique pourquoi — c'est elle qui compte, pas le score.</p>
   </div>
 </section>
 
-<div id="themes"></div>
+<section class="exos">
+  <div class="shell">
+    <div id="ex-choix"></div>
+    <div id="ex-jeu" class="cacher"></div>
+  </div>
+</section>
 </main>
 
 <footer class="site">
@@ -778,185 +844,12 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 
 
-<script src="/activites.js?v=2026-09-22a"></script>
-<script>
-/* =========================================================================
-   ✏️ VOS CHAPITRES — tout se règle ici, rien d'autre à modifier.
 
-   Pour chaque chapitre :
-     n     : le numéro affiché
-     t     : le titre
-     d     : la phrase de description
-     res   : les ressources. { l:'Cours', h:'fichier.pdf' } = lien actif
-                             { l:'Cours' }                  = grisé, pas encore déposé
-   ========================================================================= */
-/* =========================================================================
-   ✏️ VOS CHAPITRES — repris de votre Digipad de l'année.
-
-   Chaque document :
-     { l:'Nom affiché' }                  → grisé, le fichier n'est pas encore déposé
-     { l:'Nom affiché', h:'fichier.pdf' } → lien actif
-   Déposez le PDF sur le dépôt, ajoutez  h:'nom-du-fichier.pdf'  et c'est en ligne.
-   ========================================================================= */
-const CHAPITRES = [
-];
-
-/* Une ancre par chapitre, pour que l'accueil puisse pointer droit dessus :
-   « Chapitre 1 » devient #chapitre-1, « Méthodes » devient #methodes. */
-const ancre = (t) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-  .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-document.getElementById('themes').innerHTML = CHAPITRES.map(ch => {
-  /* Les documents d'un chapitre sont regroupés en activités d'après leur
-     intitulé — voir activites.js. Un chapitre sans numérotation d'activité
-     ressort avec zéro étape : la page retombe alors sur la liste simple. */
-  /* Les documents masqués sont retirés avant tout le reste : ils ne doivent
-     pas se retrouver dans la page, même invisibles — le code source d'une page
-     se lit. Une activité dont tous les documents sont masqués ne subsiste que
-     si son titre a été écrit à la main ; elle apparaît alors comme annoncée. */
-  const paquet = SVTActivites.grouper(ch.docs.filter(d => !d.cache), ch.act);
-  const ligne = (d) => {
-    const et = SVTActivites.ETIQUETTE[d.__r] || '';
-    const tag = et ? `<span class="dr">${et}</span>` : '';
-    return d.h
-      ? `<li><a class="doc on r-${d.__r}" href="${d.h}" target="_blank" rel="noopener">
-           ${tag}<span class="dt">${d.__t}</span><span class="da">Ouvrir &#8599;</span></a></li>`
-      : `<li><span class="doc r-${d.__r}">${tag}<span class="dt">${d.__t}</span><span class="da">à venir</span></span></li>`;
-  };
-  const fil = paquet.etapes.length ? `
-      <ol class="fil">
-        ${paquet.etapes.map(e => `
-        <li class="etape">
-          <span class="num">${e.n}</span>
-          <h3>${e.titre}</h3>
-          ${e.docs.length
-            ? `<ul class="docs">${e.docs.map(ligne).join('')}</ul>`
-            : `<p class="etape-vide">Les documents de cette activité arriveront bientôt.</p>`}
-        </li>`).join('')}
-      </ol>` : '';
-  const reste = paquet.chapitre.length ? `
-      <div class="hors">
-        ${paquet.etapes.length ? '<h3 class="hors-t">Pour tout le chapitre</h3>' : ''}
-        <ul class="docs">${paquet.chapitre.map(ligne).join('')}</ul>
-      </div>` : '';
-  return `
-  <section class="theme" id="${ancre(ch.num)}">
-    <div class="shell">
-      <div class="theme-head">
-        <span class="theme-num">${ch.num}</span>
-        <h2>${ch.titre}</h2>
-      </div>
-      ${fil || reste ? fil + reste : `
-      <p class="attente">Les documents de ce chapitre seront déposés au fil de l'année.</p>`}
-    </div>
-  </section>`;
-}).join('');
-
-/* Niveau dont aucun chapitre n'est encore saisi : la page passerait sinon du
-   titre au bas de page, ce qui a tout l'air d'un site cassé. */
-if (!CHAPITRES.length) {
-  document.getElementById('themes').innerHTML = `
-  <section class="theme">
-    <div class="shell">
-      <p class="attente">Les cours de ce niveau seront déposés au fil de l'année.</p>
-    </div>
-  </section>`;
-}
-
-/* ---- horloge ---- */
-function tickClock(){
-  const d = new Date();
-  const time = d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
-  const months = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  document.getElementById('clk-time').textContent = time;
-  document.getElementById('clk-date').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
-  const nt = document.getElementById('nav-time');
-  if (nt) nt.textContent = `Heure locale — ${time}`;
-}
-tickClock(); setInterval(tickClock, 1000);
-const y = document.getElementById('year'); if (y) y.textContent = new Date().getFullYear();
-
-/* ---- menu ---- */
-(function(){
-  const NAV = [
-    { label:'Accueil', href:'index.html' }, { label:'Chapitres', href:'index.html#works' },
-    { label:'Sixième', href:'6eme.html' }, { label:'Cinquième', href:'5eme.html' }, { label:'Quatrième', href:'4eme.html' }, { label:'Troisième', href:'3eme.html' }, { label:'Seconde', href:'2nde.html' }, { label:'Première', href:'1ere.html' }, { label:'Terminale', href:'terminale.html' },
-    { label:'<span class="emo" aria-hidden="true">🌱</span>Labo biologie', href:'outils/labo_vegetal.html' }, { label:'<span class="emo" aria-hidden="true">🌋</span>Labo géologie', href:'outils/labo_geologie.html' }, 
-    { label:'S\'entraîner', href:'exercices.html' }, { label:'La classe', href:'index.html#about' },
-    { label:'Contact', modal:true },
-  ];
-  const menu = document.getElementById('navmenu');
-  document.getElementById('navlist').innerHTML = NAV.map((n,i) => `
-    <li><button data-href="${n.href||''}" ${n.modal?'data-modal':''} style="transition-delay:${i*45+80}ms">
-      <span class="n">0${i+1}</span><span class="l">${n.label}</span></button></li>`).join('');
-  const open = () => { menu.classList.add('show'); requestAnimationFrame(()=>menu.classList.add('vis')); document.documentElement.style.overflow='hidden'; };
-  const close = () => { menu.classList.remove('vis'); setTimeout(()=>menu.classList.remove('show'),450); document.documentElement.style.removeProperty('overflow'); };
-  document.getElementById('openmenu').addEventListener('click', open);
-  document.getElementById('closemenu').addEventListener('click', close);
-  document.getElementById('nav-start').addEventListener('click', () => { close(); openModal(); });
-  document.addEventListener('keydown', e => { if(e.key==='Escape' && menu.classList.contains('show')) close(); });
-  menu.addEventListener('click', e => {
-    const b = e.target.closest('button[data-href]');
-    if (b && b.dataset.href){ location.href = b.dataset.href; }
-  });
-})();
-
-/* ---- modale ---- */
-const modal = document.getElementById('modal');
-function openModal(){ modal.classList.add('show'); requestAnimationFrame(()=>modal.classList.add('vis')); document.documentElement.style.overflow='hidden'; }
-function closeModal(){
-  modal.classList.remove('vis');
-  setTimeout(()=>{ modal.classList.remove('show','done'); document.getElementById('reqform').reset(); }, 400);
-  document.documentElement.style.removeProperty('overflow');
-}
-document.addEventListener('click', e => { if (e.target.closest('[data-modal]')) openModal(); });
-document.getElementById('closemodal').addEventListener('click', closeModal);
-document.getElementById('successclose').addEventListener('click', closeModal);
-modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-modal.querySelector('.panel').addEventListener('click', e => e.stopPropagation());
-document.addEventListener('keydown', e => { if(e.key==='Escape' && modal.classList.contains('show')) closeModal(); });
-/* Aucun service externe : on ouvre le logiciel de messagerie avec un message
-   deja redige. L'adresse est assemblee ici plutot qu'ecrite dans la page, ce
-   qui n'empeche personne d'ecrire mais decourage les aspirateurs d'adresses. */
-const ADRESSE = ['reynesmanon11', 'gmail.com'].join('@');
-document.getElementById('madresse').textContent = ADRESSE;
-
-/* Les messages du navigateur sont en anglais et peu parlants pour un eleve :
-   on les remplace par des phrases claires, reevaluees a chaque frappe pour que
-   l'avertissement disparaisse des que le champ devient correct. */
-const REGLES = {
-  name:    (v) => v.length < 2 ? 'Indiquez votre nom, au moins deux lettres.' : '',
-  email:   (v) => v.length < 2 ? 'Indiquez votre classe (ex. 2nde 4) ou votre adresse e-mail.' : '',
-  project: (v) => v.length < 10
-    ? 'Décrivez votre question en une phrase au moins : le chapitre concerné et ce qui vous bloque.'
-    : (v.length > 4000 ? 'Message trop long : résumez en moins de 4000 caractères.' : ''),
-};
-for (const [nom, regle] of Object.entries(REGLES)) {
-  const c = document.getElementById('reqform').elements.namedItem(nom);
-  const verifier = () => c.setCustomValidity(regle(c.value.trim()));
-  c.addEventListener('input', verifier);
-  verifier();
-}
-
-document.getElementById('reqform').addEventListener('submit', (e) => {
-  e.preventDefault();
-  /* `form.name` designe l'attribut name du formulaire, pas le champ qui porte
-     ce nom : il faut passer par elements.namedItem pour l'atteindre. */
-  const champ = (n) => e.target.elements.namedItem(n).value.trim();
-  const nom = champ('name'), qui = champ('email'), question = champ('project');
-  const objet = 'Question SVT — ' + (nom || 'un élève');
-  const corps = 'Nom : ' + nom + '\nClasse ou adresse : ' + qui
-              + '\n\nQuestion :\n' + question + '\n';
-  document.getElementById('sendlbl').firstChild.textContent = 'Ouverture…';
-  window.location.href = 'mailto:' + ADRESSE
-    + '?subject=' + encodeURIComponent(objet)
-    + '&body=' + encodeURIComponent(corps);
-  setTimeout(() => modal.classList.add('done'), 500);
-});
-</script>
 
 <!-- Assistant de revision : bulle en bas a droite. Fichier partage par
      toutes les pages, pour n'avoir qu'un seul endroit a enrichir. -->
+<script src="/exercices.js?v=2026-10-04a"></script>
+<script src="/atelier-exos.js?v=2026-10-04a" defer></script>
 <script src="/assistant-svt.js?v=2026-09-22a" defer></script>
 
 <script>
