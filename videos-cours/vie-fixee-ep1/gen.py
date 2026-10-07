@@ -2,6 +2,7 @@
 import pathlib, math
 OUT = pathlib.Path(__file__).parent/'src'/'scenes.html'
 S = []
+META = {'serie': 'VIE FIXÉE', 'episode': 'Épisode 1', 'titre': 'La vie fixée · Épisode 1'}
 
 def A(t, fx='up', d=None, o=None):
     s = f' data-t="{t}" data-fx="{fx}"'

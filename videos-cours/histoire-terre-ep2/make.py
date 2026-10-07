@@ -1,5 +1,6 @@
 import runpy, pathlib, json, subprocess
 d = pathlib.Path(__file__).parent
+import sys; sys.path.insert(0, str(d))
 g = runpy.run_path(str(d/'gen.py'))
 import re
 html = g['DEFS'] + '\n' + '\n'.join(g['S'])

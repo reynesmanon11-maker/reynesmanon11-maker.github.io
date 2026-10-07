@@ -14,7 +14,7 @@ await page.evaluate(() => document.fonts.ready);
 await page.waitForTimeout(300);
 const ff = spawn('ffmpeg', ['-loglevel','error','-y','-f','image2pipe','-framerate',String(fps),'-c:v','mjpeg','-i','-',
   '-c:v','libx264','-preset','medium','-crf','18','-pix_fmt','yuv420p','-r',String(fps), out], { stdio: ['pipe','inherit','inherit'] });
-const OFF = 4;
+const OFF = +(process.env.OFF || 4);
 const n0 = Math.round(t0 * fps), n1 = Math.round(t1 * fps);
 for (let n = n0; n < n1; n++) {
   await page.evaluate(t => window.seek(t), n / fps - OFF);

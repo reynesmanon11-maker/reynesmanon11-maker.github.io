@@ -1,0 +1,2457 @@
+[
+[
+0.96,
+5.68,
+"Alors que l'âge de la lithosphère océanique ne dépasse pas 200 millions d'années, les roches"
+],
+[
+5.68,
+9.24,
+"affleurant à la surface des continents présentent des âges variés pouvant atteindre plus de"
+],
+[
+9.24,
+13.76,
+"4 milliards d'années. Les roches les plus anciennes, datées par radiochronologie, sont"
+],
+[
+13.76,
+17.32,
+"des roches de la ceinture de Nuvvuagittuq, dont je n'ai aucune idée du nom ou de comment ça se prononce,"
+],
+[
+17.4,
+22.34,
+"située au Canada. Leur âge est de 4,28 milliards d'années et est très"
+],
+[
+22.34,
+26.8,
+"proche de celui de la Terre, à savoir 4,55 milliards d'années, qui pour rappel"
+],
+[
+26.8,
+31.42,
+"a été déterminé par l'intermédiaire de météorites. Cette différence d'âge s'explique"
+],
+[
+31.42,
+35.76,
+"par le recyclage différent de ces deux croûtes. En effet, la quasi-totalité de la croûte"
+],
+[
+35.76,
+40.52,
+"océanique se trouve recyclée lors de la subduction, alors que la croûte continentale"
+],
+[
+40.52,
+48.1,
+"de plus faible densité (2,7 contre 2,9), se trouve, elle, principalement en surface et n'est"
+],
+[
+48.1,
+52.58,
+"soumise qu'à l'érosion, qui ne recycle que 10 % en moyenne de cette dernière, d'où"
+],
+[
+52.58,
+56.72,
+"des âges plus importants. Mais comment la compréhension de la formation et de la"
+],
+[
+56.72,
+60.08,
+"disparition des chaînes de montagne nous permet-elle alors de comprendre l'histoire"
+],
+[
+60.08,
+63.4,
+"et les différents mouvements qu'a subis la Terre au cours de son histoire."
+],
+[
+64.3,
+67.96,
+"Pour cela, nous allons nous intéresser à la formation des chaînes de montagne, puis"
+],
+[
+67.96,
+71.32,
+"nous verrons en quoi ces dernières permettent de mettre en évidence le passé mouvementé"
+],
+[
+71.32,
+74.98,
+"de la Terre. Alors, la formation des chaînes de montagne,"
+],
+[
+75.1,
+79.66,
+"dans un premier temps, c'est la recherche des ceintures dites orogéniques. L'orogenèse"
+],
+[
+79.66,
+83.12,
+"c'est la formation des chaînes de montagne qui résulte de la convergence de plaques"
+],
+[
+83.12,
+87.32,
+"lithosphériques. La plupart des chaînes se forment lors de la collision entre deux masses"
+],
+[
+87.32,
+91.72,
+"continentales. Cependant, certaines chaînes, comme la cordillère des Andes, peuvent résulter"
+],
+[
+91.72,
+95.68,
+"de déformations de la croûte continentale au niveau d'une zone de subduction océanique."
+],
+[
+96.1,
+100.0,
+"Dans ce chapitre, nous allons nous intéresser au premier type de chaînes, ceux résultant"
+],
+[
+100.0,
+102.06,
+"de la collision entre deux masses continentales."
+],
+[
+102.8,
+106.3,
+"Les chaînes de montagne formées au cours d'une même orogenèse dessinent"
+],
+[
+106.3,
+111.66,
+"un alignement appelé ceinture orogénique. Par exemple, la ceinture alpine comprend les Alpes"
+],
+[
+111.66,
+116.76,
+"mais aussi l'Atlas, les Balkans, le Caucase et l'Himalaya. Cet ensemble de chaînes s'est"
+],
+[
+116.76,
+120.6,
+"formé au cours de l'ère tertiaire depuis moins 65 millions d'années suite à la"
+],
+[
+120.6,
+123.36,
+"fermeture d'un vaste océan aujourd'hui disparu, la Téthys."
+],
+[
+124.06,
+128.26,
+"Les ceintures orogéniques récentes, comme la ceinture alpine, sont visibles en surface"
+],
+[
+128.26,
+131.88,
+"par leur relief très marqué. Mais il est possible de reconstituer les ceintures"
+],
+[
+131.88,
+135.88,
+"orogéniques anciennes malgré l'érosion de leur relief grâce à certains"
+],
+[
+135.88,
+140.24,
+"indices géologiques : présence en surface de roches métamorphiques issues de"
+],
+[
+140.24,
+145.02,
+"déformations liées aux forces de compression, de roches magmatiques mises"
+],
+[
+145.02,
+149.94,
+"en place dans les profondeurs de la chaîne de montagne, puis exhumées par"
+],
+[
+149.94,
+152.72,
+"l'érosion, présence de failles inverses, de chevauchements."
+],
+[
+153.44,
+157.36,
+"À l'échelle mondiale, la reconstitution des ceintures orogéniques permet"
+],
+[
+157.36,
+160.56,
+"d'établir une chronologie des cycles orogéniques subis par les"
+],
+[
+160.56,
+164.18,
+"continents depuis plusieurs milliards d'années. Un cycle orogénique"
+],
+[
+164.18,
+167.14,
+"correspond à l'ensemble des mécanismes de formation puis de"
+],
+[
+167.14,
+171.0,
+"disparition d'une chaîne de montagne, érosion. En France, les principales"
+],
+[
+171.0,
+174.7,
+"orogenèses visibles sur la carte géologique sont l'orogenèse alpine"
+],
+[
+174.7,
+178.68,
+"de l'ère tertiaire visibles dans les Alpes et les Pyrénées, et l'orogenèse"
+],
+[
+178.68,
+181.84,
+"hercynienne datant de la fin de l'ère primaire, surtout visible dans le"
+],
+[
+181.84,
+185.8,
+"Massif central, le Massif armoricain et les Vosges. Des traces d'orogenèses"
+],
+[
+185.8,
+189.94,
+"encore plus âgées sont décelables dans les massifs anciens. Le modèle"
+],
+[
+189.94,
+194.32,
+"de formation des chaînes de montagne se traduit par l'ouverture d'un"
+],
+[
+194.32,
+197.36,
+"océan puis sa fermeture lors d'une subduction et enfin une collision."
+],
+[
+198.1,
+201.28,
+"Différents indices sont donc possibles à retrouver sur le terrain et à"
+],
+[
+201.28,
+204.34,
+"dater pour comprendre comment les différentes chaînes de montagne qui se"
+],
+[
+204.34,
+208.94,
+"sont succédées et continuent de se succéder se sont formées. Alors quelles"
+],
+[
+208.94,
+212.86,
+"sont les traces d'une fragmentation des continents ? La fragmentation d'un"
+],
+[
+212.86,
+216.48,
+"continent à l'origine d'un nouvel océan est observée actuellement en"
+],
+[
+216.48,
+219.16,
+"Afrique de l'Est où cette région présente des caractéristiques qui"
+],
+[
+219.16,
+222.54,
+"témoignent d'une déchirure de la lithosphère continentale, formant des"
+],
+[
+222.54,
+226.8,
+"rifts continentaux. Cette extension peut être mesurée de manière précise par"
+],
+[
+226.8,
+231.18,
+"GPS. La partie axiale de rift continental est structurée par des"
+],
+[
+231.18,
+234.58,
+"failles normales parallèles qui délimitent un fossé d'effondrement en"
+],
+[
+234.58,
+238.58,
+"marches d'escalier. Cela relève d'une tectonique en distension qui induit"
+],
+[
+238.58,
+242.56,
+"l'étirement et l'amincissement de la lithosphère continentale. Ces"
+],
+[
+242.56,
+245.76,
+"failles normales sont particulières car elles ont un profil légèrement"
+],
+[
+245.76,
+251.48,
+"courbe qui permet de découper la lithosphère en blocs qui ont tendance"
+],
+[
+251.48,
+255.44,
+"à basculer les uns contre les autres. Dans le fossé d'effondrement se"
+],
+[
+255.44,
+258.74,
+"forment des roches sédimentaires typiquement continentales. On a des"
+],
+[
+258.74,
+262.66,
+"roches sédimentaires détritiques issues de l'érosion des flancs du rift formant"
+],
+[
+262.66,
+267.34,
+"des conglomérats. On a des évaporites des roches sédimentaires issues de la"
+],
+[
+267.34,
+270.68,
+"précipitation chimique de ces minéraux lors de l'évaporation des"
+],
+[
+270.68,
+273.64,
+"eaux de ruissellement et d'infiltration comme le gypse ou le"
+],
+[
+273.64,
+276.66,
+"sel. Si l'étirement et l'amincissement de la croûte"
+],
+[
+276.66,
+280.52,
+"continentale se poursuivent, celle-ci finit par rompre en amenant à la surface du"
+],
+[
+280.52,
+284.28,
+"manteau. Ce dernier est hydraté et placé dans des conditions de pression et"
+],
+[
+284.28,
+287.7,
+"température qui conduisent à sa fusion partielle et à la production d'une"
+],
+[
+287.7,
+291.62,
+"croûte océanique. Une dorsale se forme, c'est l'accrétion océanique."
+],
+[
+292.12,
+295.22,
+"Le nouveau plancher océanique en expansion éloigne peu à peu les deux"
+],
+[
+295.22,
+298.7,
+"moitiés de l'ancien rift continental. Chaque demi rift continental"
+],
+[
+298.7,
+302.64,
+"constitue alors une zone de transition entre domaine océanique et"
+],
+[
+302.64,
+306.56,
+"domaine continental au sein d'une même plaque lithosphérique. Devenues presque"
+],
+[
+306.56,
+311.9,
+"inactive, du point de vue sismique et magmatique, ces marges continentales"
+],
+[
+311.9,
+316.12,
+"sont qualifiées de marges passives. Par sismique-réflexion, on peut déterminer"
+],
+[
+316.12,
+320.4,
+"l'organisation de ces marges passives. On a une organisation en bloc basculé"
+],
+[
+320.4,
+324.32,
+"le long des failles courbes. On a une disposition géométrique"
+],
+[
+324.32,
+327.56,
+"des sédiments par rapport aux failles structurant la marge. On y retrouve"
+],
+[
+327.56,
+331.12,
+"ainsi des sédiments anté-rift recoupés par les failles et solidaires"
+],
+[
+331.12,
+334.52,
+"du socle, indiquant un dépôt avant la mise en place du rift."
+],
+[
+335.9,
+341.18,
+"On a ensuite des sédiments syn-rift de type évaporites disposés en"
+],
+[
+341.18,
+345.14,
+"éventail et indiquant un dépôt se produisant durant le rifting, c'est-à-dire"
+],
+[
+345.14,
+349.34,
+"durant le mouvement de basculement et enfin des sédiments post-rift de type"
+],
+[
+349.34,
+353.38,
+"argilites, discordants sur les précédents et mis en place après le rifting."
+],
+[
+354.3,
+357.52,
+"Alors maintenant quels sont les traces d'un ancien domaine océanique ?"
+],
+[
+357.52,
+360.08,
+"Dans la plupart des chaînes de montagne, on retrouve des lambeaux de"
+],
+[
+360.08,
+364.08,
+"lithosphère océanique nommés ophiolites qui sont les vestiges d'un domaine océanique"
+],
+[
+364.08,
+367.9,
+"disparu. Elles sont situées au cœur des chaînes de montagne et sont constituées"
+],
+[
+367.9,
+370.96,
+"d'une succession de roches, dont à la base les péridotites,"
+],
+[
+371.16,
+376.1,
+"transformées en serpentines sous l'effet de l'eau, puis des gabbros et enfin au-dessus"
+],
+[
+376.1,
+378.84,
+"des coussins de basaltes et des roches issues de l'accumulation"
+],
+[
+378.84,
+383.06,
+"de sédiments formés en milieu océanique profond, comme les radiolarites."
+],
+[
+383.98,
+388.1,
+"Souvent ces roches présentent un métamorphisme lié à l'hydrothermalisme"
+],
+[
+388.1,
+392.18,
+"comme les péridotites qui sont serpentinisées et les gabbros qui présentent"
+],
+[
+392.18,
+396.7,
+"un faciès de type amphibolite, où on a en fait la présence de hornblende"
+],
+[
+396.7,
+400.54,
+"ou un faciès même schiste vert avec la présence de chlorite et d'actinote."
+],
+[
+401.36,
+404.7,
+"Les ophiolites sont donc interprétées comme des fragments d'un ancien océan"
+],
+[
+404.7,
+408.0,
+"aujourd'hui refermé. Ces morceaux de lithosphère océanique"
+],
+[
+408.0,
+411.08,
+"ont été coincés entre deux continents en convergence."
+],
+[
+411.34,
+414.9,
+"Elles forment donc une zone de suture entre les blocs continentaux"
+],
+[
+414.9,
+417.66,
+"témoignant de la collision de deux plaques lithosphériques."
+],
+[
+418.42,
+421.12,
+"Qu'est-ce qu'on a comme autre trace d'une subduction ?"
+],
+[
+421.12,
+425.2,
+"Dans les chaînes de montagne, affleurent des roches océaniques ayant subi un métamorphisme."
+],
+[
+425.6,
+428.12,
+"Il est ainsi possible de retrouver des roches de la croûte océanique"
+],
+[
+428.12,
+431.14,
+"dans un faciès schiste vert, schiste bleu et éclogite."
+],
+[
+431.58,
+435.36,
+"Ces faciès typiques du métamorphisme de haute pression et basse température"
+],
+[
+435.36,
+437.86,
+"montrent qu'il y a eu subduction d'une croûte océanique."
+],
+[
+438.44,
+441.62,
+"La répartition géographique de ces différents faciès en zone"
+],
+[
+441.62,
+443.9,
+"permet de connaître le sens de la subduction."
+],
+[
+443.9,
+448.06,
+"Ainsi, si d'ouest en est, un passage progressif de roches de type schiste vert,"
+],
+[
+448.24,
+449.98,
+"schiste bleu et éclogite est observé,"
+],
+[
+450.42,
+453.04,
+"cela signifie que la subduction s'est faite vers l'Est."
+],
+[
+454.3,
+458.58,
+"Il faut savoir que dans certains cas, les ophiolites ne subissent pas de subduction."
+],
+[
+458.92,
+461.3,
+"Elles ont juste subi un métamorphisme hydrothermal."
+],
+[
+461.8,
+464.1,
+"La lithosphère océanique a donc été charriée directement"
+],
+[
+464.1,
+466.52,
+"sur la lithosphère continentale avant la collision,"
+],
+[
+466.88,
+468.02,
+"échappant alors à la subduction."
+],
+[
+468.54,
+469.92,
+"On parle alors d'obduction."
+],
+[
+470.92,
+472.9,
+"Quels sont maintenant les traces d'une collision ?"
+],
+[
+473.68,
+477.1,
+"Pour les traces d'une collision, on pourrait retrouver du gneiss issu d'un granite"
+],
+[
+477.1,
+481.04,
+"ayant été soumis à des hautes pressions et basse température et des migmatites,"
+],
+[
+481.08,
+484.24,
+"traduisant un début de fusion partielle du gneiss, l'anatexie,"
+],
+[
+484.86,
+488.54,
+"qui n'est possible que si de la croûte continentale a été enfouie."
+],
+[
+489.02,
+492.86,
+"Tout ceci concorde avec l'idée d'une collision, à la suite de la fermeture d'un océan."
+],
+[
+493.36,
+496.18,
+"De nombreux indices pétrographiques viennent confirmer cette collision."
+],
+[
+496.52,
+498.74,
+"On retrouve souvent des plis, des failles inverses,"
+],
+[
+498.74,
+502.38,
+"ainsi que des nappes de charriage traduisant un raccourcissement associé"
+],
+[
+502.38,
+505.32,
+"à un épaississement de la croûte suite à une contrainte convergente."
+],
+[
+505.86,
+510.16,
+"Cette contrainte convergente n'est autre que la collision entre deux croûtes continentales."
+],
+[
+510.76,
+513.46,
+"Les outils sismiques permettent aujourd'hui d'avoir une imagerie profonde"
+],
+[
+513.46,
+516.04,
+"de l'écorce terrestre et de confirmer les traces d'une collision."
+],
+[
+516.72,
+519.4,
+"Ainsi, le profil sismique, qu'on appelle profil ECORS,"
+],
+[
+519.74,
+521.88,
+"permet d'appréhender la manière dont les limites majeures,"
+],
+[
+522.08,
+523.88,
+"grandes failles, Moho, se propagent en profondeur."
+],
+[
+524.3,
+527.96,
+"Pour les chaînes de montagne, on observe un approfondissement"
+],
+[
+527.96,
+530.32,
+"du Moho à l'aplomb des régions internes de la chaîne,"
+],
+[
+530.54,
+534.24,
+"formant une racine crustale, plus de 40 km pour celles des Alpes."
+],
+[
+534.84,
+538.28,
+"La tomographie, qui utilise la corrélation entre la vitesse des ondes sismiques"
+],
+[
+538.28,
+541.88,
+"et la température du matériau qu'elles traversent, plus la vitesse est importante,"
+],
+[
+542.38,
+545.52,
+"plus la roche est froide, montre un épaississement de roche froide"
+],
+[
+545.52,
+547.54,
+"à l'aplomb des régions internes de la chaîne."
+],
+[
+548.38,
+550.96,
+"Enfin, des données récentes montrent que la croûte continentale"
+],
+[
+551.5,
+552.6,
+"peut aussi entrer en subduction."
+],
+[
+553.32,
+555.82,
+"En effet, la présence de coésite, un faciès du quartz,"
+],
+[
+555.82,
+558.92,
+"ne se forme que sous de hautes pressions et ne peut être localement"
+],
+[
+558.92,
+560.56,
+"retrouvée dans certaines régions montagneuses."
+],
+[
+560.98,
+563.68,
+"Le quartz étant un minéral présent dans le grès ou le granite,"
+],
+[
+563.84,
+566.08,
+"par exemple, qui sont des roches typiques de la croûte continentale,"
+],
+[
+566.52,
+568.9,
+"cela signifie que ces roches ont été soumises à une pression"
+],
+[
+568.9,
+571.78,
+"telle que le quartz a été progressivement transformé en coésite."
+],
+[
+572.42,
+575.34,
+"Cette forte pression ne peut s'expliquer que par la subduction"
+],
+[
+575.34,
+578.16,
+"d'une partie de la croûte continentale lors de la collision."
+],
+[
+579.72,
+583.76,
+"Alors quel serait le scénario de formation d'une chaîne de montagne ?"
+],
+[
+583.76,
+585.64,
+"Les différents indices que nous avons évoqués"
+],
+[
+585.64,
+588.66,
+"permettent de proposer un scénario de formation d'une chaîne de montagne."
+],
+[
+589.18,
+591.76,
+"Ainsi, dans un contexte de convergence de deux plaques lithosphériques,"
+],
+[
+592.44,
+594.54,
+"la formation débute par une subduction océanique."
+],
+[
+594.88,
+596.54,
+"Celle-ci entraîne la fermeture d'un océan"
+],
+[
+596.54,
+598.84,
+"puis la suture de deux lithosphères continentales."
+],
+[
+599.34,
+602.14,
+"Il y a subduction de la lithosphère continentale d'une des plaques"
+],
+[
+602.76,
+605.98,
+"par entraînement partiel, et collision"
+],
+[
+605.98,
+609.46,
+"entre les deux lithosphères continentales jadis séparées par l'océan."
+],
+[
+609.46,
+612.58,
+"Lors de la collision, la croûte continentale s'épaissit"
+],
+[
+612.58,
+614.62,
+"par empilement de nappes de charriage"
+],
+[
+614.62,
+616.58,
+"au niveau de la zone d'affrontement des plaques."
+],
+[
+618.28,
+620.64,
+"Intéressons-nous maintenant au cycle orogénique."
+],
+[
+621.98,
+624.1,
+"Paléogéographie et déplacement des masses continentales."
+],
+[
+624.68,
+626.44,
+"La paléogéographie a pour objet d'étude"
+],
+[
+626.44,
+629.6,
+"la reconstitution de la géographie passée de la Terre"
+],
+[
+629.6,
+630.94,
+"au cours de sa longue histoire."
+],
+[
+631.38,
+633.76,
+"Elle permet de produire des cartes représentant"
+],
+[
+633.76,
+636.38,
+"la position de masse continentale et des ceintures orogéniques"
+],
+[
+636.38,
+637.88,
+"à différentes époques géologiques."
+],
+[
+637.88,
+641.4,
+"On peut ainsi montrer l'alternance au cours de l'histoire de la Terre"
+],
+[
+641.4,
+645.14,
+"de réunions de blocs continentaux et des phases de fragmentation des continents."
+],
+[
+645.72,
+647.04,
+"Lors d'une phase de réunion,"
+],
+[
+647.56,
+649.94,
+"la subduction provoque la fermeture de certains océans,"
+],
+[
+650.44,
+651.96,
+"le rapprochement des masses continentales,"
+],
+[
+652.22,
+654.62,
+"puis leur collision à l'origine d'une nouvelle orogenèse."
+],
+[
+655.28,
+657.86,
+"Les phases de réunions des blocs continentaux"
+],
+[
+657.86,
+660.54,
+"peuvent aboutir à la formation d'un supercontinent unique"
+],
+[
+661.06,
+663.0,
+"regroupant l'ensemble des masses continentales"
+],
+[
+663.0,
+665.02,
+"comme la Pangée il y a 300 millions d'années."
+],
+[
+665.02,
+668.12,
+"A l'opposé, certaines époques des temps géologiques"
+],
+[
+668.12,
+670.4,
+"comme l'ère secondaire, sont des phases de dislocation"
+],
+[
+670.4,
+672.06,
+"des masses continentales par fragmentation,"
+],
+[
+672.64,
+675.48,
+"rifts continentaux et expansion de nouveaux domaines océaniques."
+],
+[
+676.04,
+677.38,
+"Ainsi, les déplacements des continents"
+],
+[
+677.38,
+679.62,
+"sont une conséquence directe de la dynamique"
+],
+[
+679.62,
+680.68,
+"des plaques lithosphériques."
+],
+[
+681.36,
+684.42,
+"Alors peut-on parler de cycles de supercontinent ?"
+],
+[
+684.42,
+686.72,
+"À partir des reconstitutions paléogéographiques,"
+],
+[
+687.08,
+689.4,
+"le géologue John Tuzo Wilson a proposé"
+],
+[
+689.4,
+691.64,
+"un modèle d'évolution cyclique du visage de la Terre"
+],
+[
+691.64,
+693.2,
+"alternant des phases de regroupement"
+],
+[
+693.2,
+695.44,
+"des masses continentales en un supercontinent"
+],
+[
+695.44,
+698.36,
+"et des phases de dislocation de ce supercontinent."
+],
+[
+698.9,
+700.66,
+"On parle de cycles orogéniques,"
+],
+[
+700.74,
+701.8,
+"ou cycles de Wilson."
+],
+[
+702.56,
+704.44,
+"L'origine de ces cycles serait à rechercher"
+],
+[
+704.44,
+706.44,
+"dans les mouvements convectifs affectant"
+],
+[
+706.44,
+707.28,
+"le manteau terrestre."
+],
+[
+707.82,
+709.26,
+"Les données dont disposent des scientifiques"
+],
+[
+709.26,
+711.0,
+"pour ces périodes anciennes sont très partielles."
+],
+[
+711.74,
+713.12,
+"Et le mécanisme de ces cycles,"
+],
+[
+713.44,
+714.8,
+"ainsi que leur périodicité,"
+],
+[
+714.96,
+716.52,
+"fait encore l'objet de recherche."
+],
+[
+717.14,
+718.62,
+"Toutefois, à l'heure actuelle,"
+],
+[
+719.14,
+721.36,
+"on suppose que la localisation des nouvelles fractures"
+],
+[
+721.36,
+723.66,
+"se trouve au niveau même des zones de suture."
+],
+[
+724.06,
+725.44,
+"Un peu comme quand vous vous coupez,"
+],
+[
+725.64,
+727.18,
+"généralement, si vous recoupez au même endroit,"
+],
+[
+727.34,
+729.58,
+"c'est plus facile, là où vous avez déjà cicatrisé."
+],
+[
+730.52,
+732.56,
+"En effet, lors de l'arrêt de la compression,"
+],
+[
+733.16,
+734.36,
+"la chaîne érodée se fracture"
+],
+[
+734.36,
+735.66,
+"et subit une nouvelle distension"
+],
+[
+735.66,
+737.8,
+"qui conduit à une ouverture océanique."
+],
+[
+738.14,
+739.36,
+"Au niveau des zones de suture,"
+],
+[
+739.66,
+741.62,
+"la lithosphère continentale est fragilisée"
+],
+[
+742.36,
+744.16,
+"suite au magmatisme de la zone de subduction"
+],
+[
+744.16,
+746.86,
+"qui appauvrit le manteau en minéraux dits fusibles,"
+],
+[
+747.08,
+748.34,
+"qui fondent à basse température,"
+],
+[
+748.5,
+749.62,
+"ce qui le rend cassant."
+],
+[
+750.5,
+751.82,
+"Lors de la phase de distension,"
+],
+[
+752.0,
+753.4,
+"c'est cette zone qui sera de nouveau"
+],
+[
+753.98,
+754.78,
+"préférentiellement fracturée"
+],
+[
+754.78,
+756.3,
+"sous l'effet des contraintes divergentes."
+],
+[
+756.82,
+758.24,
+"Toutefois, lorsque l'océan est petit,"
+],
+[
+758.76,
+760.72,
+"la collision intervient sans magmatisme,"
+],
+[
+760.84,
+761.82,
+"comme dans les Alpes actuelles."
+],
+[
+762.24,
+763.84,
+"Et le manteau lithosphérique n'est pas appauvri."
+],
+[
+764.22,
+766.68,
+"Il fond facilement et rend la lithosphère moins cassante."
+],
+[
+767.14,
+768.84,
+"Lors de la phase de distension suivante,"
+],
+[
+768.96,
+771.14,
+"la fracturation sera alors déportée ailleurs."
+],
+[
+771.84,
+772.6,
+"Quoi qu'il en soit,"
+],
+[
+773.04,
+774.78,
+"ce jeu tectonique conduit à la croissance"
+],
+[
+774.78,
+775.94,
+"des lithosphères continentales."
+],
+[
+775.94,
+777.54,
+"A chaque phase de suture,"
+],
+[
+777.74,
+779.6,
+"elles accumulent de nouveaux matériaux prélevés"
+],
+[
+779.6,
+781.22,
+"dans le manteau au niveau des dorsales"
+],
+[
+781.22,
+782.48,
+"et des zones de subduction."
+],
+[
+783.56,
+784.62,
+"Et généralement,"
+],
+[
+785.28,
+786.92,
+"la périodicité de ces cycles est de l'ordre"
+],
+[
+786.92,
+789.06,
+"de 500 millions d'années."
+],
+[
+790.6,
+792.32,
+"Maintenant, quel est le recyclage"
+],
+[
+792.32,
+794.16,
+"de la lithosphère océanique"
+],
+[
+794.16,
+795.4,
+"et continentale ?"
+],
+[
+795.4,
+796.6,
+"Le recyclage correspond"
+],
+[
+796.6,
+798.62,
+"au devenir des matériaux de la lithosphère."
+],
+[
+798.98,
+800.9,
+"Soit elles sont transformées et subsistent"
+],
+[
+800.9,
+802.34,
+"dans la lithosphère, soit elles sont"
+],
+[
+802.34,
+804.38,
+"incorporées au manteau asthénosphérique."
+],
+[
+804.86,
+806.72,
+"Alors que les matériaux de la lithosphère continentale"
+],
+[
+806.72,
+808.34,
+"sont essentiellement transformés"
+],
+[
+808.34,
+810.48,
+"par des processus tectoniques, magmatiques"
+],
+[
+810.48,
+812.9,
+"et sédimentaires au cours des orogenèses successives,"
+],
+[
+813.46,
+814.76,
+"la lithosphère océanique disparaît"
+],
+[
+814.76,
+817.26,
+"presque totalement au bout de 200 millions d'années"
+],
+[
+817.26,
+818.66,
+"dans le manteau asthénosphérique."
+],
+[
+819.24,
+820.58,
+"Ceci est une première explication"
+],
+[
+820.58,
+822.74,
+"à la conservation des roches très anciennes"
+],
+[
+822.74,
+823.8,
+"de la lithosphère continentale."
+],
+[
+824.46,
+825.64,
+"Regardons maintenant de plus près"
+],
+[
+825.64,
+827.24,
+"comment se réalise le recyclage pour"
+],
+[
+827.24,
+828.36,
+"chacune des deux lithosphères."
+],
+[
+829.06,
+831.46,
+"Alors le recyclage de la lithosphère océanique."
+],
+[
+831.86,
+832.7,
+"Il se réalise"
+],
+[
+832.7,
+834.24,
+"au niveau de la dorsale océanique"
+],
+[
+834.24,
+836.5,
+"où la lithosphère, nouvellement formée,"
+],
+[
+836.84,
+838.16,
+"mince et chaude, flotte"
+],
+[
+838.16,
+840.14,
+"sur l'asthénosphère car elle est moins dense."
+],
+[
+840.76,
+841.92,
+"Mais au fur et à mesure qu'elle s'éloigne"
+],
+[
+841.92,
+843.34,
+"de la dorsale, elle se refroidit."
+],
+[
+844.14,
+846.14,
+"L'isotherme 1300 degrés qui marque la limite"
+],
+[
+846.6,
+848.26,
+"asthénosphère et lithosphère s'approfondit."
+],
+[
+848.68,
+849.58,
+"On parle de subsidence"
+],
+[
+850.1,
+851.48,
+"thermique, et elle s'épaissit."
+],
+[
+851.94,
+853.76,
+"Plus précisément, la croûte océanique"
+],
+[
+853.76,
+855.68,
+"gardant toujours la même épaisseur, c'est le manteau"
+],
+[
+855.68,
+856.88,
+"lithosphérique qui s'épaissit."
+],
+[
+857.44,
+859.4,
+"Et au fur et à mesure de son épaississement"
+],
+[
+859.4,
+861.7,
+"elle a une densité qui devient supérieure"
+],
+[
+861.7,
+863.0,
+"à celle de la croûte océanique."
+],
+[
+864.72,
+866.04,
+"Elle finit du coup"
+],
+[
+866.04,
+867.94,
+"par devenir supérieure"
+],
+[
+867.94,
+870.1,
+"et l'équilibre isostatique est rompu"
+],
+[
+870.1,
+872.1,
+"généralement à 40 millions d'années"
+],
+[
+872.1,
+873.2,
+"avec un certain retard."
+],
+[
+874.02,
+875.66,
+"Et là, souvent la lithosphère"
+],
+[
+875.66,
+877.88,
+"entre en subduction à partir de 80 millions d'années."
+],
+[
+878.32,
+879.72,
+"Ce retard ça résulte en fait"
+],
+[
+879.72,
+881.74,
+"d'une résistance mécanique de la asthénosphère."
+],
+[
+882.12,
+883.98,
+"Mais une fois que la subduction est amorcée"
+],
+[
+883.98,
+885.02,
+"tout s'accélère."
+],
+[
+885.48,
+888.36,
+"Elle conduit alors à la destruction de la lithosphère océanique"
+],
+[
+888.36,
+889.6,
+"qui reforme alors du manteau."
+],
+[
+890.18,
+891.84,
+"Il est alors possible de comprendre pourquoi"
+],
+[
+891.84,
+894.26,
+"les âges n'excèdent jamais 200 millions d'années"
+],
+[
+894.26,
+896.62,
+"à l'heure actuelle pour la lithosphère océanique"
+],
+[
+896.62,
+898.0,
+"alors que l'on sait que les subductions"
+],
+[
+898.0,
+900.1,
+"sont connues et existent depuis le début"
+],
+[
+900.1,
+900.9,
+"de l'histoire de la Terre."
+],
+[
+901.26,
+901.92,
+"Même si"
+],
+[
+901.92,
+906.2,
+"le mécanisme est un petit peu différent."
+],
+[
+907.22,
+908.1,
+"Quel est le recyclage"
+],
+[
+908.1,
+909.82,
+"de la lithosphère continentale ?"
+],
+[
+909.82,
+911.98,
+"Pour le comprendre, intéressons-nous à 2 chaînes"
+],
+[
+911.98,
+913.84,
+"une chaîne récente et une chaîne ancienne."
+],
+[
+914.44,
+915.42,
+"Elle nous montre que"
+],
+[
+915.98,
+917.98,
+"les montagnes âgées ont un aplanissement"
+],
+[
+918.8,
+919.72,
+"et un effondrement"
+],
+[
+919.72,
+922.1,
+"à la fois sur le relief mais aussi en profondeur."
+],
+[
+922.58,
+923.72,
+"Il y a donc une disparition"
+],
+[
+923.72,
+925.22,
+"progressive des chaînes de montagne."
+],
+[
+925.92,
+928.38,
+"L'étude précédente montre que la lithosphère continentale"
+],
+[
+928.38,
+930.08,
+"est recyclée dans les zones de subduction"
+],
+[
+930.08,
+930.82,
+"et de collision."
+],
+[
+931.54,
+933.34,
+"Au cours des cycles successifs de formation"
+],
+[
+933.34,
+935.14,
+"et de disparition des chaînes de montagne,"
+],
+[
+935.5,
+937.84,
+"la lithosphère continentale est transformée par des processus"
+],
+[
+937.84,
+939.8,
+"tectoniques, magmatiques, métamorphiques"
+],
+[
+939.8,
+940.62,
+"et sédimentaires."
+],
+[
+941.22,
+944.1,
+"Érosion des reliefs, agents dont l'eau et le vent"
+],
+[
+944.1,
+945.5,
+"transportent des sédiments par l'eau"
+],
+[
+945.5,
+947.42,
+"en fonction de la taille des particules"
+],
+[
+947.42,
+949.52,
+"et de la vitesse de l'eau et enfin dépôts."
+],
+[
+950.9,
+952.26,
+"Regardons l'altération et érosion"
+],
+[
+952.26,
+952.76,
+"des roches."
+],
+[
+953.4,
+955.26,
+"Sous l'action de facteurs biologiques et climatiques,"
+],
+[
+955.76,
+957.84,
+"les roches en surface sont altérées et érodées."
+],
+[
+958.24,
+959.28,
+"Le gel, la glace,"
+],
+[
+959.62,
+961.42,
+"les variations de température et les végétaux"
+],
+[
+961.42,
+963.96,
+"sont responsables d'une désagrégation mécanique"
+],
+[
+963.96,
+964.38,
+"des roches."
+],
+[
+964.82,
+966.68,
+"L'eau quant à elle est responsable"
+],
+[
+966.68,
+968.68,
+"d'une altération chimique des roches."
+],
+[
+969.18,
+970.82,
+"En effet, de nombreux minéraux"
+],
+[
+970.82,
+973.04,
+"comme les feldspaths, les micas subissent"
+],
+[
+973.04,
+974.68,
+"une hydrolyse, c'est-à-dire qu'en incorporant"
+],
+[
+975.26,
+976.76,
+"de l'eau dans leur structure, ils vont"
+],
+[
+976.76,
+978.64,
+"former de nouveaux minéraux"
+],
+[
+978.64,
+980.58,
+"que l'on appelle généralement des argiles."
+],
+[
+982.1,
+983.12,
+"Alors, en fonction"
+],
+[
+983.12,
+985.22,
+"de la taille et de la charge de l'ion,"
+],
+[
+985.74,
+986.58,
+"on a par exemple"
+],
+[
+986.58,
+988.5,
+"donc c'était la loi de Goldschmidt,"
+],
+[
+989.84,
+990.78,
+"les cations solubles"
+],
+[
+990.78,
+993.1,
+"qui ont une charge faible, sont attirés"
+],
+[
+993.1,
+994.52,
+"par l'eau et vont former des éléments"
+],
+[
+994.52,
+996.74,
+"solubles pouvant être évacués vers les océans"
+],
+[
+996.74,
+998.52,
+"et constituer par exemple des calcaires."
+],
+[
+999.96,
+1001.6,
+"Les cations précipitant,"
+],
+[
+1001.8,
+1002.52,
+"eux, sont insolubles"
+],
+[
+1003.36,
+1005.38,
+"et du coup, ils vont précipiter"
+],
+[
+1005.38,
+1006.76,
+"sous la forme d'hydroxydes."
+],
+[
+1007.16,
+1008.78,
+"Ils sont alors à l'origine"
+],
+[
+1008.78,
+1009.28,
+"de la"
+],
+[
+1010.5,
+1012.32,
+"ils sont à l'origine, pardon,"
+],
+[
+1012.88,
+1014.24,
+"de gisements métallifères"
+],
+[
+1014.24,
+1015.7,
+"comme la bauxite par exemple."
+],
+[
+1017.48,
+1018.52,
+"Alors que les oxyanions"
+],
+[
+1019.14,
+1021.36,
+"anions, eux, ont un petit diamètre"
+],
+[
+1021.36,
+1023.38,
+"et une charge élevée, ils sont solubles"
+],
+[
+1023.38,
+1025.18,
+"et peuvent être évacués vers les océans"
+],
+[
+1025.18,
+1027.24,
+"où ils se recombinent avec les cations solubles"
+],
+[
+1027.24,
+1029.38,
+"permettant ainsi la formation par exemple de carbonate"
+],
+[
+1029.38,
+1030.68,
+"de sulfates ou de phosphates."
+],
+[
+1032.92,
+1033.74,
+"Intéressons-nous maintenant"
+],
+[
+1033.74,
+1035.4,
+"au transport. C'est l'eau"
+],
+[
+1035.4,
+1037.22,
+"qui est le principal agent de transport des éléments"
+],
+[
+1037.22,
+1038.58,
+"issues de l'altération des roches."
+],
+[
+1039.1,
+1041.56,
+"Suivant la taille des particules et la vitesse du courant,"
+],
+[
+1041.96,
+1043.58,
+"les particules vont soit être érodées,"
+],
+[
+1044.0,
+1045.6,
+"soit être déposées et sédimentées,"
+],
+[
+1045.86,
+1046.62,
+"soit être transportées."
+],
+[
+1047.26,
+1049.32,
+"Les matériaux ainsi transportés rejoignent finalement"
+],
+[
+1049.32,
+1051.28,
+"un bassin continental ou océanique"
+],
+[
+1051.28,
+1052.68,
+"où ils se déposent."
+],
+[
+1052.68,
+1053.58,
+"Après consolidation,"
+],
+[
+1054.4,
+1056.12,
+"les débris solides forment des roches sédimentaires"
+],
+[
+1056.12,
+1058.42,
+"détritiques, tandis que les ions dissous"
+],
+[
+1058.42,
+1060.8,
+"forment des roches sédimentaires de type calcaire."
+],
+[
+1061.1,
+1063.16,
+"Et à partir de l'estimation des flux sédimentaires"
+],
+[
+1063.16,
+1065.4,
+"des grands bassins fluviaux, par exemple de la planète,"
+],
+[
+1065.92,
+1066.8,
+"il est possible d'évaluer"
+],
+[
+1067.42,
+1069.02,
+"approximativement le volume de roches"
+],
+[
+1069.02,
+1070.64,
+"enlevé chaque année au continent."
+],
+[
+1073.96,
+1075.14,
+"Alors, maintenant"
+],
+[
+1075.14,
+1078.02,
+"quel est le rôle des phénomènes tectoniques ?"
+],
+[
+1078.02,
+1078.9,
+"La mise à l'affleurement"
+],
+[
+1078.9,
+1080.1,
+"des roches formées en profondeur"
+],
+[
+1080.1,
+1081.4,
+"il y a des centaines de millions d'années"
+],
+[
+1081.4,
+1083.12,
+"n'est pas le seul fait de l'érosion."
+],
+[
+1083.62,
+1085.66,
+"En effet, à mesure que l'érosion"
+],
+[
+1085.66,
+1087.26,
+"allège la chaîne de montagne,"
+],
+[
+1087.64,
+1088.76,
+"la croûte continentale profonde"
+],
+[
+1088.76,
+1090.7,
+"remonte par réajustement isostatique"
+],
+[
+1090.7,
+1093.32,
+"et la baisse d'altitude engendrée par l'érosion"
+],
+[
+1093.32,
+1095.34,
+"est ainsi en grande partie compensée"
+],
+[
+1095.34,
+1096.6,
+"par la remontée isostatique."
+],
+[
+1097.22,
+1099.06,
+"Et vers la fin de ce processus de convergence,"
+],
+[
+1099.56,
+1101.02,
+"la compression étant très réduite,"
+],
+[
+1101.14,
+1103.16,
+"la chaîne de montagne a tendance à s'effondrer"
+],
+[
+1103.16,
+1104.52,
+"dans sa région centrale"
+],
+[
+1104.52,
+1106.28,
+"par le jeu de nombreuses failles normales"
+],
+[
+1106.28,
+1108.14,
+"qui sont repérables par l'activité sismique"
+],
+[
+1108.14,
+1110.36,
+"dans la région, qui traduit un système en extension"
+],
+[
+1110.36,
+1112.24,
+"et aussi par les données GPS"
+],
+[
+1112.24,
+1114.28,
+"qui mesurent la vitesse de déplacement"
+],
+[
+1114.28,
+1116.26,
+"en différents points d'une région donnée"
+],
+[
+1116.26,
+1118.4,
+"et qui montrent également des sens de déplacement"
+],
+[
+1118.4,
+1120.58,
+"différents. Et tous ces phénomènes"
+],
+[
+1120.58,
+1122.24,
+"conduisent à la disparition des reliefs"
+],
+[
+1122.24,
+1123.86,
+"qu'on appelle la pénéplanation."
+],
+[
+1125.14,
+1126.94,
+"Alors, au contraire de la lithosphère"
+],
+[
+1126.94,
+1127.7,
+"océanique,"
+],
+[
+1128.0,
+1130.2,
+"seule une petite fraction de la lithosphère continentale"
+],
+[
+1130.2,
+1131.96,
+"disparaît dans le manteau sous-jacent,"
+],
+[
+1131.96,
+1133.36,
+"10 % environ,"
+],
+[
+1133.44,
+1135.96,
+"tandis que la quasi-totalité de la lithosphère océanique"
+],
+[
+1136.6,
+1137.32,
+"y est recyclée."
+],
+[
+1137.86,
+1139.38,
+"Cette différence explique pourquoi"
+],
+[
+1139.96,
+1141.96,
+"seule la lithosphère continentale a pu conserver"
+],
+[
+1141.96,
+1143.04,
+"les roches les plus anciennes,"
+],
+[
+1143.14,
+1146.62,
+"comme le gneiss d'Acasta, daté à 3,8 milliards d'années."
+],
+[
+1147.56,
+1147.92,
+"Ainsi,"
+],
+[
+1148.12,
+1149.64,
+"l'étude de la formation des chaînes de montagne"
+],
+[
+1149.64,
+1151.58,
+"nous a montré que celle-ci résulte de la fermeture"
+],
+[
+1151.58,
+1153.3,
+"d'un océan suite à une subduction"
+],
+[
+1153.3,
+1155.0,
+"et à la collision entre deux croûtes"
+],
+[
+1155.0,
+1157.38,
+"(lithosphères) continentales. Mais comment expliquer"
+],
+[
+1157.38,
+1159.52,
+"le plongement de la lithosphère océanique"
+],
+[
+1159.52,
+1161.92,
+"et non continentale au niveau des zones de subduction ?"
+],
+[
+1163.58,
+1165.92,
+"Comme nous l'avons vu précédemment, au fur et à mesure"
+],
+[
+1165.92,
+1167.34,
+"de son éloignement de la dorsale,"
+],
+[
+1167.58,
+1169.16,
+"la lithosphère océanique s'épaissit."
+],
+[
+1169.68,
+1171.82,
+"Et plus précisément, la croûte océanique gardant"
+],
+[
+1171.82,
+1173.38,
+"toujours la même épaisseur, c'est le manteau."
+],
+[
+1173.92,
+1175.28,
+"Le manteau lithosphérique"
+],
+[
+1175.28,
+1177.76,
+"ayant une densité supérieure à celle de la croûte océanique"
+],
+[
+1177.76,
+1180.08,
+"densité de 3,3 contre 2,9"
+],
+[
+1180.08,
+1181.02,
+"pour la croûte océanique."
+],
+[
+1181.4,
+1183.26,
+"C'est la densité de la lithosphère moyenne"
+],
+[
+1183.26,
+1185.34,
+"de ces deux densités qui augmente."
+],
+[
+1185.62,
+1187.6,
+"Elle finit par devenir supérieure, comme on l'a dit."
+],
+[
+1187.6,
+1190.88,
+"On a dit que l'équilibre isostatique était rompu."
+],
+[
+1191.56,
+1193.7,
+"Mais alors pourquoi ?"
+],
+[
+1193.7,
+1196.2,
+"C'est parce que lorsque, sous l'effet de la pression"
+],
+[
+1196.2,
+1198.42,
+"basalte et gabbro se transforment en"
+],
+[
+1198.42,
+1200.9,
+"métagabbros à faciès schiste bleu, puis éclogites,"
+],
+[
+1200.9,
+1202.72,
+"on augmente aussi la densité."
+],
+[
+1203.06,
+1204.96,
+"On passe à une densité de 3,4"
+],
+[
+1204.96,
+1206.22,
+"qui est due à la présence du grenat."
+],
+[
+1207.06,
+1209.22,
+"Et dès que la lithosphère est subductée,"
+],
+[
+1209.44,
+1211.18,
+"tout ceci va donc tracter."
+],
+[
+1211.56,
+1213.8,
+"Et en fait, la subduction est entretenue."
+],
+[
+1214.26,
+1215.46,
+"Et c'est donc la subduction"
+],
+[
+1215.46,
+1217.56,
+"qui est le moteur de la tectonique des plaques"
+],
+[
+1217.56,
+1219.4,
+"et non les dorsales."
+],
+[
+1220.22,
+1222.52,
+"Ainsi, les lithosphères océanique et continentale"
+],
+[
+1222.52,
+1224.14,
+"sont toutes les deux composées de croûte"
+],
+[
+1224.14,
+1225.54,
+"et de manteau lithosphérique."
+],
+[
+1225.82,
+1226.96,
+"Mais elles diffèrent grandement"
+],
+[
+1226.96,
+1228.66,
+"par la nature de la croûte qui les compose."
+],
+[
+1229.28,
+1230.82,
+"La croûte océanique est moins épaisse"
+],
+[
+1231.46,
+1232.88,
+"globalement plus jeune que la croûte continentale."
+],
+[
+1233.46,
+1235.14,
+"La croûte océanique est essentiellement"
+],
+[
+1235.14,
+1236.84,
+"composée de basalte et de gabbro"
+],
+[
+1236.84,
+1238.52,
+"plus dense que la croûte continentale"
+],
+[
+1238.52,
+1241.28,
+"qui elle est plutôt constituée de roches proches du granite."
+],
+[
+1241.86,
+1243.72,
+"Les différences entre les deux types de croûte"
+],
+[
+1243.72,
+1245.48,
+"expliquent la différence d'altitude moyenne"
+],
+[
+1245.48,
+1246.46,
+"des océans et des continents."
+],
+[
+1246.94,
+1248.64,
+"Elle s'explique aussi par une formation"
+],
+[
+1248.64,
+1249.98,
+"et un recyclage différent."
+],
+[
+1250.46,
+1251.54,
+"Pourtant, à l'Archéen,"
+],
+[
+1252.02,
+1253.78,
+"les données montrent que la tectonique des plaques"
+],
+[
+1253.78,
+1255.04,
+"était quelque peu modifiée."
+],
+[
+1255.8,
+1257.64,
+"Le volcanisme provenait de la fusion partielle"
+],
+[
+1257.64,
+1259.1,
+"de la croûte océanique en subduction"
+],
+[
+1259.1,
+1260.82,
+"donnant alors des roches particulières"
+],
+[
+1260.82,
+1261.96,
+"appelées TTG."
+],
+[
+1262.54,
+1265.02,
+"Comment expliquer ces différences ?"
+],
+[
+1265.02,
+1265.98,
+"Je vous laisse"
+],
+[
+1266.54,
+1269.26,
+"pousser la recherche pour votre grand oral"
+],
+[
+1269.26,
+1270.36,
+"si ça vous intéresse."
+],
+[
+1270.66,
+1271.8,
+"Je vous remercie."
+]
+]
