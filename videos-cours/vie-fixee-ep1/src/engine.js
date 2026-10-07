@@ -64,6 +64,17 @@ function camAt(keys, t){
   return keys[keys.length-1].slice(1);
 }
 
+// documents : zoom et recadrage lents (data-kb = « t cx cy k ; … », cx, cy en fraction de l'image)
+const kbs = [...document.querySelectorAll('[data-kb]')].map(el => ({ el, W:+el.dataset.w, H:+el.dataset.h,
+  keys: el.dataset.kb.split(';').filter(s=>s.trim()).map(s=>s.trim().split(/[\s,]+/).map(Number)) }));
+function kbApply(o, t){
+  const [cx, cy, k] = camAt(o.keys, t);
+  let tx = o.W/2 - k*cx*o.W, ty = o.H/2 - k*cy*o.H;
+  tx = Math.min(0, Math.max(o.W - k*o.W, tx)); ty = Math.min(0, Math.max(o.H - k*o.H, ty));
+  o.el.style.transform = `translate(${tx}px,${ty}px) scale(${k})`;
+  o.el.style.setProperty('--k', k);
+}
+
 window.seek = function(t){
   for (const sc of scenes){
     const on = t >= sc.t0 - .8 && t <= sc.t1 + .8;
@@ -82,6 +93,7 @@ window.seek = function(t){
     if (sc && sc.style.visibility==='hidden') continue;
     apply(it, t);
   }
+  for (const o of kbs){ const sc=o.el.closest('.sc'); if (!sc || sc.style.visibility!=='hidden') kbApply(o, t); }
   if (window.onSeek) window.onSeek(t);
 };
 window.EP_END = Math.max(...scenes.map(s=>s.t1));

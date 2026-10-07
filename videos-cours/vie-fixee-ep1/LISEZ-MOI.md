@@ -31,3 +31,16 @@ puis relancer le rendu.
 
 Les schémas sont redessinés (SVG) d'après les documents du cours, pas copiés
 des manuels.
+
+## Les vrais documents du cours
+
+Les scènes montrent les documents du PDF (recadrés), avec zooms et annotations
+calés sur la voix. `crops.json` donne chaque cadrage en % de la page ;
+`rendu/recadre.py` produit les images dans `docs/`, qui **ne sont pas versionnées**
+(documents de manuels, dépôt public) :
+
+    pdftoppm -r 220 -png cours.pdf pages/p
+    python3 rendu/recadre.py pages crops.json docs
+
+Dans `gen.py`, `DOC(nom, t, kb=…, hl=…, notes=…)` place un document ; positions
+en % de la page, lues sur la page quadrillée par `rendu/grille.py`.

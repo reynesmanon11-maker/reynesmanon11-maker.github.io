@@ -2,6 +2,12 @@
 # Les temps sont ceux de la voix (secondes dans l'audio).
 from commun import *
 from geo import *
+def bandeau(items, y=905):
+    "légendes successives sous un document : [(t, texte, fin)]"
+    return ''.join(f'<div class="abs c" style="left:120px;right:120px;top:{y}px"><span class="p" style="background:rgba(10,10,12,.75);padding:10px 22px;border-radius:12px;color:#fff"{A(t,"up",o=o)}>{txt}</span></div>' for t,txt,o in items)
+from docs import Docs
+import pathlib
+DOC = Docs(pathlib.Path(__file__).parent)
 META = {'serie': 'HISTOIRE DE LA TERRE', 'episode': 'Épisode 2', 'titre': 'Naissance et mort des montagnes', 'offset': 6}
 CHAPITRES = []
 
@@ -30,15 +36,11 @@ scene(-6, 0.6, f'''
   <div class="p" style="margin-top:24px"{A(-2.4,"up")}>Chapitre 4 · L’histoire géologique de la France — Épisode 2</div>
 </div>''', cam='-6 0 0 1.05; 0.6 -30 0 1')
 
-# 0.6 – 13.7 : des âges très différents
-ax, X = axe_temps(260, 1660, 760, 4.5, 0.8, .5)
-scene(0.6, 13.7, titre(0.8,'Une question d’âge','Océans jeunes, continents très vieux') + svg(f'''
-{ax}
-<rect x="{X(0)}" y="560" width="{X(.2)-X(0):.0f}" height="70" fill="var(--eau)"{A(3.0,"growx",.8)}/>
-<text x="{X(.25)}" y="608" class="lab" fill="var(--eau)"{A(3.2,"right")}>lithosphère océanique : ≤ 200 Ma</text>
-<rect x="{X(0)}" y="660" width="{X(4.1)-X(0):.0f}" height="70" fill="#d9b48a"{A(7.4,"growx",2.2)}/>
-<text x="{X(.1)}" y="707" class="lab" fill="#1a1208"{A(8.4,"fade")}>roches des continents : jusqu’à plus de 4 Ga</text>
-'''))
+# 0.6 – 13.7 : des âges très différents, sur la carte du document 1
+scene(0.6, 13.7, titre(0.8,'Document 1 · l’âge des roches des continents','Océans jeunes, continents très vieux') + DOC('d1_carte', 1.0,
+  box=(120,250,1680,640), kb=[(1.0,58.5,84,1),(6.6,58.5,84,1),(8.0,37,87.5,1.9),(12.5,37,87.5,1.9)],
+  hl=[(8.6,31.8,81.8,42,83.3,'j'),(10.4,31.8,91.6,42,93.2)], legende='Document 1 — Âge des roches (Ma)') +
+  bandeau([(3.0,'lithosphère océanique : jamais plus de <b>200 Ma</b>',7.2),(7.4,'roches des continents : jusqu’à plus de <b>4 milliards d’années</b>',None)]))
 
 # 13.7 – 31.4 : les plus vieilles roches
 scene(13.7, 31.4, f'''
@@ -91,35 +93,34 @@ scene(79.6, 102.6, titre(79.8,'Définition','L’orogenèse') + f'''
 <g{A(96.4,"pop")}><text x="540" y="1015" text-anchor="middle" class="lab" fill="var(--soleil)">★ ce chapitre</text></g>
 '''))
 
-# 102.6 – 124 : la ceinture alpine
-chaines = [(112.3,'Atlas',320,700),(111.3,'Alpes',620,560),(112.8,'Balkans',900,600),(113.4,'Caucase',1200,520),(114.2,'Himalaya',1560,600)]
-monts = ''.join(f'<g{A(t,"pop",.6)}><polygon points="{x-70},{y+40} {x},{y-60} {x+70},{y+40}" fill="#d9b48a"/><polygon points="{x-22},{y-28} {x},{y-60} {x+22},{y-28}" fill="#fff"/>'
-                f'<text x="{x}" y="{y+90}" text-anchor="middle" class="lab">{n}</text></g>' for t,n,x,y in chaines)
-scene(102.6, 124, titre(102.8,'Une même orogenèse, un alignement','La ceinture alpine') + svg(f'''
-<path d="M260 760 C 500 600, 800 640, 1000 620 C 1200 580, 1400 560, 1700 640" stroke="var(--rouge)" stroke-width="40" stroke-opacity=".25" fill="none" stroke-linecap="round"{A(106.3,"draw",1.6)}/>
-{monts}
-<text x="960" y="880" text-anchor="middle" class="lab" fill="var(--soleil)"{A(117.0,"up")}>formée depuis –65 Ma (ère tertiaire)…</text>
-<text x="960" y="940" text-anchor="middle" class="lab"{A(120.6,"up")}>… par la fermeture d’un vaste océan disparu : <tspan fill="var(--eau)" font-weight="800">la Téthys</tspan></text>
-'''))
+# 102.6 – 124 : la ceinture alpine, sur la carte du document 1
+def lonlat(lon, lat): return (61 + .181*lon, 83.5 - .124*lat)
+AT, AL, BA, CA, HI = lonlat(-5, 33), lonlat(9, 47), lonlat(22, 43), lonlat(44, 43), lonlat(84, 33)
+scene(102.6, 124, titre(102.8,'Document 1 · une même orogenèse, un alignement','La ceinture alpine') + DOC('d1_carte', 102.9,
+  kb=[(102.9, 58.5, 84, 1), (106.0, 58.5, 84, 1), (109.0, 66, 79, 2.4), (117.0, 66, 79, 2.4), (121, 66, 80, 2.0)],
+  notes=[(111.3, *AL, 'Alpes', '', -40, -74), (112.3, *AT, 'Atlas', '', -110, 20), (112.8, *BA, 'Balkans', '', -40, -74), (113.4, *CA, 'Caucase', '', 10, 18), (114.2, *HI, 'Himalaya', '', -60, -74)],
+  chemins=[(115.0, [AT, AL, BA, CA, HI], '#1a1a1a', 2.0)], legende='Document 1 — Âge des roches') +
+  f'''<div class="carte" style="left:150px;top:820px;width:560px;background:#f6efe2;color:#1a1208;border:2px solid #b15f2c"{A(117.0,"up")}>
+<div class="h3" style="color:#1a1208;font-size:52px">Ceinture alpine</div><div class="pm" style="color:#333">ère tertiaire (depuis –65 Ma)</div>
+<div class="pm" style="color:#b15f2c;font-weight:700"{A(120.6,"fade")}>fermeture de la Téthys</div></div>''')
 
-# 124 – 153.4 : retrouver les ceintures anciennes
+# 124 – 153.4 : retrouver les ceintures anciennes (document 11)
 indices = [(138.0,'roches métamorphiques','issues de déformations en compression'),(143.0,'roches magmatiques','mises en place en profondeur, exhumées par l’érosion'),(150.6,'failles inverses','et chevauchements')]
-scene(124, 153.4, titre(124.2,'Ceintures récentes, ceintures anciennes','Lire une montagne disparue') + svg(f'''
-{chaine_vieillit(128.3, 134.5, x=150, y=560, w=760)}
-<text x="530" y="300" text-anchor="middle" class="lab"{A(126.0,"up",o=131.5)}>récente : relief très marqué</text>
-<text x="530" y="300" text-anchor="middle" class="lab" fill="var(--soleil)"{A(132.0,"up")}>ancienne : le relief est érodé…</text>
-''') + ''.join(f'''<div class="carte" style="left:1010px;top:{330+i*190}px;width:760px;padding:24px 32px"{A(t,"left")}><div class="h3" style="color:var(--soleil)">{n}</div><div class="pm">{d}</div></div>''' for i,(t,n,d) in enumerate(indices)) +
-  f'<div class="abs pm" style="left:1010px;top:270px"{A(135.0,"fade")}>… mais il reste des <b style="color:#fff">indices</b> :</div>')
+scene(124, 153.4, titre(124.2,'Ceintures récentes, ceintures anciennes','Lire une montagne disparue') +
+  DOC('d11_jeune', 124.6, box=(100,250,1000,390), o=131.6, legende='récente : relief très marqué',
+      hl=[(150.6,48,56.5,60,60)]) +
+  DOC('d11_agee', 132.0, box=(100,250,1000,390), legende='ancienne : relief érodé…',
+      hl=[(143.0,44,70.5,58,74),(143.4,34,75,50,83,'j')], o=150.4) +
+  DOC('d11_jeune', 150.4, box=(100,250,1000,390), legende='failles inverses, chevauchements',
+      kb=[(150.4,52,58,1),(151,52,58,1.6)], hl=[(150.8,48,56.5,60,60)]) +
+  ''.join(f'''<div class="carte" style="left:1150px;top:{330+i*190}px;width:660px;padding:24px 32px"{A(t,"left")}><div class="h3" style="color:var(--soleil)">{n}</div><div class="pm">{d}</div></div>''' for i,(t,n,d) in enumerate(indices)) +
+  f'<div class="abs pm" style="left:1150px;top:270px"{A(135.0,"fade")}>… mais il reste des <b style="color:#fff">indices</b> :</div>')
 
-# 153.4 – 171 : cycles orogéniques
-bosses = ''.join(f'<path d="M{260+i*300} 760 C {300+i*300} 760, {330+i*300} 520, {380+i*300} 520 C {430+i*300} 520, {470+i*300} 760, {560+i*300} 760" stroke="#d9b48a" stroke-width="6" fill="none"{A(158.0+i*.6,"draw",1)}/>' for i in range(5))
-scene(153.4, 171, titre(153.6,'Document 1 · à l’échelle du globe','Une chronologie des cycles orogéniques') + svg(f'''
-{bosses}
-<path d="M240 800 L 1720 800" stroke="#f1ede6" stroke-width="3" marker-end="url(#fl)"{A(155,"draw",1)}/>
-<text x="240" y="850" class="lab-s"{A(155,"fade")}>il y a plusieurs milliards d’années</text><text x="1720" y="850" text-anchor="end" class="lab-s"{A(155,"fade")}>aujourd’hui</text>
-<g{A(164.2,"up")}><rect x="380" y="900" width="1160" height="80" rx="40" fill="rgba(26,26,30,.9)" stroke="var(--rouge)" stroke-width="2"/>
-<text x="960" y="952" text-anchor="middle" class="lab">cycle orogénique = formation <tspan fill="var(--soleil)">puis disparition</tspan> (érosion) d’une chaîne</text></g>
-'''))
+# 153.4 – 171 : cycles orogéniques (document 1)
+scene(153.4, 171, titre(153.6,'Document 1 · à l’échelle du globe','Une chronologie des cycles orogéniques') + DOC('d1_carte', 153.8,
+  box=(120,250,1680,620), kb=[(153.8,58.5,84,1),(157,58.5,84,1),(158.5,37,87.5,1.9),(171,37,87.5,1.9)],
+  hl=[(158.4,31.8,81.8,42,93.2,'j')], legende='Document 1 — chaque couleur, un âge') +
+  bandeau([(164.2,'cycle orogénique = formation <b>puis disparition</b> (érosion) d’une chaîne de montagnes',None)], y=900))
 
 # 171 – 189.9 : en France
 coul = {'armoricain':'#7d9cc4','central':'#7d9cc4','vosges':'#7d9cc4','alpes':'#e88a5a','pyrenees':'#e88a5a'}
@@ -129,14 +130,13 @@ scene(171, 189.9, titre(171.2,'Sur la carte géologique de la France','Deux gran
 <div class="carte" style="left:1150px;top:560px;width:640px"{A(178.1,"left")}><div class="h3" style="color:#7d9cc4">Hercynienne</div><div class="pm">fin de l’ère primaire · Massif central, Massif armoricain, Vosges</div></div>
 <div class="abs pm" style="left:1150px;top:830px;width:640px"{A(186.0,"up")}>+ des traces d’orogenèses encore plus anciennes dans les massifs anciens</div>''')
 
-# 189.9 – 208.9 : le modèle
-scene(189.9, 208.9, titre(190.0,'Le modèle','Ouverture, fermeture, collision') + svg(f'''
-<g transform="translate(96,170) scale(.9)"><g{A(192.0,"fade",.6,o=194.6)}>{etape_ocean()}</g><g{A(195.0,"fade",.6,o=196.6)}>{etape_subduction()}</g><g{A(197.0,"fade",.6)}>{etape_collision()}</g></g>
-<g{A(192.0,"pop")}><rect x="160" y="300" width="300" height="60" rx="30" fill="#2e6f9e"/><text x="310" y="340" text-anchor="middle" class="lab">1 · ouverture</text></g>
-<g{A(195.0,"pop")}><rect x="490" y="300" width="300" height="60" rx="30" fill="{CO}"/><text x="640" y="340" text-anchor="middle" class="lab">2 · subduction</text></g>
-<g{A(197.0,"pop")}><rect x="820" y="300" width="300" height="60" rx="30" fill="#b4572b"/><text x="970" y="340" text-anchor="middle" class="lab">3 · collision</text></g>
-<text x="960" y="1040" text-anchor="middle" class="lab"{A(198.4,"up")}>→ des indices à retrouver sur le terrain, et à dater</text>
-'''))
+# 189.9 – 208.9 : le modèle, sur le document 5
+scene(189.9, 208.9, titre(190.0,'Le modèle · document 5','Ouverture, fermeture, collision') +
+  DOC('d5_150', 192.0, box=(120,360,1680,520), o=195.0, legende='150 Ma — un océan') +
+  DOC('d5_70', 195.0, box=(120,360,1680,520), o=197.0, legende='70-60 Ma — subduction') +
+  DOC('d5_4', 197.0, box=(120,360,1680,520), legende='4 Ma — collision') +
+  f'''<div class="abs" style="left:150px;top:280px;display:flex;gap:16px"><div class="pastille b"{A(192.0,"pop")}>1 · ouverture</div><div class="pastille" style="background:#5a4a8a"{A(195.0,"pop")}>2 · fermeture par subduction</div><div class="pastille o"{A(197.0,"pop")}>3 · collision</div></div>''' +
+  bandeau([(198.4,'→ des indices à retrouver sur le terrain, et à dater',None)], y=930))
 
 # 208.9 – 226.8 : fragmentation, l'Afrique de l'Est
 r0, _ = rift(1e6, 1e6, 1e6, 1e6, None, y_top=560, y_bot=860)   # croûte intacte
@@ -188,116 +188,78 @@ scene(292, 316, titre(292.2,'Le plancher océanique s’étend','Deux marges pas
 '''))
 
 # 316 – 354 : document 2, l'organisation d'une marge passive
-rm, cm = rift(316.4, 316.4, 316.6, 317.0, 349.0, y_top=600, y_bot=900, d=2.2)
-scene(316, 354, titre(316.2,'Document 2 · vue par sismique-réflexion','Anatomie d’une marge passive') + svg(f'''
-{rm}
-<path d="M{cm[1][0][0]+90:.0f} {cm[1][0][1]+120:.0f} L 760 1000" stroke="#fff" stroke-width="3"{A(318.6,"draw",.5)}/>
-<text x="760" y="1035" text-anchor="middle" class="lab"{A(318.8,"up")}>blocs basculés le long de failles courbes</text>
-<path d="M{(cm[2][1][0]+cm[2][0][0])/2:.0f} {cm[2][1][1]+8:.0f} L 900 400" stroke="#c8a48c" stroke-width="3"{A(327.6,"draw",.5)}/>
-<text x="900" y="385" text-anchor="middle" class="lab" fill="#c8a48c"{A(327.8,"up")}>sédiments anté-rift</text>
-<text x="900" y="420" text-anchor="middle" class="lab-s"{A(331.2,"fade")}>recoupés par les failles · déposés avant le rift</text>
-<path d="M{cm[3][0][0]+25:.0f} {cm[3][0][1]-8:.0f} L 1330 460" stroke="{SYN}" stroke-width="3"{A(336.0,"draw",.5)}/>
-<text x="1330" y="445" text-anchor="middle" class="lab" fill="{SYN}"{A(336.0,"up")}>syn-rift : évaporites en éventail</text>
-<text x="1330" y="480" text-anchor="middle" class="lab-s"{A(341.2,"fade")}>déposés pendant le basculement</text>
-<path d="M1500 {cm[4][1][1]-30:.0f} L 1640 330" stroke="{POST}" stroke-width="3"{A(349.0,"draw",.5)}/>
-<text x="1640" y="315" text-anchor="middle" class="lab" fill="{POST}"{A(349.2,"up")}>post-rift : argilites</text>
-<text x="1640" y="350" text-anchor="middle" class="lab-s"{A(350.6,"fade")}>discordantes · après le rifting</text>
-'''))
+scene(316, 354, titre(316.2,'Document 2 · vue par sismique-réflexion','Anatomie d’une marge passive') + DOC('d2_marge', 316.4,
+  box=(120,250,1680,620), kb=[(316.4,33,65,1),(318.6,33,65,1),(320,25,67,1.25),(326,25,67,1.25),(327.6,22,63,1.35),(335,22,63,1.35),(336,33,62,1.35),(347,33,62,1.35),(349,22,62,1.2),(354,22,62,1.2)],
+  hl=[(318.6,18,72,32,74.6,'',327.4),(327.6,13,57.5,21,61.5,'j',335.8),(336.0,26,57.5,41.5,61.5,'',348.8),(349.0,6,57.5,13,61.5,'v')],
+  legende='Document 2 — Marge continentale passive') +
+  bandeau([(318.8,'des <b>blocs basculés</b> le long de failles normales courbes',327.4),(327.8,'sédiments <b>anté-rift</b> : recoupés par les failles, déposés <b>avant</b> le rift',335.8),
+           (336.2,'sédiments <b>syn-rift</b> (évaporites) en éventail : déposés <b>pendant</b> le basculement',348.8),(349.2,'sédiments <b>post-rift</b> (argilites), discordants : déposés <b>après</b>',None)], y=900))
 
-# 354 – 383.9 : les ophiolites
+# 354 – 383.9 : les ophiolites (schéma bilan)
 scene(354, 383.9, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(354.2,"left")}>3 · Les traces d’un ancien domaine océanique</div>'
       f'<div class="h2" style="margin-top:14px"{A(361.0,"up")}>Les ophiolites</div>'
-      f'<div class="pm" style="margin-top:14px;width:760px"{A(362.0,"up")}>des lambeaux de lithosphère océanique, au cœur des chaînes : <b style="color:#fff">les vestiges d’un océan disparu</b></div></div>'
-      + svg(ophiolite(1000, 960, [370.3, 374.2, 376.3, 382.0], w=340)))
+      f'<div class="pm" style="margin-top:14px;width:700px"{A(362.0,"up")}>des lambeaux de lithosphère océanique, au cœur des chaînes : <b style="color:#fff">les vestiges d’un océan disparu</b></div>'
+      f'<div class="pm" style="margin-top:40px;width:700px"{A(381.6,"up")}>+ au-dessus : des sédiments d’océan profond, les <b style="color:#ff8a8a">radiolarites</b></div></div>' +
+  DOC('bilan_ophiolite', 363.0, box=(950,250,850,790), legende='Schéma bilan — ophiolites',
+      hl=[(370.3,67,88.3,74,91),(374.2,74,88.3,79.5,91,'b'),(376.3,80.5,87.5,88,90.5,'j')]))
 
 # 383.9 – 418.4 : métamorphisme hydrothermal, puis suture
 scene(383.9, 418.4, titre(384.0,'Un métamorphisme lié à l’hydrothermalisme','Des roches transformées par l’eau') + f'''
 <div class="carte" style="left:150px;top:330px;width:520px"{A(388.6,"up")}><div class="h3" style="color:#7fb08a">Péridotites</div><div class="pm">→ serpentinisées</div></div>
 <div class="carte" style="left:700px;top:330px;width:520px"{A(392.6,"up")}><div class="h3" style="color:#c9a36a">Gabbros</div><div class="pm">faciès amphibolite<br><span class="lab-s">(hornblende)</span></div></div>
-<div class="carte" style="left:1250px;top:330px;width:520px"{A(397.4,"up")}><div class="h3" style="color:#62c98d">… ou schiste vert</div><div class="pm">chlorite, actinote</div></div>''' + svg(f'''
-<g transform="translate(240,450) scale(.75)"><g{A(401.4,"fade",.8)}>{etape_collision()}</g></g>
-<g{A(408.4,"pop")}><circle cx="{240+.75*1010:.0f}" cy="{450+.75*(520-180):.0f}" r="70" fill="none" stroke="var(--rouge)" stroke-width="6"/></g>
-<text x="1500" y="760" class="lab" fill="#5fd0c3"{A(404.0,"up")}>fragments d’un océan refermé,</text>
-<text x="1500" y="800" class="lab"{A(408.0,"up")}>coincés entre deux continents</text>
-<text x="1500" y="880" style="font-family:Bebas;font-size:70px" fill="var(--rouge)"{A(411.4,"pop")}>ZONE DE SUTURE</text>
-'''))
+<div class="carte" style="left:1250px;top:330px;width:520px"{A(397.4,"up")}><div class="h3" style="color:#62c98d">… ou schiste vert</div><div class="pm">chlorite, actinote</div></div>''' +
+  DOC('bilan_suture', 401.4, box=(150,560,900,480), legende='Schéma bilan — collision', hl=[(411.4,39.5,78,58,81.2)]) + f'''
+<div class="abs" style="left:1120px;top:640px;width:680px"><div class="pm" style="color:#5fd0c3"{A(404.0,"up")}>fragments d’un océan refermé, coincés entre deux continents</div>
+<div class="k" style="font-size:80px;color:var(--rouge);margin-top:20px"{A(411.4,"pop")}>ZONE DE SUTURE</div></div>''')
 
 # 418.4 – 454.2 : les traces d'une subduction (document 3)
-pt, PX, PY = diagramme_pt(320, 370, 900, 600, 421.0, chemin_t=436.0, zones_t={'schistes verts':429.0,'schistes bleus':429.8,'éclogites':430.8,'amphibolites':421.4})
 bande = ''.join(f'<rect x="{1340+i*150}" y="560" width="150" height="80" fill="{c}"{A(444.4+i*1.2,"growx",.6)}/><text x="{1415+i*150}" y="680" text-anchor="middle" class="lab-s"{A(444.6+i*1.2,"fade")}>{n}</text>' for i,(c,n) in enumerate([('#4e9a5a','sch. verts'),('#3f6fb0','sch. bleus'),('#a8453c','éclogites')]))
-scene(418.4, 454.2, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(418.6,"left")}>4 · Les traces d’une subduction</div><div class="h2" style="margin-top:14px"{A(419.2,"up")}>Document 3 · le chemin d’un gabbro</div></div>' + svg(f'''
-{pt}
+scene(418.4, 454.2, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(418.6,"left")}>4 · Les traces d’une subduction</div><div class="h2" style="margin-top:14px"{A(419.2,"up")}>Document 3 · le chemin d’un gabbro</div></div>' +
+  DOC('d3_pt', 420.0, box=(100,270,1140,770), kb=[(420,33,29,1),(428.5,33,29,1),(430,20,30,1.35),(435,20,30,1.35),(436.5,33,29,1)],
+      hl=[(429.0,13.6,21.5,16.5,24,'v'),(429.8,13.3,25.8,16,28.3,'b'),(430.8,29.5,32,32.5,34.5)],
+      chemins=[(436.0,[(31.5,20),(28,20.6),(16,21.5),(13.5,26),(17,30),(22,35.5)],'#d40000',4)], legende='Document 3 — Chemin P-T d’un gabbro') + svg(f'''
 <g{A(431.8,"pop")}><rect x="1300" y="320" width="500" height="80" rx="40" fill="var(--rouge)"/><text x="1550" y="372" text-anchor="middle" class="lab">haute pression · basse température</text></g>
 <text x="1550" y="450" text-anchor="middle" class="lab"{A(435.4,"up")}>⇒ une subduction de croûte océanique</text>
 {bande}
 <text x="1340" y="540" class="lab-s"{A(444.0,"fade")}>Ouest</text><text x="1790" y="540" text-anchor="end" class="lab-s"{A(444.0,"fade")}>Est</text>
 <path d="M1360 730 L 1780 730" stroke="var(--soleil)" stroke-width="8" marker-end="url(#flj)"{A(450.4,"draw",.8)}/>
-<text x="1570" y="790" text-anchor="middle" class="lab" fill="var(--soleil)"{A(450.8,"up")}>subduction vers l’Est</text>
-'''))
+<text x="1570" y="790" text-anchor="middle" class="lab" fill="var(--soleil)"{A(450.8,"up")}>subduction vers l’Est</text>'''))
 
-# 454.2 – 470.9 : l'obduction
-scene(454.2, 470.9, titre(454.4,'Remarque','Parfois, pas de subduction : l’obduction') + svg(f'''
-<rect x="200" y="640" width="1520" height="300" fill="{AS}"/>
-<rect x="200" y="560" width="900" height="120" fill="#d9b48a"/>
-<rect x="200" y="680" width="900" height="120" fill="{ML}"/>
-<g{A(461.8,"move",4)} data-dx="-520" data-dy="-40"><polygon points="1140,600 1720,600 1720,660 1140,660" fill="{CO}"/><polygon points="1140,660 1720,660 1720,720 1140,720" fill="{ML}" fill-opacity=".9"/></g>
-<text x="960" y="1010" text-anchor="middle" class="lab"{A(461.8,"up")}>la lithosphère océanique est <tspan fill="var(--soleil)">charriée sur</tspan> la lithosphère continentale avant la collision</text>
-<text x="960" y="470" text-anchor="middle" style="font-family:Bebas;font-size:110px" fill="#fff"{A(468.6,"zoom",.6)}>OBDUCTION</text>
-<text x="960" y="520" text-anchor="middle" class="lab-s"{A(458.9,"up")}>métamorphisme hydrothermal seulement</text>
-'''))
+# 454.2 – 470.9 : l'obduction (schéma bilan)
+scene(454.2, 470.9, titre(454.4,'Remarque','Parfois, pas de subduction : l’obduction') +
+  DOC('bilan_obduction', 455.0, box=(120,250,1680,620), kb=[(455,78,68,1),(461.8,78,68,1),(463,76,69,1.5),(470.9,76,69,1.5)],
+      hl=[(461.8,73,68.5,86,72)], legende='Schéma bilan — subduction avec obduction') +
+  bandeau([(458.9,'métamorphisme hydrothermal seulement…',461.6),(461.8,'la lithosphère océanique est <b>charriée sur</b> le continent avant la collision : <b>obduction</b>',None)], y=900))
 
 # 470.9 – 510.7 : les traces d'une collision
 scene(470.9, 510.7, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(471.0,"left")}>5 · Les traces d’une collision</div><div class="h2" style="margin-top:14px"{A(471.6,"up")}>Une croûte continentale enfouie</div></div>' + f'''
-<div class="carte" style="left:150px;top:330px;width:780px"{A(475.4,"up")}><div class="h3" style="color:#d9b48a">Gneiss</div><div class="pm">un granite soumis à haute pression, basse température</div></div>
-<div class="carte" style="left:990px;top:330px;width:780px"{A(480.0,"up")}><div class="h3" style="color:#ff9a7a">Migmatites</div><div class="pm">début de fusion partielle du gneiss : <b style="color:#fff">l’anatexie</b></div></div>
-<div class="abs c" style="left:0;right:0;top:560px"><span class="pm"{A(489.0,"up")}>⇒ une collision, après la fermeture d’un océan</span></div>''' + svg(f'''
-<g{A(496.6,"up")}><path d="M260 860 C 330 740, 400 740, 470 860 C 540 980, 610 980, 680 860" stroke="#d9b48a" stroke-width="10" fill="none"/>
-<path d="M260 920 C 330 800, 400 800, 470 920 C 540 1040, 610 1040, 680 920" stroke="#a8825a" stroke-width="10" fill="none"/><text x="470" y="700" text-anchor="middle" class="lab">plis</text></g>
-<g{A(497.8,"up")}><rect x="780" y="760" width="160" height="80" fill="#d9b48a"/><rect x="940" y="800" width="160" height="80" fill="#d9b48a"/><rect x="780" y="840" width="160" height="80" fill="#a8825a"/><rect x="940" y="880" width="160" height="80" fill="#a8825a"/>
-<path d="M960 740 L 920 980" stroke="#111" stroke-width="5"/><text x="940" y="700" text-anchor="middle" class="lab">failles inverses</text></g>
-<g{A(499.4,"up")}><polygon points="1220,900 1700,900 1700,960 1220,960" fill="#a8825a"/><polygon points="1240,840 1660,820 1720,880 1300,900" fill="#d9b48a"/><polygon points="1300,780 1600,760 1660,820 1240,840" fill="#c9a36a"/>
-<text x="1470" y="700" text-anchor="middle" class="lab">nappes de charriage</text></g>
-<text x="960" y="1040" text-anchor="middle" class="lab" fill="var(--soleil)"{A(502.0,"up")}>raccourcissement + épaississement de la croûte, sous une contrainte convergente</text>
-'''))
+<div class="carte" style="left:150px;top:330px;width:560px"{A(475.4,"up")}><div class="h3" style="color:#d9b48a">Gneiss</div><div class="pm">un granite soumis à haute pression, basse température</div></div>
+<div class="carte" style="left:150px;top:560px;width:560px"{A(480.0,"up")}><div class="h3" style="color:#ff9a7a">Migmatites</div><div class="pm">début de fusion partielle du gneiss : <b style="color:#fff">l’anatexie</b></div></div>
+<div class="carte" style="left:150px;top:790px;width:560px"{A(496.6,"up")}><div class="pm">plis, failles inverses, <b style="color:#fff">nappes de charriage</b> : raccourcissement et épaississement de la croûte</div></div>''' +
+  DOC('d11_jeune', 473.0, box=(760,330,1060,640), kb=[(473,50,55,1),(477,50,55,1),(479,46,61,1.7),(495,46,61,1.7),(497,50,55,1.05)],
+      hl=[(477.6,43.5,60.5,52,64.5),(498.8,49,56.8,60,59.5,'j')], legende='Document 11 — chaîne récente'))
 
 # 510.7 – 548.3 : imagerie sismique : la racine crustale
-scene(510.7, 548.3, titre(510.9,'Imagerie sismique · profil ECORS','Une racine sous la chaîne') + svg(f'''
-<rect x="200" y="420" width="1520" height="600" fill="{AS}" fill-opacity=".9"{A(511.4,"fade")}/>
-<g{A(511.4,"fade")}>{chaine(200, 420, 1520, 180, 0)}</g>
-<g{A(524.6,"fade",2)}>{chaine(200, 420, 1520, 180, 260)}</g>
-<path d="M200 660 C 700 660, 760 660, 960 660 C 1160 660, 1220 660, 1720 660" stroke="#fff" stroke-width="4" stroke-dasharray="14 10"{A(522.8,"fade",.6,o=524.6)}/>
-<text x="1700" y="640" text-anchor="end" class="lab"{A(522.6,"up")}>Moho</text>
-<path d="M960 690 L 960 900" stroke="var(--soleil)" stroke-width="6" marker-end="url(#flj)"{A(527.6,"draw",1)}/>
-<text x="1000" y="860" class="lab" fill="var(--soleil)"{A(530.6,"up")}>racine crustale : plus de 40 km sous les Alpes</text>
-<g{A(535.0,"fade",.8)}><ellipse cx="960" cy="1000" rx="360" ry="80" fill="#5ab8ff" fill-opacity=".35"/></g>
-<text x="400" y="1000" class="lab" fill="#a8dcff"{A(535.2,"up")}>tomographie : roches « froides » épaissies</text>
-<text x="400" y="1040" class="lab-s"{A(538.4,"up")}>(ondes plus rapides = roche plus froide)</text>
-'''))
+scene(510.7, 548.3, titre(510.9,'Sous les chaînes · profil ECORS, tomographie','Une racine sous la chaîne') +
+  DOC('d11_jeune', 511.0, box=(120,250,1680,620), kb=[(511,50,55,1),(524,50,55,1),(527,38,62,1.6),(540,38,62,1.6),(546,50,55,1)],
+      notes=[(527.6,38,66,'racine crustale : plus de 40 km sous les Alpes','r',30,20)], legende='Document 11 — chaîne récente') +
+  bandeau([(516.7,'le profil sismique suit les grandes failles et le <b>Moho</b> en profondeur',527.4),(534.8,'tomographie : des roches « froides » épaissies sous la chaîne',None)], y=900))
 
 # 548.3 – 579.7 : la coésite, croûte continentale subduite
-cx0, cy0, cw, ch = 320, 330, 760, 640
-scene(548.3, 579.7, titre(548.5,'Document 4 · le domaine de stabilité du quartz','La coésite, une preuve de pression') + svg(f'''
-<g{A(553.4,"fade")}><rect x="{cx0}" y="{cy0}" width="{cw}" height="{ch}" fill="#1c1c20" stroke="#8d8a86" stroke-width="2"/>
-<text x="{cx0}" y="{cy0-16}" class="lab-s">température (°C) →</text><text x="{cx0-16}" y="{cy0+ch}" text-anchor="end" class="lab-s">pression ↓</text>
-<polygon points="{cx0},{cy0} {cx0+cw},{cy0} {cx0+cw},{cy0+ch*.5} {cx0},{cy0+ch*.62}" fill="#d9b48a" fill-opacity=".35"/>
-<polygon points="{cx0},{cy0+ch*.62} {cx0+cw},{cy0+ch*.5} {cx0+cw},{cy0+ch} {cx0},{cy0+ch}" fill="#e5333b" fill-opacity=".3"/>
-<text x="{cx0+cw/2}" y="{cy0+ch*.28}" text-anchor="middle" style="font-family:Bebas;font-size:64px" fill="#d9b48a" dx="-120">QUARTZ</text>
-<text x="{cx0+cw/2}" y="{cy0+ch*.82}" text-anchor="middle" style="font-family:Bebas;font-size:64px" fill="#ff8a8a" dx="-120">COÉSITE</text></g>
-<path d="M{cx0+cw*.78} {cy0+ch*.12} L {cx0+cw*.82} {cy0+ch*.9}" stroke="var(--soleil)" stroke-width="8" marker-end="url(#flj)"{A(568.9,"draw",2)}/>
-<text x="{cx0+cw*.76}" y="{cy0+ch*.5}" text-anchor="end" class="lab" fill="var(--soleil)"{A(569.4,"up")}>enfouissement</text>
-''') + f'''<div class="abs" style="left:1180px;top:330px;width:600px">
+scene(548.3, 579.7, titre(548.5,'Document 4 · le domaine de stabilité du quartz','La coésite, une preuve de pression') +
+  DOC('d4_quartz', 549.0, box=(100,250,1000,790), kb=[(549,77,82,1),(566,77,82,1),(568,80,82,1.4),(579,80,82,1.4)],
+      hl=[(553.4,79.5,80.8,85,84.5),(568.9,76,74.5,82,79,'j')], legende='Document 4 — Quartz et coésite') + f'''<div class="abs" style="left:1180px;top:330px;width:600px">
 <div class="pm"{A(553.4,"up")}><b style="color:#fff">coésite</b> = forme du quartz qui n’existe qu’à très haute pression</div>
 <div class="pm" style="margin-top:26px"{A(561.0,"up")}>le quartz est un minéral du <b style="color:#fff">grès</b> et du <b style="color:#fff">granite</b> : des roches de la croûte continentale</div>
 <div class="carte" style="position:relative;margin-top:36px"{A(572.4,"up")}><span class="pm" style="color:#fff">⇒ une partie de la croûte continentale est entrée en <b style="color:var(--soleil)">subduction</b> lors de la collision</span></div></div>''')
 
 # 579.7 – 618.2 : scénario de formation (document 5)
-scene(579.7, 618.2, titre(579.9,'6 · Un scénario','La naissance d’une chaîne de montagnes') + svg(f'''
-<g transform="translate(96,170) scale(.9)"><g{A(589.2,"fade",.6,o=599.2)}>{etape_ocean()}</g><g{A(592.4,"fade",.6,o=599.2)}>{etape_subduction()}</g><g{A(599.4,"fade",1)}>{etape_collision()}</g></g>
-<text x="960" y="1040" text-anchor="middle" class="lab"{A(589.2,"up",o=592.2)}>convergence de deux plaques lithosphériques</text>
-<text x="960" y="1040" text-anchor="middle" class="lab"{A(592.4,"up",o=599.2)}>1 · subduction océanique → fermeture de l’océan</text>
-<text x="960" y="1040" text-anchor="middle" class="lab"{A(599.4,"up",o=609.4)}>2 · suture : un peu de croûte continentale subduite, puis collision</text>
-<text x="960" y="1040" text-anchor="middle" class="lab" fill="var(--soleil)"{A(609.6,"up")}>3 · la croûte s’épaissit par empilement de nappes de charriage</text>
-'''))
+scene(579.7, 618.2, titre(579.9,'6 · Un scénario · document 5','La naissance d’une chaîne de montagnes') +
+  DOC('d5_150', 589.2, box=(120,300,1680,560), o=592.4, legende='150 Ma') + DOC('d5_70', 592.4, box=(120,300,1680,560), o=599.4, legende='70-60 Ma') +
+  DOC('d5_45a', 599.4, box=(120,300,1680,560), o=604.0, legende='45-40 Ma') + DOC('d5_25', 604.0, box=(120,300,1680,560), o=609.6, legende='25 Ma') +
+  DOC('d5_4', 609.6, box=(120,300,1680,560), legende='4 Ma') +
+  bandeau([(589.2,'convergence de deux plaques lithosphériques',592.2),(592.4,'1 · subduction océanique → fermeture de l’océan',599.2),
+           (599.4,'2 · suture : un peu de croûte continentale subduite, puis collision',609.4),(609.6,'3 · la croûte s’épaissit par empilement de nappes de charriage',None)], y=920))
 
 # 618.2 – 681.3 : V · paléogéographie
 carton(618.2, 621.9, 'V · Les cycles', 'orogéniques', '1 · Paléogéographie et déplacement des continents', t_l1=618.6, t_l2=621.0)
@@ -315,27 +277,24 @@ scene(621.9, 681.3, titre(622.1,'Reconstituer la géographie passée','La paléo
 <text x="960" y="1060" text-anchor="middle" class="lab" fill="var(--soleil)"{A(676.0,"up")}>⇒ les continents bougent avec les plaques lithosphériques</text>
 '''))
 
-# 681.3 – 717 : le cycle de Wilson
-scene(681.3, 717, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(681.4,"left")}>2 · Des cycles de supercontinents ?</div><div class="h2" style="margin-top:14px"{A(687.0,"up")}>Le cycle de Wilson</div>'
-      f'<div class="pm" style="margin-top:12px;width:560px"{A(687.4,"up")}>proposé par le géologue <b style="color:#fff">John Tuzo Wilson</b></div>'
-      f'<div class="carte" style="position:relative;margin-top:40px;width:560px"{A(702.6,"up")}><span class="pm">moteur supposé : la <b style="color:#fff">convection du manteau</b></span></div>'
-      f'<div class="pm" style="margin-top:20px;width:560px;font-style:italic"{A(707.8,"up")}>données très partielles : mécanisme et périodicité encore étudiés</div></div>'
-      + svg(cycle_wilson(1330, 610, 230, [691.6, 693.0, 694.4, 695.4, 696.6, 698.4])) ,)
+# 681.3 – 717 : le cycle de Wilson (document 6)
+scene(681.3, 717, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(681.4,"left")}>2 · Des cycles de supercontinents ?</div><div class="h2" style="margin-top:14px"{A(687.0,"up")}>Le cycle de Wilson</div></div>'
+  f'<div class="abs pm" style="left:150px;top:300px;width:520px"{A(687.4,"up")}>proposé par le géologue <b style="color:#fff">John Tuzo Wilson</b></div>'
+  f'<div class="carte" style="left:150px;top:420px;width:520px"{A(702.6,"up")}><span class="pm">moteur supposé : la <b style="color:#fff">convection du manteau</b></span></div>'
+  f'<div class="abs pm" style="left:150px;top:600px;width:520px;font-style:italic"{A(707.8,"up")}>données très partielles : mécanisme et périodicité encore étudiés</div>' +
+  DOC('d6_wilson', 682.0, box=(720,250,1100,790), legende='Document 6 — Cycle de Wilson',
+      hl=[(693.2,70,75,92,79,'',697.0),(695.6,44,79.5,60,84.5,'b',699.0),(698.9,30,77,43,79.5,'j')]))
 
 # 717 – 783.5 : les sutures se rouvrent
-scene(717, 783.5, titre(717.2,'Document 6 · où le continent se fracture-t-il ?','Là où il s’était soudé') + f'''
-<div class="carte" style="left:150px;top:330px;width:760px"{A(724.0,"left")}><span class="pm">✂ « Un peu comme quand vous vous coupez : on se recoupe plus facilement là où on a déjà cicatrisé. »</span></div>
-<div class="carte" style="left:150px;top:560px;width:760px;border-color:rgba(229,51,59,.5)"{A(738.2,"up")}><div class="h3" style="color:#ff8a8a">Suture fragilisée</div>
-<div class="pm">le magmatisme de subduction a <b style="color:#fff">appauvri le manteau</b> en minéraux fusibles → il devient cassant → <span class="mark"{A(752.0,"hl",.7)}>la suture se rouvre</span></div></div>
-<div class="carte" style="left:1010px;top:560px;width:760px"{A(756.8,"up")}><div class="h3" style="color:#a8dcff">Petit océan (Alpes)</div>
-<div class="pm">collision sans magmatisme : manteau non appauvri, moins cassant → <b style="color:#fff">fracture ailleurs</b></div></div>
-<div class="abs c" style="left:0;right:0;top:880px"><span class="p"{A(771.8,"up")}>⇒ à chaque suture, les continents <b style="color:#fff">grandissent</b> <span class="lab-s"{A(777.7,"fade")}>(matériaux venus des dorsales et des subductions)</span></span></div>''' + svg(f'''
-<g{A(730.5,"fade")}><rect x="1010" y="330" width="760" height="190" rx="22" fill="rgba(26,26,30,.88)"/>
-<rect x="1050" y="420" width="680" height="70" rx="8" fill="#d9b48a"/>
-<path d="M1390 410 L 1390 500" stroke="#5fd0c3" stroke-width="12"/>
-<text x="1390" y="530" text-anchor="middle" class="lab-s">ancienne suture</text></g>
-<path d="M1340 380 L 1180 380 M1440 380 L 1600 380" stroke="var(--soleil)" stroke-width="7" marker-end="url(#flj)"{A(734.4,"draw",.8)}/>
-'''))
+scene(717, 783.5, titre(717.2,'Document 6 · où le continent se fracture-t-il ?','Là où il s’était soudé') +
+  DOC('d6_wilson', 717.4, box=(100,250,1020,620), kb=[(717.4,50,77,1),(730,50,77,1),(732,33,74,1.9),(755,33,74,1.9),(757,82,89,1.9),(770,82,89,1.9),(772,50,77,1)],
+      hl=[(733.0,26.5,72,40,76.5,'j'),(757.0,75,86.5,88,92)], legende='Document 6') + f'''
+<div class="carte" style="left:1170px;top:250px;width:650px"{A(724.0,"left")}><span class="pm">✂ « Un peu comme quand vous vous coupez : on se recoupe plus facilement là où on a déjà cicatrisé. »</span></div>
+<div class="carte" style="left:1170px;top:450px;width:650px;border-color:rgba(229,51,59,.5)"{A(738.2,"up")}><div class="h3" style="color:#ff8a8a">Suture fragilisée</div>
+<div class="pm">manteau <b style="color:#fff">appauvri</b> en minéraux fusibles par le magmatisme de subduction → cassant → <span class="mark"{A(752.0,"hl",.7)}>la suture se rouvre</span></div></div>
+<div class="carte" style="left:1170px;top:700px;width:650px"{A(756.8,"up")}><div class="h3" style="color:#a8dcff">Petit océan (Alpes)</div>
+<div class="pm">pas de magmatisme : manteau non appauvri → <b style="color:#fff">fracture ailleurs</b></div></div>''' +
+  bandeau([(771.8,'⇒ à chaque suture, les continents <b>grandissent</b>',None)], y=930))
 
 # 783.5 – 790.5 : la périodicité
 scene(783.5, 790.5, f'''<div class="abs c" style="left:0;right:0;top:330px"><div class="sur"{A(783.6,"fade")}>Périodicité d’un cycle</div>
@@ -352,49 +311,27 @@ scene(795.4, 829, titre(795.6,'Recycler = le devenir des matériaux','Transform�
 <div class="k" style="font-size:120px;color:#8fb3ff;margin-top:30px">en ≈ <span{A(815.6,"count",1)} data-to="200">0</span> Ma</div></div>''')
 
 # 829 – 907 : vieillissement de la lithosphère océanique (document 7)
-la, xs, base, fond = litho_age(831.8, 851.9, 844.2, y=470)
-scene(829, 907, titre(829.2,'1 · Le recyclage de la lithosphère océanique','Document 7 · elle vieillit, s’épaissit… et plonge') + svg(f'''
-{la}
-<text x="230" y="400" class="lab" fill="var(--soleil)"{A(832.7,"up")}>dorsale : mince, chaude, elle « flotte »</text>
-<path d="M300 430 L 1500 430" stroke="#f1ede6" stroke-width="4" marker-end="url(#fl)"{A(840.8,"draw",2)}/>
-<text x="1500" y="415" text-anchor="end" class="lab-s"{A(841.0,"fade")}>elle s’éloigne et se refroidit</text>
-<text x="860" y="{(base[20]+fond[20])/2+10:.0f}" text-anchor="middle" class="lab"{A(853.6,"up")}>le manteau lithosphérique s’épaissit</text>
-<g{A(859.4,"pop")}><rect x="1612" y="470" width="296" height="110" rx="16" fill="rgba(26,26,30,.92)" stroke="var(--rouge)" stroke-width="2"/>
-<text x="1760" y="515" text-anchor="middle" class="lab-s">d manteau litho. = 3,3</text><text x="1760" y="555" text-anchor="middle" class="lab-s">d croûte océ. = 2,9</text></g>
-<g{A(867.9,"pop")}><text x="{xs[13]:.0f}" y="1010" text-anchor="middle" style="font-family:Bebas;font-size:56px" fill="var(--soleil)">40 Ma</text><text x="{xs[13]:.0f}" y="1050" text-anchor="middle" class="lab-s">équilibre isostatique rompu</text></g>
-<g{A(875.6,"pop")}><text x="{xs[30]:.0f}" y="1010" text-anchor="middle" style="font-family:Bebas;font-size:56px" fill="var(--rouge)">80 Ma</text><text x="{xs[30]:.0f}" y="1050" text-anchor="middle" class="lab-s">entrée en subduction</text></g>
-<path d="M1480 640 C 1540 700, 1560 800, 1570 980" stroke="var(--rouge)" stroke-width="12" marker-end="url(#flr)"{A(875.6,"draw",1.2)}/>
-<text x="960" y="370" text-anchor="middle" class="lab"{A(878.3,"up",o=885.4)}>retard : résistance mécanique de l’asthénosphère…</text>
-<text x="960" y="370" text-anchor="middle" class="lab" fill="var(--soleil)"{A(885.5,"up",o=890.0)}>… puis tout s’accélère : la lithosphère redevient du manteau</text>
-<text x="960" y="370" text-anchor="middle" class="lab"{A(890.2,"up")}>⇒ aucun plancher océanique de plus de 200 Ma aujourd’hui</text>
-'''))
+scene(829, 907, titre(829.2,'1 · Le recyclage de la lithosphère océanique','Document 7 · elle vieillit, s’épaissit… et plonge') +
+  DOC('d7_haut', 829.4, box=(120,250,1680,640), kb=[(829.4,50,58,1),(831,50,58,1),(832.5,30,55,1.5),(839,30,55,1.5),(841,50,55,1),(858,50,55,1),(859.4,55,60,1.5),(873,62,62,1.4),(882,80,60,1.4),(888,50,58,1)],
+      hl=[(832.7,22,51,30,53.8,'j',840),(840.8,41,45.5,68,50,'b',858),(859.4,51,58.5,59,62.5,'',867),(867.9,48.5,64.5,62,68.5,'',875),(875.6,64,64.5,82,70,'',884),(883.9,81,58.5,95,64)],
+      legende='Document 7 — la lithosphère océanique vieillit') +
+  bandeau([(832.7,'à la dorsale : mince, chaude, elle « flotte » sur l’asthénosphère',840.6),(840.8,'elle s’éloigne, refroidit : le <b>manteau lithosphérique s’épaissit</b> (d = 3,3 > 2,9)',859.2),
+           (859.4,'sa densité dépasse celle de l’asthénosphère (3,25)',867.7),(867.9,'<b>40 Ma</b> : l’équilibre isostatique est rompu',875.4),
+           (875.6,'<b>80 Ma</b> : entrée en subduction, avec retard',883.8),(883.9,'… puis tout s’accélère : la plaque est tractée',890.0),(890.2,'⇒ aucun plancher océanique de plus de 200 Ma aujourd’hui',None)], y=920))
 
 # 907 – 925.9 : chaînes jeunes et chaînes âgées (document 8)
-lignes = [(914.6,'Début de la collision','quelques dizaines de Ma','quelques centaines de Ma'),(916.0,'Relief','élevé','absent à modéré'),
-          (918.8,'Racine crustale (Moho)','profonde (jusqu’à 70 km)','absente ou peu profonde (40 km)'),(920.6,'Roches à l’affleurement','sédimentaires','granite, gneiss')]
-tab = ''.join(f'''<div style="display:grid;grid-template-columns:460px 560px 560px;border-top:1px solid rgba(255,255,255,.12)"{A(t,"up")}>
-<div class="pm" style="padding:22px 10px;color:#aaa">{a}</div><div class="pm" style="padding:22px 10px;color:#fff">{b}</div><div class="pm" style="padding:22px 10px;color:#fff">{c}</div></div>''' for t,a,b,c in lignes)
-scene(907, 925.9, titre(907.2,'2 · Le recyclage de la lithosphère continentale','Document 8 · une chaîne jeune, une chaîne âgée') + f'''
-<div class="abs" style="left:150px;top:330px">
-<div style="display:grid;grid-template-columns:460px 560px 560px"{A(911.0,"fade")}><div></div><div class="h3" style="color:#e88a5a;padding:10px">Jeune · Alpes, Pyrénées</div><div class="h3" style="color:#7d9cc4;padding:10px">Âgée · Armoricain, Central</div></div>
-{tab}</div>
-<div class="abs c" style="left:0;right:0;top:960px"><span class="p"{A(922.6,"up")}>⇒ aplanissement et effondrement : <b style="color:#fff">les chaînes disparaissent peu à peu</b></span></div>''')
+scene(907, 925.9, titre(907.2,'2 · Le recyclage de la lithosphère continentale','Document 8 · une chaîne jeune, une chaîne âgée') +
+  DOC('d8_tableau', 907.4, box=(120,250,1680,600),
+      hl=[(914.6,5,12.5,93,14.6,'j',916),(916.0,5,14.6,93,16.4,'j',918.6),(918.8,5,16.4,93,20,'j',920.4),(920.6,5,20,93,21.9,'j')], legende='Document 8') +
+  bandeau([(922.6,'⇒ aplanissement et effondrement : <b>les chaînes disparaissent peu à peu</b>',None)], y=920))
 
 # 925.9 – 950.9 : quatre familles de processus, puis érosion → transport → dépôt
 scene(925.9, 950.9, titre(926.0,'Orogenèse après orogenèse','La croûte continentale se transforme') + f'''
-<div class="abs pm" style="left:150px;top:390px"{A(926.4,"up",o=937.4)}>recyclée dans les zones de <b style="color:#fff">subduction</b> et de <b style="color:#fff">collision</b>, cycle après cycle…</div>
-<div class="abs" style="left:150px;top:320px;display:flex;gap:18px">
+<div class="abs pm" style="left:150px;top:270px"{A(926.4,"up",o=937.4)}>recyclée dans les zones de <b style="color:#fff">subduction</b> et de <b style="color:#fff">collision</b>, cycle après cycle…</div>
+<div class="abs" style="left:150px;top:270px;display:flex;gap:18px">
 <div class="pastille o"{A(937.8,"pop")}>tectoniques</div><div class="pastille" style="background:#a8453c"{A(938.5,"pop")}>magmatiques</div>
-<div class="pastille b"{A(939.2,"pop")}>métamorphiques</div><div class="pastille v"{A(939.8,"pop")}>sédimentaires</div></div>''' + svg(f'''
-<polygon points="150,900 380,520 520,640 640,560 820,900" fill="#d9b48a"{A(941.0,"fade")}/>
-<path d="M600 720 C 760 800, 900 760, 1080 850 C 1260 930, 1400 880, 1560 920" stroke="var(--eau)" stroke-width="22" fill="none" stroke-linecap="round"{A(944.0,"draw",2)}/>
-<polygon points="1480,960 1800,880 1800,1000 1480,1000" fill="#e6cf8f"{A(948.6,"wipe",1.4)}/>
-<text x="480" y="480" text-anchor="middle" class="h3" style="font-family:Bebas;font-size:62px" fill="#ffb08a"{A(941.2,"up")}>1 · ÉROSION</text>
-<text x="490" y="530" text-anchor="middle" class="lab-s"{A(942.0,"up")}>eau, vent</text>
-<text x="1080" y="720" text-anchor="middle" class="h3" style="font-family:Bebas;font-size:62px" fill="#a8dcff"{A(944.4,"up")}>2 · TRANSPORT</text>
-<text x="1080" y="770" text-anchor="middle" class="lab-s"{A(945.6,"up")}>par l’eau, selon la taille et la vitesse</text>
-<text x="1640" y="840" text-anchor="middle" class="h3" style="font-family:Bebas;font-size:62px" fill="#ffe08a"{A(948.8,"up")}>3 · DÉPÔT</text>
-'''))
+<div class="pastille b"{A(939.2,"pop")}>métamorphiques</div><div class="pastille v"{A(939.8,"pop")}>sédimentaires</div></div>''' +
+  DOC('d12_bloc', 940.6, box=(120,340,1680,700), hl=[(941.2,13,24,25,27.5),(944.4,30,30.5,45,34),(948.8,62,39.5,86,43)], legende='Document 12 — érosion, transport, sédimentation'))
 
 # 950.9 – 982 : altération et érosion
 scene(950.9, 982, titre(951.0,'a · Altération et érosion','Le climat et le vivant attaquent les roches') + f'''
@@ -405,32 +342,14 @@ scene(950.9, 982, titre(951.0,'a · Altération et érosion','Le climat et le vi
 <div class="carte" style="left:150px;top:720px;width:1620px;text-align:center"{A(974.0,"up")}><span class="p" style="color:#fff">minéral d’origine + eau ⇄ minéral nouveau (argiles) + solution de lessivage</span></div>''')
 
 # 982 – 1032.9 : la solubilité des ions (document 9, diagramme de Goldschmidt)
-gx, gy, gw, gh = 300, 300, 900, 680
-ZX = lambda z: gx + z/6*gw
-RY = lambda r: gy + gh - r/.17*gh
-ions = [('K',1,.133,'s'),('Na',1,.098,'s'),('Ca',2,.100,'s'),('Mg',2,.072,'s'),('Fe²⁺',2,.078,'s'),('Fe³⁺',3,.064,'p'),('Al',3,.050,'p'),('Ti',4,.068,'p'),('Mn',4,.060,'p'),
-        ('Si',4,.040,'p'),('B',3,.023,'o'),('C',4,.016,'o'),('P',5,.035,'o'),('N',5,.015,'o'),('S',6,.030,'o')]
-tz = {'s':990.0,'p':1000.0,'o':1018.0}; cz = {'s':'#a8dcff','p':'#ffb08a','o':'#ffe08a'}
-pts_ions = ''.join(f'<g{A(tz[c],"pop",.5)}><circle cx="{ZX(z):.0f}" cy="{RY(r):.0f}" r="9" fill="{cz[c]}"/><text x="{ZX(z)+14:.0f}" y="{RY(r)+8:.0f}" class="lab-s" fill="{cz[c]}">{n}</text></g>' for n,z,r,c in ions)
-scene(982, 1032.9, titre(982.2,'Document 9 · diagramme de Goldschmidt','Tous les ions ne se dissolvent pas') + svg(f'''
-<g{A(983.0,"fade")}><rect x="{gx}" y="{gy}" width="{gw}" height="{gh}" fill="#1c1c20" stroke="#8d8a86" stroke-width="2"/>
-{''.join(f'<text x="{ZX(z):.0f}" y="{gy+gh+36}" text-anchor="middle" class="lab-s">{z}</text>' for z in range(7))}
-<text x="{gx+gw}" y="{gy+gh+74}" text-anchor="end" class="lab-s">charge Z</text><text x="{gx}" y="{gy-16}" class="lab-s">rayon ionique R</text></g>
-<polygon points="{ZX(0)},{RY(0)} {ZX(0)},{RY(.17)} {ZX(5.1)},{RY(.17)}" fill="#a8dcff" fill-opacity=".12"{A(989.8,"fade")}/>
-<polygon points="{ZX(0)},{RY(0)} {ZX(5.1)},{RY(.17)} {ZX(6)},{RY(.17)} {ZX(6)},{RY(.06)}" fill="#ffb08a" fill-opacity=".12"{A(999.9,"fade")}/>
-<polygon points="{ZX(0)},{RY(0)} {ZX(6)},{RY(.06)} {ZX(6)},{RY(0)}" fill="#ffe08a" fill-opacity=".14"{A(1017.4,"fade")}/>
-<path d="M{ZX(0)} {RY(0)} L {ZX(5.1)} {RY(.17)}" stroke="var(--rouge)" stroke-width="4"{A(999.9,"draw",.8)}/>
-<text x="{ZX(3.6)}" y="{RY(.13)}" class="lab-s" fill="#ff8a8a"{A(1000.4,"fade")}>Z/R = 3</text>
-<path d="M{ZX(0)} {RY(0)} L {ZX(6)} {RY(.06)}" stroke="var(--soleil)" stroke-width="4"{A(1017.4,"draw",.8)}/>
-<text x="{ZX(5.0)}" y="{RY(.058)}" class="lab-s" fill="var(--soleil)"{A(1017.8,"fade")}>Z/R = 10</text>
-{pts_ions}
-''') + f'''<div class="abs" style="left:1280px;top:300px;width:520px">
-<div class="carte" style="position:relative;padding:20px 26px"{A(989.8,"left")}><div class="h3" style="color:#a8dcff;font-size:44px">Cations solubles</div><div class="lab-s" style="font-size:22px">charge faible, attirés par l’eau → évacués vers l’océan → <b>calcaires</b></div></div>
-<div class="carte" style="position:relative;margin-top:16px;padding:20px 26px"{A(999.9,"left")}><div class="h3" style="color:#ffb08a;font-size:44px">Cations précipitants</div><div class="lab-s" style="font-size:22px">insolubles → hydroxydes → <b>gisements</b> (bauxite)</div></div>
-<div class="carte" style="position:relative;margin-top:16px;padding:20px 26px"{A(1017.4,"left")}><div class="h3" style="color:#ffe08a;font-size:44px">Oxyanions solubles</div><div class="lab-s" style="font-size:22px">petits, très chargés → océan : <b>carbonates, sulfates, phosphates</b></div></div></div>''')
+scene(982, 1032.9, titre(982.2,'Document 9 · diagramme de Goldschmidt','Tous les ions ne se dissolvent pas') +
+  DOC('d9_goldschmidt', 982.6, box=(120,250,1680,790), kb=[(982.6,49,72,1),(989,49,72,1),(990,40,62,1.3),(999,40,62,1.3),(1000,60,68,1.3),(1016,60,68,1.3),(1017.4,62,78,1.3),(1031,62,78,1.3)],
+      hl=[(989.8,23,60.8,39,64.8,'b'),(990.6,48.5,54.6,93,60,'b'),(999.9,47,68,65,71.8),(1000.6,60.5,62,93,69.8),(1017.4,57,74.6,68,81.4,'j'),(1018,66,72.8,93.5,86.5,'j')],
+      legende='Document 9 — la solubilité des ions'))
 
 # 1032.9 – 1047.2 : b · transport (diagramme de Hjulström)
-scene(1032.9, 1047.2, titre(1033.0,'b · Transport et dépôt','L’eau, principal agent de transport') + svg(hjulstrom(380, 320, 1160, 600, 1038.6, (1041.9, 1045.9, 1044.0))))
+scene(1032.9, 1047.2, titre(1033.0,'b · Transport et dépôt · document 10','L’eau, principal agent de transport') +
+  DOC('d10_hjulstrom', 1033.4, box=(120,250,1680,790), hl=[(1041.9,57,12,70,16.5),(1044.0,71,22,85,28.5,'j'),(1045.9,47,19.5,61,23.5,'b')], legende='Document 10'))
 
 # 1047.2 – 1074 : bassin, roches sédimentaires, flux
 scene(1047.2, 1074, titre(1047.4,'Dans un bassin continental ou océanique','Les sédiments deviennent des roches') + svg(f'''
@@ -442,39 +361,28 @@ scene(1047.2, 1074, titre(1047.4,'Dans un bassin continental ou océanique','Les
 <div class="carte" style="position:relative;width:760px"{A(1058.4,"up")}><div class="h3" style="color:#fff">Ions dissous</div><div class="pm">→ roches sédimentaires de type <b style="color:#fff">calcaire</b></div></div></div>
 <div class="abs c" style="left:0;right:0;top:960px"><span class="pm"{A(1061.1,"up")}>flux sédimentaires des grands fleuves ⇒ une estimation du <b style="color:#fff">volume de roches enlevé chaque année aux continents</b></span></div>''')
 
-# 1074 – 1097 : c · la remontée isostatique
-scene(1074, 1097, titre(1074.2,'c · Des phénomènes tectoniques','L’érosion allège, la croûte remonte') + svg(f'''
-{chaine_vieillit(1083.6, 1095.0, x=260, y=660, w=1400)}
-<path d="M1300 330 L 1150 420" stroke="#ffb08a" stroke-width="10" marker-end="url(#flo)"{A(1083.8,"draw",.8)}/>
-<text x="1320" y="330" class="lab" fill="#ffb08a"{A(1084.0,"up")}>érosion</text>
-<path d="M960 1060 L 960 920" stroke="var(--eau)" stroke-width="10" marker-end="url(#flb)"{A(1088.6,"draw",.8)}/>
-<text x="150" y="420" class="lab" fill="#a8dcff"{A(1088.8,"up")}>réajustement isostatique :</text><text x="150" y="458" class="lab" fill="#a8dcff"{A(1089.0,"up")}>la croûte profonde remonte</text>
-<text x="150" y="500" class="lab-s"{A(1093.4,"up")}>la baisse d’altitude est en grande partie compensée</text>
-'''))
+# 1074 – 1097 : c · la remontée isostatique (document 12)
+scene(1074, 1097, titre(1074.2,'c · Des phénomènes tectoniques · document 12','L’érosion allège, la croûte remonte') +
+  DOC('d12_isostasie', 1074.6, box=(100,250,1000,790), kb=[(1074.6,27,79,1),(1079,27,79,1),(1080.5,12,70,1.7),(1086,12,70,1.7),(1087.5,25,80,1.7),(1092,25,80,1.7),(1093.5,37,90,1.7),(1097,37,90,1.7)],
+      legende='Document 12 — réajustement isostatique') + f'''<div class="abs" style="left:1160px;top:330px;width:640px">
+<div class="h3" style="color:#ffb08a"{A(1083.8,"up")}>L’érosion allège la chaîne…</div>
+<div class="h3" style="color:#a8dcff;margin-top:30px"{A(1088.8,"up")}>… la croûte profonde remonte : réajustement isostatique</div>
+<div class="pm" style="margin-top:30px"{A(1093.4,"up")}>la baisse d’altitude est en grande partie compensée : des roches formées en profondeur finissent par affleurer</div></div>''')
 
 # 1097 – 1125 : effondrement et pénéplanation
-scene(1097, 1125, titre(1097.2,'En fin de convergence','La chaîne s’effondre en son centre') + svg(f'''
-<rect x="260" y="760" width="1400" height="300" fill="{AS}"/>
-<g>{chaine(260, 560, 1400, 200, 160)}</g>
-{''.join(f'<path d="M{880+i*60} {420+abs(i-1.5)*30:.0f} L {850+i*60} 700" stroke="#2b1d14" stroke-width="6"{A(1104.6+i*.25,"draw",.6)}/>' for i in range(4))}
-<text x="960" y="380" text-anchor="middle" class="lab"{A(1104.6,"up")}>des failles normales</text>
-{''.join(f'<g{A(1106.4+i*.3,"pop",.4)}><circle cx="{x}" cy="{y}" r="14" fill="var(--rouge)"/></g>' for i,(x,y) in enumerate([(900,520),(1010,600),(950,640),(1060,500)]))}
-<text x="1280" y="560" class="lab-s" fill="#ff8a8a"{A(1107.0,"up")}>● séismes : extension</text>
-<path d="M880 820 L 640 820" stroke="var(--soleil)" stroke-width="8" marker-end="url(#flj)"{A(1110.6,"draw",.7)}/>
-<path d="M1040 820 L 1280 820" stroke="var(--soleil)" stroke-width="8" marker-end="url(#flj)"{A(1110.6,"draw",.7)}/>
-<g{A(1110.8,"pop")}><rect x="900" y="790" width="120" height="60" rx="30" fill="#2a2a2f" stroke="var(--soleil)" stroke-width="2"/><text x="960" y="830" text-anchor="middle" class="lab">GPS</text></g>
-<text x="960" y="900" text-anchor="middle" class="lab-s"{A(1116.3,"up")}>des sens de déplacement différents</text>
-<text x="960" y="1010" text-anchor="middle" style="font-family:Bebas;font-size:100px" fill="var(--soleil)"{A(1122.2,"zoom",.6)}>PÉNÉPLANATION</text>
-'''))
+scene(1097, 1125, titre(1097.2,'En fin de convergence','La chaîne s’effondre en son centre') +
+  DOC('d12_gps', 1097.6, box=(100,250,1000,790), kb=[(1097.6,75,82,1),(1104,75,82,1),(1106,73,83,1.5),(1118,73,83,1.5),(1120,75,82,1)], legende='Document 12 — failles et GPS') + f'''<div class="abs" style="left:1160px;top:330px;width:640px">
+<div class="pm"{A(1104.6,"up")}>le jeu de nombreuses <b style="color:#fff">failles normales</b> au centre de la chaîne</div>
+<div class="pm" style="margin-top:24px"{A(1106.4,"up")}>repérées par l’<b style="color:#ff8a8a">activité sismique</b> : extension</div>
+<div class="pm" style="margin-top:24px"{A(1110.6,"up")}>et par le <b style="color:var(--soleil)">GPS</b> : des sens de déplacement différents</div>
+<div class="k" style="font-size:96px;color:var(--soleil);margin-top:50px"{A(1122.2,"zoom",.6)}>PÉNÉPLANATION</div></div>''')
 
 # 1125 – 1147.5 : document 13, quantités recyclées
-scene(1125, 1147.5, titre(1125.2,'3 · Document 13 · quantités recyclées','Ce que le manteau avale') + f'''
-<div class="carte" style="left:150px;top:330px;width:780px;text-align:center"{A(1128.0,"left")}><div class="h3" style="color:#d9b48a">Lithosphère continentale</div>
-<div class="k" style="font-size:200px;color:#d9b48a">≈ <span{A(1131.9,"count",1)} data-to="10">0</span> %</div><div class="pm">disparaît dans le manteau</div></div>
-<div class="carte" style="left:990px;top:330px;width:780px;text-align:center"{A(1134.0,"right")}><div class="h3" style="color:#8fb3ff">Lithosphère océanique</div>
-<div class="k" style="font-size:200px;color:#8fb3ff">≈ 100 %</div><div class="pm">quasi-totalité recyclée</div></div>
-<div class="abs c" style="left:0;right:0;top:820px"><div class="pm"{A(1139.4,"up")}>⇒ seuls les continents gardent les plus vieilles roches, comme le</div>
-<div class="k" style="font-size:90px;margin-top:10px"{A(1143.2,"up")}>gneiss d’Acasta · <span style="color:var(--soleil)">3,8 Ga</span></div></div>''')
+scene(1125, 1147.5, titre(1125.2,'3 · Document 13 · quantités recyclées','Ce que le manteau avale') +
+  DOC('d13_recyclage', 1125.4, box=(100,250,1060,790), hl=[(1128.0,32,73.5,53,81.5,'j'),(1134.0,69,65.5,91,74),(1139.4,4,66.5,29,74.5,'v')], legende='Document 13') + f'''
+<div class="carte" style="left:1200px;top:280px;width:600px;text-align:center"{A(1131.9,"left")}><div class="pm" style="color:#d9b48a">lithosphère continentale</div><div class="k" style="font-size:120px;color:#d9b48a">≈ 10 %</div><div class="lab-s">rendue au manteau</div></div>
+<div class="carte" style="left:1200px;top:560px;width:600px;text-align:center"{A(1134.0,"left")}><div class="pm" style="color:#8fb3ff">lithosphère océanique</div><div class="k" style="font-size:120px;color:#8fb3ff">≈ 100 %</div><div class="lab-s">quasi-totalité recyclée</div></div>
+<div class="abs" style="left:1200px;top:860px;width:600px"><div class="pm"{A(1139.4,"up")}>⇒ les plus vieilles roches restent sur les continents :</div><div class="h3" style="margin-top:8px"{A(1143.2,"up")}>gneiss d’Acasta · <span style="color:var(--soleil)">3,8 Ga</span></div></div>''')
 
 # 1147.5 – 1163.5 : une nouvelle question
 scene(1147.5, 1163.5, f'''
@@ -517,14 +425,10 @@ scene(1220.2, 1250.4, titre(1220.4,'Pour résumer','Deux lithosphères, deux cro
 {tb}</div>
 <div class="abs c" style="left:0;right:0;top:900px"><span class="p"{A(1241.9,"up")}>⇒ la différence d’altitude entre océans et continents · <span class="mark"{A(1248.6,"hl",.6)}>formation et recyclage différents</span></span></div>''')
 
-# 1250.4 – 1265 : ouverture, l'Archéen
-scene(1250.4, 1265, titre(1250.6,'Document 14 · et autrefois ?','À l’Archéen, une autre tectonique') + svg(f'''
-<path d="M300 380 C 700 380, 1000 520, 1300 960" stroke="{CO}" stroke-width="60" fill="none" stroke-linecap="round"{A(1252.0,"draw",2)}/>
-{''.join(f'<g{A(1255.8+i*.3,"pop",.5)}><path d="M{1000+i*60} {640+i*40} q 20 -60 0 -120 q -20 -60 0 -120" stroke="var(--rouge)" stroke-width="10" fill="none"/></g>' for i in range(3))}
-<text x="1240" y="420" class="lab" fill="#ff8a8a"{A(1256.0,"up")}>fusion partielle de la croûte océanique subduite</text>
-<text x="1240" y="580" style="font-family:Bebas;font-size:90px" fill="#fff"{A(1260.8,"zoom",.6)}>→ LES TTG</text>
-<text x="1240" y="630" class="lab-s"{A(1261.0,"up")}>(tonalites…)</text>
-'''))
+# 1250.4 – 1265 : ouverture, l'Archéen (document 14)
+scene(1250.4, 1265, titre(1250.6,'Document 14 · et autrefois ?','À l’Archéen, une autre tectonique') +
+  DOC('d14_archeen', 1250.8, box=(120,250,1680,640), kb=[(1250.8,50,65,1),(1255,50,65,1),(1256.5,72,62,1.5),(1265,72,62,1.5)], hl=[(1255.8,65,57,82,66.5)], legende='Document 14') +
+  bandeau([(1255.8,'le volcanisme vient de la <b>fusion partielle de la croûte océanique subduite</b> → des roches particulières, les <b>TTG</b>',None)], y=920))
 
 # 1265 – 1272 : pour le Grand Oral
 scene(1265, 1272.4, f'''<div class="abs c" style="left:0;right:0;top:330px">

@@ -69,3 +69,17 @@ body:hover #ctrl,body.pause #ctrl{opacity:1}
 #go{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);cursor:pointer}
 #go div{font:400 54px/1 'Bebas';letter-spacing:.08em;border:2px solid #fff;border-radius:999px;padding:26px 46px}
 body.render #ctrl,body.render #st,body.render #go{display:none}
+
+/* documents réels */
+.docbox{position:absolute;overflow:hidden;border-radius:16px;background:#fff;box-shadow:0 18px 60px rgba(0,0,0,.55)}
+.kb{position:absolute;left:0;top:0;transform-origin:0 0;--k:1}
+.kb img{display:block}
+.pin{position:absolute;width:0;height:0}
+.pin .cs{position:absolute;left:0;top:0;scale:calc(1 / var(--k));transform-origin:0 0}
+.pin .pt{position:absolute;left:-9px;top:-9px;width:18px;height:18px;border-radius:50%;background:#fff;border:4px solid #1a1a1a;box-shadow:0 0 0 3px rgba(255,255,255,.6)}
+.pin .pill{position:absolute;white-space:nowrap;font:700 28px/1 'Onest';color:#141414;background:#fff;padding:12px 18px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.pin .pill.r{background:var(--rouge);color:#fff} .pin .pill.j{background:var(--soleil)} .pin .pill.v{background:#2f7d55;color:#fff} .pin .pill.b{background:#2a6fa8;color:#fff}
+.hl{position:absolute;border:5px solid var(--rouge);border-radius:12px;box-shadow:0 0 0 4000px rgba(0,0,0,0)}
+.hl.j{border-color:#f0b400} .hl.b{border-color:#2a6fa8} .hl.v{border-color:#2f9b5f}
+.doclab{position:absolute;font:600 20px/1 'Onest';color:#222;background:rgba(255,255,255,.92);padding:9px 14px;border-radius:8px;z-index:3}
+.voile{position:absolute;background:rgba(10,10,12,.55)}

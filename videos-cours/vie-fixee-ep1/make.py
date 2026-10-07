@@ -1,6 +1,7 @@
 import runpy, pathlib, json, subprocess
 d = pathlib.Path(__file__).parent
-g = runpy.run_path(str(d/'gen.py'))
+import sys; sys.path.insert(0, str(d))
+g = runpy.run_path(str(d/'gen.py'), run_name='gen')
 import re
 html = g['DEFS'] + '\n' + '\n'.join(g['S'])
 # l'opacité des éléments animés est pilotée par le style : celle du dessin passe en fill/stroke-opacity
