@@ -153,7 +153,7 @@ reac = [(116.0,'dioxyde de carbone','var(--co2)'),(117.3,'lumière','var(--solei
 reac_h = ''.join(f'<div class="pastille" style="background:none;border:2px solid {c};color:{c};margin-right:18px"{A(t,"pop")}>{n}</div>' for t,n,c in reac)
 scene(94, 123, titre(94.3,'La photosynthèse, dans les chloroplastes','L’équation bilan') +
   DOC('equation', 96.4, box=(160,300,1600,450),
-      hl=[(100.0,30.6,64.8,36.8,67.6,'',113),(102.1,37.6,64.8,43.6,67.6,'b',113),(104.7,43,62.2,50,64.4,'j',113),(105.5,42,67.3,52,70,'',113),(108.6,53,64.8,65.5,67.6,'v',113),(111.0,66,64.8,70,67.6,'b',113)],
+      hl=[(100.0,30.3,65,36.2,66.9,'',113),(102.1,37.4,65,43.6,66.9,'b',113),(104.7,45.4,63.3,52,64.7,'j',113),(105.5,45.2,66.8,52.6,69.4,'',113),(108.6,53.3,65,61,66.9,'v',113),(111.0,61.6,65,67,66.9,'b',113)],
       legende='Le cours — équation bilan') +
   f'''<div class="abs" style="left:150px;top:800px"><div class="pm" style="margin-bottom:22px"{A(113.2,"up")}>La plante a donc besoin de… <b style="color:#fff"{A(120.8,"fade")}>ses réactifs</b></div>{reac_h}</div>''')
 
@@ -206,9 +206,9 @@ scene(175, 180.6, f'''
 
 # 180.6 – 200.4 : appareil végétatif, deux systèmes (document 9)
 scene(180.6, 200.4, titre(180.8,'Document 9 · une plante, deux milieux','L’appareil végétatif') +
-  DOC('d9_surfaces', 181.0, box=(120,250,1680,790), kb=[(181,50,27,1),(192.5,50,27,1),(196.4,46,44,2.3),(200.4,46,44,2.4)],
-      hl=[(183.6,9.5,34.5,19,37.5,'b',190),(184.1,9.5,38.5,15,41,'j',190),(190.0,9.5,37.2,92,50,'j',192),(191.2,9.5,3.5,92,37,'v',192.6)],
-      notes=[(197.0,45,44,'poils absorbants','r',40,30)], legende='Document 9 — les surfaces d’échange') +
+  DOC('d9_surfaces', 181.0, box=(120,250,1680,790), kb=[(181,50,27,1),(192.5,50,27,1),(196.4,43,44,2.0),(200.4,43,44,2.1)],
+      hl=[(183.6,6,34.8,15,36.6,'b',190),(184.1,7,38.3,12.5,40,'j',190),(190.0,6,37,82,49.5,'j',192),(191.2,6,4,92,36.8,'v',192.6)],
+      notes=[(197.0,43.5,44.6,'poils absorbants','r',40,30)], legende='Document 9 — les surfaces d’échange') +
   bandeau([(185.2,'appareil végétatif (hors reproduction) = <b>système caulinaire</b> + <b>système racinaire</b>',196.0)], y=930))
 
 # ---------- système racinaire en grand ----------
@@ -238,7 +238,7 @@ def racine(x, y, k, t_piv, t_lat, t_poils=None, dens=1.0, couleur='#e8d3b0'):
 # 200.4 – 221 : racine pivotante, latérales, poils absorbants (document 2)
 scene(200.4, 221, titre(200.6,'a · Le système racinaire · document 2','Racines et poils absorbants') +
   DOC('d2_poils', 200.8, box=(100,250,1060,790), kb=[(200.8,31,20,1),(211.2,31,20,1),(212.4,17,24,1.8),(221,17,24,1.8)],
-      notes=[(203.6,22,12,'racine pivotante (principale)','',20,-30),(208.6,19.5,19,'racines latérales','',-300,10),(211.8,12,24.5,'poils absorbants','r',40,40)],
+      notes=[(203.6,23.6,14,'racine pivotante (principale)','',20,-30),(208.6,21.2,15.8,'racines latérales','',-300,10),(211.8,12,23.8,'poils absorbants','r',40,40)],
       legende='Document 2') + f'''
 <div class="carte" style="left:1220px;top:330px;width:580px"{A(210.6,"left")}><div class="pm">c’est par les <b style="color:#fff">poils absorbants</b> que la plante puise l’eau et les sels minéraux</div></div>
 <div class="carte" style="left:1220px;top:600px;width:580px"{A(214.7,"up")}><div class="pm">surface d’échange : <b style="color:#fff">plusieurs <span class="mark"{A(218.7,"hl",.8)}>centaines de m²</span></b></div></div>''')
@@ -246,7 +246,7 @@ scene(200.4, 221, titre(200.6,'a · Le système racinaire · document 2','Racine
 # 221 – 236.4 : sol normal / sol carencé (document 2)
 scene(221, 236.4, titre(221.2,'Document 2 · effet d’une carence','Plus de poils quand le sol est pauvre') +
   DOC('d2_poils', 221.4, box=(120,250,1680,640), kb=[(221.4,31,20,1),(225.6,31,20,1),(226.6,48,25,1.6),(230,48,25,1.6),(231.5,31,20,1)],
-      hl=[(222.0,6,5,28.6,30.5,'v',224.6),(224.1,29.6,5,56.6,30.5,'')], legende='Document 2') +
+      hl=[(222.0,8,6,30,29.6,'v',224.6),(224.1,30,6,56,30,'')], legende='Document 2') +
   bandeau([(226.7,'sol carencé en sels minéraux : <b>plus de poils absorbants</b>',230.2),(230.3,'⇒ ce sont les <b>poils absorbants</b> qui absorbent l’eau et les sels minéraux… <b>et non les racines</b>',None)], y=930))
 
 # 236.4 – 248.4 : point expérience
@@ -284,8 +284,8 @@ EAU='#3a8fd6'; HUILE='#d9b84a'
 # 248.4 – 277 : Rosène (document 3)
 scene(248.4, 277.0, titre(248.6,'Document 3 · l’expérience de Rosène','Où la plantule absorbe-t-elle l’eau ?') +
   DOC('d3_schema', 249.0, box=(120,250,1680,640),
-      hl=[(254.6,8,37.5,22,50.5,'v',266),(255.3,25,37.5,39,50.5,'b',266),(256.1,40.5,37.5,54.5,50.5,'v',266),(260.4,51,42.5,57,48.5,'j',265),(266.2,25,37.5,39,50.5)],
-      notes=[(266.2,32,40,'FLÉTRIT','r',30,-40),(266.6,15,40,'vit','v',30,-40),(266.8,47,40,'vit','v',30,-40)], legende='Document 3') +
+      hl=[(254.6,11,39.5,20.5,49.2,'v',266),(255.3,29.5,40.5,39,49.2,'b',266),(256.1,44.5,39.5,54,49.2,'v',266),(260.4,49.5,43.6,57.5,48,'j',265),(266.2,29.5,40.5,39,49.2)],
+      notes=[(266.2,34,41,'FLÉTRIT','r',40,-40),(266.6,17,40.5,'vit','v',40,-40),(266.8,49,40.5,'vit','v',40,-40)], legende='Document 3') +
   bandeau([(254.6,'on place une ou plusieurs régions de la racine hors de l’eau, dans l’huile',266.0),
            (266.2,'B : la zone pilifère (le rhizoderme) est dans l’huile ⇒ la plantule flétrit',273.4),(273.5,'⇒ ce tissu superficiel est <b>indispensable à l’absorption</b>',None)], y=930))
 
@@ -320,7 +320,7 @@ scene(288.6, 307, titre(288.8,'Autre acteur de l’absorption','Les mycorhizes')
 # 307 – 331 : le document 4, les échanges
 scene(307, 331, titre(307.2,'Document 4 · la mycorhize en coupe','Un échange à bénéfices réciproques') +
   DOC('d4_coupe', 307.4, box=(100,250,820,790), kb=[(307.4,62,18,1),(331,62,18,1)],
-      hl=[(308.6,33,14.5,40,17.5,'v',315),(309.2,33,21,41,25.5,'v',315),(315.7,33,7,43,10.5,'j',325),(316.7,71,17.5,80,19.5,'b',325),(325.8,71,15,79,17.3)], legende='Document 4') + f'''
+      hl=[(308.6,47,15.4,55,17.4,'v',315),(309.2,47,22.2,54.5,25.3,'v',315),(315.7,47,7.4,59,10.4,'j',325),(316.7,74.8,17.6,82,18.8,'b',325),(325.8,74.8,15.6,82,16.8)], legende='Document 4') + f'''
 <div class="abs" style="left:1000px;top:300px;width:820px">
 <div class="pm"{A(308.6,"up")}>le champignon forme un <b style="color:#62c98d">manteau</b> et un <b style="color:#62c98d">réseau de Hartig</b> entre les cellules de la racine</div>
 <div class="carte" style="position:relative;margin-top:30px;border-color:#2a6fa8"{A(316.7,"up")}><div class="pm"><b style="color:var(--eau)">eau + sels minéraux (N, P, K)</b> : captés par les filaments, acheminés jusqu’au <b style="color:#fff">xylème</b></div></div>
@@ -329,7 +329,7 @@ scene(307, 331, titre(307.2,'Document 4 · la mycorhize en coupe','Un échange �
 
 # 331 – 340.8 : surface d'absorption → croissance (graphique du document 4)
 scene(331, 340.8, titre(331.2,'Document 4 · des filaments très fins, très étendus','Plus de surface, plus de croissance') +
-  DOC('d4_courbe', 331.4, box=(120,250,1680,620), hl=[(334.5,62,41.5,79,44.5),(335.4,49,37.5,66,40.5,'b')], legende='Document 4 — croissance d’un plant') +
+  DOC('d4_courbe', 331.4, box=(120,250,1680,620), hl=[(334.5,67.5,42.9,82,45.4),(335.4,51.8,37.7,63.5,40.3,'b')], legende='Document 4 — croissance d’un plant') +
   bandeau([(336.6,'grande surface d’échange : <b>finesse</b> + <b>grande surface d’exploitation du sol</b>',None)], y=930))
 
 # 340.8 – 351.3 : 90 %
@@ -411,18 +411,18 @@ scene(433.4, 458.2, titre(433.6,'Bilan · côté sol','Une surface d’échange 
 # 458.2 – 470.4 : le système caulinaire (document 9)
 scene(458.2, 470.4, titre(458.4,'b · Le système caulinaire','Le rôle des feuilles : capter la lumière') +
   DOC('d9_surfaces', 458.6, box=(120,250,1680,790), kb=[(458.6,50,27,1),(462,50,27,1),(464,28,20,1.6),(470.4,28,20,1.6)],
-      hl=[(467.3,10,16,20,19.5,'v'),(467.9,10,10,20,16,'v'),(463.0,26,3,38,9,'j')], legende='Document 9'))
+      hl=[(467.3,14,18,23,19.5,'v'),(467.9,13,12.5,20.5,16.5,'v'),(463.0,20,4.5,30,10,'j')], legende='Document 9'))
 
 # 470.4 – 489.8 : de la feuille au thylakoïde (document 6)
 scene(470.4, 489.8, titre(470.6,'Document 6 · où se fait la capture de la lumière ?','Du chloroplaste aux thylakoïdes') +
-  DOC('d6_chloro', 476.4, box=(100,260,860,620), notes=[(478.2,33,16,'thylakoïdes','j',20,-40)], legende='chloroplaste (microscope)') +
+  DOC('d6_chloro', 476.4, box=(100,260,860,620), notes=[(478.2,29.8,16.2,'thylakoïdes','j',20,-40)], legende='chloroplaste (microscope)') +
   DOC('d6_thylako', 479.4, box=(1000,260,820,620), hl=[(480.3,27,32,40,36.5,'j')], legende='replis des thylakoïdes') +
   bandeau([(471.4,'les feuilles : principaux organes de la photosynthèse',476.2),(478.6,'les <b>pigments chlorophylliens</b> sont dans la membrane des thylakoïdes',481.4),
            (481.6,'surface d’échange ≈ <b>1 000 m²</b> grâce aux nombreux replis des thylakoïdes',None)], y=920))
 
 # 489.8 – 513 : le spectre d'absorption (document 6)
 scene(489.8, 513, titre(490.0,'Document 6 · toutes les couleurs ne sont pas absorbées','Le spectre d’absorption') +
-  DOC('d6_graphe', 490.4, box=(100,250,1100,790), hl=[(496.6,60,26,72.5,27.8,'',501),(497.6,60,27.8,72.5,29.5,'j',501),(501.6,60,29.5,72.5,31.2,'j',504),(507.4,50,30,60.5,46,'v')], legende='Document 6') + f'''
+  DOC('d6_graphe', 490.4, box=(100,250,1100,790), hl=[(496.6,54,27.2,63.5,28.4,'',501),(497.6,54,28.4,63.5,29.6,'j',501),(501.6,54,29.6,63.5,30.8,'j',504),(507.4,56,29.6,67,46.6,'v')], legende='Document 6') + f'''
 <div class="abs" style="left:1260px;top:300px;width:560px">
 <div class="pm"{A(496.6,"up")}>chlorophylles <b style="color:#fff">a</b> et <b style="color:#fff">b</b> : surtout le <b style="color:#ff7a6a">rouge</b> et le <b style="color:#7fa2ff">bleu</b></div>
 <div class="pm" style="margin-top:22px"{A(501.6,"up")}>caroténoïdes : surtout le <b style="color:#7fa2ff">bleu</b></div>
@@ -443,20 +443,20 @@ scene(513, 536, f'<div class="xp" style="left:150px;top:140px"{A(513.4,"pop")}>P
 scene(536, 565.2, f'<div class="xp" style="left:150px;top:140px"{A(536.4,"pop")}>Point expérience</div>' +
   f'<div class="abs h2" style="left:150px;top:210px"{A(537.0,"up")}>Les pigments absorbent une partie de la lumière</div>' +
   DOC('d6_spectre_barre', 544.4, box=(120,330,1680,560), kb=[(544.4,69,13,1)],
-      notes=[(555.3,50,18,'bleu absorbé','b',-60,40),(556.6,60,18,'vert : non absorbé','v',-40,-90),(555.1,85,18,'rouge absorbé','r',-60,40)], legende='Document 6 — vu au spectroscope') +
+      notes=[(555.3,52,18,'bleu absorbé','b',-60,40),(556.6,64,18,'vert : non absorbé','v',-40,-90),(555.1,85,18,'rouge absorbé','r',-60,40)], legende='Document 6 — vu au spectroscope') +
   bandeau([(545.3,'extrait brut de chlorophylle, observé à travers un <b>spectroscope</b>',555.0),(560.6,'⇒ les feuilles apparaissent <b>vertes</b>',None)], y=930))
 
 # 565.2 – 590 : les stomates (document 8)
 scene(565.2, 590.2, titre(565.4,'Sur la face inférieure des feuilles','Les stomates') +
   DOC('d8_empreintes', 573.6, box=(100,250,1040,790), kb=[(573.6,68,90.5,1.3),(590,68,90.5,1.6)],
-      notes=[(576.7,64,88,'2 cellules stomatiques','v',-40,-80),(583.0,69,90.5,'ostiole','j',40,40)], legende='Document 8 — empreinte au vernis') + f'''
+      notes=[(576.7,67.5,88,'2 cellules stomatiques','v',-40,-80),(583.0,70,90.5,'ostiole','j',40,40)], legende='Document 8 — empreinte au vernis') + f'''
 <div class="carte" style="left:1220px;top:330px;width:580px"{A(573.8,"left")}><div class="pm">de toutes petites ouvertures…</div></div>
 <div class="carte" style="left:1220px;top:520px;width:580px"{A(583.6,"left")}><div class="pm"><b style="color:var(--soleil)">l’ostiole</b> : l’ouverture par où entre le CO<sub>2</sub></div></div>
 <div class="carte" style="left:1220px;top:720px;width:580px"{A(586.9,"up")}><div class="pm">nécessaire à la <b style="color:#fff">photosynthèse</b></div></div>''')
 
 # 590.2 – 608.8 : document 7, l'ouverture au fil de la journée
 scene(590.2, 608.8, titre(590.4,'Document 7 · ouverture des stomates','Pas n’importe quand') +
-  DOC('d7_stomates', 590.6, box=(100,250,1240,790), hl=[(598.1,64,56.5,70.5,77.5)], notes=[(598.3,67,57,'12h – 14h','r',-60,-70)], legende='Document 7') + f'''
+  DOC('d7_stomates', 590.6, box=(100,250,1240,790), hl=[(598.1,59.5,59,66.5,75.6)], notes=[(598.3,63,59,'12h – 14h','r',-60,-70)], legende='Document 7') + f'''
 <div class="abs" style="left:1400px;top:300px;width:420px">
 <div class="pm"{A(593.7,"up")}>surtout le <b style="color:#fff">matin</b> et en <b style="color:#fff">fin de journée</b></div>
 <div class="carte" style="position:relative;margin-top:30px"{A(602.4,"pop")}><div class="pm" style="color:var(--eau)">💧 à midi, les stomates se ferment : <b style="color:#fff">éviter de perdre l’eau</b>, <span{A(604.2,"fade")}>essentielle à la photosynthèse</span></div></div></div>''')
@@ -473,8 +473,8 @@ scene(608.8, 620.8, f'''
 
 # 620.8 – 656.5 : document 8, empreinte au vernis
 scene(620.8, 656.5, titre(621.0,'Document 8 · mettre les stomates en évidence','Riche ou pauvre en CO₂ ?') +
-  DOC('d8_empreintes', 628.8, box=(120,250,1680,680), hl=[(641.4,61,84,76.8,98.2,'v'),(638.3,77.2,84,93.6,98.2)],
-      notes=[(641.6,68,85,'riche en CO₂ : OUVERTS','v',-140,-70),(638.5,86,85,'pauvre en CO₂ : FERMÉS','r',-120,-70)], legende='Document 8') +
+  DOC('d8_empreintes', 628.8, box=(120,250,1680,680), hl=[(641.4,61.2,85,77.6,96.3,'v'),(638.3,78,85,94,96.3)],
+      notes=[(641.6,69,85,'riche en CO₂ : OUVERTS','v',-140,-70),(638.5,86,85,'pauvre en CO₂ : FERMÉS','r',-120,-70)], legende='Document 8') +
   bandeau([(643.4,'technique : <b>empreinte au vernis</b> de la face inférieure → observation au microscope',None)], y=950))
 
 # 656.5 – 677.8 : bilan côté air

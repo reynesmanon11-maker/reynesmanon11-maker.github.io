@@ -108,11 +108,11 @@ scene(102.6, 124, titre(102.8,'Document 1 · une même orogenèse, un alignement
 indices = [(138.0,'roches métamorphiques','issues de déformations en compression'),(143.0,'roches magmatiques','mises en place en profondeur, exhumées par l’érosion'),(150.6,'failles inverses','et chevauchements')]
 scene(124, 153.4, titre(124.2,'Ceintures récentes, ceintures anciennes','Lire une montagne disparue') +
   DOC('d11_jeune', 124.6, box=(100,250,1000,390), o=131.6, legende='récente : relief très marqué',
-      hl=[(150.6,48,56.5,60,60)]) +
+      hl=[(150.6,53,57.2,64,59.8)]) +
   DOC('d11_agee', 132.0, box=(100,250,1000,390), legende='ancienne : relief érodé…',
-      hl=[(143.0,44,70.5,58,74),(143.4,34,75,50,83,'j')], o=150.4) +
+      hl=[(143.0,45,71.8,61.2,74.4),(143.4,39.5,79.3,48.5,82,'j')], o=150.4) +
   DOC('d11_jeune', 150.4, box=(100,250,1000,390), legende='failles inverses, chevauchements',
-      kb=[(150.4,52,58,1),(151,52,58,1.6)], hl=[(150.8,48,56.5,60,60)]) +
+      kb=[(150.4,52,58,1),(151,56,58,1.6)], hl=[(150.8,53,57.2,64,59.8)]) +
   ''.join(f'''<div class="carte" style="left:1150px;top:{330+i*190}px;width:660px;padding:24px 32px"{A(t,"left")}><div class="h3" style="color:var(--soleil)">{n}</div><div class="pm">{d}</div></div>''' for i,(t,n,d) in enumerate(indices)) +
   f'<div class="abs pm" style="left:1150px;top:270px"{A(135.0,"fade")}>… mais il reste des <b style="color:#fff">indices</b> :</div>')
 
@@ -189,8 +189,8 @@ scene(292, 316, titre(292.2,'Le plancher océanique s’étend','Deux marges pas
 
 # 316 – 354 : document 2, l'organisation d'une marge passive
 scene(316, 354, titre(316.2,'Document 2 · vue par sismique-réflexion','Anatomie d’une marge passive') + DOC('d2_marge', 316.4,
-  box=(120,250,1680,620), kb=[(316.4,33,65,1),(318.6,33,65,1),(320,25,67,1.25),(326,25,67,1.25),(327.6,22,63,1.35),(335,22,63,1.35),(336,33,62,1.35),(347,33,62,1.35),(349,22,62,1.2),(354,22,62,1.2)],
-  hl=[(318.6,18,72,32,74.6,'',327.4),(327.6,13,57.5,21,61.5,'j',335.8),(336.0,26,57.5,41.5,61.5,'',348.8),(349.0,6,57.5,13,61.5,'v')],
+  box=(120,250,1680,620), kb=[(316.4,33,65,1),(318.6,33,65,1),(320,30,67,1.2),(326,30,67,1.2),(327.6,23,63,1.3),(335,23,63,1.3),(336,38,63,1.3),(347,38,63,1.3),(349,15,63,1.2),(354,15,63,1.2)],
+  hl=[(318.6,12,64.5,45,70.5,'',327.4),(327.6,19.3,57.5,26.3,60.3,'j',335.8),(336.0,29.8,57.5,47,60.3,'',348.8),(349.0,9.8,57.5,17,60.3,'v')],
   legende='Document 2 — Marge continentale passive') +
   bandeau([(318.8,'des <b>blocs basculés</b> le long de failles normales courbes',327.4),(327.8,'sédiments <b>anté-rift</b> : recoupés par les failles, déposés <b>avant</b> le rift',335.8),
            (336.2,'sédiments <b>syn-rift</b> (évaporites) en éventail : déposés <b>pendant</b> le basculement',348.8),(349.2,'sédiments <b>post-rift</b> (argilites), discordants : déposés <b>après</b>',None)], y=900))
@@ -215,9 +215,9 @@ scene(383.9, 418.4, titre(384.0,'Un métamorphisme lié à l’hydrothermalisme'
 # 418.4 – 454.2 : les traces d'une subduction (document 3)
 bande = ''.join(f'<rect x="{1340+i*150}" y="560" width="150" height="80" fill="{c}"{A(444.4+i*1.2,"growx",.6)}/><text x="{1415+i*150}" y="680" text-anchor="middle" class="lab-s"{A(444.6+i*1.2,"fade")}>{n}</text>' for i,(c,n) in enumerate([('#4e9a5a','sch. verts'),('#3f6fb0','sch. bleus'),('#a8453c','éclogites')]))
 scene(418.4, 454.2, f'<div class="abs" style="left:150px;top:140px"><div class="sur"{A(418.6,"left")}>4 · Les traces d’une subduction</div><div class="h2" style="margin-top:14px"{A(419.2,"up")}>Document 3 · le chemin d’un gabbro</div></div>' +
-  DOC('d3_pt', 420.0, box=(100,270,1140,770), kb=[(420,33,29,1),(428.5,33,29,1),(430,20,30,1.35),(435,20,30,1.35),(436.5,33,29,1)],
-      hl=[(429.0,13.6,21.5,16.5,24,'v'),(429.8,13.3,25.8,16,28.3,'b'),(430.8,29.5,32,32.5,34.5)],
-      chemins=[(436.0,[(31.5,20),(28,20.6),(16,21.5),(13.5,26),(17,30),(22,35.5)],'#d40000',4)], legende='Document 3 — Chemin P-T d’un gabbro') + svg(f'''
+  DOC('d3_pt', 420.0, box=(100,270,1140,770), kb=[(420,33,29,1),(428.5,33,29,1),(430,16,27,1.35),(435,16,27,1.35),(436.5,33,29,1)],
+      hl=[(429.0,13.4,21.7,15.9,23.7,'v'),(429.8,11.5,25.7,13.7,27.7,'b'),(430.8,19.7,30.7,22.4,32.6)],
+      chemins=[(436.0,[(29.6,19.9),(9.8,21.3),(9.4,22.5),(12,26.5),(15,30.5),(18,34.8)],'#d40000',4)], legende='Document 3 — Chemin P-T d’un gabbro') + svg(f'''
 <g{A(431.8,"pop")}><rect x="1300" y="320" width="500" height="80" rx="40" fill="var(--rouge)"/><text x="1550" y="372" text-anchor="middle" class="lab">haute pression · basse température</text></g>
 <text x="1550" y="450" text-anchor="middle" class="lab"{A(435.4,"up")}>⇒ une subduction de croûte océanique</text>
 {bande}
@@ -236,13 +236,13 @@ scene(470.9, 510.7, f'<div class="abs" style="left:150px;top:140px"><div class="
 <div class="carte" style="left:150px;top:330px;width:560px"{A(475.4,"up")}><div class="h3" style="color:#d9b48a">Gneiss</div><div class="pm">un granite soumis à haute pression, basse température</div></div>
 <div class="carte" style="left:150px;top:560px;width:560px"{A(480.0,"up")}><div class="h3" style="color:#ff9a7a">Migmatites</div><div class="pm">début de fusion partielle du gneiss : <b style="color:#fff">l’anatexie</b></div></div>
 <div class="carte" style="left:150px;top:790px;width:560px"{A(496.6,"up")}><div class="pm">plis, failles inverses, <b style="color:#fff">nappes de charriage</b> : raccourcissement et épaississement de la croûte</div></div>''' +
-  DOC('d11_jeune', 473.0, box=(760,330,1060,640), kb=[(473,50,55,1),(477,50,55,1),(479,46,61,1.7),(495,46,61,1.7),(497,50,55,1.05)],
-      hl=[(477.6,43.5,60.5,52,64.5),(498.8,49,56.8,60,59.5,'j')], legende='Document 11 — chaîne récente'))
+  DOC('d11_jeune', 473.0, box=(760,330,1060,640), kb=[(473,50,55,1),(477,50,55,1),(479,51,62,1.7),(495,51,62,1.7),(497,50,55,1.05)],
+      hl=[(477.6,47,62.2,56.5,64.8),(498.8,53,57.2,64,59.8,'j')], legende='Document 11 — chaîne récente'))
 
 # 510.7 – 548.3 : imagerie sismique : la racine crustale
 scene(510.7, 548.3, titre(510.9,'Sous les chaînes · profil ECORS, tomographie','Une racine sous la chaîne') +
-  DOC('d11_jeune', 511.0, box=(120,250,1680,620), kb=[(511,50,55,1),(524,50,55,1),(527,38,62,1.6),(540,38,62,1.6),(546,50,55,1)],
-      notes=[(527.6,38,66,'racine crustale : plus de 40 km sous les Alpes','r',30,20)], legende='Document 11 — chaîne récente') +
+  DOC('d11_jeune', 511.0, box=(120,250,1680,620), kb=[(511,50,55,1),(524,50,55,1),(527,42,61,1.6),(540,42,61,1.6),(546,50,55,1)],
+      notes=[(527.6,44,65.3,'racine crustale : plus de 40 km sous les Alpes','r',30,20)], legende='Document 11 — chaîne récente') +
   bandeau([(516.7,'le profil sismique suit les grandes failles et le <b>Moho</b> en profondeur',527.4),(534.8,'tomographie : des roches « froides » épaissies sous la chaîne',None)], y=900))
 
 # 548.3 – 579.7 : la coésite, croûte continentale subduite
@@ -283,12 +283,12 @@ scene(681.3, 717, f'<div class="abs" style="left:150px;top:140px"><div class="su
   f'<div class="carte" style="left:150px;top:420px;width:520px"{A(702.6,"up")}><span class="pm">moteur supposé : la <b style="color:#fff">convection du manteau</b></span></div>'
   f'<div class="abs pm" style="left:150px;top:600px;width:520px;font-style:italic"{A(707.8,"up")}>données très partielles : mécanisme et périodicité encore étudiés</div>' +
   DOC('d6_wilson', 682.0, box=(720,250,1100,790), legende='Document 6 — Cycle de Wilson',
-      hl=[(693.2,70,75,92,79,'',697.0),(695.6,44,79.5,60,84.5,'b',699.0),(698.9,30,77,43,79.5,'j')]))
+      hl=[(693.2,75.5,70.3,95,78.9,'',697.0),(695.6,44.5,78.5,62.5,84.7,'b',699.0),(698.9,9,63,93,91.5,'j')]))
 
 # 717 – 783.5 : les sutures se rouvrent
 scene(717, 783.5, titre(717.2,'Document 6 · où le continent se fracture-t-il ?','Là où il s’était soudé') +
-  DOC('d6_wilson', 717.4, box=(100,250,1020,620), kb=[(717.4,50,77,1),(730,50,77,1),(732,33,74,1.9),(755,33,74,1.9),(757,82,89,1.9),(770,82,89,1.9),(772,50,77,1)],
-      hl=[(733.0,26.5,72,40,76.5,'j'),(757.0,75,86.5,88,92)], legende='Document 6') + f'''
+  DOC('d6_wilson', 717.4, box=(100,250,1020,620), kb=[(717.4,50,77,1),(730,50,77,1),(732,38,76,1.8),(755,38,76,1.8),(757,82,87,1.8),(770,82,87,1.8),(772,50,77,1)],
+      hl=[(733.0,33,74.2,43.6,77.7,'j'),(757.0,76,88.4,87,91.4)], legende='Document 6') + f'''
 <div class="carte" style="left:1170px;top:250px;width:650px"{A(724.0,"left")}><span class="pm">✂ « Un peu comme quand vous vous coupez : on se recoupe plus facilement là où on a déjà cicatrisé. »</span></div>
 <div class="carte" style="left:1170px;top:450px;width:650px;border-color:rgba(229,51,59,.5)"{A(738.2,"up")}><div class="h3" style="color:#ff8a8a">Suture fragilisée</div>
 <div class="pm">manteau <b style="color:#fff">appauvri</b> en minéraux fusibles par le magmatisme de subduction → cassant → <span class="mark"{A(752.0,"hl",.7)}>la suture se rouvre</span></div></div>
@@ -312,8 +312,8 @@ scene(795.4, 829, titre(795.6,'Recycler = le devenir des matériaux','Transform�
 
 # 829 – 907 : vieillissement de la lithosphère océanique (document 7)
 scene(829, 907, titre(829.2,'1 · Le recyclage de la lithosphère océanique','Document 7 · elle vieillit, s’épaissit… et plonge') +
-  DOC('d7_haut', 829.4, box=(120,250,1680,640), kb=[(829.4,50,58,1),(831,50,58,1),(832.5,30,55,1.5),(839,30,55,1.5),(841,50,55,1),(858,50,55,1),(859.4,55,60,1.5),(873,62,62,1.4),(882,80,60,1.4),(888,50,58,1)],
-      hl=[(832.7,22,51,30,53.8,'j',840),(840.8,41,45.5,68,50,'b',858),(859.4,51,58.5,59,62.5,'',867),(867.9,48.5,64.5,62,68.5,'',875),(875.6,64,64.5,82,70,'',884),(883.9,81,58.5,95,64)],
+  DOC('d7_haut', 829.4, box=(120,250,1680,640), kb=[(829.4,50,58,1),(831,50,58,1),(832.5,36,54,1.5),(839,36,54,1.5),(841,50,55,1),(858,50,55,1),(859.4,52,61,1.4),(866,52,62,1.4),(873,65,63,1.4),(882,80,62,1.4),(888,50,58,1)],
+      hl=[(832.7,30.5,49.6,36,51.8,'j',840),(840.8,40.5,45.4,66.5,50.6,'b',858),(859.4,47,59.6,56,62.5,'',867),(867.9,47,65.2,59.5,68.8,'',875),(875.6,64,65.2,79.5,69.8,'',884),(883.9,84,59.8,94,64.4)],
       legende='Document 7 — la lithosphère océanique vieillit') +
   bandeau([(832.7,'à la dorsale : mince, chaude, elle « flotte » sur l’asthénosphère',840.6),(840.8,'elle s’éloigne, refroidit : le <b>manteau lithosphérique s’épaissit</b> (d = 3,3 > 2,9)',859.2),
            (859.4,'sa densité dépasse celle de l’asthénosphère (3,25)',867.7),(867.9,'<b>40 Ma</b> : l’équilibre isostatique est rompu',875.4),
@@ -331,7 +331,7 @@ scene(925.9, 950.9, titre(926.0,'Orogenèse après orogenèse','La croûte conti
 <div class="abs" style="left:150px;top:270px;display:flex;gap:18px">
 <div class="pastille o"{A(937.8,"pop")}>tectoniques</div><div class="pastille" style="background:#a8453c"{A(938.5,"pop")}>magmatiques</div>
 <div class="pastille b"{A(939.2,"pop")}>métamorphiques</div><div class="pastille v"{A(939.8,"pop")}>sédimentaires</div></div>''' +
-  DOC('d12_bloc', 940.6, box=(120,340,1680,700), hl=[(941.2,13,24,25,27.5),(944.4,30,30.5,45,34),(948.8,62,39.5,86,43)], legende='Document 12 — érosion, transport, sédimentation'))
+  DOC('d12_bloc', 940.6, box=(120,340,1680,700), hl=[(941.2,10.5,24.5,21,27.2),(944.4,30,30.5,45,34),(948.8,62,39.5,86,43)], legende='Document 12 — érosion, transport, sédimentation'))
 
 # 950.9 – 982 : altération et érosion
 scene(950.9, 982, titre(951.0,'a · Altération et érosion','Le climat et le vivant attaquent les roches') + f'''
@@ -344,7 +344,7 @@ scene(950.9, 982, titre(951.0,'a · Altération et érosion','Le climat et le vi
 # 982 – 1032.9 : la solubilité des ions (document 9, diagramme de Goldschmidt)
 scene(982, 1032.9, titre(982.2,'Document 9 · diagramme de Goldschmidt','Tous les ions ne se dissolvent pas') +
   DOC('d9_goldschmidt', 982.6, box=(120,250,1680,790), kb=[(982.6,49,72,1),(989,49,72,1),(990,40,62,1.3),(999,40,62,1.3),(1000,60,68,1.3),(1016,60,68,1.3),(1017.4,62,78,1.3),(1031,62,78,1.3)],
-      hl=[(989.8,23,60.8,39,64.8,'b'),(990.6,48.5,54.6,93,60,'b'),(999.9,47,68,65,71.8),(1000.6,60.5,62,93,69.8),(1017.4,57,74.6,68,81.4,'j'),(1018,66,72.8,93.5,86.5,'j')],
+      hl=[(989.8,23.5,61.5,37,64.3,'b'),(990.6,48.5,54,93,59.8,'b'),(999.9,48,69.2,62.5,71.6),(1000.6,62,62,93,69.8),(1017.4,58.5,79.4,66.8,82.6,'j'),(1018,66,73.2,93,86.2,'j')],
       legende='Document 9 — la solubilité des ions'))
 
 # 1032.9 – 1047.2 : b · transport (diagramme de Hjulström)
