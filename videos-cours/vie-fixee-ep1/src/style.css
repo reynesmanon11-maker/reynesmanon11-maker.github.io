@@ -1,0 +1,71 @@
+:root{
+  --noir:#0b0b0d; --nuit:#141417; --gris:#8d8a86; --craie:#f1ede6;
+  --rouge:#e5333b;          /* accent « série » : génériques, titres d'épisode */
+  --vert:#62c98d; --vert-f:#2f7d55; --feuille:#3fa36b;
+  --eau:#5ab8ff; --co2:#e88a5a; --o2:#7fb2ff; --soleil:#ffd166;
+  --sol:#5a3d2b; --sol-c:#7a5539; --champi:#e9d9b8; --sucre:#ff6b5e;
+}
+@font-face{font-family:'Bebas';src:url(FONT_BEBAS) format('woff2');}
+@font-face{font-family:'Onest';font-weight:100 900;src:url(FONT_ONEST_EXT) format('woff2');
+  unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+1E00-1E9F,U+2020,U+20A0-20AB,U+2113,U+2C60-2C7F,U+A720-A7FF}
+@font-face{font-family:'Onest';font-weight:100 900;src:url(FONT_ONEST) format('woff2');
+  unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;height:100%;overflow:hidden;color:var(--craie);font-family:'Onest',sans-serif}
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;flex:none;transform-origin:center;
+  background:radial-gradient(120% 90% at 50% 40%, #19191d 0%, var(--noir) 62%, #050506 100%)}
+.sc{position:absolute;inset:0;visibility:hidden}
+.cam{position:absolute;inset:0;transform-origin:50% 50%}
+[data-t]{will-change:opacity,transform}
+svg [data-t]{transform-box:fill-box;transform-origin:center}
+svg [data-fx=grow]{transform-origin:bottom}
+svg [data-fx=growx],[data-fx=growx]{transform-origin:left}
+[data-fx=draw]{fill:none}
+
+/* habillage permanent */
+#bug{position:absolute;left:64px;top:52px;z-index:50;display:flex;align-items:center;gap:16px;
+  font:600 20px/1 'Onest';letter-spacing:.18em;text-transform:uppercase;color:rgba(241,237,230,.62)}
+#bug b{font:400 34px/1 'Bebas';letter-spacing:.06em;color:var(--rouge)}
+#chap{position:absolute;right:64px;top:52px;z-index:50;font:600 18px/1 'Onest';letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(241,237,230,.5);text-align:right}
+#barre{position:absolute;left:0;bottom:0;height:5px;background:var(--rouge);z-index:50;width:0}
+.vignette{position:absolute;inset:0;pointer-events:none;z-index:40;
+  background:radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55) 100%)}
+
+/* typographie */
+.k{font-family:'Bebas';letter-spacing:.02em;line-height:.9;font-weight:400}
+.sur{font:700 22px/1 'Onest';letter-spacing:.32em;text-transform:uppercase;color:var(--rouge)}
+.h1{font-family:'Bebas';font-size:150px;line-height:.86}
+.h2{font-family:'Bebas';font-size:92px;line-height:.9}
+.h3{font-family:'Bebas';font-size:60px;line-height:.95;letter-spacing:.02em}
+.p{font:400 34px/1.35 'Onest';color:rgba(241,237,230,.88)}
+.pm{font:400 28px/1.35 'Onest';color:rgba(241,237,230,.8)}
+.lab{font:600 26px/1.15 'Onest';fill:var(--craie);color:var(--craie)}
+.lab-s{font:500 21px/1.15 'Onest';fill:rgba(241,237,230,.82)}
+.abs{position:absolute}
+.c{text-align:center}
+.mark{background:linear-gradient(transparent 58%, rgba(229,51,59,.55) 58%) no-repeat;background-size:0 100%;padding:0 4px}
+.mark.v{background-image:linear-gradient(transparent 58%, rgba(98,201,141,.5) 58%)}
+.mark.b{background-image:linear-gradient(transparent 58%, rgba(90,184,255,.5) 58%)}
+.carte{position:absolute;background:rgba(26,26,30,.88);border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:34px 38px}
+.pastille{display:inline-block;white-space:nowrap;font:700 18px/1 'Onest';letter-spacing:.2em;text-transform:uppercase;padding:10px 16px;border-radius:999px;background:var(--rouge);color:#fff}
+.pastille.v{background:var(--vert-f)} .pastille.b{background:#2a6fa8} .pastille.o{background:#b4572b}
+.doc{position:absolute;font:700 18px/1 'Onest';letter-spacing:.22em;text-transform:uppercase;color:var(--gris)}
+.xp{position:absolute;font:800 20px/1 'Onest';letter-spacing:.16em;text-transform:uppercase;color:#1a1208;
+  background:var(--soleil);padding:12px 18px;border-radius:8px;transform:rotate(-3deg)}
+sub,sup{font-size:.62em;line-height:0}
+svg text{font-family:'Onest'}
+
+/* lecteur (hors rendu) */
+#ctrl{position:fixed;left:0;right:0;bottom:0;z-index:100;padding:14px 18px;display:flex;gap:14px;align-items:center;
+  background:linear-gradient(transparent,rgba(0,0,0,.85));opacity:0;transition:opacity .3s;font:500 15px 'Onest'}
+body:hover #ctrl,body.pause #ctrl{opacity:1}
+#ctrl button{background:none;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:7px 12px;font:600 14px 'Onest';cursor:pointer}
+#ctrl input[type=range]{flex:1;accent-color:var(--rouge)}
+#st{position:fixed;left:50%;transform:translateX(-50%);bottom:7%;z-index:90;max-width:80vw;text-align:center;
+  font:500 clamp(14px,2.2vw,30px)/1.3 'Onest';color:#fff;text-shadow:0 2px 6px #000,0 0 2px #000;pointer-events:none}
+#st span{background:rgba(0,0,0,.55);padding:2px 10px;border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+#go{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.55);cursor:pointer}
+#go div{font:400 54px/1 'Bebas';letter-spacing:.08em;border:2px solid #fff;border-radius:999px;padding:26px 46px}
+body.render #ctrl,body.render #st,body.render #go{display:none}
