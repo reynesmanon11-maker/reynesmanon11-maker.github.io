@@ -604,6 +604,10 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <symbol id="i-logo" viewBox="0 0 48 48"><path fill="currentColor" d="M24 2c2.2 13.8 7.9 19.6 22 22-14.1 2.4-19.8 8.2-22 22-2.2-13.8-7.9-19.6-22-22 14.1-2.4 19.8-8.2 22-22Z"/></symbol>
+    <!-- La grenouille de l'onglet, reprise comme marque a cote du nom.
+         Ses couleurs sont ecrites en dur : contrairement aux autres icones
+         elle n'herite pas de `currentColor`, sinon elle perdrait ses yeux. -->
+    <symbol id="i-grenouille" viewBox="0 0 64 64"><circle cx="32" cy="32" r="32" fill="#e9f2df"/><circle cx="20" cy="24" r="9" fill="#6aa84f"/><circle cx="44" cy="24" r="9" fill="#6aa84f"/><path d="M32 24c11 0 18 8 18 16 0 6-8 10-18 10s-18-4-18-10c0-8 7-16 18-16Z" fill="#6aa84f"/><circle cx="20" cy="24" r="5.5" fill="#fff"/><circle cx="44" cy="24" r="5.5" fill="#fff"/><circle cx="21" cy="25" r="3" fill="#12200c"/><circle cx="43" cy="25" r="3" fill="#12200c"/><path d="M24 40c4 3 12 3 16 0" fill="none" stroke="#3c6b2a" stroke-width="2.6" stroke-linecap="round"/></symbol>
     <symbol id="i-arr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
     <symbol id="i-arrup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7M8 7h9v9"/></symbol>
     <symbol id="i-star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.5l2.9 5.88 6.49.94-4.7 4.58 1.11 6.46L12 17.9l-5.8 3.05 1.1-6.46-4.69-4.58 6.49-.94L12 2.5z"/></symbol>
@@ -618,7 +622,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 <header id="hdr" class="in">
   <div class="shell bar">
     <button class="brandbtn" onclick="location.href='index.html'">
-      <span><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</span>
+      <span><svg class="ic"><use href="#i-grenouille"/></svg> Mme Reynes</span>
     </button>
     <nav class="primary" aria-label="Principale">
       <ul>
@@ -683,7 +687,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
     </div>
     <div class="cols">
       <div>
-        <div class="cbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+        <div class="cbrand"><svg class="ic"><use href="#i-grenouille"/></svg> Mme Reynes</div>
         <p class="ctag">Cours, travaux pratiques et ressources de Sciences de la Vie et de la Terre au lycée.</p>
       </div>
       <div>
@@ -735,7 +739,7 @@ footer.site .fwm{ position:absolute; inset-inline:0; bottom:-1.5rem; z-index:0; 
 
 <div id="navmenu" role="dialog" aria-modal="true" aria-label="Menu">
   <div class="shell top">
-    <div class="nbrand"><svg class="ic"><use href="#i-logo"/></svg> Mme Reynes</div>
+    <div class="nbrand"><svg class="ic"><use href="#i-grenouille"/></svg> Mme Reynes</div>
     <button class="closeb" id="closemenu"><svg class="ic"><use href="#i-x"/></svg> Fermer</button>
   </div>
   <nav class="shell" aria-label="Overlay"><ul id="navlist"></ul></nav>
