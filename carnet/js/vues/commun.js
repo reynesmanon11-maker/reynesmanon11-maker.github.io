@@ -1,0 +1,117 @@
+// Morceaux d'affichage partagés : pastille de classe, horaires, contenu prévu d'un créneau,
+// carte de cours (utilisée par l'accueil et la semaine).
+import { html, icone } from '../ui.js';
+import { calc, nomClasse, niveauClasse, couleurNiveau } from '../etat.js';
+import { heureDe, heureLisible, dateCourte } from '../dates.js';
+import { reprise, jusqua, seancesLisible } from '../moteur.js';
+
+export function pastille(code, extra = '') {
+  const { v } = calc();
+  return html`<span class="classe-pastille" style="--niv:${couleurNiveau(niveauClasse(code, v), v)}">${nomClasse(code, v)}${extra ? ` ${extra}` : ''}</span>`;
+}
+
+export const styleNiveau = (code) => { const { v } = calc(); return `--niv:${couleurNiveau(niveauClasse(code, v), v)}`; };
+
+/** « 9h20–10h15 », ou pour des demi-groupes « 9h20 P2 · 10h35 P1 ». */
+export function horaires(cr) {
+  const { fuseau } = calc();
+  const h = (d) => heureLisible(heureDe(d, fuseau));
+  if (cr.demi && cr.parties.length > 1) return cr.parties.map((p) => `${h(p.debut)} ${p.groupe}`).join(' · ');
+  const g = cr.demi && cr.groupes.length ? ` ${cr.groupes.join('')}` : '';
+  return `${h(cr.debut)}–${h(cr.fin)}${g}`;
+}
+
+/** Ce qui est prévu, ou ce qui a été fait, dans un créneau. */
+export function segments(cr, { court = false } = {}) {
+  const { v, plan } = calc();
+  const pc = plan.parCreneau[cr.cle] || null;
+  if (!pc) return html`<p class="vide petit">Classe non suivie</p>`;
+  if (pc.etat === 'annule') return html`<p class="vide petit">${cr.statut || 'Cours annulé'} : la suite glisse au cours suivant.</p>`;
+  if (pc.etat === 'couvert') return html`<p class="vide petit">Non validé — couvert par un point d'arrêt plus récent.</p>`;
+  const lignes = [];
+  if (pc.segments.some((s) => s.recul)) lignes.push(html`<div class="segment"><span class="quoi">Retour en arrière dans la file</span></div>`);
+  for (const s of pc.segments.filter((x) => !x.recul)) {
+    const e = v.etapes[s.eid] || { titre: '(étape supprimée)' };
+    const r = reprise(s, e), j = jusqua(s, e);
+    let ou = '';
+    if (pc.etat === 'valide') ou = j.fin ? (r.debut ? '' : `depuis ${r.texte}`) : `jusqu'à ${j.texte}`;
+    else if (!r.debut) ou = `reprendre à ${r.texte}${j.fin ? '' : ` → ${j.texte}`}`;
+    else if (!j.fin) ou = `jusqu'à ${j.texte}`;
+    lignes.push(html`<div class="segment${e.eval ? ' eval' : ''}">
+      <span class="quoi">${e.eval ? '✎ ' : ''}${e.titre}${ou && !court ? html` <span class="ou">· ${ou}</span>` : ''}</span>
+      <span class="part">${pc.etat === 'valide' ? 'fait' : seancesLisible(s.h)}</span></div>`);
+    if (court && ou) lignes.push(html`<div class="segment"><span class="ou">${ou}</span></div>`);
+  }
+  if (pc.etat === 'valide' && !pc.segments.length) lignes.push(html`<div class="segment libre"><span class="quoi">Rien d'avancé dans la file</span></div>`);
+  if (pc.etat === 'prevu' && pc.libre > 0.01) {
+    lignes.push(html`<div class="segment libre"><span class="quoi">${pc.libre >= 0.99 ? 'Rien de prévu : séance à préparer' : 'Temps restant à préparer'}</span><span class="part">${seancesLisible(pc.libre)}</span></div>`);
+  }
+  return html`<div class="cours-plan">${lignes}</div>`;
+}
+
+/** Une étape prévue en demi-groupe qui tombe sur un cours en classe entière (ou l'inverse). */
+export function avertissementsFormat(cr) {
+  const { plan, v } = calc();
+  const pc = plan.parCreneau[cr.cle];
+  if (!pc || pc.etat !== 'prevu') return [];
+  const res = [];
+  for (const s of pc.segments) {
+    const e = v.etapes[s.eid];
+    if (!e) continue;
+    if (e.format === 'demi' && !cr.demi) res.push(`« ${e.titre} » est prévue en demi-groupe, mais ce cours est en classe entière.`);
+    if (e.format === 'entiere' && cr.demi) res.push(`« ${e.titre} » est prévue en classe entière, mais ce cours est en demi-groupes.`);
+  }
+  return res;
+}
+
+/** Étiquette d'état d'un créneau. */
+export function etiquetteEtat(cr) {
+  const { plan, maintenant } = calc();
+  const pc = plan.parCreneau[cr.cle];
+  if (!pc) return '';
+  if (pc.etat === 'annule') return html`<span class="etiquette rouge">${cr.statut || 'annulé'}</span>`;
+  if (pc.etat === 'valide') return html`<span class="etiquette ok">${icone('valider')} fait</span>`;
+  if (pc.aValider) return html`<span class="etiquette attente">à valider</span>`;
+  if (cr.debut <= maintenant && cr.fin > maintenant) return html`<span class="etiquette ok">en cours</span>`;
+  return '';
+}
+
+/** Carte d'un cours, avec le prévu, les annonces, le matériel et les boutons. */
+export function carteCours(cr, { date = false } = {}) {
+  const { plan, maintenant, v } = calc();
+  const pc = plan.parCreneau[cr.cle] || {};
+  const commence = cr.debut <= maintenant;
+  const annonces = plan.annonces[cr.cle] || [];
+  const alertes = plan.alertesEval[cr.cle] || [];
+  const aPrevoir = pc.etat === 'prevu' ? pc.segments.filter((s) => s.de < 1e-6).map((s) => v.etapes[s.eid]).filter((e) => e && (e.afaire || e.photocopies > 0)) : [];
+  const cl = v.classes[cr.code] || {};
+  return html`<li class="cours${cr.annule ? ' annule' : ''}${cr.fin <= maintenant ? ' passe' : ''}" style="${styleNiveau(cr.code)}">
+    <div class="cours-haut">
+      <span class="heure">${date ? `${dateCourte(cr.jour)} · ` : ''}${horaires(cr)}</span>
+      ${pastille(cr.code)}
+      ${cr.demi && cr.parties.length > 1 ? html`<span>½ groupes</span>` : ''}
+      ${cr.salle ? html`<span>salle ${cr.salle}</span>` : ''}
+      ${cr.accompagnants.length ? html`<span title="${cr.accompagnants.join(', ')}">${icone('personne')} AESH</span>` : ''}
+      ${cr.inclusions.length ? html`<span class="etiquette" title="${cr.inclusions.join(', ')}">ULIS</span>` : ''}
+      ${cr.partiel ? html`<span class="etiquette attente" title="Une moitié n'a pas eu cours">½ annulé</span>` : ''}
+      ${etiquetteEtat(cr)}
+    </div>
+    ${segments(cr)}
+    ${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}
+    ${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} <b>${a.tard ? 'Prévenir dès maintenant' : 'Annoncer'}</b> : ${a.titre}, ${dateCourte(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
+    ${alertes.map((a) => html`<div class="annonce tard"><span>${icone('alerte')} ${a.occasion ? html`Annonce de l'évaluation non cochée (à faire le ${dateCourte(a.occasion)}) : a-t-elle été faite ?` : "Évaluation sans cours avant pour l'annoncer."}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
+    ${aPrevoir.length ? html`<p class="aide">${icone('imprimante')} ${aPrevoir.map((e) => [e.photocopies > 0 ? `photocopies ${cl.effectif ? `${cl.effectif} × ${e.photocopies} p.` : `${e.photocopies} p./élève`}` : '', e.afaire].filter(Boolean).join(' · ')).join(' · ')}</p>` : ''}
+    ${pc.note ? html`<p class="aide">« ${pc.note} »</p>` : ''}
+    <div class="cours-actions">
+      ${!cr.annule && commence ? html`<button class="btn mini${pc.etat === 'valide' ? '' : ' plein'}" data-action="valider" data-cle="${cr.cle}">${icone('valider')} ${pc.etat === 'valide' ? 'Modifier' : 'Où en est-on ?'}</button>` : ''}
+      <button class="btn mini discret" data-action="ouvrir-creneau" data-cle="${cr.cle}">Détails</button>
+    </div>
+  </li>`;
+}
+
+/** Une ligne d'événement non pédagogique (réunion, rendez-vous perso, trou). */
+export function ligneEvenement(e, genre) {
+  const { fuseau } = calc();
+  const h = e.debut ? `${heureLisible(heureDe(e.debut, fuseau))}–${heureLisible(heureDe(e.fin, fuseau))}` : 'journée';
+  return html`<li class="evt ${genre}"><span class="heure">${h}</span><span>${e.titre}${genre === 'perso' && e.agenda ? html` <span class="aide">· ${e.agenda}</span>` : ''}</span></li>`;
+}

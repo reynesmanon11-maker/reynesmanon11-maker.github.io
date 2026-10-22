@@ -4,7 +4,7 @@
    Pages demande de la conserver dix minutes, et le disque la garde plus
    longtemps encore. Un simple rechargement ne suffit pas toujours. */
 /* =============================================================================
-   RACCOURCI VERS L'ESPACE DE GESTION
+   RACCOURCIS VERS L'ESPACE DE GESTION ET LE CARNET DE BORD
 
    L'espace de gestion est une page publique, mais elle ne sert à rien sans le
    jeton GitHub : c'est lui qui protège, pas un mot de passe — un mot de passe
@@ -16,6 +16,10 @@
 
    La première fois, sur un navigateur neuf, il faut taper l'adresse
    /gestion.html à la main : le raccourci apparaît ensuite tout seul.
+
+   Le second lien mène au Carnet de bord (/carnet/), l'appli qui tient
+   l'emploi du temps et le point d'arrêt de chaque classe : un outil
+   d'enseignante, lui aussi, que les élèves n'ont pas à voir.
    ============================================================================= */
 (function () {
   'use strict';
@@ -25,35 +29,41 @@
   try { connectee = !!localStorage.getItem(CLE); } catch (e) { /* stockage refusé */ }
   if (!connectee) return;
 
-  const LIEN = '/gestion.html';
-  const TEXTE = 'Gestion';
+  const LIENS = [
+    { href: '/gestion.html', texte: 'Gestion', classe: 'gestion' },
+    { href: '/carnet/', texte: 'Carnet', classe: 'carnet' },
+  ];
 
   /* Un point discret plutôt qu'une icône : la barre est déjà chargée, et ce
      lien ne s'adresse qu'à une seule personne. */
   const style = document.createElement('style');
   style.textContent = `
-    #hdr nav.primary a.gestion-lien > span{ opacity:1 !important; color:#2f6b45; font-weight:600 }
-    #hdr nav.primary a.gestion-lien > span::before{ content:''; width:.375rem; height:.375rem;
-      border-radius:9999px; background:#2f6b45; display:inline-block; margin-right:.125rem }
-    #navlist li.gestion-item a{ color:#2f6b45 }
+    #hdr nav.primary a.gestion-lien > span, #hdr nav.primary a.carnet-lien > span{
+      opacity:1 !important; color:#2f6b45; font-weight:600 }
+    #hdr nav.primary a.gestion-lien > span::before, #hdr nav.primary a.carnet-lien > span::before{
+      content:''; width:.375rem; height:.375rem; border-radius:9999px; background:#2f6b45;
+      display:inline-block; margin-right:.125rem }
+    #navlist li.gestion-item a, #navlist li.carnet-item a{ color:#2f6b45 }
   `;
   document.head.appendChild(style);
 
-  function poser() {
+  function poser() { LIENS.forEach(poserUn); }
+
+  function poserUn({ href: LIEN, texte: TEXTE, classe }) {
     /* barre du haut */
     const barre = document.querySelector('#hdr nav.primary ul');
-    if (barre && !barre.querySelector('.gestion-lien')) {
+    if (barre && !barre.querySelector(`.${classe}-lien`)) {
       const li = document.createElement('li');
-      li.innerHTML = `<a class="gestion-lien" href="${LIEN}"><span>${TEXTE}</span></a>`;
+      li.innerHTML = `<a class="${classe}-lien" href="${LIEN}"><span>${TEXTE}</span></a>`;
       barre.appendChild(li);
     }
     /* menu plein écran : sa liste est construite en JavaScript par la page,
        on attend donc qu'elle existe avant d'y ajouter la ligne. */
     const liste = document.getElementById('navlist');
-    if (liste && liste.children.length && !liste.querySelector('.gestion-item')) {
+    if (liste && liste.children.length && !liste.querySelector(`.${classe}-item`)) {
       const modele = liste.querySelector('li');
       const li = document.createElement('li');
-      li.className = (modele ? modele.className + ' ' : '') + 'gestion-item';
+      li.className = (modele ? modele.className.replace(/\b(gestion|carnet)-item\b/g, '').trim() + ' ' : '') + `${classe}-item`;
       const a = liste.querySelector('li a');
       li.innerHTML = a
         ? a.outerHTML.replace(/href="[^"]*"/, `href="${LIEN}"`).replace(/>[^<]*</, `>${TEXTE}<`)
@@ -77,7 +87,7 @@
   let essais = 0;
   const minuteur = setInterval(() => {
     poser();
-    const fini = document.querySelector('#navlist .gestion-item');
+    const fini = LIENS.every((l) => document.querySelector(`#navlist .${l.classe}-item`));
     if (fini || ++essais > 20) clearInterval(minuteur);
   }, 250);
 })();

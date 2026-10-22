@@ -53,12 +53,39 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
 | `outils/labo_vegetal.html` | laboratoire virtuel de biologie végétale (d'après R. Pratt) |
 | `outils/labo_geologie.html` | laboratoire virtuel de géologie (TP classiques du lycée) |
 | `outils/` | autres outils interactifs autonomes |
+| `carnet/` | **Carnet de bord** : l'appli d'organisation de l'enseignante (voir plus bas) |
 | `TODO.md` | file d'idées, pilotée par les tâches automatiques |
 
 ## Ce site est réservé aux élèves
 
 Rien de commercial ici : ni vente, ni prix, ni lien vers la future boutique.
 Les outils payants auront leur propre site, séparé, avec sa propre charte.
+
+## Le Carnet de bord (`carnet/`)
+
+Une appli à part entière — emploi du temps Pronote, vie perso, point d'arrêt de chaque classe —
+rangée dans le site pour avoir une adresse stable : <https://reynesmanon11-maker.github.io/carnet/>.
+C'est l'exception assumée à « réservé aux élèves » : un outil d'enseignante, gratuit, **sans
+aucun lien depuis les pages des élèves**. Seul `raccourci-gestion.js` l'affiche (« Carnet », à côté
+de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.html` dans sa barre.
+
+- **Exception à « un outil = un seul fichier »** : plusieurs modules (`carnet/js/`), toujours
+  sans bibliothèque ni CDN, un service worker limité à `/carnet/`, sa propre charte (vert
+  `#2f7150`, fond `#f3f6f1`). Sa documentation est dans `carnet/README.md` et `carnet/docs/`.
+- **Tests avant toute publication qui touche `carnet/`**, depuis ce dossier : `npm test` (Node),
+  puis `NODE_PATH=/opt/node22/lib/node_modules CHROMIUM=/opt/pw-browsers/chromium npm run
+  test:navigateur` (parcours dans Chromium, dont un faux Google).
+- À chaque publication qui change un fichier de `carnet/`, changer `VERSION` dans `carnet/sw.js` :
+  sinon les appareils où le Carnet est installé gardent l'ancienne version.
+- `carnet/config.js` porte l'identifiant Google (pas secret), l'adresse publique et le nom de la
+  responsable. Jamais de secret dans ce dépôt public ; les données des utilisateurs n'y passent
+  jamais (elles restent sur leur appareil et dans leur propre Google Drive).
+- `carnet/brancher-google.html` doit lister exactement les autorisations de `carnet/js/google.js`
+  (un test le vérifie).
+- Le site passe par Jekyll : les `.md` de `carnet/` deviennent des pages. Pas de `{{` ni de `{%`
+  dedans.
+- Ne pas confondre avec l'ancien « Carnet de bord SVT » (page claude.ai et tâche du matin « Mise
+  à jour du carnet SVT ») : il tourne encore jusqu'à ce que le nouveau soit branché à Google.
 
 ## Conventions
 

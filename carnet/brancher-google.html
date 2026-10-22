@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr" data-theme="light" data-accent="vert">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activer la connexion Google · Carnet de bord</title>
+<meta name="description" content="Pas à pas, une seule fois : créer l'identifiant Google du Carnet de bord.">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; base-uri 'self'; form-action 'none'">
+<link rel="icon" href="icones/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<script src="js/avant.js"></script>
+<script type="module" src="js/guide.js"></script>
+</head>
+<body class="guide">
+<header class="entete"><div class="entete-int"><a class="marque" href="./"><img src="icones/icone.svg" alt=""><span>Carnet de bord</span></a></div></header>
+<main>
+  <div class="titre-page"><div><h1>Activer la connexion Google</h1>
+    <p>Une seule fois, par la personne qui publie le Carnet — pas par chaque collègue. Une vingtaine de minutes, gratuit.</p></div></div>
+
+  <section class="carte section-feuille">
+    <h2>Avant de commencer</h2>
+    <p>Le Carnet a besoin d'un <b>identifiant Google</b> : c'est lui qui permet à chacun de se connecter avec son propre compte, de lire son agenda Pronote et d'y écrire ses cours. Cet identifiant se crée dans la console Google Cloud, avec le compte Google qui « possédera » l'appli.</p>
+    <p class="aide">Les écrans de Google changent parfois de nom ; les liens ci-dessous mènent directement au bon endroit. Si la console est en anglais, le nom anglais est indiqué entre parenthèses.</p>
+  </section>
+
+  <ol class="guide-etapes">
+    <li class="carte section-feuille">
+      <h2>Créer le projet</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/projectcreate" target="_blank" rel="noopener">Ouvrir : nouveau projet</a></p>
+      <p>Nom du projet : <code id="v-projet">Carnet de bord</code> <button class="btn mini" data-copier="v-projet">Copier</button>, puis <b>Créer</b>. Vérifiez ensuite, en haut de la console, que ce projet est bien celui qui est sélectionné.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Activer l'Agenda et Drive</h2>
+      <p class="outils"><a class="btn" href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com" target="_blank" rel="noopener">Google Calendar API</a>
+        <a class="btn" href="https://console.cloud.google.com/apis/library/drive.googleapis.com" target="_blank" rel="noopener">Google Drive API</a></p>
+      <p>Sur chacune des deux pages : <b>Activer</b> (<i>Enable</i>).</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Décrire l'appli</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/auth/overview" target="_blank" rel="noopener">Ouvrir : Google Auth Platform</a> → <b>Commencer</b> (<i>Get started</i>)</p>
+      <ul class="pas">
+        <li>Nom de l'application : <code id="v-nom">Carnet de bord</code> <button class="btn mini" data-copier="v-nom">Copier</button> ; adresse e-mail d'assistance : la vôtre.</li>
+        <li>Audience : <b>Externe</b> (<i>External</i>).</li>
+        <li>Coordonnées : votre adresse. Acceptez les conditions, puis <b>Créer</b>.</li>
+      </ul>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Image de marque</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/auth/branding" target="_blank" rel="noopener">Ouvrir : Branding</a></p>
+      <ul class="pas">
+        <li>Page d'accueil de l'application : <code id="v-accueil">https://reynesmanon11-maker.github.io/carnet/</code> <button class="btn mini" data-copier="v-accueil">Copier</button></li>
+        <li>Règles de confidentialité : <code id="v-confidentialite">https://reynesmanon11-maker.github.io/carnet/confidentialite.html</code> <button class="btn mini" data-copier="v-confidentialite">Copier</button></li>
+        <li>Domaine autorisé : <code id="v-domaine">reynesmanon11-maker.github.io</code> <button class="btn mini" data-copier="v-domaine">Copier</button></li>
+      </ul>
+      <p>Puis <b>Enregistrer</b>. Pas de logo pour l'instant : en ajouter un demande une vérification par Google.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Autorisations demandées</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/auth/scopes" target="_blank" rel="noopener">Ouvrir : Accès aux données</a> (<i>Data Access</i>) → <b>Ajouter ou supprimer des niveaux d'accès</b></p>
+      <p>Tout en bas, dans <b>Ajouter manuellement</b> (<i>Manually add scopes</i>), collez :</p>
+      <pre class="pronote-texte" id="v-portees">openid
+https://www.googleapis.com/auth/userinfo.email
+https://www.googleapis.com/auth/calendar.calendarlist.readonly
+https://www.googleapis.com/auth/calendar.events.readonly
+https://www.googleapis.com/auth/calendar.app.created
+https://www.googleapis.com/auth/drive.appdata</pre>
+      <p><button class="btn mini" data-copier="v-portees">Copier la liste</button> puis <b>Ajouter au tableau</b>, <b>Mettre à jour</b> et <b>Enregistrer</b>.</p>
+      <p class="aide">Ce que chacune permet, et ce qu'elle ne permet pas : voir la <a href="confidentialite.html">page de confidentialité</a>.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Qui peut se connecter</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/auth/audience" target="_blank" rel="noopener">Ouvrir : Audience</a> → <b>Utilisateurs test</b> (<i>Test users</i>) → <b>Ajouter des utilisateurs</b></p>
+      <p>Votre adresse Gmail d'abord, puis celles des collègues qui essaient (100 au plus). Laissez l'appli <b>en test</b> : l'ouvrir à tous demande une vérification par Google, plus tard.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>L'identifiant</h2>
+      <p><a class="btn" href="https://console.cloud.google.com/auth/clients/create" target="_blank" rel="noopener">Ouvrir : créer un client</a></p>
+      <ul class="pas">
+        <li>Type d'application : <b>Application Web</b> (<i>Web application</i>) ; nom : <code id="v-client">Carnet de bord</code> <button class="btn mini" data-copier="v-client">Copier</button></li>
+        <li>Origines JavaScript autorisées : <code id="v-origine">https://reynesmanon11-maker.github.io</code> <button class="btn mini" data-copier="v-origine">Copier</button></li>
+        <li>URI de redirection autorisés : <code id="v-retour">https://reynesmanon11-maker.github.io/carnet/</code> <button class="btn mini" data-copier="v-retour">Copier</button></li>
+      </ul>
+      <p>Puis <b>Créer</b>. Google affiche l'<b>ID client</b>, qui se termine par <code>.apps.googleusercontent.com</code> : copiez-le.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Le donner au Carnet</h2>
+      <p>Envoyez l'ID client à Claude, qui l'installe. Ou collez-le vous-même, entre les apostrophes de la ligne <code>googleClientId: ''</code> du fichier <code>config.js</code>, puis validez (<i>Commit changes</i>) :</p>
+      <p><a class="btn" id="lien-config" href="https://github.com/reynesmanon11-maker/reynesmanon11-maker.github.io/edit/main/carnet/config.js" target="_blank" rel="noopener">Ouvrir config.js sur GitHub</a></p>
+      <p class="aide">Cet identifiant n'est pas secret : une appli web le montre forcément. Ce qui protège, c'est la liste des origines autorisées de l'étape précédente.</p>
+    </li>
+    <li class="carte section-feuille">
+      <h2>Essayer</h2>
+      <p>Deux minutes plus tard, ouvrez le Carnet : le bouton <b>Avec mon compte Google</b> est actif. Google prévient que l'appli n'est pas vérifiée : <b>Paramètres avancés</b>, puis <b>Accéder à Carnet de bord</b>.</p>
+      <p><a class="btn plein" href="./">Ouvrir le Carnet</a></p>
+    </li>
+  </ol>
+</main>
+</body>
+</html>

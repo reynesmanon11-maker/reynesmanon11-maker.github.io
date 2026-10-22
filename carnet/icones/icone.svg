@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Carnet de bord">
+  <!-- Un carnet vert du labo, un signet, et trois lignes dont la dernière cochée : où l'on s'est arrêté. -->
+  <rect width="512" height="512" rx="112" fill="#2f7150"/>
+  <rect x="128" y="96" width="256" height="320" rx="34" fill="#f3f6f1"/>
+  <rect x="128" y="96" width="44" height="320" rx="22" fill="#d9e6dc"/>
+  <path d="M318 96h40v118l-20-16-20 16Z" fill="#a8660f"/>
+  <rect x="200" y="170" width="92" height="20" rx="10" fill="#7d9b88"/>
+  <rect x="200" y="226" width="136" height="20" rx="10" fill="#7d9b88"/>
+  <path d="m204 300 26 26 52-56" fill="none" stroke="#2f7150" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,104 @@
+{
+  "name": "Carnet de bord",
+  "short_name": "Carnet",
+  "description": "Emploi du temps Pronote, agenda perso et progression de chaque classe, au même endroit.",
+  "lang": "fr",
+  "dir": "ltr",
+  "id": "./",
+  "start_url": "./#/accueil",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f3f6f1",
+  "theme_color": "#2f7150",
+  "categories": [
+    "education",
+    "productivity"
+  ],
+  "icons": [
+    {
+      "src": "icones/icone.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "icones/icone-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icones/icone-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icones/icone-masquable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Semaine",
+      "url": "./#/semaine",
+      "icons": [
+        {
+          "src": "icones/icone-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Classes",
+      "url": "./#/classes",
+      "icons": [
+        {
+          "src": "icones/icone-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "À faire",
+      "url": "./#/taches",
+      "icons": [
+        {
+          "src": "icones/icone-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "captures/accueil-telephone.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Les cours du jour, et ce qui reste à valider"
+    },
+    {
+      "src": "captures/valider-telephone.png",
+      "sizes": "780x1688",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Où en est-on ? Le point d'arrêt d'un toucher"
+    },
+    {
+      "src": "captures/accueil-ordinateur.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Le tableau de bord sur ordinateur"
+    },
+    {
+      "src": "captures/semaine-ordinateur.png",
+      "sizes": "1280x800",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "La semaine : cours, établissement et vie perso"
+    }
+  ],
+  "prefer_related_applications": false
+}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="fr" data-theme="light" data-accent="vert">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Confidentialité · Carnet de bord</title>
+<meta name="description" content="Ce que le Carnet de bord fait, et ne fait pas, de vos données.">
+<link rel="icon" href="icones/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/app.css">
+<script src="js/avant.js"></script>
+</head>
+<body>
+<header class="entete"><div class="entete-int"><a class="marque" href="./"><img src="icones/icone.svg" alt=""><span>Carnet de bord</span></a></div></header>
+<main>
+  <div class="titre-page"><div><h1>Confidentialité</h1><p>Ce que le Carnet de bord fait, et ne fait pas, de vos données. Version du 22 octobre 2026.</p></div></div>
+  <section class="carte section-feuille">
+    <h2>En bref</h2>
+    <ul>
+      <li>Le Carnet de bord <b>n'a pas de serveur</b> : il n'envoie vos données à personne d'autre que Google, et seulement si vous connectez votre compte Google.</li>
+      <li>Il ne lit que l'<b>emploi du temps</b> exporté par Pronote (lien iCal). Il ne demande jamais votre mot de passe Pronote et ne lit ni notes, ni absences, ni élèves.</li>
+      <li><b>Aucune donnée d'élève</b> n'est demandée ni enregistrée.</li>
+      <li>Il ne contient <b>aucun traceur</b>, aucune publicité, aucune mesure d'audience.</li>
+    </ul>
+  </section>
+  <section class="carte section-feuille">
+    <h2>Ce qui est enregistré, et où</h2>
+    <p><b>Sur votre appareil</b> (stockage du navigateur) : vos classes, vos étapes de progression, vos points d'arrêt, vos tâches et notes, vos réglages, et une copie de l'emploi du temps lu, pour que l'appli fonctionne hors connexion.</p>
+    <p><b>Dans votre Google Drive</b>, si vous connectez Google : une copie des mêmes données, dans un dossier caché réservé à l'appli (« appDataFolder »), pour les retrouver sur vos autres appareils. Ce dossier n'est visible que par le Carnet de bord ; vous pouvez le supprimer depuis Google Drive (Paramètres → Gérer les applications).</p>
+    <p>L'emploi du temps contient les noms des classes, des salles, de l'enseignant et, le cas échéant, d'adultes accompagnants (AESH), tels que Pronote les exporte.</p>
+  </section>
+  <section class="carte section-feuille">
+    <h2>Les autorisations Google</h2>
+    <ul>
+      <li><b>Voir la liste de vos agendas</b> et <b>lire leurs événements</b> : pour trouver l'agenda de Pronote et afficher, si vous le choisissez, vos rendez-vous personnels à côté des cours. Le Carnet ne peut ni les modifier ni les supprimer.</li>
+      <li><b>Créer ses propres agendas</b> (« Carnet · 6e », « Carnet · Établissement »…) et y écrire : vos cours avec ce qui est prévu. Il n'écrit nulle part ailleurs.</li>
+      <li><b>Un dossier caché dans Google Drive</b>, propre à l'appli : voir plus haut. Le Carnet n'a accès à aucun autre fichier de votre Drive.</li>
+      <li>Votre <b>adresse e-mail</b>, pour vous montrer avec quel compte vous êtes connecté.</li>
+    </ul>
+    <p>Le jeton d'accès Google reste en mémoire pendant une heure au plus ; il n'est pas enregistré sur l'appareil. L'utilisation des données issues des API Google respecte la <a href="https://developers.google.com/terms/api-services-user-data-policy" rel="noopener">politique relative aux données utilisateur des services API Google</a>, y compris ses exigences d'utilisation limitée.</p>
+  </section>
+  <section class="carte section-feuille">
+    <h2>Effacer ses données</h2>
+    <ul>
+      <li>Sur un appareil : Réglages → « Tout effacer sur cet appareil ».</li>
+      <li>Dans Google Agenda : Réglages → « Retirer du Google Agenda tout ce que le Carnet a écrit ».</li>
+      <li>Dans Google Drive : Paramètres → Gérer les applications → Carnet de bord → Supprimer les données cachées.</li>
+      <li>Retirer l'accès : <a href="https://myaccount.google.com/permissions" rel="noopener">myaccount.google.com/permissions</a>.</li>
+    </ul>
+  </section>
+  <section class="carte section-feuille">
+    <h2>Contact</h2>
+    <!-- À COMPLÉTER avant publication : l'adresse de contact que vous voulez rendre publique. -->
+    <p>Éditrice : Manon Reynes, professeure de SVT. Pour toute question sur vos données : <b>[adresse de contact à indiquer]</b>.</p>
+  </section>
+  <p><a class="btn" href="./">← Retour au Carnet</a></p>
+</main>
+</body>
+</html>

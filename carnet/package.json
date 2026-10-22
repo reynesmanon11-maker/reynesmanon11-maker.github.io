@@ -1,0 +1,15 @@
+{
+  "name": "carnet-de-bord",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "Emploi du temps Pronote, agenda perso et progression de chaque classe, au même endroit.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:navigateur": "node tests/e2e.mjs && node tests/google.e2e.mjs",
+    "lancer": "node tests/lancer.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
