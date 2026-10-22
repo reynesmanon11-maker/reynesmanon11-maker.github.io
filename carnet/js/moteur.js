@@ -130,7 +130,7 @@ export function reprise(seg, etape) {
   const J = jalonsDe(etape), n = J.length;
   if (seg.de < EPS) return { debut: true, texte: 'début' };
   if (n) { const k = Math.min(n - 1, Math.floor(seg.de * n + EPS)); return { texte: J[k], jalon: k }; }
-  return { texte: `à ${fractionLisible(seg.de)}` };
+  return { texte: fractionLisible(seg.de) };
 }
 
 /** Jusqu'où va un segment qui s'arrête à la fraction « a ». */

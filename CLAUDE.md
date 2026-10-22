@@ -82,8 +82,9 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   jamais (elles restent sur leur appareil et dans leur propre Google Drive).
 - `carnet/brancher-google.html` doit lister exactement les autorisations de `carnet/js/google.js`
   (un test le vérifie).
-- Le site passe par Jekyll : les `.md` de `carnet/` deviennent des pages. Pas de `{{` ni de `{%`
-  dedans.
+- Le site passe par Jekyll, qui lit **tous** les `.md` du dépôt (ce fichier compris) comme des
+  modèles : une double accolade ouvrante, ou une accolade suivie d'un pourcentage, y fait échouer
+  la publication du site entier. Ne jamais en écrire, même entre accents graves.
 - Ne pas confondre avec l'ancien « Carnet de bord SVT » (page claude.ai et tâche du matin « Mise
   à jour du carnet SVT ») : il tourne encore jusqu'à ce que le nouveau soit branché à Google.
 

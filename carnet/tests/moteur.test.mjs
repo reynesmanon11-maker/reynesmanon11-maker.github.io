@@ -124,7 +124,7 @@ test('libellés', () => {
   assert.deepEqual(pointsArret(etapes.A).map((p) => p.libelle), ['Pas commencée', 'Situation', 'Hypothèses', 'Protocole', 'Bilan']);
   assert.deepEqual(pointsArret(etapes.B).map((p) => p.f), [0, 0.25, 0.5, 0.75, 1]);
   assert.deepEqual(jusqua({ de: 0, a: 0.5 }, etapes.A), { texte: 'Hypothèses', jalon: 1 });
-  assert.deepEqual(reprise({ de: 0.5 }, etapes.B), { texte: 'à ½' });
+  assert.deepEqual(reprise({ de: 0.5 }, etapes.B), { texte: '½' }); // affiché « reprendre à ½ »
 });
 
 test('positions et arrêts : aller-retour, étape supprimée', () => {
