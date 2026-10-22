@@ -3,7 +3,7 @@
 // ne fait pas : c'est un collègue qui découvre l'outil qui le lit, pas son auteur.
 import { actions, changements, envois } from '../actions.js';
 import { html, icone, toast, ouvrirFeuille, fermerFeuille } from '../ui.js';
-import { etat, calc, reglerLocal, remplacerDocs, fusionnerDocs, ecrireDoc, modifierReglages, reglages, definirBrut, classesDetectees, definirSynchro } from '../etat.js';
+import { etat, calc, reglerLocal, remplacerDocs, fusionnerDocs, importerDocs, ecrireDoc, modifierReglages, reglages, definirBrut, classesDetectees, definirSynchro } from '../etat.js';
 import { evenementsDemo, donneesDemo, validationsDemo } from '../demo.js';
 import { importer } from '../donnees.js';
 import { estLienIcal, estQrConnexionPronote } from '../pronote.js';
@@ -361,8 +361,8 @@ changements['fichier-progression'] = async (el) => {
   if (!f) return;
   try {
     const { docs, origine } = importer(await f.text());
-    fusionnerDocs(docs);
-    toast(origine === 'carnet-claude' ? 'Carnet SVT importé : files, validations et tâches.' : 'Sauvegarde importée.');
+    importerDocs(docs);
+    toast(origine === 'carnet-claude' ? 'Carnet SVT importé : files, validations et tâches.' : 'Progression importée.');
     terminer();
   } catch (e) { toast(e.message); }
 };

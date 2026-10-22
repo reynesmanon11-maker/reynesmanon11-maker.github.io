@@ -71,6 +71,39 @@ export function importer(texte, maintenant = Date.now()) {
 }
 
 /**
+ * Ajoute un import aux données de l'appareil. Ce n'est pas une synchronisation : ce que l'on
+ * importe a souvent été écrit avant (une sauvegarde d'hier, l'export de l'ancien carnet), et doit
+ * pourtant l'emporter, sans effacer ce que l'on vient de régler ici. Document par document :
+ *   - réglages : ceux d'ici restent (l'agenda de Pronote, ce qui s'écrit dans Google…) ; l'import
+ *     ne fait que compléter ce qui manque, par exemple la date de début du suivi ;
+ *   - classes : la file d'étapes, le point de départ et les annonces viennent de l'import ; le
+ *     nom, le niveau, l'effectif et le masquage réglés ici restent ;
+ *   - étapes, validations, tâches, notes : l'import l'emporte.
+ * Une suppression importée ne supprime rien. Tout est daté de « maintenant », pour l'emporter
+ * aussi sur les autres appareils à la prochaine synchronisation.
+ */
+export function fusionImport(local = {}, importes = {}, maintenant = Date.now()) {
+  const res = { ...local };
+  for (const [chemin, doc] of Object.entries(importes)) {
+    if (!doc || doc._x) continue;
+    const ici = local[chemin] && !local[chemin]._x ? local[chemin] : null;
+    let fusion = { ...doc };
+    if (ici && chemin === 'reglages') fusion = { ...doc, ...ici };
+    else if (ici && chemin.startsWith('classes/')) {
+      fusion = {
+        ...doc, ...ici,
+        file: doc.file || ici.file || [], depart: doc.depart || ici.depart,
+        annonces: { ...(ici.annonces || {}), ...(doc.annonces || {}) },
+        effectif: Number(ici.effectif) || Number(doc.effectif) || 0,
+      };
+    }
+    delete fusion._x;
+    res[chemin] = { ...fusion, _m: maintenant };
+  }
+  return res;
+}
+
+/**
  * Le carnet de claude.ai notait, à chaque séance, la part faite de chaque étape. On rejoue
  * ces parts dans l'ordre du temps pour retrouver, après chaque séance, le point d'arrêt.
  */

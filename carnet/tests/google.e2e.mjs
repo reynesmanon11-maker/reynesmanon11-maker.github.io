@@ -36,14 +36,14 @@ const google = fauxGoogle({
 });
 
 const resultats = [], erreurs = [];
-async function appareil({ connexion = 'auto' } = {}) {
+async function appareil({ connexion = 'auto', g = google } = {}) {
   const ctx = await nav.newContext({ timezoneId: 'Europe/Paris', locale: 'fr-FR', viewport: { width: 1280, height: 900 }, serviceWorkers: 'block' });
-  await google.brancher(ctx);
+  await g.brancher(ctx);
   // L'identifiant de test, l'adresse du serveur de test (et non celle du site), la méthode de connexion.
   await ctx.route('**/config.js', async (r) => {
     const rep = await r.fetch();
     r.fulfill({ response: rep, body: (await rep.text())
-      .replace("googleClientId: ''", "googleClientId: 'test.apps.googleusercontent.com'")
+      .replace(/googleClientId: '[^']*'/, "googleClientId: 'test.apps.googleusercontent.com'")
       .replace(/urlPublique: '[^']*'/, "urlPublique: ''")
       .replace("connexion: 'auto'", `connexion: '${connexion}'`) });
   });
@@ -213,6 +213,50 @@ await etape('un faux retour de Google, sans le numéro tiré au départ, est ign
   assert.equal(await p4.evaluate(async () => (await import('./js/google.js')).connecte()), false);
   assert.doesNotMatch(await p4.evaluate(() => location.href), /jeton-test-pirate/);
   await ctx4.close();
+});
+
+await etape('mise en route avec l’import de l’ancien carnet : étapes importées, réglages d’ici gardés', async () => {
+  // Un autre compte, tout neuf : rien dans son Drive, la mise en route va jusqu'au bout.
+  const autre = fauxGoogle({ agendas: {
+    'prof.test@gmail.com': { summary: 'prof.test@gmail.com', primary: true, accessRole: 'owner', evenements: [] },
+    'pronote123@import.calendar.google.com': { summary: 'Calendrier - DURAND M.', description: 'Calendrier DURAND M. généré par le logiciel PRONOTE (©INDEX ÉDUCATION)', accessRole: 'reader', evenements: pronote },
+  } });
+  const ancien = {
+    seances: {
+      'c5-act5': { titre: 'Activité 5 – Le Soleil et la Terre', duree: 1, niveau: '5e', format: 'indiff' },
+      'c5-eval': { titre: 'Évaluation chapitres 1 et 2', duree: 0.25, niveau: '5e', eval: true, format: 'entiere' },
+    },
+    classes: { '5G1': { nom: '501', file: [{ u: 'a1', sid: 'c5-act5', fait: 0.5 }, { u: 'a2', sid: 'c5-eval', fait: 0 }] } },
+    journal: {},
+    reglages: { general: { debut: '2026-11-02' } },
+  };
+  const { ctx: c5, p: p5 } = await appareil({ g: autre });
+  await p5.goto(URL);
+  await p5.getByRole('button', { name: /Avec mon compte Google/ }).click();
+  await p5.getByRole('button', { name: /Se connecter avec Google/ }).click();
+  await p5.waitForSelector('input[name="agenda-pronote"]');
+  await p5.getByRole('button', { name: 'Continuer' }).click();
+  await p5.waitForSelector('#form-classes');
+  await p5.fill('input[name="effectif-5G1"]', '28');
+  await p5.getByRole('button', { name: 'Continuer' }).click();
+  await p5.waitForSelector('input[name="mode-ecriture"][value="niveau"]:checked');
+  await p5.getByRole('button', { name: 'Continuer' }).click();
+  await p5.waitForSelector('input[name="perso"]');
+  await p5.getByRole('button', { name: 'Continuer' }).click();
+  await p5.setInputFiles('input[data-change="fichier-progression"]', { name: 'carnet-svt.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(ancien)) });
+  await p5.waitForSelector('.module');
+  await synchroFinie(p5);
+  const d = await p5.evaluate(async () => {
+    const { calc, reglages } = await import('./js/etat.js');
+    const c = calc(), r = reglages();
+    return { file: c.v.classes['5G1'].file.length, effectif: c.v.classes['5G1'].effectif, pronote: (r.source || {}).agendaPronote, debut: r.debut, ecrire: (r.ecriture || {}).actif };
+  });
+  assert.deepEqual(d, { file: 2, effectif: 28, pronote: 'pronote123@import.calendar.google.com', debut: '2026-11-02', ecrire: true });
+  const ecrits = Object.values(autre.etat.agendas).filter((a) => a.creeParAppli).flatMap((a) => a.evenements);
+  const e501 = ecrits.find((e) => e.extendedProperties.private.cle.startsWith('5G1_20261103'));
+  assert.ok(e501, 'le cours de la 501 du mardi 3 novembre est écrit');
+  assert.match(e501.summary, /^501 · Activité 5 – Le Soleil et la Terre · reprendre à ½/);
+  await c5.close();
 });
 
 await ctx1.close();

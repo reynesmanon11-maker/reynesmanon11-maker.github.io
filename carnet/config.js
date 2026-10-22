@@ -3,7 +3,7 @@
 export const CONFIG = {
   // Identifiant OAuth « Application Web » de la console Google Cloud. Il n'est pas secret :
   // une appli web le montre forcément ; c'est la liste des origines autorisées qui protège.
-  googleClientId: '',
+  googleClientId: '505884320884-v1nfced1bhgupeqfolrbtldfg4mesc58.apps.googleusercontent.com',
   // Adresse publique de l'appli : liens « Où en est-on ? » écrits dans Google Agenda, retour de la
   // connexion Google, lien et QR code de partage. Vide : l'adresse de la page en cours.
   urlPublique: 'https://reynesmanon11-maker.github.io/carnet/',
@@ -18,5 +18,5 @@ export const CONFIG = {
   connexion: 'auto',
   // Page de présentation : ouvre directement la démo au lieu de la mise en route.
   apercu: false,
-  version: '0.2.0',
+  version: '0.2.1',
 };

@@ -3,7 +3,7 @@
 //   local  : les préférences de CET appareil (thème, disposition du tableau de bord, mode)
 //   brut   : les derniers événements lus (Pronote, agendas perso), gardés pour le hors-ligne
 import { lire, ecrire as ecrireStockage } from './stockage.js';
-import { vue, fusionner, purger } from './donnees.js';
+import { vue, fusionner, purger, fusionImport } from './donnees.js';
 import { interpreter, deduireNoms, niveauDe } from './pronote.js';
 import { construireCreneaux, planifier, coupures, dureeSeanceProbable } from './moteur.js';
 import { FUSEAU_APPAREIL, aujourdhui, lundiDe, jourDe } from './dates.js';
@@ -99,6 +99,14 @@ export function supprimerDoc(chemin) {
 export function fusionnerDocs(autres) {
   etat.docs = purger(fusionner(etat.docs, autres));
   sauver(); changer();
+}
+
+/** Un import choisi par l'utilisateur : voir fusionImport. */
+export function importerDocs(importes) {
+  etat.docs = purger(fusionImport(etat.docs, importes));
+  etat.sale = true;
+  sauver(); changer();
+  if (surModification.appel) surModification.appel('import');
 }
 
 export function remplacerDocs(docs) {

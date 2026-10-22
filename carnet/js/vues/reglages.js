@@ -2,7 +2,7 @@
 // progression, données (sauvegarde, import, effacement), et ce que l'appli fait de vos données.
 import { actions, changements } from '../actions.js';
 import { html, icone, toast, telecharger, ouvrirFeuille, fermerFeuille } from '../ui.js';
-import { etat, calc, reglerLocal, reglages, modifierReglages, fusionnerDocs, remplacerDocs, definirBrut, definirSynchro } from '../etat.js';
+import { etat, calc, reglerLocal, reglages, modifierReglages, importerDocs, remplacerDocs, definirBrut, definirSynchro } from '../etat.js';
 import { exporter, importer } from '../donnees.js';
 import { effacerTout } from '../stockage.js';
 import { dateCourte, heureDe, heureLisible, jourDe } from '../dates.js';
@@ -87,7 +87,7 @@ export function rendreReglages() {
         <label class="btn">${icone('televerser')} Importer<input type="file" accept=".json,application/json" data-change="importer" class="visuellement-cache"></label>
         <button class="btn danger" data-action="tout-effacer">Tout effacer sur cet appareil</button>
       </div>
-      <p class="aide">« Importer » accepte une sauvegarde du Carnet, l'export du « Carnet de bord SVT » de claude.ai, ou la progression d'un collègue ; ce qui est importé s'ajoute, le plus récent l'emporte.</p>
+      <p class="aide">« Importer » accepte une sauvegarde du Carnet, l'export du « Carnet de bord SVT » de claude.ai, ou la progression d'un collègue. Les étapes et les validations importées remplacent celles d'ici ; vos réglages, et le nom et l'effectif de vos classes, restent.</p>
     </section>
 
     <section class="carte section-feuille"><h2>Ce que le Carnet fait de vos données</h2>
@@ -160,7 +160,7 @@ changements['importer'] = async (el) => {
   if (!f) return;
   try {
     const { docs, origine } = importer(await f.text());
-    fusionnerDocs(docs);
+    importerDocs(docs);
     toast(origine === 'carnet-claude' ? 'Carnet SVT importé.' : 'Sauvegarde importée.');
   } catch (e) { toast(e.message); }
   el.value = '';

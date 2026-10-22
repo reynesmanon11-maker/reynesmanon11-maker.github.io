@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { fusionner, purger, vue, importer, exporter, identiques } from '../js/donnees.js';
+import { fusionner, fusionImport, purger, vue, importer, exporter, identiques } from '../js/donnees.js';
 
 test('fusion : document par document, le plus récent gagne', () => {
   const tel = { 'classes/5G1': { nom: '501', _m: 10 }, 'journal/x': { arret: { u: 'a', f: 0.5 }, _m: 30 } };
@@ -71,4 +71,30 @@ test('import du carnet de claude.ai : les parts faites deviennent des points d�
   assert.equal(v.coches.prep_x.fait, true);
   assert.equal(v.reglages.debut, '2026-11-02');
   assert.throws(() => importer('{"autre":1}'), /ni une sauvegarde/);
+});
+
+test('import pendant la mise en route : les étapes importées l’emportent, les réglages d’ici restent', () => {
+  // Ce que la mise en route vient d'écrire (à 1000) : l'agenda Pronote, et la 5G1 sans étapes.
+  const ici = {
+    reglages: { source: { agendaPronote: 'pronote@import.calendar.google.com' }, ecriture: { actif: true }, _m: 1000 },
+    'classes/5G1': { code: '5G1', nom: '501', niveau: '5e', effectif: 28, masquee: false, file: [], annonces: {}, _m: 1000 },
+  };
+  // Le fichier importé a été préparé avant (à 10) : il perdrait toutes les fusions ordinaires.
+  const fichier = {
+    reglages: { debut: '2026-11-02', _m: 10 },
+    'classes/5G1': { code: '5G1', nom: '501', niveau: '5e', effectif: 0, file: [{ u: 'a1', eid: 'e1' }], depart: { u: 'a1', f: 0, rang: 0 }, annonces: { e1: 'fait' }, _m: 10 },
+    'etapes/e1': { titre: 'Activité 5', duree: 1, _m: 10 },
+    'taches/vieille': { _x: 1, _m: 10 },
+  };
+  const r = fusionImport(ici, fichier, 2000);
+  assert.deepEqual(r.reglages.source, ici.reglages.source, 'l’agenda Pronote choisi reste');
+  assert.equal(r.reglages.ecriture.actif, true);
+  assert.equal(r.reglages.debut, '2026-11-02', 'la date de début vient compléter');
+  assert.deepEqual(r['classes/5G1'].file, [{ u: 'a1', eid: 'e1' }], 'la file importée');
+  assert.equal(r['classes/5G1'].depart.u, 'a1');
+  assert.equal(r['classes/5G1'].effectif, 28, 'l’effectif saisi ici reste');
+  assert.equal(r['etapes/e1'].titre, 'Activité 5');
+  assert.equal(r['taches/vieille'], undefined, 'une suppression importée ne supprime rien');
+  assert.ok(Object.values(r).every((d) => d._m === 1000 || d._m === 2000));
+  assert.equal(r['classes/5G1']._m, 2000, 'daté de maintenant, pour gagner aussi ailleurs');
 });
