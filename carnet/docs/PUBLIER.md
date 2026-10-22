@@ -46,9 +46,10 @@ Le pas à pas, avec les liens directs et des boutons « Copier », est dans l'ap
 6. l'**ID client** (`…apps.googleusercontent.com`) va dans `config.js` → `googleClientId`. Il
    n'est pas secret : c'est la liste des origines autorisées qui protège.
 
-En mode test, chaque personne voit à la première connexion « Google n'a pas validé cette
-application » (→ **Paramètres avancés** → **Accéder à Carnet de bord**), et seuls les comptes de
-la liste peuvent se connecter. L'écran de connexion et le message de partage disent à qui envoyer
+En mode test, Google affiche l'adresse du site au lieu du nom de l'appli, chaque personne voit à
+la première connexion que Google ne l'a pas validée (→ **Paramètres avancés** → **Accéder à
+reynesmanon11-maker.github.io (non sécurisé)**), et seuls les comptes de la liste peuvent se
+connecter. L'écran de connexion et le message de partage disent à qui envoyer
 son adresse (`responsable` dans `config.js`).
 
 Les quotas gratuits des API Agenda et Drive sont très au-dessus de ce que l'appli consomme : une

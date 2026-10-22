@@ -16,7 +16,7 @@ import { installation } from '../installation.js';
 
 let etape = 'accueil';
 let voie = null; // 'google' | 'local'
-let attente = false;
+let attente = false; // false, 'fenetre' (Google est ouvert) ou 'lecture' (le Carnet lit les agendas)
 const NUANCIER = ['#4fae7a', '#7aa32f', '#3faea6', '#2f7150', '#4f93d4', '#8f76cf', '#d56a97', '#a8660f', '#b15f2c', '#8a8f87'];
 
 const PARCOURS = {
@@ -60,9 +60,12 @@ function ecranConnexion() {
       <li><b>créer ses propres agendas</b> « Carnet », leur donner une couleur et y écrire vos cours ;</li>
       <li>garder ses données dans un <b>dossier caché de votre Google Drive</b>, propre à l'appli.</li>
     </ul>
-    <p class="aide">Tant que l'appli n'est pas vérifiée par Google, un écran « Google n'a pas validé cette application » s'affiche : cliquez sur « Paramètres avancés », puis « Accéder à Carnet de bord ».</p>
+    <p class="aide">Tant que l'appli n'est pas vérifiée par Google, Google affiche l'adresse du site (${location.hostname}) au lieu de « Carnet de bord », puis prévient qu'il ne l'a pas validée : touchez « Paramètres avancés », puis « Accéder à ${location.hostname} (non sécurisé) ». Cochez ensuite toutes les autorisations.</p>
     ${CONFIG.phaseEssai !== false ? html`<p class="aide">Pendant la phase d'essai, la connexion est réservée aux adresses inscrites. Si Google affiche « Accès bloqué », envoyez votre adresse Gmail à ${CONFIG.responsable || 'la personne qui vous a donné le lien'}.</p>` : ''}
-    <div><button class="btn google" data-action="google-connecter" ${attente ? 'disabled' : ''}>${icone('google')} ${attente ? 'Connexion…' : 'Se connecter avec Google'}</button></div>
+    <div>${attente === 'lecture'
+      ? html`<button class="btn google" disabled>${icone('google')} Lecture de vos agendas…</button>`
+      : html`<button class="btn google" data-action="google-connecter">${icone('google')} ${attente ? 'Recommencer la connexion' : 'Se connecter avec Google'}</button>`}</div>
+    ${attente === 'fenetre' ? html`<p class="aide">La page de Google est ouverte : terminez-y la connexion. Fermée par erreur ? Recommencez.</p>` : ''}
     <p class="aide">${G.methodeConnexion() === 'redirection' ? 'Le Carnet va passer par la page de Google, puis revenir ici.' : "Une fenêtre Google va s'ouvrir par-dessus le Carnet."}
       Ça coince ? <button class="lien" data-action="connexion-autre-methode">Essayer l'autre façon</button></p>
   </section>`;
@@ -198,9 +201,12 @@ actions['demarrer-local'] = () => { voie = 'local'; aller('source'); };
 actions['demarrer-google'] = () => { voie = 'google'; aller('connexion'); };
 
 actions['google-connecter'] = async () => {
-  attente = true; reglerLocal({});
+  // Le bouton reste actif tant que Google est ouvert : si la fenêtre a été fermée sans finir,
+  // Google ne le signale pas toujours, et l'on doit pouvoir recommencer.
+  attente = 'fenetre'; reglerLocal({});
   try {
     const { manquantes } = await G.connecter({ consentement: true, suite: 'demarrer' });
+    attente = 'lecture'; reglerLocal({});
     await apresConnexion(manquantes);
   } catch (e) {
     attente = false; reglerLocal({});
@@ -217,7 +223,7 @@ actions['connexion-autre-methode'] = () => {
 
 /** Au retour d'une connexion par redirection : la mise en route reprend où elle en était. */
 export async function reprendreConnexion(manquantes) {
-  voie = 'google'; etape = 'connexion'; attente = true; reglerLocal({});
+  voie = 'google'; etape = 'connexion'; attente = 'lecture'; reglerLocal({});
   try { await apresConnexion(manquantes); } catch (e) { attente = false; reglerLocal({}); toast(messageErreur(e)); }
 }
 
@@ -243,7 +249,7 @@ async function apresConnexion(manquantes) {
 }
 actions['google-relire'] = async () => {
   if (!G.connecte()) { try { await G.connecter({ suite: 'demarrer' }); } catch (e) { toast(messageErreur(e)); return; } }
-  attente = true; reglerLocal({});
+  attente = 'lecture'; reglerLocal({});
   try { await lireAgendas(); toast('Agendas relus.'); } catch (e) { toast(messageErreur(e)); }
   attente = false; reglerLocal({});
 };

@@ -54,8 +54,10 @@ Choisissez **Avec mon compte Google**. Google demande trois autorisations ; le C
 - **créer ses propres agendas** (« Carnet · 6e »…) et y écrire vos cours ;
 - garder ses données dans un **dossier caché de votre Google Drive**, propre à l'appli.
 
-Tant que l'appli n'est pas vérifiée par Google, un écran prévient que « Google n'a pas validé
-cette application » : cliquez sur **Paramètres avancés**, puis **Accéder à Carnet de bord**.
+Tant que l'appli n'est pas vérifiée par Google, Google affiche l'adresse du site
+(`reynesmanon11-maker.github.io`) au lieu du nom « Carnet de bord », puis prévient qu'il ne l'a
+pas validée : cliquez sur **Paramètres avancés**, puis **Accéder à reynesmanon11-maker.github.io
+(non sécurisé)**. Cochez ensuite **toutes** les autorisations proposées.
 Pendant cette phase d'essai, seules les adresses inscrites peuvent se connecter : si Google
 affiche « Accès bloqué », envoyez votre adresse Gmail à Manon Reynes.
 

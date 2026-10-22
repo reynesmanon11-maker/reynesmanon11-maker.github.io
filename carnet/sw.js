@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (en classe, le Wi-Fi est capricieux).
 // Les fichiers de l'appli viennent du cache, mis à jour en arrière-plan ; Google et Pronote
 // ne sont jamais mis en cache ici (données personnelles, jetons).
-const VERSION = 'carnet-0.2.1-1';
+const VERSION = 'carnet-0.2.1-2';
 const FICHIERS = [
   './', 'index.html', 'confidentialite.html', 'manifest.webmanifest', 'config.js', 'css/app.css',
   'js/avant.js', 'js/app.js', 'js/actions.js', 'js/ui.js', 'js/stockage.js', 'js/etat.js', 'js/dates.js',
