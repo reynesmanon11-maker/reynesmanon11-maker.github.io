@@ -98,3 +98,16 @@ test('import pendant la mise en route : les étapes importées l’emportent, le
   assert.ok(Object.values(r).every((d) => d._m === 1000 || d._m === 2000));
   assert.equal(r['classes/5G1']._m, 2000, 'daté de maintenant, pour gagner aussi ailleurs');
 });
+
+test('import : les points d’arrêt sur l’ancienne file sont retirés, les autres restent', () => {
+  const ici = {
+    'classes/5G1': { code: '5G1', file: [{ u: 'vieux', eid: 'x' }], _m: 5 },
+    'journal/5G1_20261103_1035': { code: '5G1', arret: { u: 'vieux', f: 1, rang: 1 }, _m: 5 },
+    'journal/5G1_20261104_0825': { code: '5G1', arret: { u: 'a1', f: 0.5, rang: 0 }, _m: 5 },
+    'journal/5G3_20261102_0920': { code: '5G3', arret: { u: 'b1', f: 1, rang: 1 }, _m: 5 },
+  };
+  const r = fusionImport(ici, { 'classes/5G1': { code: '5G1', file: [{ u: 'a1', eid: 'e1' }], _m: 1 } }, 100);
+  assert.equal(r['journal/5G1_20261103_1035']._x, 1, 'porte sur une étape qui n’est plus dans la file');
+  assert.equal(r['journal/5G1_20261104_0825'].arret.u, 'a1', 'porte sur une étape importée : gardé');
+  assert.equal(r['journal/5G3_20261102_0920'].arret.u, 'b1', 'une autre classe : intact');
+});

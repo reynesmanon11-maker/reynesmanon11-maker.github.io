@@ -4,8 +4,8 @@ import { actions, changements, saisies, envois } from '../actions.js';
 import { html, icone, ouvrirFeuille, fermerFeuille, redessinerFeuille, toast } from '../ui.js';
 import { bandeauInstallation } from './partage.js';
 import { calc, etat, changer, reglerLocal, ecrireDoc, supprimerDoc, modifierDoc, nomClasse } from '../etat.js';
-import { heureDe, heureLisible, dateCourte, dateLongue, ajouteJours, ecartJours, jourRelatif, dureeLisible, instantDe } from '../dates.js';
-import { aPreparer, avantCoupure, peloton, plagesLibres, reprise, seancesLisible, EPS } from '../moteur.js';
+import { heureDe, heureLisible, dateCourte, dateLongue, ajouteJours, ecartJours, jourRelatif, dureeLisible, instantDe, lundiDe, jourMois } from '../dates.js';
+import { aPreparer, avantCoupure, peloton, plagesLibres, reprise, seancesLisible, EPS, semaineUtile } from '../moteur.js';
 import { nouvelId } from '../donnees.js';
 import { carteCours, ligneEvenement, pastille, styleNiveau, horaires } from './commun.js';
 import { listeSemaine } from './semaine.js';
@@ -33,14 +33,20 @@ export const MODULES = {
   notes: { titre: 'Bloc-notes', icone: 'crayon', taille: 'S', options: [] },
   semaine: { titre: 'Ma semaine', icone: 'semaine', taille: 'L', options: [] },
 };
-const ORDRE_DEFAUT = ['aujourdhui', 'preparer', 'taches', 'peloton', 'photocopies', 'vacances', 'annonces', 'libres', 'notes', 'semaine'];
-const MASQUES_DEFAUT = ['semaine'];
+// Sur ordinateur, la semaine en colonnes d'abord, comme l'emploi du temps de l'ancien carnet ; sur
+// téléphone, où cinq colonnes s'empileraient, la journée d'abord. Chaque appareil garde ensuite la
+// disposition qu'on lui donne.
+const etroit = () => { try { return matchMedia('(max-width: 760px)').matches; } catch { return false; } };
+const AUTRES = ['preparer', 'taches', 'peloton', 'photocopies', 'vacances', 'annonces', 'libres', 'notes'];
+const ordreDefaut = () => (etroit() ? ['aujourdhui', ...AUTRES, 'semaine'] : ['semaine', ...AUTRES, 'aujourdhui']);
+const masquesDefaut = () => (etroit() ? ['semaine'] : ['aujourdhui']);
 
 export function disposition() {
   const d = etat.local.disposition || {};
-  const ordre = (d.ordre || ORDRE_DEFAUT).filter((id) => MODULES[id]);
-  for (const id of ORDRE_DEFAUT) if (!ordre.includes(id)) ordre.push(id);
-  return { ordre, tailles: d.tailles || {}, masques: d.masques || MASQUES_DEFAUT, options: d.options || {} };
+  const defaut = ordreDefaut();
+  const ordre = (d.ordre || defaut).filter((id) => MODULES[id]);
+  for (const id of defaut) if (!ordre.includes(id)) ordre.push(id);
+  return { ordre, tailles: d.tailles || {}, masques: d.masques || masquesDefaut(), options: d.options || {} };
 }
 const option = (id, cle) => {
   const o = (disposition().options[id] || {})[cle];
@@ -51,6 +57,14 @@ let organiser = false;
 
 // ---------- Rendu des modules ----------
 
+/** Tous les cours passés sans point d'arrêt, ce matin compris : le même compte que le résumé en tête. */
+function bandeauAValider() {
+  const c = calc();
+  const aValider = c.creneaux.filter((x) => (c.plan.parCreneau[x.cle] || {}).aValider);
+  return aValider.length ? html`<div class="bandeau"><span><strong>${aValider.length} cours à valider</strong> — dites où vous vous êtes arrêtés, la suite se recale.</span>
+      <span class="outils">${aValider.slice(-4).map((cr) => html`<button class="btn mini" data-action="valider" data-cle="${cr.cle}">${nomClasse(cr.code)} · ${dateCourte(cr.jour)}</button>`)}</span></div>` : '';
+}
+
 function modAujourdhui() {
   const c = calc();
   let jour = c.auj;
@@ -59,8 +73,6 @@ function modAujourdhui() {
     const prochain = c.tousCreneaux.find((x) => x.jour > c.auj && !x.annule);
     if (prochain) jour = prochain.jour;
   }
-  // Tous les cours passés sans point d'arrêt, ce matin compris : le même compte que le résumé en tête.
-  const aValider = c.creneaux.filter((x) => (c.plan.parCreneau[x.cle] || {}).aValider);
   const voirPerso = option('aujourdhui', 'perso') === 'oui';
   const voirLibres = option('aujourdhui', 'libres') === 'oui';
   const items = [];
@@ -76,8 +88,7 @@ function modAujourdhui() {
   items.sort((a, b) => a.t - b.t);
   const vac = c.coupures.find((k) => k.debut <= c.auj && k.fin >= c.auj);
   return html`
-    ${aValider.length ? html`<div class="bandeau"><span><strong>${aValider.length} cours à valider</strong> — dites où vous vous êtes arrêtés, la suite se recale.</span>
-      <span class="outils">${aValider.slice(-4).map((cr) => html`<button class="btn mini" data-action="valider" data-cle="${cr.cle}">${nomClasse(cr.code)} · ${dateCourte(cr.jour)}</button>`)}</span></div>` : ''}
+    ${bandeauAValider()}
     ${vac ? html`<p class="aide">${icone('vacances')} ${vac.titre} jusqu'au ${dateLongue(vac.fin)}.</p>` : ''}
     <h3>${jour === c.auj ? dateLongue(jour) : html`Prochain jour de cours : ${dateLongue(jour)}`}</h3>
     ${items.length ? html`<ul class="liste">${items.map((x) => x.h)}</ul>` : html`<p class="vide">Rien à l'emploi du temps.</p>`}`;
@@ -206,7 +217,13 @@ function modNotes() {
   return html`<textarea id="bloc-notes" data-saisie="notes" aria-label="Bloc-notes" placeholder="Idées, choses à ne pas oublier…">${calc().v.notes}</textarea><p class="aide">Enregistré au fil de la frappe.</p>`;
 }
 
-function modSemaine() { return listeSemaine({ compacte: true }); }
+function modSemaine() {
+  const c = calc();
+  const lundi = semaineUtile(c.tousCreneaux, c.auj);
+  return html`${bandeauAValider()}
+    <p class="aide">${lundi === lundiDe(c.auj) ? 'Cette semaine' : 'Semaine'} du ${jourMois(lundi)} au ${jourMois(ajouteJours(lundi, 4))} · <a href="#/semaine">les autres semaines</a></p>
+    ${listeSemaine({ compacte: true })}`;
+}
 
 const RENDUS = { aujourdhui: modAujourdhui, preparer: modPreparer, taches: modTaches, peloton: modPeloton, photocopies: modPhotocopies, annonces: modAnnonces, vacances: modVacances, libres: modLibres, notes: modNotes, semaine: modSemaine };
 

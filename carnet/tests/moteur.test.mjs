@@ -1,9 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import {
-  planifier, reprise, jusqua, pointsArret, seancesLisible, fractionLisible,
-  peloton, aPreparer, plagesLibres, avantCoupure, coupures, arretDe, positionDe,
-} from '../js/moteur.js';
+import { planifier, reprise, jusqua, pointsArret, seancesLisible, fractionLisible, peloton, aPreparer, plagesLibres, avantCoupure, coupures, arretDe, positionDe, persoUtiles, semaineUtile } from '../js/moteur.js';
 import { instantDe } from '../js/dates.js';
 
 const TZ = 'Europe/Paris';
@@ -119,6 +116,9 @@ test('libellés', () => {
   assert.equal(seancesLisible(1), '1 séance');
   assert.equal(seancesLisible(0.5), '½ séance');
   assert.equal(seancesLisible(2.25), '2 séances ¼');
+  assert.equal(seancesLisible(0.1), 'moins d’¼ séance');
+  assert.equal(seancesLisible(0.9), '1 séance');
+  assert.equal(seancesLisible(1.95), '2 séances');
   assert.equal(fractionLisible(0.5), '½');
   assert.equal(fractionLisible(1 / 3), '33 %');
   assert.deepEqual(pointsArret(etapes.A).map((p) => p.libelle), ['Pas commencée', 'Situation', 'Hypothèses', 'Protocole', 'Bilan']);
@@ -170,4 +170,29 @@ test('avant les vacances : la file tient-elle ?', () => {
   assert.equal(r.resteFile, 3);
   assert.equal(r.marge, 1);
   assert.equal(r.finFile.jour, '2026-11-11');
+});
+
+
+test('vie perso : les copies de l’emploi du temps sont écartées, les vrais rendez-vous restent', () => {
+  const h = (t) => new Date(`2026-11-02T${t}:00+01:00`);
+  const creneaux = [{ code: '5G3', jour: '2026-11-02', parties: [{ debut: h('09:20'), fin: h('10:15') }] }];
+  const etablissement = [{ titre: "Heure de com'", debut: h('09:30'), fin: h('10:30') }];
+  const v = { classes: { '5G3': { nom: '503' } } };
+  const perso = [
+    { id: 'ancien', titre: '📣 503 P2 · Activité 5', debut: h('09:20'), fin: h('10:15'), description: 'Prévu…\ncarnetsvt 5G3_20261102_0920_P2' },
+    { id: 'recopie', titre: 'SVT 503', debut: h('09:20'), fin: h('10:15'), description: '' },
+    { id: 'com', titre: "Heure de com'", debut: h('09:30'), fin: h('10:30'), description: '' },
+    { id: 'vrai', titre: 'Msg Yamina pour inspection', debut: h('14:00'), fin: h('15:00'), description: '' },
+    { id: 'meme-heure', titre: 'Appeler le garage', debut: h('09:20'), fin: h('10:15'), description: '' },
+  ];
+  assert.deepEqual(persoUtiles(perso, { creneaux, etablissement, v }).map((e) => e.id), ['vrai', 'meme-heure']);
+});
+
+test('semaine utile : celle-ci tant qu’il reste des cours, sinon celle du prochain cours', () => {
+  const cr = (jour) => ({ jour, debut: new Date(`${jour}T09:00:00+01:00`), annule: false });
+  const creneaux = [cr('2026-10-16'), cr('2026-11-02'), cr('2026-11-05')];
+  assert.equal(semaineUtile(creneaux, '2026-10-22'), '2026-11-02', 'pendant les vacances : la rentrée');
+  assert.equal(semaineUtile(creneaux, '2026-11-04'), '2026-11-02', 'en semaine : cette semaine');
+  assert.equal(semaineUtile(creneaux, '2026-11-07'), '2026-11-02', 'plus aucun cours connu : cette semaine');
+  assert.equal(semaineUtile([...creneaux, cr('2026-11-09')], '2026-11-07'), '2026-11-09', 'le samedi : la semaine suivante');
 });

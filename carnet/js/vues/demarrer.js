@@ -11,7 +11,7 @@ import { CONFIG } from '../../config.js';
 import { FUSEAU_APPAREIL, aujourdhui, lundiDe } from '../dates.js';
 import * as G from '../google.js';
 import { lireAgendas, agendasPronote, lireLienIcal, lireTexteIcal, bilanLecture, synchroniser, messageErreur, recupererDrive } from '../synchro.js';
-import { COULEURS_NIVEAUX, COULEURS_EVENEMENT } from '../agenda.js';
+import { COULEURS_NIVEAUX, COULEURS_EVENEMENT, DESCRIPTION_AGENDA } from '../agenda.js';
 import { installation } from '../installation.js';
 
 let etape = 'accueil';
@@ -157,7 +157,8 @@ function ecranAgenda() {
 function ecranPerso() {
   const r = reglages(), src = r.source || {};
   const ecrits = new Set(Object.values((r.ecriture || {}).calendriers || {}));
-  const agendas = Object.entries(etat.brut.agendas || {}).map(([id, a]) => ({ id, ...a })).filter((a) => a.id !== src.agendaPronote && !ecrits.has(a.id) && !/numéros de semaine|#weeknum|#holiday/i.test(`${a.id} ${a.nom}`));
+  const agendas = Object.entries(etat.brut.agendas || {}).map(([id, a]) => ({ id, ...a }))
+    .filter((a) => a.id !== src.agendaPronote && !ecrits.has(a.id) && a.description !== DESCRIPTION_AGENDA && !/numéros de semaine|#weeknum|#holiday/i.test(`${a.id} ${a.nom}`));
   const choisis = new Set(src.agendasPerso || agendas.filter((a) => a.principal).map((a) => a.id));
   return html`${fil()}<section class="carte section-feuille"><h2>Votre vie perso dans le Carnet</h2>
     <p>Les rendez-vous de ces agendas apparaissent dans la semaine du Carnet, à côté des cours, pour voir d'un coup d'œil comment tout s'imbrique. Le Carnet les lit, il ne les modifie jamais.</p>

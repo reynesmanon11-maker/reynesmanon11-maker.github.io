@@ -43,7 +43,11 @@ await etape('démo : tableau de bord complet, aucune erreur', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   const titres = await p.$$eval('.module h2', (h) => h.map((x) => x.textContent.trim()));
-  assert.ok(titres.includes("Aujourd'hui") && titres.includes('Où en sont mes classes'), titres.join(', '));
+  // Sur ordinateur, la semaine en colonnes vient d'abord, comme l'emploi du temps de l'ancien carnet.
+  assert.equal(titres[0], 'Ma semaine', titres.join(', '));
+  assert.ok(titres.includes('Où en sont mes classes'), titres.join(', '));
+  assert.equal(await p.locator('.module[data-module="semaine"] .jour-liste').count(), 5);
+  assert.ok(await p.locator('.module[data-module="semaine"] .jour-liste.auj .cours').count() >= 2, 'les cours du jour en cartes');
   assert.match(await p.textContent('.resume'), /à valider/);
   await ctx.close();
 });
@@ -52,7 +56,7 @@ await etape('valider un cours : le point d’arrêt fait glisser la suite', asyn
   const { ctx, p } = await contexte();
   await demo(p);
   // Le cours de 602 de ce matin est à valider.
-  const carte = p.locator('.module[data-module="aujourdhui"] .cours', { hasText: '602' });
+  const carte = p.locator('.module[data-module="semaine"] .jour-liste.auj .cours', { hasText: '602' });
   await carte.getByRole('button', { name: /Où en est-on/ }).click();
   await p.waitForSelector('dialog.feuille[open] .arret');
   const avant = await p.evaluate(() => [...document.querySelectorAll('dialog .puce[aria-pressed="true"]')].map((b) => b.textContent.trim()));
@@ -123,7 +127,7 @@ await etape('glisser-déposer un module par sa poignée', async () => {
   await p.waitForSelector('.tableau.organiser');
   const poignee = p.locator('.module[data-module="libres"] [data-poignee]');
   await poignee.scrollIntoViewIfNeeded();
-  const cible = p.locator('.module[data-module="aujourdhui"]');
+  const cible = p.locator('.module[data-module="semaine"]');
   const a = await poignee.boundingBox(), b = await cible.boundingBox();
   await p.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
   await p.mouse.down();
@@ -168,8 +172,10 @@ await etape('tâches : ajout rapide puis cochée', async () => {
   await p.press('#tache-rapide', 'Enter');
   const tache = p.locator('.module[data-module="taches"] label', { hasText: 'Réserver la salle info' });
   await tache.waitFor();
-  await tache.locator('input').check();
-  await rendu(p);
+  // Un clic, et non check() : cochée, la tâche quitte la liste aussitôt, et check() attendrait en
+  // vain de voir la case cochée.
+  await tache.locator('input').click();
+  await tache.waitFor({ state: 'detached', timeout: 5000 });
   assert.equal(await p.locator('.module[data-module="taches"] label', { hasText: 'Réserver la salle info' }).count(), 0);
   await ctx.close();
 });
@@ -202,6 +208,11 @@ await etape('semaine : grille, liste, semaine suivante', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   await p.goto(URL + '#/semaine');
+  // Par défaut, les cartes en colonnes ; la grille horaire est à un toucher.
+  assert.ok(await p.locator('.jours-liste .cours').count() > 10);
+  assert.ok(await p.locator('.jours-liste .cours .a-prevoir input[type="checkbox"]').count() > 0, 'le matériel à prévoir en cases à cocher');
+  await p.getByRole('button', { name: 'Grille horaire' }).click();
+  await rendu(p);
   assert.ok(await p.locator('.grille .bloc').count() > 10);
   assert.ok(await p.locator('.bloc.perso').count() > 0, 'vie perso affichée');
   await p.getByRole('button', { name: 'Semaine suivante' }).click();

@@ -1,9 +1,11 @@
-// La semaine : cours, vie de l'établissement et vie perso dans une même grille, comme un agenda
-// papier. Sur téléphone, un jour par écran, en glissant ; la vue « liste » reprend les cartes.
+// La semaine : une colonne par jour avec les cartes de cours, comme l'emploi du temps de l'ancien
+// carnet (vue « Cartes », par défaut), ou une grille horaire où cours, vie de l'établissement et
+// vie perso se placent à leur heure, comme un agenda papier.
 import { actions } from '../actions.js';
 import { html, icone } from '../ui.js';
 import { calc, etat, changer, reglerLocal, nomClasse, niveauClasse, couleurNiveau } from '../etat.js';
 import { lundiDe, ajouteJours, dateCourte, dateLongue, minutesDe, heureDe, heureLisible, jourMois } from '../dates.js';
+import { semaineUtile } from '../moteur.js';
 import { carteCours, ligneEvenement, styleNiveau } from './commun.js';
 import { ouvrirFeuille } from '../ui.js';
 
@@ -12,11 +14,11 @@ const PX = 1.05; // pixels par minute
 
 function semaine() {
   const c = calc();
-  if (!lundiAffiche) lundiAffiche = lundiDe(c.auj);
+  if (!lundiAffiche) lundiAffiche = semaineUtile(c.tousCreneaux, c.auj);
   return lundiAffiche;
 }
 
-const vueChoisie = () => etat.local.vueSemaine || 'grille';
+const vueChoisie = () => etat.local.vueSemaine || 'liste';
 
 function evenementsDuJour(jour) {
   const c = calc();
@@ -98,19 +100,25 @@ function grille() {
   </div>`;
 }
 
-/** Les cours de la semaine en cartes, jour par jour (aussi utilisé par le module « Ma semaine »). */
+/**
+ * La semaine en colonnes, une par jour, avec la carte complète de chaque cours et, à leur heure,
+ * la vie de l'établissement et la vie perso (aussi le module « Ma semaine » de l'accueil).
+ */
 export function listeSemaine({ compacte = false } = {}) {
   const c = calc();
-  const lundi = compacte ? lundiDe(c.auj) : semaine();
+  const lundi = compacte ? semaineUtile(c.tousCreneaux, c.auj) : semaine();
   const jours = [0, 1, 2, 3, 4].map((k) => ajouteJours(lundi, k));
-  return html`<div class="jours-liste">${jours.map((j) => {
-    const crs = c.tousCreneaux.filter((x) => x.jour === j);
+  const samedi = ajouteJours(lundi, 5);
+  if (c.creneaux.some((x) => x.jour === samedi)) jours.push(samedi);
+  return html`<div class="jours-liste" style="--n:${jours.length}">${jours.map((j) => {
     const { minutes, journees } = evenementsDuJour(j);
-    const autres = minutes.filter((x) => x.genre !== 'cours');
+    const elements = [
+      ...c.creneaux.filter((x) => x.jour === j).map((cr) => ({ t: cr.debut, h: carteCours(cr) })),
+      ...minutes.filter((x) => x.genre !== 'cours').map((x) => ({ t: x.debut, h: ligneEvenement(x.e, x.genre === 'perso' ? 'perso' : '') })),
+    ].sort((a, b) => a.t - b.t);
     return html`<section class="jour-liste${j === c.auj ? ' auj' : ''}"><h3>${dateLongue(j)}</h3>
       ${journees.map((x) => html`<p class="aide">${x.genre === 'vac' ? icone('vacances') : ''} ${x.titre}</p>`)}
-      ${crs.length || autres.length ? html`<ul class="liste">${crs.map((cr) => (c.v.classes[cr.code] ? carteCours(cr) : ''))}
-        ${compacte ? '' : autres.map((x) => ligneEvenement(x.e, x.genre === 'perso' ? 'perso' : ''))}</ul>` : html`<p class="vide petit">Pas de cours</p>`}</section>`;
+      ${elements.length ? html`<ul class="liste">${elements.map((x) => x.h)}</ul>` : html`<p class="vide petit">Pas de cours</p>`}</section>`;
   })}</div>`;
 }
 
@@ -125,10 +133,10 @@ export function rendreSemaine() {
       <button class="btn-rond" data-action="semaine-avant" aria-label="Semaine précédente">${icone('gauche')}</button>
       <h2>Semaine du ${jourMois(lundi)} au ${jourMois(vendredi)}</h2>
       <button class="btn-rond" data-action="semaine-apres" aria-label="Semaine suivante">${icone('droite')}</button>
-      ${lundi !== lundiDe(c.auj) ? html`<button class="btn mini" data-action="semaine-auj">Cette semaine</button>` : ''}
+      ${lundi !== semaineUtile(c.tousCreneaux, c.auj) ? html`<button class="btn mini" data-action="semaine-auj">${semaineUtile(c.tousCreneaux, c.auj) === lundiDe(c.auj) ? 'Cette semaine' : 'Prochains cours'}</button>` : ''}
       <span class="segmente" role="group" aria-label="Affichage" style="margin-left:auto">
-        <button data-action="semaine-vue" data-vue="grille" aria-pressed="${vue === 'grille'}">Grille</button>
-        <button data-action="semaine-vue" data-vue="liste" aria-pressed="${vue === 'liste'}">Liste</button></span>
+        <button data-action="semaine-vue" data-vue="liste" aria-pressed="${vue === 'liste'}">Cartes</button>
+        <button data-action="semaine-vue" data-vue="grille" aria-pressed="${vue === 'grille'}">Grille horaire</button></span>
       <button class="btn mini${etat.local.persoVisible ? ' plein' : ''}" data-action="semaine-perso" aria-pressed="${etat.local.persoVisible}">${icone('personne')} Vie perso</button>
     </div>
     <div class="legende">${niveaux.map((n) => html`<span><i style="--c:${couleurNiveau(n, c.v)}"></i>${n}</span>`)}

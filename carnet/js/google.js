@@ -141,7 +141,11 @@ export function deconnecter() {
   oublierJeton();
 }
 
-const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+export const attendre = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Les refus de Google qui veulent dire « pas si vite » : on peut réessayer un peu plus tard.
+const LIMITE = /rate ?limit|usage ?limits?|quota/i;
+export const estLimite = (e) => !!e && (e.statut === 429 || (e.statut === 403 && LIMITE.test(e.message || '')));
 
 async function api(url, { methode = 'GET', corps, params, brut, type } = {}) {
   if (!connecte()) throw new ErreurGoogle('jeton', 'La connexion Google a expiré.');
@@ -157,7 +161,7 @@ async function api(url, { methode = 'GET', corps, params, brut, type } = {}) {
     const texte = await r.text();
     let json = null;
     try { json = texte ? JSON.parse(texte) : null; } catch { json = null; }
-    const limite = r.status === 429 || r.status >= 500 || (r.status === 403 && /rate ?limit/i.test(texte));
+    const limite = r.status === 429 || r.status >= 500 || (r.status === 403 && LIMITE.test(texte));
     if (limite && essai < 3) { await attendre(700 * 2 ** essai + Math.random() * 300); continue; }
     if (!r.ok) {
       const msg = (json && json.error && json.error.message) || r.statusText || `Erreur ${r.status}`;

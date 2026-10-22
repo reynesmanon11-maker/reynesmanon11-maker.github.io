@@ -8,7 +8,7 @@
 // fait » : c'est un POINT D'ARRÊT, « on s'est arrêtés après les hypothèses de l'activité 5 ».
 // Le dernier point d'arrêt validé fait foi ; tout ce qui est avant est fait, la suite coule
 // sur les créneaux à venir. Une séance oubliée ne fausse donc rien.
-import { jourDe, heureDe, minutesDe, ajouteJours, ecartJours } from './dates.js';
+import { jourDe, heureDe, minutesDe, ajouteJours, ecartJours, lundiDe } from './dates.js';
 
 export const EPS = 1e-6;
 const arrondi = (x) => Math.round(x * 1000) / 1000;
@@ -118,10 +118,10 @@ export function fractionLisible(f) {
 export function seancesLisible(x) {
   const r = arrondi(x);
   if (r <= EPS) return '0 séance';
-  const ent = Math.floor(r + EPS), frac = r - ent;
-  const q = Math.round(frac * 4);
-  const f = q ? ['', '¼', '½', '¾'][q] || '' : '';
-  if (!ent) return `${f} séance`;
+  let ent = Math.floor(r + EPS), q = Math.round((r - ent) * 4);
+  if (q === 4) { ent++; q = 0; } // 0,9 séance s'arrondit à une séance, pas à « séance » tout court
+  const f = ['', '¼', '½', '¾'][q];
+  if (!ent) return q ? `${f} séance` : 'moins d’¼ séance';
   return `${ent} séance${ent > 1 ? 's' : ''}${f ? ' ' + f : ''}`;
 }
 
@@ -403,6 +403,33 @@ export function aPreparer(donnees, plan, creneaux, { auj, jours = 7 } = {}) {
  * Les trous d'une journée de cours : entre le premier et le dernier événement professionnel
  * du jour, ce qui reste libre une fois retirés cours, réunions et rendez-vous personnels.
  */
+/**
+ * Les rendez-vous perso qui apportent quelque chose. On écarte les copies de l'emploi du temps que
+ * d'autres outils écrivent dans l'agenda personnel : celles de l'ancien « Carnet de bord SVT »
+ * (marquées « carnetsvt »), et celles qu'on recopie de Pronote à la main — aux mêmes heures qu'un
+ * cours et nommant la classe, ou aux mêmes heures qu'un événement de l'établissement et du même titre.
+ */
+export function persoUtiles(perso, { creneaux = [], etablissement = [], v = {} } = {}) {
+  const norm = (s) => ` ${String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim()} `;
+  const memesHeures = (a, b) => a.debut && b.debut && a.fin && b.fin && Math.abs(a.debut - b.debut) < 60000 && Math.abs(a.fin - b.fin) < 60000;
+  const parties = creneaux.flatMap((cr) => cr.parties.map((p) => ({ debut: p.debut, fin: p.fin, noms: [cr.code, ((v.classes || {})[cr.code] || {}).nom].filter(Boolean) })));
+  return perso.filter((e) => {
+    if (/(^|\n)carnetsvt\s/.test(e.description || '')) return false;
+    if (!e.debut) return true;
+    const t = norm(e.titre);
+    if (etablissement.some((x) => memesHeures(x, e) && norm(x.titre) === t)) return false;
+    return !parties.some((p) => memesHeures(p, e) && p.noms.some((n) => t.includes(norm(n))));
+  });
+}
+
+/** La semaine à montrer d'abord : celle-ci s'il y reste des cours, sinon celle du prochain cours (week-end, vacances). */
+export function semaineUtile(creneaux, auj) {
+  const lundi = lundiDe(auj);
+  let prochain = null;
+  for (const c of creneaux) if (c.jour >= auj && !c.annule && (!prochain || c.debut < prochain.debut)) prochain = c;
+  return prochain && lundiDe(prochain.jour) > lundi ? lundiDe(prochain.jour) : lundi;
+}
+
 export function plagesLibres(evenements, jour, { fuseau, min = 30 } = {}) {
   const duJour = evenements.filter((e) => e && e.debut && !e.annule && e.jour0 <= jour && e.jour1 >= jour);
   const pro = duJour.filter((e) => e.pro);

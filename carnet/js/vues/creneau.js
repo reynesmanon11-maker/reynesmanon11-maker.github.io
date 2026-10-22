@@ -6,7 +6,7 @@ import { html, icone, ouvrirFeuille, fermerFeuille, redessinerFeuille, toast, co
 import { calc, ecrireDoc, supprimerDoc, modifierDoc, nomClasse } from '../etat.js';
 import { pointsArret, positionDe, EPS, seancesLisible } from '../moteur.js';
 import { dateLongue, dateCourte } from '../dates.js';
-import { horaires, segments, pastille, etiquetteEtat, avertissementsFormat } from './commun.js';
+import { horaires, segments, pastille, etiquetteEtat, avertissementsFormat, textePronote } from './commun.js';
 
 let choix = null; // { cle, pos: { i, f }, prevu: { i, f }, note }
 
@@ -59,17 +59,6 @@ export function ouvrirCreneau(cle, { valider = false } = {}) {
   ouvrirFeuille(() => contenu(cle), { surFermeture: () => { choix = null; } });
 }
 
-function textePronote(cr) {
-  const { plan, v } = calc();
-  const pc = plan.parCreneau[cr.cle];
-  if (!pc) return '';
-  return pc.segments.filter((s) => !s.recul).map((s) => {
-    const e = v.etapes[s.eid] || { titre: '' };
-    const suite = s.de > EPS, inacheve = s.a < 1 - EPS;
-    const suf = suite && inacheve ? ' (suite)' : suite ? ' (fin)' : inacheve ? ' (début)' : '';
-    return `${e.titre}${suf}${e.pronote ? `\n${e.pronote}` : ''}`;
-  }).join('\n\n');
-}
 
 const memePoint = (a, b) => a && b && a.i === b.i && Math.abs(a.f - b.f) < 0.01;
 

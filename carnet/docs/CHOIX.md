@@ -130,6 +130,16 @@ arrive dans l'adresse, l'appli le reprend aussitôt et l'efface de l'adresse). U
 porte pas le numéro tiré au départ est refusé. Si l'une des deux façons coince, l'écran de
 connexion propose l'autre.
 
+## Agendas Google : ne jamais en créer deux fois
+
+Google freine les créations d'agendas trop rapprochées. La première version créait l'agenda des
+3e, se faisait refuser le suivant, et s'arrêtait avant d'avoir noté le premier : à chaque
+synchronisation, un nouveau « Carnet · 3e », vide. Désormais chaque agenda est noté dès qu'il
+existe, un agenda du Carnet déjà présent (même nom, même description) est repris au lieu d'être
+recréé, les doublons vides sont retirés, les créations sont espacées, et si Google demande
+d'attendre, les cours des agendas déjà là sont écrits tout de suite et la suite est retentée
+deux minutes plus tard. La dernière erreur reste visible dans les réglages.
+
 ## Limites de cette première version
 
 - **Jamais essayée avec le vrai Google.** Elle l'a été contre un faux Google qui reproduit les

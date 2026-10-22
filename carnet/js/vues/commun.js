@@ -1,9 +1,10 @@
 // Morceaux d'affichage partagés : pastille de classe, horaires, contenu prévu d'un créneau,
 // carte de cours (utilisée par l'accueil et la semaine).
-import { html, icone } from '../ui.js';
+import { html, icone, toast, copier } from '../ui.js';
+import { actions } from '../actions.js';
 import { calc, nomClasse, niveauClasse, couleurNiveau } from '../etat.js';
 import { heureDe, heureLisible, dateCourte } from '../dates.js';
-import { reprise, jusqua, seancesLisible } from '../moteur.js';
+import { reprise, jusqua, seancesLisible, EPS } from '../moteur.js';
 
 export function pastille(code, extra = '') {
   const { v } = calc();
@@ -76,6 +77,34 @@ export function etiquetteEtat(cr) {
   return '';
 }
 
+/** Le texte du cahier de textes d'un cours : les étapes prévues, et ce qu'elles disent pour Pronote. */
+export function textePronote(cr) {
+  const { plan, v } = calc();
+  const pc = plan.parCreneau[cr.cle];
+  if (!pc) return '';
+  return pc.segments.filter((s) => !s.recul).map((s) => {
+    const e = v.etapes[s.eid] || { titre: '' };
+    const suite = s.de > EPS, inacheve = s.a < 1 - EPS;
+    const suf = suite && inacheve ? ' (suite)' : suite ? ' (fin)' : inacheve ? ' (début)' : '';
+    return `${e.titre}${suf}${e.pronote ? `\n${e.pronote}` : ''}`;
+  }).join('\n\n');
+}
+
+/** Ce qu'il faut préparer pour un cours à venir : une case à cocher par étape qui y commence. */
+export function aPrevoirCours(cr) {
+  const { plan, v } = calc();
+  const pc = plan.parCreneau[cr.cle];
+  if (!pc || pc.etat !== 'prevu') return [];
+  const cl = v.classes[cr.code] || {};
+  return pc.segments.filter((s) => !s.recul && s.de < EPS).map((s) => ({ s, e: v.etapes[s.eid] }))
+    .filter(({ e }) => e && (e.afaire || e.photocopies > 0))
+    .map(({ s, e }) => {
+      const id = `prep_${cr.cle}_${s.u}`;
+      const copies = e.photocopies > 0 ? `Photocopies : ${cl.effectif ? `${cl.effectif} × ${e.photocopies} p. = ${cl.effectif * e.photocopies}` : `${e.photocopies} p. par élève`}` : '';
+      return { id, fait: !!(v.coches[id] && v.coches[id].fait), quoi: [e.afaire, copies].filter(Boolean).join(' · '), etape: e.titre };
+    });
+}
+
 /** Carte d'un cours, avec le prévu, les annonces, le matériel et les boutons. */
 export function carteCours(cr, { date = false } = {}) {
   const { plan, maintenant, v } = calc();
@@ -83,8 +112,8 @@ export function carteCours(cr, { date = false } = {}) {
   const commence = cr.debut <= maintenant;
   const annonces = plan.annonces[cr.cle] || [];
   const alertes = plan.alertesEval[cr.cle] || [];
-  const aPrevoir = pc.etat === 'prevu' ? pc.segments.filter((s) => s.de < 1e-6).map((s) => v.etapes[s.eid]).filter((e) => e && (e.afaire || e.photocopies > 0)) : [];
-  const cl = v.classes[cr.code] || {};
+  const aPrevoir = aPrevoirCours(cr);
+  const texte = pc.etat === 'prevu' || pc.etat === 'valide' ? textePronote(cr) : '';
   return html`<li class="cours${cr.annule ? ' annule' : ''}${cr.fin <= maintenant ? ' passe' : ''}" style="${styleNiveau(cr.code)}">
     <div class="cours-haut">
       <span class="heure">${date ? `${dateCourte(cr.jour)} · ` : ''}${horaires(cr)}</span>
@@ -100,14 +129,21 @@ export function carteCours(cr, { date = false } = {}) {
     ${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}
     ${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} <b>${a.tard ? 'Prévenir dès maintenant' : 'Annoncer'}</b> : ${a.titre}, ${dateCourte(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
     ${alertes.map((a) => html`<div class="annonce tard"><span>${icone('alerte')} ${a.occasion ? html`Annonce de l'évaluation non cochée (à faire le ${dateCourte(a.occasion)}) : a-t-elle été faite ?` : "Évaluation sans cours avant pour l'annoncer."}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
-    ${aPrevoir.length ? html`<p class="aide">${icone('imprimante')} ${aPrevoir.map((e) => [e.photocopies > 0 ? `photocopies ${cl.effectif ? `${cl.effectif} × ${e.photocopies} p.` : `${e.photocopies} p./élève`}` : '', e.afaire].filter(Boolean).join(' · ')).join(' · ')}</p>` : ''}
+    ${aPrevoir.length ? html`<div class="a-prevoir"><b>À prévoir</b>${aPrevoir.map((x) => html`<label class="coche${x.fait ? ' faite' : ''}"><input type="checkbox" data-change="coche" data-id="${x.id}"${x.fait ? ' checked' : ''}><span>${x.quoi}</span></label>`)}</div>` : ''}
     ${pc.note ? html`<p class="aide">« ${pc.note} »</p>` : ''}
     <div class="cours-actions">
       ${!cr.annule && commence ? html`<button class="btn mini${pc.etat === 'valide' ? '' : ' plein'}" data-action="valider" data-cle="${cr.cle}">${icone('valider')} ${pc.etat === 'valide' ? 'Modifier' : 'Où en est-on ?'}</button>` : ''}
+      ${texte ? html`<button class="btn mini" data-action="copier-texte-cours" data-cle="${cr.cle}" title="Copier le texte du cahier de textes">${icone('copier')} Texte Pronote</button>` : ''}
       <button class="btn mini discret" data-action="ouvrir-creneau" data-cle="${cr.cle}">Détails</button>
     </div>
   </li>`;
 }
+
+actions['copier-texte-cours'] = async (el) => {
+  const cr = calc().tousCreneaux.find((x) => x.cle === el.dataset.cle);
+  if (!cr) return;
+  toast(await copier(textePronote(cr)) ? 'Texte copié : collez-le dans le cahier de textes de Pronote.' : 'La copie a été refusée : ouvrez « Détails » pour sélectionner le texte.');
+};
 
 /** Une ligne d'événement non pédagogique (réunion, rendez-vous perso, trou). */
 export function ligneEvenement(e, genre) {

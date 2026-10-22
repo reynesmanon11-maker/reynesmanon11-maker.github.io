@@ -25,7 +25,10 @@ que Pronote les connaît, cours annulés compris.
 - **Écrit dans Google Agenda** chaque cours avec ce qui est prévu (« 503 P2 · Activité 5 ·
   reprendre à Protocole »), dans ses propres agendas, un par niveau, aux couleurs choisies. Dans
   Google Agenda, le lien du cours ouvre directement « Où en est-on ? ».
+- **La semaine comme un emploi du temps** : une colonne par jour, chaque cours en carte complète
+  (prévu, annonces, matériel à cocher, texte Pronote), ou une grille horaire.
 - **Vie pro et vie perso** dans une même semaine, comme un agenda papier ; les trous de la journée.
+  Les copies de l'emploi du temps qu'un autre outil aurait écrites dans l'agenda perso sont écartées.
 - **Rappels déduits** : évaluations à annoncer une semaine avant, photocopies (effectif × pages),
   matériel, cours sans contenu, étape prévue en demi-groupe qui tombe sur un cours en classe entière.
 - **Avant les vacances** : la file tient-elle d'ici la coupure, classe par classe ?
@@ -34,7 +37,8 @@ que Pronote les connaît, cours annulés compris.
   colonne, en ligne ou par échéance). Thème clair ou sombre, cinq couleurs, densité.
 - **Hors connexion** : l'appli s'ouvre et se valide sans réseau, et rattrape ensuite.
 - **Cahier de textes** : le texte de la séance, prêt à coller dans Pronote.
-- **Import** du « Carnet de bord SVT » de claude.ai : files, validations et tâches reprises.
+- **Import** du « Carnet de bord SVT » de claude.ai : files, validations et tâches reprises, par
+  fichier ou par un simple lien (`#importer=…`, avec confirmation).
 - **Installer et partager** : bouton « Installer » quand le navigateur le permet (marche à suivre
   sur iPhone), QR code à viser avec un téléphone, message tout prêt pour un collègue.
 
@@ -94,7 +98,7 @@ node tests/lancer.mjs        # puis ouvrir http://127.0.0.1:8080/
 ### Tests
 
 ```
-npm test                     # 48 tests : moteur, Pronote, iCal, données, agenda, QR code, guide Google
+npm test                     # 52 tests : moteur, Pronote, iCal, données, agenda, QR code, guide Google
 npm run test:navigateur      # parcours complets dans Chromium (Playwright), dont un faux Google
 ```
 

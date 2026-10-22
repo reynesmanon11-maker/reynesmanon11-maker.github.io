@@ -14,6 +14,9 @@ export const COULEUR_ETABLISSEMENT = '#8a8f87';
 // Couleurs d'ÉVÉNEMENT de Google (les seules permises pour un événement) : identifiant → nom.
 export const COULEURS_EVENEMENT = { '': 'Celle de l’agenda', 10: 'Basilic (vert foncé)', 2: 'Sauge (vert clair)', 5: 'Banane (jaune)', 6: 'Mandarine (orange)', 11: 'Tomate (rouge)' };
 
+/** La description des agendas du Carnet : elle permet de les reconnaître (reprise, doublons). */
+export const DESCRIPTION_AGENDA = 'Écrit par le Carnet de bord : les cours avec ce qui est prévu. Modifié automatiquement.';
+
 /** Les agendas que le Carnet doit avoir, selon le mode choisi. */
 export function agendasVoulus(ecriture, niveaux) {
   if (!ecriture || !ecriture.parNiveau) return [{ cle: 'general', nom: 'Carnet de bord', couleur: (ecriture && ecriture.couleurUnique) || '#2f7150' }];

@@ -296,7 +296,9 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--accent); width
 @media (max-width: 760px) {
   .grille-jours { grid-auto-columns: 86%; }
 }
-.jours-liste { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.jours-liste { display: grid; grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr)); gap: 12px; align-items: start; }
+.a-prevoir { display: flex; flex-direction: column; gap: 4px; font-size: .88rem; }
+.a-prevoir > b { font-size: .8rem; }
 @media (max-width: 1100px) { .jours-liste { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 760px) { .jours-liste { grid-template-columns: minmax(0, 1fr); } }
 .jour-liste h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: .05em; color: var(--doux); padding-bottom: 5px; border-bottom: 1px solid var(--trait); margin-bottom: 8px; }

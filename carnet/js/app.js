@@ -16,6 +16,7 @@ import { ouvrirCreneau } from './vues/creneau.js';
 import { activerGlisser } from './dnd.js';
 import { surChangementInstallation } from './installation.js';
 import './vues/partage.js';
+import { proposerImportLien } from './vues/importlien.js';
 import { CONFIG } from '../config.js';
 
 const VUES = { accueil: rendreAccueil, semaine: rendreSemaine, classes: rendreClasses, taches: rendreTaches, reglages: rendreReglages, demarrer: rendreDemarrer };
@@ -133,8 +134,15 @@ surModification.appel = () => {
   minuteurSynchro = setTimeout(() => { if (G.connecte()) synchroniser(); }, 3000);
 };
 
-// ---------- Liens profonds : #valider=CLE et #creneau=CLE (depuis Google Agenda) ----------
+// ---------- Liens profonds : #valider=CLE et #creneau=CLE (depuis Google Agenda), #importer=… ----------
 function lienProfond() {
+  const imp = location.hash.match(/^#importer=([A-Za-z0-9_-]+)/);
+  if (imp) {
+    // Les données du lien ne restent ni dans l'adresse, ni dans l'historique.
+    history.replaceState(null, '', '#/accueil');
+    setTimeout(() => proposerImportLien(imp[1]), 50);
+    return true;
+  }
   const m = location.hash.match(/^#(valider|creneau)=([^&]+)/);
   if (!m) return false;
   const cle = decodeURIComponent(m[2]);

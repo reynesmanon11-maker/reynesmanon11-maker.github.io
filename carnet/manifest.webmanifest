@@ -90,14 +90,14 @@
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Le tableau de bord sur ordinateur"
+      "label": "Ma semaine : chaque jour, les cours et ce qui est prévu"
     },
     {
       "src": "captures/semaine-ordinateur.png",
       "sizes": "1280x800",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "La semaine : cours, établissement et vie perso"
+      "label": "La grille horaire : cours, établissement et vie perso"
     }
   ],
   "prefer_related_applications": false

@@ -106,7 +106,19 @@ Réglages → **Partager** (ou l'icône de partage en haut, sur ordinateur) : un
 avec un téléphone, le lien à copier, et un message tout prêt pour un collègue, qui dit en trois
 lignes comment commencer.
 
-## 9. Ranger son tableau de bord
+## 9. La semaine, comme un emploi du temps
+
+Sur ordinateur, l'accueil s'ouvre sur **Ma semaine** : une colonne par jour, et dans chaque
+colonne la carte de chaque cours — horaires, demi-groupes, salle, ce qui est prévu et pour
+combien de temps, les annonces à faire, le matériel **à prévoir** en cases à cocher, et le
+bouton **Texte Pronote** qui copie le texte du cahier de textes. Pendant les vacances ou le
+week-end, c'est la semaine des prochains cours qui s'affiche. Sur téléphone, l'accueil montre
+d'abord la journée.
+
+L'onglet **Semaine** propose la même vue (**Cartes**) et une **Grille horaire**, où cours,
+réunions et rendez-vous perso se placent à leur heure, comme dans un agenda papier.
+
+## 10. Ranger son tableau de bord
 
 Accueil → **Personnaliser** : glissez les modules par leur poignée (ou ↑ ↓), réglez leur largeur
 (S, M, L), masquez ceux qui ne servent pas, et réglez chacun avec ⚙ (« À préparer » en liste, en
@@ -114,6 +126,11 @@ date ou en compteur ; « À faire » en colonne, en ligne ou par échéance…).
 propre à chaque appareil : on ne range pas son téléphone comme son ordinateur.
 
 ## Questions fréquentes
+
+**Reprendre une progression par un lien.** Un lien de la forme `…/carnet/#importer=…` ouvre le
+Carnet sur un résumé de ce qu'il contient (classes, étapes) ; rien n'est importé avant d'avoir
+touché **Importer**. Les étapes de ces classes remplacent celles d'ici ; les réglages, le nom et
+l'effectif des classes restent. Le contenu du lien ne part vers aucun serveur.
 
 **Un cours annulé dans Pronote apparaît encore.** Google relit les agendas abonnés toutes les
 8 à 24 heures environ, sans qu'on puisse le forcer. Le Carnet montre à quelle heure Google a relu

@@ -47,6 +47,7 @@ export function rendreReglages() {
     <section class="carte section-feuille"><h2>Compte et synchronisation</h2>
       ${mode === 'google' ? html`<p>${icone('google')} Connecté avec <b>${(l.compte && l.compte.email) || 'votre compte Google'}</b>.</p>
         <p class="aide">Dernière synchronisation : ${quand(l.derniereSynchro)}. ${etat.brut.pronoteMaj ? html`Google a relu Pronote ${quand(Date.parse(etat.brut.pronoteMaj))}.` : ''}</p>
+        ${l.dernierIncident && Date.now() - l.dernierIncident.le < 7 * 864e5 ? html`<p class="aide">Dernier incident, ${quand(l.dernierIncident.le)} : ${l.dernierIncident.message}${l.dernierIncident.statut ? ` (${l.dernierIncident.statut})` : ''}.</p>` : ''}
         <div class="outils"><button class="btn plein" data-action="synchro-forcee">${icone('synchro')} Synchroniser</button>
           <button class="btn" data-action="changer-source">Changer d'agenda Pronote</button>
           <button class="btn danger" data-action="google-deconnecter">Se déconnecter</button></div>`

@@ -48,7 +48,8 @@ async function appareil({ connexion = 'auto', g = google } = {}) {
       .replace("connexion: 'auto'", `connexion: '${connexion}'`) });
   });
   const p = await ctx.newPage();
-  p.on('console', (m) => { if (m.type() === 'error') erreurs.push(m.text()); });
+  // Les refus 403 voulus par le faux Google (« Google freine ») s'inscrivent dans la console : ce ne sont pas des erreurs de l'appli.
+  p.on('console', (m) => { if (m.type() === 'error' && !/status of 403/.test(m.text())) erreurs.push(m.text()); });
   p.on('pageerror', (e) => erreurs.push(e.message));
   await p.clock.setFixedTime(MAINTENANT);
   return { ctx, p };
@@ -215,6 +216,28 @@ await etape('un faux retour de Google, sans le numéro tiré au départ, est ign
   await ctx4.close();
 });
 
+await etape('un lien d’import reprend une progression : résumé, confirmation, puis la suite dans l’agenda', async () => {
+  const ancien = {
+    seances: { s1: { titre: 'Activité importée par lien', duree: 1, niveau: '5e', format: 'indiff' } },
+    classes: { '5G1': { nom: '501', file: [{ u: 'l1', sid: 's1', fait: 0 }] } },
+    journal: {},
+  };
+  await p.goto(`${URL}#importer=${Buffer.from(JSON.stringify(ancien)).toString('base64url')}`);
+  await p.waitForSelector('dialog.feuille[open] [data-action="importer-lien"]');
+  assert.match(await p.textContent('dialog'), /1 classe : 501/);
+  assert.doesNotMatch(await p.evaluate(() => location.href), /importer=/, 'les données ne restent pas dans l’adresse');
+  await p.getByRole('button', { name: 'Importer' }).click();
+  await p.waitForFunction(() => document.getElementById('pastille-synchro').dataset.etat === 'cours', null, { timeout: 10000 });
+  await synchroFinie(p);
+  const d = await p.evaluate(async () => {
+    const { calc } = await import('./js/etat.js');
+    const c = calc(), cl = c.v.classes['5G1'];
+    return { titre: c.v.etapes[cl.file[0].eid].titre, n: cl.file.length, effectif: cl.effectif };
+  });
+  assert.deepEqual(d, { titre: 'Activité importée par lien', n: 1, effectif: 28 });
+  assert.ok(evenementsCarnet().some((e) => /^501 · Activité importée par lien/.test(e.summary)), 'les cours de la 501 réécrits dans l’agenda');
+});
+
 await etape('mise en route avec l’import de l’ancien carnet : étapes importées, réglages d’ici gardés', async () => {
   // Un autre compte, tout neuf : rien dans son Drive, la mise en route va jusqu'au bout.
   const autre = fauxGoogle({ agendas: {
@@ -257,6 +280,50 @@ await etape('mise en route avec l’import de l’ancien carnet : étapes import
   assert.ok(e501, 'le cours de la 501 du mardi 3 novembre est écrit');
   assert.match(e501.summary, /^501 · Activité 5 – Le Soleil et la Terre · reprendre à ½/);
   await c5.close();
+});
+
+await etape('agendas : une synchronisation interrompue ne laisse plus de doublons, et Google qui freine ne bloque rien', async () => {
+  // Ce qu'a laissé la première version : trois « Carnet · 3e » vides (une synchronisation
+  // interrompue juste après chaque création), et un agenda de l'utilisatrice qui porte le même nom.
+  const SIGNE = 'Écrit par le Carnet de bord : les cours avec ce qui est prévu. Modifié automatiquement.';
+  const vide = (n) => ({ summary: 'Carnet · 3e', description: SIGNE, accessRole: 'owner', creeParAppli: true, evenements: [], n });
+  const abime = fauxGoogle({ refusCreations: 4, agendas: {
+    'prof.test@gmail.com': { summary: 'prof.test@gmail.com', primary: true, accessRole: 'owner', evenements: [] },
+    'pronote123@import.calendar.google.com': { summary: 'Calendrier - DURAND M.', description: 'Calendrier DURAND M. généré par le logiciel PRONOTE (©INDEX ÉDUCATION)', accessRole: 'reader', evenements: pronote },
+    'double1@group.calendar.google.com': vide(1),
+    'double2@group.calendar.google.com': vide(2),
+    'double3@group.calendar.google.com': vide(3),
+    'a-moi@group.calendar.google.com': { summary: 'Carnet · 3e', description: 'Mes notes à moi', accessRole: 'owner', evenements: [] },
+  } });
+  const { ctx: c6, p: p6 } = await appareil({ g: abime });
+  await p6.goto(URL);
+  await p6.getByRole('button', { name: /Avec mon compte Google/ }).click();
+  await p6.getByRole('button', { name: /Se connecter avec Google/ }).click();
+  await p6.waitForSelector('input[name="agenda-pronote"]');
+  await p6.getByRole('button', { name: 'Continuer' }).click();
+  await p6.waitForSelector('#form-classes');
+  await p6.getByRole('button', { name: 'Continuer' }).click();
+  await p6.waitForSelector('input[name="mode-ecriture"][value="niveau"]:checked');
+  await p6.getByRole('button', { name: 'Continuer' }).click();
+  await p6.waitForSelector('input[name="perso"]');
+  const proposes = await p6.$$eval('input[name="perso"]', (i) => i.map((x) => x.value));
+  assert.ok(!proposes.some((v) => v.startsWith('double')), 'les agendas du Carnet ne sont pas proposés comme vie perso');
+  assert.ok(proposes.includes('a-moi@group.calendar.google.com'), 'celui de l’utilisatrice, si');
+  await p6.getByRole('button', { name: 'Continuer' }).click();
+  await p6.getByRole('button', { name: /Partir de zéro/ }).click();
+  await p6.waitForSelector('.module');
+  await synchroFinie(p6);
+  const carnet = () => Object.entries(abime.etat.agendas).filter(([, a]) => a.description === SIGNE);
+  const noms = () => carnet().map(([, a]) => a.summary).sort();
+  assert.deepEqual(noms(), ['Carnet · 3e', 'Carnet · 5e'], 'un seul « Carnet · 3e » gardé, le 5e créé, la suite refusée par Google');
+  assert.ok(abime.etat.agendas['a-moi@group.calendar.google.com'], 'l’agenda de l’utilisatrice n’est pas touché');
+  assert.match(await p6.textContent('#pastille-synchro'), /encore 2 agendas à créer/);
+  assert.ok(carnet().every(([, a]) => a.evenements.length > 0), 'les cours de la 3e et de la 5e sont déjà écrits');
+  // Plus tard, Google accepte : la synchronisation suivante finit le travail, sans rien recréer.
+  await p6.click('#pastille-synchro');
+  await p6.waitForFunction(() => /À jour/.test(document.getElementById('pastille-synchro').textContent) && !/à créer/.test(document.getElementById('pastille-synchro').textContent), null, { timeout: 30000 });
+  assert.deepEqual(noms(), ['Carnet · 3e', 'Carnet · 5e', 'Carnet · 6e', 'Carnet · Établissement']);
+  await c6.close();
 });
 
 await ctx1.close();

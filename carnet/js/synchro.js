@@ -7,12 +7,12 @@ import { etat, calc, definirBrut, definirSynchro, fusionnerDocs, modifierReglage
 import { fusionner, purger, identiques, VERSION_DONNEES } from './donnees.js';
 import { depuisGoogle, estLienIcal } from './pronote.js';
 import { lireIcs } from './ics.js';
-import { agendasVoulus, evenementsVoulus, comparer } from './agenda.js';
+import { agendasVoulus, evenementsVoulus, comparer, DESCRIPTION_AGENDA } from './agenda.js';
 import { FUSEAU_APPAREIL, aujourdhui, ajouteJours, lundiDe, instantDe, heureDe, heureLisible } from './dates.js';
 import { adresseAppli } from './installation.js';
 
 const FICHIER = 'carnet-de-bord.json';
-let enCours = null, encore = false, fichierId = null;
+let enCours = null, encore = false, fichierId = null, relance = null;
 
 export const urlAppli = () => adresseAppli().replace(/[?#].*$/, '');
 const fuseau = () => reglages().fuseau || FUSEAU_APPAREIL;
@@ -43,8 +43,17 @@ async function executer({ ecriture = true } = {}) {
     if (etat.sale) await synchroDrive();
     const h = heureLisible(heureDe(new Date(), fuseau()));
     reglerLocal({ derniereSynchro: Date.now() });
-    definirSynchro('ok', bilan && bilan.total ? `À jour à ${h} · ${bilan.total} changement${bilan.total > 1 ? 's' : ''} dans l'agenda` : `À jour à ${h}`);
+    if (bilan && bilan.enAttente) {
+      // Google a refusé de créer un agenda de plus pour l'instant : on réessaie dans deux minutes.
+      clearTimeout(relance);
+      relance = setTimeout(() => synchroniser(), 2 * 60000);
+      definirSynchro('ok', `À jour à ${h} · encore ${bilan.enAttente} agenda${bilan.enAttente > 1 ? 's' : ''} à créer : Google demande d'attendre, nouvel essai dans 2 minutes`);
+    } else {
+      definirSynchro('ok', bilan && bilan.total ? `À jour à ${h} · ${bilan.total} changement${bilan.total > 1 ? 's' : ''} dans l'agenda` : `À jour à ${h}`);
+    }
   } catch (e) {
+    // Gardé pour les réglages : de quoi comprendre ce qui s'est passé, même une fois le message parti.
+    reglerLocal({ dernierIncident: { le: Date.now(), message: String(e.message || e).slice(0, 300), statut: e.statut || null } });
     if (e.code === 'jeton') definirSynchro('connexion', 'Se reconnecter à Google');
     else definirSynchro('erreur', messageErreur(e));
   }
@@ -52,6 +61,7 @@ async function executer({ ecriture = true } = {}) {
 
 export function messageErreur(e) {
   if (!e) return 'Erreur inconnue.';
+  if (G.estLimite(e)) return "Google limite le nombre d'opérations pour l'instant : le Carnet réessaiera dans quelques minutes.";
   if (e.code === 'interdit') return `Google refuse l'accès (${e.message}). Reconnectez-vous en cochant toutes les autorisations.`;
   if (e.code === 'non-configure') return e.message;
   if (e.code === 'popup_failed_to_open') return "Le navigateur a bloqué la fenêtre de connexion Google.";
@@ -116,7 +126,7 @@ export async function lireAgendas() {
   }
   const perso = [];
   for (const id of src.agendasPerso || []) {
-    if (!agendas[id]) continue;
+    if (!agendas[id] || agendas[id].description === DESCRIPTION_AGENDA) continue; // les agendas du Carnet ne sont pas de la vie perso
     try {
       const res = await G.listerEvenements(id, { timeMin: t(ajouteJours(lundi, -7)), timeMax: t(ajouteJours(lundi, 7 * 6)) });
       for (const e of res.evenements) {
@@ -141,22 +151,48 @@ export async function ecrireAgendas({ surProgres } = {}) {
   const niveaux = [...new Set(c.creneaux.map((cr) => niveauClasse(cr.code, c.v)))].sort();
   const voulus = agendasVoulus(e, niveaux);
   const liste = Object.values(etat.brut.agendas || {}).length ? null : await G.listerAgendas();
-  const connus = liste ? Object.fromEntries(liste.map((a) => [a.id, a])) : etat.brut.agendas;
+  const connus = { ...(liste ? Object.fromEntries(liste.map((a) => [a.id, a])) : etat.brut.agendas) };
   const ids = { ...(e.calendriers || {}) };
   const couleurs = { ...(e.couleursAppliquees || {}) };
-  let change = false;
+  // Chaque agenda est noté dès qu'il existe : si la suite échoue, la prochaine synchronisation le
+  // reprend au lieu d'en créer un autre du même nom.
+  const noter = () => modifierReglages((x) => { x.ecriture = { ...(x.ecriture || {}), calendriers: { ...ids }, couleursAppliquees: { ...couleurs } }; });
+  const duCarnet = (id) => !!connus[id] && connus[id].description === DESCRIPTION_AGENDA && (connus[id].role || 'owner') === 'owner';
+  let creations = 0, enAttente = 0;
   for (const a of voulus) {
     let id = ids[a.cle];
     if (id && !connus[id]) id = null; // supprimé par l'utilisateur dans Google Agenda
     if (!id) {
-      const cal = await G.creerAgenda(a.nom, 'Écrit par le Carnet de bord : les cours avec ce qui est prévu. Modifié automatiquement.', tz);
-      id = cal.id; ids[a.cle] = id; change = true; delete couleurs[a.cle];
+      // Un agenda du Carnet de ce nom existe déjà (synchronisation interrompue, autre appareil) : on le reprend.
+      id = Object.keys(connus).find((k) => duCarnet(k) && connus[k].nom === a.nom) || null;
+      if (!id) {
+        if (enAttente) { enAttente++; continue; }
+        try {
+          // Google refuse les créations d'agendas trop rapprochées : on les espace.
+          if (creations++) await G.attendre(2000);
+          id = (await G.creerAgenda(a.nom, DESCRIPTION_AGENDA, tz)).id;
+          connus[id] = { nom: a.nom, description: DESCRIPTION_AGENDA, role: 'owner' };
+        } catch (err) {
+          if (!G.estLimite(err)) throw err;
+          enAttente++;
+          continue;
+        }
+      }
+      ids[a.cle] = id;
+      delete couleurs[a.cle];
+      noter();
     }
     if (couleurs[a.cle] !== a.couleur) {
-      try { await G.colorerAgenda(id, a.couleur); couleurs[a.cle] = a.couleur; change = true; } catch (err) { if (err.code === 'jeton') throw err; }
+      try { await G.colorerAgenda(id, a.couleur); couleurs[a.cle] = a.couleur; noter(); } catch (err) { if (err.code === 'jeton') throw err; }
     }
   }
-  if (change) modifierReglages((x) => { x.ecriture = { ...(x.ecriture || {}), calendriers: ids, couleursAppliquees: couleurs }; });
+  // Les doublons laissés par une synchronisation interrompue : même nom, même description, créés
+  // par le Carnet. Leurs cours sont réécrits dans l'agenda gardé ; on les retire.
+  const gardes = new Set(Object.values(ids));
+  for (const k of Object.keys(connus)) {
+    if (!duCarnet(k) || gardes.has(k) || !voulus.some((a) => a.nom === connus[k].nom)) continue;
+    try { await G.supprimerAgenda(k); delete connus[k]; } catch (err) { if (err.code === 'jeton') throw err; }
+  }
 
   const auj = aujourdhui(tz);
   const fenetre = { debut: ajouteJours(auj, -7), fin: ajouteJours(auj, 7 * (Number(e.semaines) || 6)), urlAppli: urlAppli() };
@@ -181,7 +217,7 @@ export async function ecrireAgendas({ surProgres } = {}) {
   const erreurs = await G.parPaquets(taches, 4, surProgres);
   if (erreurs.length) throw erreurs[0];
   reglerLocal({ derniereEcriture: Date.now() });
-  return { creer: creer.length, modifier: modifier.length, supprimer: supprimer.length, total: taches.length };
+  return { creer: creer.length, modifier: modifier.length, supprimer: supprimer.length, total: taches.length, enAttente };
 }
 
 /** Retire du Google Agenda tout ce que le Carnet y a écrit, puis ses agendas. */

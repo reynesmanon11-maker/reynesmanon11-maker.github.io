@@ -5,7 +5,7 @@
 import { lire, ecrire as ecrireStockage } from './stockage.js';
 import { vue, fusionner, purger, fusionImport } from './donnees.js';
 import { interpreter, deduireNoms, niveauDe } from './pronote.js';
-import { construireCreneaux, planifier, coupures, dureeSeanceProbable } from './moteur.js';
+import { construireCreneaux, planifier, coupures, dureeSeanceProbable, persoUtiles } from './moteur.js';
 import { FUSEAU_APPAREIL, aujourdhui, lundiDe, jourDe } from './dates.js';
 
 export const LOCAL_DEFAUT = {
@@ -16,6 +16,7 @@ export const LOCAL_DEFAUT = {
   vueSemaine: null,
   persoVisible: true,
   installPlusTard: 0,
+  dernierIncident: null,
   compte: null,
   derniereLecture: null,
   derniereEcriture: null,
@@ -150,11 +151,11 @@ export function calc() {
   const maintenant = new Date();
   const auj = aujourdhui(fuseau);
   const plan = planifier(v, creneaux, { auj, maintenant, delaiAnnonce: Number(v.reglages.annonceJours) || 7 });
+  const etablissement = cours.filter((c) => c.type === 'etablissement');
   memo = {
-    v, fuseau, cours, creneaux, tousCreneaux, inconnus, plan, auj, maintenant, dureeSeance,
+    v, fuseau, cours, creneaux, tousCreneaux, inconnus, plan, auj, maintenant, dureeSeance, etablissement,
     coupures: coupures(cours, tousCreneaux),
-    etablissement: cours.filter((c) => c.type === 'etablissement'),
-    perso: etat.local.persoVisible ? (etat.brut.perso || []) : [],
+    perso: etat.local.persoVisible ? persoUtiles(etat.brut.perso || [], { creneaux: tousCreneaux, etablissement, v }) : [],
   };
   return memo;
 }

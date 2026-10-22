@@ -2,8 +2,9 @@
 // l'appli les appelle, avec un état en mémoire partagé entre plusieurs « appareils ».
 // Il tient le journal des appels pour vérifier ce qui a été écrit, et où.
 
-export function fauxGoogle({ agendas }) {
+export function fauxGoogle({ agendas, refusCreations = 0 }) {
   const etat = {
+    creations: 0, refus: refusCreations, // Google refuse parfois un 2e agenda créé dans la foulée
     agendas: structuredClone(agendas), // id → { summary, description, accessRole, primary, backgroundColor, evenements: [] }
     fichiers: {},                       // id → { name, contenu, modifiedTime }
     appels: [],
@@ -47,6 +48,11 @@ export function fauxGoogle({ agendas }) {
       return repondre(route, 200, entree(m[1], a));
     }
     if (chemin === '/calendar/v3/calendars' && methode === 'POST') {
+      if (etat.creations >= 1 && etat.refus > 0) {
+        etat.refus--;
+        return repondre(route, 403, { error: { code: 403, message: 'Calendar usage limits exceeded.', errors: [{ domain: 'usageLimits', reason: 'quotaExceeded', message: 'Calendar usage limits exceeded.' }] } });
+      }
+      etat.creations++;
       const b = JSON.parse(corps);
       const cid = `${id('carnet')}@group.calendar.google.com`;
       etat.agendas[cid] = { summary: b.summary, description: b.description, timeZone: b.timeZone, accessRole: 'owner', creeParAppli: true, evenements: [] };

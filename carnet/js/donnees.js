@@ -78,7 +78,9 @@ export function importer(texte, maintenant = Date.now()) {
  *     ne fait que compléter ce qui manque, par exemple la date de début du suivi ;
  *   - classes : la file d'étapes, le point de départ et les annonces viennent de l'import ; le
  *     nom, le niveau, l'effectif et le masquage réglés ici restent ;
- *   - étapes, validations, tâches, notes : l'import l'emporte.
+ *   - étapes, validations, tâches, notes : l'import l'emporte ;
+ *   - les points d'arrêt d'ici qui portent sur une étape absente de la file importée n'ont plus de
+ *     sens (ils situaient la classe dans l'ancienne file) : ils sont retirés.
  * Une suppression importée ne supprime rien. Tout est daté de « maintenant », pour l'emporter
  * aussi sur les autres appareils à la prochaine synchronisation.
  */
@@ -99,6 +101,14 @@ export function fusionImport(local = {}, importes = {}, maintenant = Date.now())
     }
     delete fusion._x;
     res[chemin] = { ...fusion, _m: maintenant };
+  }
+  for (const [chemin, doc] of Object.entries(importes)) {
+    if (!chemin.startsWith('classes/') || !doc || doc._x || !Array.isArray(doc.file)) continue;
+    const code = chemin.slice('classes/'.length), us = new Set(doc.file.map((it) => it.u));
+    for (const [cj, j] of Object.entries(res)) {
+      if (!cj.startsWith('journal/') || importes[cj] || !j || j._x || j.code !== code) continue;
+      if (j.arret && j.arret.u != null && !us.has(j.arret.u)) res[cj] = { _x: 1, _m: maintenant };
+    }
   }
   return res;
 }
