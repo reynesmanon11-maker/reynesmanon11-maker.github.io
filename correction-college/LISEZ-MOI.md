@@ -1,0 +1,43 @@
+# Compétences collège — Sciences / SVT (mémoire pour l'outil de correction)
+
+Ce dossier garde les **référentiels de compétences du collège** de Manon Reynes,
+pour construire le **mode collège** de l'outil de correction de copies :
+au collège on **évalue par compétences** (niveaux de maîtrise), pas par une note
+sur 20 comme on l'avait fait pour le lycée.
+
+- Données exploitables par l'appli : `competences_sciences_cycle3.json`,
+  `competences_svt_cycle4.json`.
+- Source : captures d'écran de la grille de compétences fournies par Manon
+  (octobre 2026). « Tous les niveaux » = la compétence s'évalue sur tout le cycle.
+- Échelle de maîtrise : **à définir avec Manon** (ex. 4 niveaux : insuffisante /
+  fragile / satisfaisante / très bonne, ou 1-2-3-4, ou A-B-C-D). Champ
+  `echelle_maitrise` laissé vide dans les JSON en attendant.
+- À relire / corriger librement : si un intitulé est imprécis, le modifier ici
+  **et** dans le JSON correspondant.
+
+## Cycle 3 — Sciences et technologie (SVT + physique-chimie + technologie)
+
+1. **Pratiquer des démarches scientifiques et technologiques** (D4)
+2. **Concevoir, créer, réaliser** (D4, D5)
+3. **S'approprier des outils et des méthodes** (D2)
+4. **Pratiquer des langages** (D1.1)
+5. **Mobiliser des outils numériques** (D5)
+6. **Adopter un comportement éthique et responsable** (D3, D5)
+7. **Se situer dans l'espace et dans le temps** (D5)
+8. **Faire preuve d'esprit critique** (D2, D4)
+
+## Cycle 4 — SVT
+
+1. **Pratiquer des démarches scientifiques** (D1.3, D2, D4)
+2. **Concevoir, créer, réaliser** (D4)
+3. **Utiliser des outils et mobiliser des méthodes pour apprendre** (D2)
+4. **Pratiquer des langages** (D1.3, D4)
+5. **Utiliser des outils numériques** (D1.3, D4)
+6. **Adopter un comportement éthique et responsable** (D3, D4, D5)
+7. **Se situer dans l'espace et dans le temps** (D4, D5)
+8. **Mobiliser les connaissances** (Thème 1 : la planète Terre, l'environnement
+   et l'action humaine ; Thème 2 : le corps humain et la santé ; Thème 3 : le
+   vivant et son évolution)
+
+> Le détail des items (sous-compétences) de chaque grande compétence est dans
+> les fichiers JSON à côté de ce document.

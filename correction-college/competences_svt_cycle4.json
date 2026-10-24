@@ -1,0 +1,99 @@
+{
+  "_lisez_moi": "Référentiel de compétences SVT cycle 4, extrait des captures d'écran fournies par Manon Reynes (oct. 2026) pour bâtir le mode collège de l'outil de correction (évaluation par compétences, pas par note /20). « Tous les niveaux » = applicable en 5e, 4e et 3e. Fichier de référence relu à chaque session ; ne pas y mettre de secret.",
+  "cycle": "cycle 4",
+  "discipline": "SVT",
+  "evaluation": "par compétences (niveaux de maîtrise), et non par note sur 20",
+  "echelle_maitrise": null,
+  "competences": [
+    {
+      "id": "demarches",
+      "intitule": "Pratiquer des démarches scientifiques",
+      "domaines_socle": ["D1.3", "D2", "D4"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Formuler une question ou un problème scientifique.",
+        "Proposer une ou des hypothèses pour résoudre un problème ou une question. Concevoir des expériences pour la ou les tester.",
+        "Utiliser des instruments d'observation, de mesures et des techniques de préparation et de collecte.",
+        "Interpréter des résultats et en tirer des conclusions.",
+        "Communiquer sur ses démarches, ses résultats et ses choix, en argumentant.",
+        "Identifier et choisir des notions, des outils et des techniques, ou des modèles simples pour mettre en œuvre une démarche scientifique."
+      ]
+    },
+    {
+      "id": "concevoir",
+      "intitule": "Concevoir, créer, réaliser",
+      "domaines_socle": ["D4"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Concevoir et mettre en œuvre un protocole expérimental."
+      ]
+    },
+    {
+      "id": "methodes",
+      "intitule": "Utiliser des outils et mobiliser des méthodes pour apprendre",
+      "domaines_socle": ["D2"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Apprendre à organiser son travail (par ex. pour mettre en œuvre un protocole expérimental).",
+        "Identifier et choisir les outils et les techniques pour garder trace de ses recherches (à l'oral et à l'écrit)."
+      ]
+    },
+    {
+      "id": "langages",
+      "intitule": "Pratiquer des langages",
+      "domaines_socle": ["D1.3", "D4"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Lire et exploiter des données présentées sous différentes formes : tableaux, graphiques, diagrammes, dessins, conclusions de recherches, cartes heuristiques, etc.",
+        "Représenter des données sous différentes formes, passer d'une représentation à une autre et choisir celle qui est adaptée à la situation de travail.",
+        "Interpréter un document."
+      ]
+    },
+    {
+      "id": "numerique",
+      "intitule": "Utiliser des outils numériques",
+      "domaines_socle": ["D1.3", "D4"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Conduire une recherche d'informations sur internet pour répondre à une question ou un problème scientifique, en choisissant des mots-clés pertinents, et en évaluant la fiabilité des sources et la validité des résultats.",
+        "Utiliser des logiciels d'acquisition de données, de simulation et des bases de données."
+      ]
+    },
+    {
+      "id": "ethique",
+      "intitule": "Adopter un comportement éthique et responsable",
+      "domaines_socle": ["D3", "D4", "D5"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Identifier les impacts (bénéfices et nuisances) des activités humaines sur l'environnement à différentes échelles.",
+        "Fonder ses choix de comportement responsable vis-à-vis de sa santé ou de l'environnement sur des arguments scientifiques.",
+        "Comprendre les responsabilités individuelle et collective en matière de préservation des ressources de la planète (biodiversité, ressources minérales et ressources énergétiques) et de santé.",
+        "Participer à l'élaboration de règles de sécurité et les appliquer au laboratoire et sur le terrain.",
+        "Distinguer ce qui relève d'une croyance ou d'une idée et ce qui constitue un savoir scientifique."
+      ]
+    },
+    {
+      "id": "espace_temps",
+      "intitule": "Se situer dans l'espace et dans le temps",
+      "domaines_socle": ["D4", "D5"],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Situer l'espèce humaine dans l'évolution des espèces.",
+        "Appréhender différentes échelles de temps géologique et biologique (ex : histoire de la Terre ; apparition de la vie, évolution et extinction des espèces vivantes…).",
+        "Appréhender différentes échelles spatiales d'un même phénomène/d'une même fonction (ex : nutrition : niveau de l'organisme, niveau des organes et niveau cellulaire).",
+        "Identifier par l'histoire des sciences et des techniques comment se construit un savoir scientifique."
+      ]
+    },
+    {
+      "id": "connaissances",
+      "intitule": "Mobiliser les connaissances",
+      "domaines_socle": [],
+      "niveaux": "Tous les niveaux",
+      "items": [
+        "Maîtriser les connaissances du Thème 1 : La planète Terre, l'environnement et l'action humaine.",
+        "Maîtriser les connaissances du Thème 2 : Le corps humain et la santé.",
+        "Maîtriser les connaissances du Thème 3 : Le vivant et son évolution."
+      ]
+    }
+  ]
+}

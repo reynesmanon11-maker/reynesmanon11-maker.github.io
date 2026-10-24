@@ -235,3 +235,19 @@ Playwright et Chromium sont disponibles (`/opt/pw-browsers`). Ouvrir la page
 modifiée, vérifier l'absence d'erreur JavaScript en console, le rendu à 390 px
 de large, et — pour toute page qui dessine dans un `<canvas>` — la stabilité de
 la hauteur de page avec `deviceScaleFactor: 2`.
+
+## Outil de correction de copies (`correction_copies.html`) — pour Manon, pas pour les élèves
+
+Appli autonome (un seul fichier HTML, clé API Claude saisie par Manon, données
+en `localStorage` + sync Supabase optionnelle) qui corrige des copies et génère
+des remédiations. C'est un outil d'enseignante, comme le Carnet : aucun lien
+depuis les pages des élèves. Le badge de version est affiché à côté du logo (bien
+vérifier qu'on teste la dernière version — pièges de cache fréquents).
+
+**Passage au collège (évaluation par compétences) :** Manon enseigne maintenant
+au collège, où l'on évalue **par compétences** (niveaux de maîtrise), pas par une
+note sur 20. Les référentiels officiels qu'elle utilise sont enregistrés dans
+`correction-college/` (`competences_sciences_cycle3.json`,
+`competences_svt_cycle4.json`, + `LISEZ-MOI.md`) : c'est la mémoire de référence
+pour bâtir un **mode collège** de l'outil. L'échelle de maîtrise reste à caler
+avec elle.
