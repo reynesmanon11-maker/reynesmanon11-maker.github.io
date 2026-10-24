@@ -5,10 +5,13 @@ import { html, icone, toast, telecharger, ouvrirFeuille, fermerFeuille } from '.
 import { etat, calc, reglerLocal, reglages, modifierReglages, importerDocs, remplacerDocs, definirBrut, definirSynchro } from '../etat.js';
 import { exporter, importer } from '../donnees.js';
 import { effacerTout } from '../stockage.js';
-import { dateCourte, heureDe, heureLisible, jourDe } from '../dates.js';
+import { dateCourte, heureDe, heureLisible, jourDe, jourMois } from '../dates.js';
+import { semaineUtile } from '../moteur.js';
+import { identite } from '../identite.js';
+import { lettreDe } from './semaine.js';
 import { CONFIG } from '../../config.js';
 import * as G from '../google.js';
-import { synchroniser, toutRetirer, messageErreur, lireLienIcal, lireTexteIcal, bilanLecture } from '../synchro.js';
+import { synchroniser, toutRetirer, messageErreur, lireLienIcal, lireTexteIcal, bilanLecture, agendasInutiles, retirerInutiles } from '../synchro.js';
 import { allerDemarrage } from './demarrer.js';
 import { COULEURS_EVENEMENT } from '../agenda.js';
 import { installation, installee } from '../installation.js';
@@ -24,8 +27,22 @@ function quand(ms) {
 export function rendreReglages() {
   const l = etat.local, r = reglages(), e = r.ecriture || {};
   const mode = l.mode;
-  return html`<div class="titre-page"><div><h1>Réglages</h1><p>Version ${CONFIG.version}</p></div></div>
+  const id = identite();
+  const c = calc();
+  const lundiRef = semaineUtile(c.tousCreneaux, c.auj);
+  const lettre = lettreDe(lundiRef);
+  return html`<div class="titre-page"><div><h1>Mes données et réglages</h1><p>Version ${CONFIG.version}</p></div></div>
   <div class="classes">
+    <section class="carte section-feuille"><h2>Mon espace</h2>
+      <div class="grille-champs">
+        <label class="champ"><span>Établissement</span><input type="text" id="regler-etablissement" value="${r.etablissement || ''}" placeholder="${id.devine.etablissement || 'COLLÈGE …'}" data-change="regler-etablissement"></label>
+        <label class="champ"><span>Nom affiché</span><input type="text" id="regler-nom" value="${r.nomAffiche || ''}" placeholder="${id.devine.nom || 'Mme …'}" data-change="regler-nom"></label>
+      </div>
+      <p class="aide">Affichés en tête de page, comme dans Pronote. Laissés vides, le Carnet reprend ce que dit l'agenda Pronote${id.devine.nom || id.devine.etablissement ? ` (${[id.devine.etablissement, id.devine.nom].filter(Boolean).join(' · ')})` : ''}.</p>
+      <div class="outils"><span>La semaine du ${jourMois(lundiRef)} est une</span><span class="segmente" role="group" aria-label="Semaine A ou B">
+        ${[['A', 'semaine A'], ['B', 'semaine B'], ['', 'pas d’alternance']].map(([k, v]) => html`<button data-action="regler-ab" data-valeur="${k}" aria-pressed="${(lettre || '') === k}">${v}</button>`)}</span></div>
+      <p class="aide">Pour l'afficher sur l'emploi du temps. Les vacances ne comptent pas : la lettre reprend où elle en était.</p>
+    </section>
     <section class="carte section-feuille"><h2>Apparence <span class="aide">· cet appareil</span></h2>
       <div class="outils"><span>Thème</span><span class="segmente" role="group" aria-label="Thème">
         ${[['light', 'Clair'], ['dark', 'Sombre'], ['auto', 'Comme l’appareil']].map(([k, v]) => html`<button data-action="regler-theme" data-valeur="${k}" aria-pressed="${l.theme === k}">${v}</button>`)}</span></div>
@@ -70,6 +87,8 @@ export function rendreReglages() {
       </div>
       <label class="coche"><input type="checkbox" data-change="ecriture-etab"${e.etablissement !== false ? ' checked' : ''}><span>Recopier aussi les réunions et les vacances de Pronote</span></label>
       <p class="aide">Dernière écriture : ${quand(l.derniereEcriture)}. Les couleurs par niveau se règlent dans la mise en route (« Changer d'agenda Pronote » y ramène).</p>
+      ${agendasInutiles().length ? html`<p class="avert">${icone('alerte')} ${agendasInutiles().length} agenda${agendasInutiles().length > 1 ? 's' : ''} du Carnet ne ser${agendasInutiles().length > 1 ? 'vent' : 't'} plus : ${agendasInutiles().map((a) => `« ${a.nom} »`).join(', ')}.
+        <button class="btn mini" data-action="retirer-inutiles">Les supprimer</button></p>` : ''}
       <button class="btn danger" data-action="tout-retirer">Retirer du Google Agenda tout ce que le Carnet a écrit</button>` : ''}
     </section>` : ''}
 
@@ -107,6 +126,18 @@ const apparence = (patch) => {
   try { localStorage.setItem('carnet-apparence', JSON.stringify({ theme: etat.local.theme, accent: etat.local.accent, densite: etat.local.densite })); } catch { /* sans stockage */ }
 };
 actions['regler-theme'] = (el) => apparence({ theme: el.dataset.valeur });
+actions['retirer-inutiles'] = async (el) => {
+  if (!G.connecte()) { try { await G.connecter(); } catch (e) { toast(messageErreur(e)); return; } }
+  el.disabled = true;
+  try { const n = await retirerInutiles(); toast(`${n} agenda${n > 1 ? 's' : ''} supprimé${n > 1 ? 's' : ''}.`); } catch (e) { toast(messageErreur(e)); }
+};
+changements['regler-etablissement'] = (el) => modifierReglages((r) => { r.etablissement = el.value.trim(); });
+changements['regler-nom'] = (el) => modifierReglages((r) => { r.nomAffiche = el.value.trim(); });
+actions['regler-ab'] = (el) => {
+  const c = calc();
+  const lundi = semaineUtile(c.tousCreneaux, c.auj);
+  modifierReglages((r) => { r.semaineAB = el.dataset.valeur ? { lundi, lettre: el.dataset.valeur } : null; });
+};
 actions['regler-accent'] = (el) => apparence({ accent: el.dataset.valeur });
 actions['regler-densite'] = (el) => apparence({ densite: el.dataset.valeur });
 export { apparence };

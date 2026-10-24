@@ -58,6 +58,16 @@ export function fauxGoogle({ agendas, refusCreations = 0 }) {
       etat.agendas[cid] = { summary: b.summary, description: b.description, timeZone: b.timeZone, accessRole: 'owner', creeParAppli: true, evenements: [] };
       return repondre(route, 200, { id: cid, summary: b.summary });
     }
+    if ((m = chemin.match(/^\/calendar\/v3\/calendars\/([^/]+)$/)) && methode === 'PATCH') {
+      const a = etat.agendas[m[1]];
+      if (!a) return repondre(route, 404, { error: { message: 'Not Found' } });
+      if (!a.creeParAppli) return repondre(route, 403, { error: { message: 'Insufficient Permission' } });
+      const b = JSON.parse(corps || '{}');
+      if (b.summary != null) a.summary = b.summary;
+      if (b.description != null) a.description = b.description;
+      etat.renommages = (etat.renommages || 0) + 1;
+      return repondre(route, 200, { id: m[1], summary: a.summary, description: a.description });
+    }
     if ((m = chemin.match(/^\/calendar\/v3\/calendars\/([^/]+)$/)) && methode === 'DELETE') {
       if (!etat.agendas[m[1]] || !etat.agendas[m[1]].creeParAppli) return repondre(route, 403, { error: { message: 'Forbidden' } });
       delete etat.agendas[m[1]];

@@ -140,6 +140,55 @@ recréé, les doublons vides sont retirés, les créations sont espacées, et si
 d'attendre, les cours des agendas déjà là sont écrits tout de suite et la suite est retentée
 deux minutes plus tard. La dernière erreur reste visible dans les réglages.
 
+Mieux encore : un agenda du Carnet qui ne sert à rien — le doublon vide d'un agenda gardé, ou
+celui d'un niveau qu'on n'a plus — est **renommé** pour devenir celui qui manque. Google limite
+les créations d'agendas, pas les renommages : trois « Carnet · 3e » vides laissés par la première
+version deviennent les agendas des 5e, des 6e et de l'établissement, sans attendre. Ceux qui
+restent inutiles se suppriment d'un bouton dans Mes données.
+
+## Ranger le Carnet comme Pronote
+
+Les enseignants passent leurs journées dans Pronote : changer leurs habitudes est le plus sûr
+moyen qu'ils n'adoptent pas un outil. Le Carnet reprend donc l'organisation de l'espace
+professeur — les rubriques (Page d'accueil, Emploi du temps, Cahier de textes, Progressions, Mes
+travaux, Mes données) dans une barre de menus sombre, la page d'accueil en tuiles avec « Tout
+voir » et une croix, et leurs noms quand la tuile existe dans Pronote (« Pense-bête », « Agenda »,
+« Cahiers de textes non saisis »). Il en reprend la **structure et le vocabulaire**, pas la marque
+ni le logo : le Carnet n'est pas Pronote et ne se fait pas passer pour lui.
+
+Le pendant de « Appels non faits » est « Cours à valider », celui de « Cahiers de textes non
+saisis » se coche à la main : le Carnet ne peut pas lire Pronote au-delà de l'emploi du temps.
+
+## Importer une programmation : lire le tableur tel qu'il est
+
+Chacun a sa programmation dans un tableur, et personne n'a envie de la recopier. Plutôt
+qu'imposer un modèle, le Carnet lit le fichier tel qu'il est et **devine** : la ligne des titres
+(celle dont les cellules ressemblent le plus à des titres connus), le rôle de chaque colonne (par
+son titre, puis par ses valeurs : une colonne « Séance » remplie de 1, 2, 3… est une
+numérotation, pas une durée), les lignes de chapitre, les évaluations, les durées et les semaines.
+Tout ce qui est deviné se montre et se corrige avant d'écrire quoi que ce soit.
+
+- **Sans bibliothèque** : un .xlsx et un .ods sont des dossiers zippés de XML. Le navigateur sait
+  décompresser (`DecompressionStream`), le reste est un petit lecteur de zip et de XML maison,
+  testé sur de vrais fichiers d'Excel et de LibreOffice. Pas de CDN qui casse, rien qui part sur
+  un serveur : le fichier ne quitte pas l'appareil.
+- **Pas l'ancien .xls** (format binaire de 1997) : il s'enregistre en .xlsx en deux clics, et le
+  Carnet le dit quand on lui en donne un. Pas de PDF ni de Word non plus, mais un tableau copié
+  depuis Word se colle.
+- **Une heure de cours est une séance** : « 1h30 » dans une programmation veut dire une séance et
+  demie, pas 90 minutes à diviser par 55. Les minutes, elles, se divisent par la durée d'une
+  séance (« 15 min » : un quart).
+- L'export se fait en **.xlsx** (une feuille par classe), écrit lui aussi sans bibliothèque, et se
+  réimporte tel quel : c'est ainsi qu'une progression passe d'un collègue à l'autre.
+
+## Le calendrier des étapes
+
+La programmation dit « semaine 45 » ; l'emploi du temps réel, avec ses cours annulés, ses
+sorties et ses demi-groupes, dit autre chose. Le calendrier des étapes montre les deux : le jour
+où chaque étape tombe pour chaque classe, calculé par le même moteur que le reste, et l'écart à
+la semaine visée. Pour qu'il porte sur l'année, le Carnet lit l'agenda Pronote **jusqu'à la fin
+de l'année scolaire** (et non plus douze semaines).
+
 ## Limites de cette première version
 
 - **Jamais essayée avec le vrai Google.** Elle l'a été contre un faux Google qui reproduit les
@@ -164,8 +213,8 @@ deux minutes plus tard. La dernière erreur reste visible dans les réglages.
 - **Synchronisation sans ouvrir l'appli**, toujours sans serveur : un script Google Apps Script
   installé dans le compte de l'enseignant, déclenché toutes les heures, qui fait le même calcul
   (le moteur ne dépend pas du navigateur) et met à jour les agendas « Carnet ».
-- **Partager une progression** avec un ou une collègue : l'export existe, un lien serait plus
-  simple.
+- **Partager une progression** avec un ou une collègue : l'export Excel et le lien d'import
+  existent ; une bibliothèque de progressions partagées par niveau serait l'étape suivante.
 - **Deux files par classe** pour les demi-groupes, si le besoin se confirme.
 - **Pas propre aux SVT** : rien dans l'appli ne l'est (les modèles de jalons se réécrivent).
   Des collègues d'autres disciplines sont de bons testeurs.

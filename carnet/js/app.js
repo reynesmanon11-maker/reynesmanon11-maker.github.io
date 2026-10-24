@@ -2,14 +2,15 @@
 // en cours de saisie n'est jamais écrasé (le rendu attend qu'on le quitte).
 import { actions, brancher } from './actions.js';
 import { html, icone, toast, fermerFeuille, redessinerFeuille, feuilleOuverte } from './ui.js';
-import { etat, charger, abonner, changer, reglerLocal, surModification, definirSynchro } from './etat.js';
+import { etat, calc, charger, abonner, changer, reglerLocal, surModification, definirSynchro } from './etat.js';
 import { stockageDurable } from './stockage.js';
 import * as G from './google.js';
 import { synchroniser, messageErreur } from './synchro.js';
-import { rendreAccueil, surGlisser } from './vues/accueil.js';
+import { rendreAccueil, surGlisser, enOrganisation } from './vues/accueil.js';
 import { rendreSemaine } from './vues/semaine.js';
 import { rendreClasses } from './vues/classes.js';
 import { rendreTaches } from './vues/taches.js';
+import { rendreCahier } from './vues/cahier.js';
 import { rendreReglages, apparence } from './vues/reglages.js';
 import { rendreDemarrer, reprendreConnexion } from './vues/demarrer.js';
 import { ouvrirCreneau } from './vues/creneau.js';
@@ -18,9 +19,12 @@ import { surChangementInstallation } from './installation.js';
 import './vues/partage.js';
 import { proposerImportLien } from './vues/importlien.js';
 import { CONFIG } from '../config.js';
+import { identite } from './identite.js';
+import { dateLongue, heureDe, heureLisible, jourDe } from './dates.js';
 
-const VUES = { accueil: rendreAccueil, semaine: rendreSemaine, classes: rendreClasses, taches: rendreTaches, reglages: rendreReglages, demarrer: rendreDemarrer };
-const TITRES = { accueil: 'Accueil', semaine: 'Semaine', classes: 'Classes', taches: 'À faire', reglages: 'Réglages', demarrer: 'Mise en route' };
+// Les mêmes rubriques, et les mêmes mots, que l'espace professeur de Pronote.
+const VUES = { accueil: rendreAccueil, semaine: rendreSemaine, cahier: rendreCahier, classes: rendreClasses, taches: rendreTaches, reglages: rendreReglages, demarrer: rendreDemarrer };
+const TITRES = { accueil: "Page d'accueil", semaine: 'Emploi du temps', cahier: 'Cahier de textes', classes: 'Progressions', taches: 'Mes travaux', reglages: 'Mes données', demarrer: 'Mise en route' };
 const main = document.getElementById('vue');
 let routePrecedente = '';
 
@@ -46,11 +50,38 @@ function appliquerApparence() {
   if (meta) meta.content = getComputedStyle(r).getPropertyValue('--papier').trim() || '#f3f6f1';
 }
 
+/** « le samedi 24 octobre à 15h39 », « aujourd'hui à 8h12 ». */
+function quandLisible(ms) {
+  const tz = calc().fuseau, d = new Date(ms);
+  const jour = jourDe(d, tz), auj = jourDe(new Date(), tz);
+  return `${jour === auj ? "aujourd'hui" : `le ${dateLongue(jour)}`} à ${heureLisible(heureDe(d, tz))}`;
+}
+
 function rendreEntete(vue) {
   document.body.classList.toggle('sans-nav', !etat.local.mode);
   document.querySelectorAll('[data-route]').forEach((a) => {
     if (a.dataset.route === vue) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
+  // L'identité, comme en tête de Pronote : établissement, espace professeur, nom.
+  const id = document.getElementById('identite');
+  if (id) {
+    const { etablissement, nom } = etat.local.mode ? identite() : {};
+    id.hidden = !etablissement && !nom;
+    id.querySelector('b').textContent = etablissement || '';
+    id.querySelector('span').textContent = nom ? `Espace professeur · ${nom}` : 'Espace professeur';
+  }
+  // La barre sous le menu : la rubrique, le réglage de la page d'accueil, la dernière synchronisation.
+  const rubrique = document.getElementById('rubrique');
+  if (rubrique) rubrique.textContent = TITRES[vue] || '';
+  const perso = document.getElementById('bouton-personnaliser');
+  if (perso) { perso.hidden = vue !== 'accueil'; perso.setAttribute('aria-pressed', String(enOrganisation())); }
+  const derniere = document.getElementById('derniere-synchro');
+  if (derniere) {
+    const l = etat.local;
+    derniere.textContent = l.mode === 'google' && l.derniereSynchro ? `Dernière synchronisation ${quandLisible(l.derniereSynchro)}`
+      : l.mode === 'local' && etat.brut.lu ? `Emploi du temps lu ${quandLisible(etat.brut.lu)}`
+      : l.mode === 'demo' ? 'Mode démo : un emploi du temps fictif' : '';
+  }
   const p = document.getElementById('pastille-synchro');
   if (!p) return;
   const s = etat.synchro, mode = etat.local.mode;

@@ -91,33 +91,44 @@ export function donneesDemo(fuseau) {
   const lundi = lundiDe(aujourdhui(fuseau));
   const m = Date.now();
   const docs = {};
-  const etape = (id, e) => { docs[`etapes/${id}`] = { duree: 1, format: 'indiff', eval: false, insecable: false, jalons: [], photocopies: 0, afaire: '', pronote: '', ...e, _m: m }; };
+  // Le chapitre, le travail à faire et la semaine visée : ce qu'apporte une programmation importée.
+  const CHAPITRES = {
+    e6a: 'Chapitre 1 — Le vivant et ses caractéristiques', e6f: 'Chapitre 2 — La classification du vivant',
+    e5a: 'Chapitre 3 — Respiration et milieux de vie', e5e: 'Chapitre 4 — La nutrition des végétaux',
+    e4a: 'Chapitre 1 — Les séismes', e4d: 'Chapitre 2 — Volcans et tectonique des plaques',
+    e3a: "Chapitre 1 — L'information génétique", e3d: 'Chapitre 2 — Diversité et stabilité génétique',
+  };
+  let chapitre = '';
+  const etape = (id, e) => {
+    chapitre = CHAPITRES[id] || chapitre;
+    docs[`etapes/${id}`] = { duree: 1, format: 'indiff', eval: false, insecable: false, jalons: [], photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '', chapitre, ...e, _m: m };
+  };
   // 6e — Le vivant et sa classification
   etape('e6a', { niveau: '6e', titre: 'Activité 1 – Vivant ou non vivant ?', jalons: ['Situation déclenchante', 'Hypothèses', 'Tri des objets', 'Bilan'], pronote: 'Trier des objets et des êtres vivants ; dégager les critères du vivant.' });
-  etape('e6b', { niveau: '6e', titre: 'Activité 2 – Les caractéristiques du vivant', duree: 1.5, jalons: DOCUMENTAIRE, photocopies: 2 });
+  etape('e6b', { niveau: '6e', titre: 'Activité 2 – Les caractéristiques du vivant', duree: 1.5, jalons: DOCUMENTAIRE, photocopies: 2, devoirs: 'Finir le tableau du document 3' });
   etape('e6c', { niveau: '6e', titre: 'Activité 3 – Observer des cellules au microscope', duree: 2, format: 'demi', jalons: ['Protocole', 'Réglage du microscope', 'Observation', "Dessin d'observation", 'Bilan'], afaire: "Microscopes, lames, épiderme d'oignon" });
-  etape('e6d', { niveau: '6e', titre: 'Bilan – Le vivant est fait de cellules', duree: 0.5, photocopies: 1 });
-  etape('e6e', { niveau: '6e', titre: 'Évaluation – Le vivant', eval: true, photocopies: 2, format: 'entiere' });
+  etape('e6d', { niveau: '6e', titre: 'Bilan – Le vivant est fait de cellules', duree: 0.5, photocopies: 1, devoirs: 'Apprendre le bilan : l’évaluation porte dessus' });
+  etape('e6e', { niveau: '6e', titre: 'Évaluation – Le vivant', eval: true, photocopies: 2, format: 'entiere', cible: ajouteJours(lundi, 7) });
   etape('e6f', { niveau: '6e', titre: 'Activité 4 – Classer les êtres vivants', duree: 1.5, jalons: DOCUMENTAIRE, photocopies: 1 });
   etape('e6g', { niveau: '6e', titre: 'Activité 5 – Construire des groupes emboîtés', duree: 1.5, jalons: ['Collection', 'Attributs', 'Groupes emboîtés', 'Bilan'] });
-  etape('e6h', { niveau: '6e', titre: 'Bilan – La classification du vivant', duree: 0.5, photocopies: 1 });
+  etape('e6h', { niveau: '6e', titre: 'Bilan – La classification du vivant', duree: 0.5, photocopies: 1, cible: ajouteJours(lundi, 21) });
   // 5e — Respiration, puis nutrition des végétaux
   etape('e5a', { niveau: '5e', titre: 'Activité 4 – Le sol, un milieu vivant', duree: 1.5, jalons: DEMARCHE, afaire: 'Échantillons de sol, appareil de Berlèse' });
   etape('e5b', { niveau: '5e', titre: "Activité 5 – Respirer dans l'air ou dans l'eau", jalons: DOCUMENTAIRE, photocopies: 2 });
-  etape('e5c', { niveau: '5e', titre: 'Bilan du chapitre', duree: 0.5, photocopies: 1 });
+  etape('e5c', { niveau: '5e', titre: 'Bilan du chapitre', duree: 0.5, photocopies: 1, devoirs: 'Apprendre le bilan du chapitre' });
   etape('e5d', { niveau: '5e', titre: 'Évaluation – Respiration et milieux de vie', eval: true, photocopies: 1, format: 'entiere' });
   etape('e5e', { niveau: '5e', titre: 'Activité 6 – Les besoins nutritifs des végétaux', duree: 1.5, jalons: DEMARCHE });
   etape('e5f', { niveau: '5e', titre: "Activité 7 – Mettre en évidence l'amidon dans les feuilles", duree: 2, format: 'demi', insecable: false, jalons: ['Protocole', 'Manipulation', 'Résultats', 'Interprétation'], afaire: 'Eau iodée, feuilles de pélargonium éclairées et à l’obscurité' });
-  etape('e5g', { niveau: '5e', titre: 'Bilan – La nutrition des végétaux', duree: 0.5, photocopies: 1 });
+  etape('e5g', { niveau: '5e', titre: 'Bilan – La nutrition des végétaux', duree: 0.5, photocopies: 1, cible: ajouteJours(lundi, 14) });
   // 4e — Séismes, volcans, tectonique
   etape('e4a', { niveau: '4e', titre: 'Activité 1 – Séismes et failles', jalons: ['Documents', 'Modélisation', 'Interprétation', 'Bilan'] });
-  etape('e4b', { niveau: '4e', titre: 'Activité 2 – Modéliser une faille', format: 'demi', afaire: 'Pâte à modeler, plaques de bois' });
+  etape('e4b', { niveau: '4e', titre: 'Activité 2 – Modéliser une faille', format: 'demi', afaire: 'Pâte à modeler, plaques de bois', devoirs: 'Refaire le schéma de la faille' });
   etape('e4c', { niveau: '4e', titre: 'Évaluation – Les séismes', eval: true, photocopies: 1 });
   etape('e4d', { niveau: '4e', titre: 'Activité 3 – Volcans effusifs et explosifs', duree: 1.5, jalons: DOCUMENTAIRE, photocopies: 2 });
   etape('e4e', { niveau: '4e', titre: 'Activité 4 – La tectonique des plaques', duree: 2, jalons: ['Carte des séismes', 'Carte des volcans', 'Limites de plaques', 'Bilan'] });
   // 3e — Génétique
   etape('e3a', { niveau: '3e', titre: "Activité 1 – L'information génétique", jalons: ['Situation déclenchante', 'Documents', 'Bilan'] });
-  etape('e3b', { niveau: '3e', titre: 'Activité 2 – Chromosomes et caryotype', jalons: ['Observation', 'Comparaison', 'Bilan'], photocopies: 1 });
+  etape('e3b', { niveau: '3e', titre: 'Activité 2 – Chromosomes et caryotype', jalons: ['Observation', 'Comparaison', 'Bilan'], photocopies: 1, devoirs: 'Apprendre : chromosome, caryotype, gène' });
   etape('e3c', { niveau: '3e', titre: 'Évaluation – Les chromosomes', eval: true, photocopies: 1 });
   etape('e3d', { niveau: '3e', titre: 'Activité 3 – Gènes, allèles et diversité', duree: 1.5, jalons: DOCUMENTAIRE });
   etape('e3e', { niveau: '3e', titre: 'Activité 4 – Méiose et fécondation', duree: 2, jalons: ['Documents', 'Schéma', 'Brassage', 'Bilan'], photocopies: 2 });

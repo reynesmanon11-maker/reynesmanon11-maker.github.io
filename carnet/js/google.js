@@ -210,6 +210,8 @@ export const colorerAgenda = (id, fond, texte = '#ffffff') => api(`${CAL}/users/
   methode: 'PATCH', params: { colorRgbFormat: 'true' }, corps: { backgroundColor: fond, foregroundColor: texte, selected: true },
 });
 export const supprimerAgenda = (id) => api(`${CAL}/calendars/${encodeURIComponent(id)}`, { methode: 'DELETE' });
+/** Renomme un agenda créé par l'appli : c'est ainsi qu'on réutilise un agenda vide plutôt que d'en créer un. */
+export const renommerAgenda = (id, nom) => api(`${CAL}/calendars/${encodeURIComponent(id)}`, { methode: 'PATCH', corps: { summary: nom } });
 export const creerEvenement = (cal, corps) => api(`${CAL}/calendars/${encodeURIComponent(cal)}/events`, { methode: 'POST', params: { sendUpdates: 'none' }, corps });
 export const remplacerEvenement = (cal, id, corps) => api(`${CAL}/calendars/${encodeURIComponent(cal)}/events/${encodeURIComponent(id)}`, { methode: 'PUT', params: { sendUpdates: 'none' }, corps });
 export async function supprimerEvenement(cal, id) {

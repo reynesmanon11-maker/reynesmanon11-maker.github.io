@@ -8,7 +8,7 @@
 // fait » : c'est un POINT D'ARRÊT, « on s'est arrêtés après les hypothèses de l'activité 5 ».
 // Le dernier point d'arrêt validé fait foi ; tout ce qui est avant est fait, la suite coule
 // sur les créneaux à venir. Une séance oubliée ne fausse donc rien.
-import { jourDe, heureDe, minutesDe, ajouteJours, ecartJours, lundiDe } from './dates.js';
+import { jourDe, heureDe, minutesDe, ajouteJours, ecartJours, lundiDe, jourSemaine } from './dates.js';
 
 export const EPS = 1e-6;
 const arrondi = (x) => Math.round(x * 1000) / 1000;
@@ -447,3 +447,114 @@ export function plagesLibres(evenements, jour, { fuseau, min = 30 } = {}) {
   if (fin - t >= min) res.push([t, fin]);
   return res;
 }
+
+// ---------- Calendrier des étapes ----------
+
+/**
+ * Pour chaque classe, le jour où chaque étape de sa file commence et celui où elle finit :
+ * d'après les validations pour le passé, d'après le plan pour la suite.
+ * { code: { u: { debut, fin, etat } } } — etat : 'faite' (avant le point où en est la classe),
+ * 'encours', 'prevue', ou 'au-dela' (aucun cours connu ne l'atteint encore).
+ */
+export function calendrierEtapes(plan, creneaux) {
+  const res = {};
+  const tries = [...creneaux].sort((a, b) => a.debut - b.debut);
+  for (const [code, pc] of Object.entries(plan.parClasse)) {
+    const parU = {};
+    for (const it of pc.file) parU[it.u] = { debut: null, fin: null, etat: 'au-dela', vu: null };
+    for (const c of tries) {
+      if (c.code !== code) continue;
+      const x = plan.parCreneau[c.cle];
+      if (!x || !x.segments) continue;
+      for (const s of x.segments) {
+        const e = !s.recul && parU[s.u];
+        if (!e) continue;
+        if (!e.vu) e.vu = c.jour;
+        if (!e.debut && s.de < EPS) e.debut = c.jour;
+        if (!e.fin && s.a >= 1 - EPS) e.fin = c.jour;
+      }
+    }
+    const p = pc.position;
+    pc.file.forEach((it, i) => {
+      const e = parU[it.u];
+      e.debut = e.debut || e.vu;
+      delete e.vu;
+      e.etat = i < p.i ? 'faite' : i === p.i && p.f > EPS ? 'encours' : e.debut ? 'prevue' : 'au-dela';
+    });
+    res[code] = parU;
+  }
+  return res;
+}
+
+/** Les évaluations à venir, toutes classes confondues, dans l'ordre du temps. */
+export function prochainesEvaluations(donnees, plan, creneaux, { maintenant = new Date() } = {}) {
+  const res = [];
+  for (const c of [...creneaux].sort((a, b) => a.debut - b.debut)) {
+    if (c.annule || c.fin <= maintenant) continue;
+    const x = plan.parCreneau[c.cle];
+    if (!x || x.etat !== 'prevu') continue;
+    for (const s of x.segments || []) {
+      const e = !s.recul && s.de < EPS && donnees.etapes[s.eid];
+      if (!e || !e.eval || res.some((r) => r.code === c.code && r.u === s.u)) continue;
+      const cl = donnees.classes[c.code] || {};
+      res.push({ code: c.code, u: s.u, eid: s.eid, titre: e.titre, jour: c.jour, debut: c.debut, cle: c.cle, annoncee: !!(cl.annonces && cl.annonces[s.u]), cible: e.cible || '' });
+    }
+  }
+  return res;
+}
+
+// ---------- L'emploi du temps à la manière de Pronote ----------
+
+/**
+ * Les heures de sonnerie, déduites des cours : chaque début de cours, et chaque fin qui n'est pas
+ * suivie d'une reprise dans les 25 minutes (la récréation reste dans son créneau, la pause de midi
+ * a sa ligne). En minutes depuis minuit : { places: [495, 560, …], recres: [[615, 635], …] }.
+ */
+export function placesHoraires(cours, fuseau) {
+  const debuts = new Set(), fins = new Set();
+  for (const c of cours) {
+    if (!c || c.type !== 'cours' || !c.debut || !c.fin) continue;
+    debuts.add(minutesDe(c.debut, fuseau));
+    fins.add(minutesDe(c.fin, fuseau));
+  }
+  const d = [...debuts].sort((a, b) => a - b);
+  const places = new Set(d), recres = [];
+  for (const f of fins) {
+    const suivant = d.find((x) => x >= f);
+    if (suivant === undefined || suivant - f > 25) places.add(f);
+    else if (suivant - f >= 5) recres.push([f, suivant]);
+  }
+  return { places: [...places].sort((a, b) => a - b), recres: recres.sort((a, b) => a[0] - b[0]) };
+}
+
+/**
+ * Le mercredi après-midi sans aucun cours dans tout l'emploi du temps lu : la demi-journée que
+ * Pronote hachure. (On ne hachure pas les autres après-midi libres : ce sont les trous d'une
+ * personne, pas la fermeture de l'établissement.)
+ */
+export function apresMidiLibre(cours, fuseau, { jour = 2, midi = 12 * 60 + 30 } = {}) {
+  let vu = false;
+  for (const c of cours) {
+    if (!c || c.type !== 'cours' || !c.debut || c.annule) continue;
+    if (jourSemaine(jourDe(c.debut, fuseau)) !== jour) continue;
+    vu = true;
+    if (minutesDe(c.fin, fuseau) > midi) return false;
+  }
+  return vu;
+}
+
+/**
+ * Semaine A ou B, d'après une semaine de référence { lundi, lettre } : on compte les semaines de
+ * cours entre les deux ; une semaine entière de vacances ne compte pas, et n'a pas de lettre.
+ */
+export function lettreSemaine(lundi, reference, listeCoupures = []) {
+  if (!reference || !reference.lundi || !/^[AB]$/.test(reference.lettre || '')) return '';
+  const vacances = (l) => listeCoupures.some((k) => k.debut <= l && k.fin >= ajouteJours(l, 4));
+  if (vacances(lundiDe(lundi))) return '';
+  let a = lundiDe(reference.lundi), b = lundiDe(lundi);
+  if (b < a) [a, b] = [b, a];
+  let n = 0;
+  for (let l = a; l < b; l = ajouteJours(l, 7)) if (!vacances(l)) n++;
+  return n % 2 === 0 ? reference.lettre : reference.lettre === 'A' ? 'B' : 'A';
+}
+

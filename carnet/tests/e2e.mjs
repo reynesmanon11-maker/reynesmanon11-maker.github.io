@@ -3,6 +3,8 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 import { servir } from './serveur.mjs';
+import { readFile } from 'node:fs/promises';
+import { lireTableur } from '../js/tableur.js';
 
 // require (et non import) suit NODE_PATH : Playwright peut être installé ailleurs que dans le projet.
 const { chromium } = createRequire(import.meta.url)('playwright');
@@ -43,11 +45,16 @@ await etape('démo : tableau de bord complet, aucune erreur', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   const titres = await p.$$eval('.module h2', (h) => h.map((x) => x.textContent.trim()));
-  // Sur ordinateur, la semaine en colonnes vient d'abord, comme l'emploi du temps de l'ancien carnet.
-  assert.equal(titres[0], 'Ma semaine', titres.join(', '));
-  assert.ok(titres.includes('Où en sont mes classes'), titres.join(', '));
-  assert.equal(await p.locator('.module[data-module="semaine"] .jour-liste').count(), 5);
-  assert.ok(await p.locator('.module[data-module="semaine"] .jour-liste.auj .cours').count() >= 2, 'les cours du jour en cartes');
+  // Sur ordinateur, l'emploi du temps de la semaine vient d'abord, en grille, comme l'accueil de Pronote.
+  assert.equal(titres[0], 'Emploi du temps', titres.join(', '));
+  for (const t of ['Cours à valider (2)', 'Pense-bête', 'Progression des classes', 'Évaluations à venir (3)']) assert.ok(titres.includes(t), `${t} — ${titres.join(', ')}`);
+  assert.ok(titres.some((t) => /^Cahiers de textes non saisis \(\d+\)$/.test(t)), titres.join(', '));
+  assert.ok(titres.some((t) => /^Agenda \(\d+\)$/.test(t)), titres.join(', '));
+  assert.ok(await p.locator('.module[data-module="semaine"] .grille .bloc').count() > 10);
+  assert.equal((await p.textContent('.module[data-module="semaine"] .grille-heures span')).trim(), '08h25', 'les heures de sonnerie de l’établissement');
+  assert.equal(await p.locator('.module[data-module="semaine"] .hachure').count(), 1, 'le mercredi après-midi hachuré');
+  assert.equal(await p.textContent('#rubrique'), "Page d'accueil");
+  assert.equal(await p.getAttribute('.nav-haut a[aria-current="page"]', 'href'), '#/accueil');
   assert.match(await p.textContent('.resume'), /à valider/);
   await ctx.close();
 });
@@ -55,9 +62,8 @@ await etape('démo : tableau de bord complet, aucune erreur', async () => {
 await etape('valider un cours : le point d’arrêt fait glisser la suite', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
-  // Le cours de 602 de ce matin est à valider.
-  const carte = p.locator('.module[data-module="semaine"] .jour-liste.auj .cours', { hasText: '602' });
-  await carte.getByRole('button', { name: /Où en est-on/ }).click();
+  // Le cours de 602 de ce matin est à valider : la tuile « Cours à valider » y mène.
+  await p.locator('.module[data-module="valider"] button', { hasText: '602' }).click();
   await p.waitForSelector('dialog.feuille[open] .arret');
   const avant = await p.evaluate(() => [...document.querySelectorAll('dialog .puce[aria-pressed="true"]')].map((b) => b.textContent.trim()));
   assert.equal(avant.length, 1, 'un point présélectionné');
@@ -85,7 +91,7 @@ await etape('« Comme prévu » en un toucher', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   const avant = await p.evaluate(async () => (await import('./js/etat.js')).calc().plan.parClasse['5G3'].aValider);
-  await p.locator('.bandeau button', { hasText: '503' }).first().click();
+  await p.locator('.module[data-module="valider"] button', { hasText: '503' }).first().click();
   await p.waitForSelector('dialog.feuille[open] .arret');
   await p.getByRole('button', { name: 'Comme prévu' }).click();
   await rendu(p);
@@ -101,8 +107,10 @@ await etape('personnaliser : déplacer, élargir, masquer — gardé au recharge
   const ordre = () => p.$$eval('.module', (m) => m.map((x) => x.dataset.module));
   const o1 = await ordre();
   await rendu(p);
-  await p.locator('.module[data-module="preparer"] [data-action="module-monter"]').click();
-  await rendu(p);
+  for (let k = 0; k < 2; k++) {
+    await p.locator('.module[data-module="preparer"] [data-action="module-monter"]').click();
+    await rendu(p);
+  }
   await p.locator('.module[data-module="taches"] [data-action="module-taille"][data-taille="L"]').click();
   await rendu(p);
   await p.locator('.module[data-module="notes"] [data-action="module-masquer"]').click();
@@ -121,7 +129,8 @@ await etape('personnaliser : déplacer, élargir, masquer — gardé au recharge
 });
 
 await etape('glisser-déposer un module par sa poignée', async () => {
-  const { ctx, p } = await contexte();
+  // Assez haut pour voir toutes les tuiles : le geste va de la dernière à la première sans défiler.
+  const { ctx, p } = await contexte({ viewport: { width: 1280, height: 2600 } });
   await demo(p);
   await p.getByRole('button', { name: /Personnaliser/ }).click();
   await p.waitForSelector('.tableau.organiser');
@@ -208,13 +217,16 @@ await etape('semaine : grille, liste, semaine suivante', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   await p.goto(URL + '#/semaine');
-  // Par défaut, les cartes en colonnes ; la grille horaire est à un toucher.
+  // Par défaut, la grille horaire comme dans Pronote ; les cartes en colonnes sont à un toucher.
+  assert.ok(await p.locator('.grille .bloc').count() > 10);
+  assert.ok(await p.locator('.grille .recre').count() > 0, 'la récréation grisée');
+  assert.ok(await p.locator('.bloc.perso').count() > 0, 'vie perso affichée');
+  await p.getByRole('button', { name: 'Cartes' }).click();
+  await rendu(p);
   assert.ok(await p.locator('.jours-liste .cours').count() > 10);
   assert.ok(await p.locator('.jours-liste .cours .a-prevoir input[type="checkbox"]').count() > 0, 'le matériel à prévoir en cases à cocher');
   await p.getByRole('button', { name: 'Grille horaire' }).click();
   await rendu(p);
-  assert.ok(await p.locator('.grille .bloc').count() > 10);
-  assert.ok(await p.locator('.bloc.perso').count() > 0, 'vie perso affichée');
   await p.getByRole('button', { name: 'Semaine suivante' }).click();
   await rendu(p);
   assert.match(await p.textContent('.semaine-outils h2'), /9 nov/);
@@ -227,12 +239,88 @@ await etape('semaine : grille, liste, semaine suivante', async () => {
 await etape('téléphone (390 px) : aucune page ne déborde', async () => {
   const { ctx, p } = await contexte({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await demo(p);
-  for (const r of ['accueil', 'semaine', 'classes', 'taches', 'reglages']) {
+  for (const r of ['accueil', 'semaine', 'cahier', 'classes', 'classes/calendrier', 'taches', 'reglages']) {
     await p.goto(`${URL}#/${r}`);
     await p.waitForTimeout(150);
     const l = await p.evaluate(() => document.documentElement.scrollWidth);
     assert.ok(l <= 390, `${r} : ${l} px`);
   }
+  await ctx.close();
+});
+
+await etape('programmation : un vrai fichier Excel, une feuille par niveau, importé dans les files', async () => {
+  const { ctx, p } = await contexte();
+  await demo(p);
+  await p.goto(URL + '#/classes');
+  const avant = await p.locator('#classe-6G2 .etape').count();
+  await p.getByRole('button', { name: /Importer une programmation/ }).click();
+  await p.setInputFiles('dialog input[data-change="prog-fichier"]', new globalThis.URL('./tableurs/programmation.xlsx', import.meta.url).pathname);
+  await p.waitForSelector('dialog .apercu-import');
+  assert.deepEqual(await p.$$eval('dialog .onglets-feuilles button', (b) => b.map((x) => x.textContent.trim())), ['6e', '5e'], 'la feuille masquée n’est pas proposée');
+  assert.equal(await p.inputValue('#prog-niveau'), '6e', 'le niveau lu dans le nom de la feuille');
+  assert.match(await p.textContent('dialog .resume-import'), /6 étapes en 2 chapitres/);
+  assert.deepEqual(await p.$$eval('dialog input[data-change="prog-cible"]:checked', (i) => i.map((x) => x.value)).then((l) => l.sort()), ['6G1', '6G2']);
+  await p.getByRole('button', { name: /Importer 6 étapes/ }).click();
+  // La feuille suivante s'ouvre d'elle-même.
+  await p.waitForFunction(() => document.querySelector('#prog-niveau')?.value === '5e');
+  await p.getByRole('button', { name: /^Importer \d+ étapes/ }).click();
+  await p.waitForSelector('dialog [data-action="prog-appliquer"][disabled]');
+  await p.getByRole('button', { name: 'Terminer' }).click();
+  await rendu(p);
+  assert.equal(await p.locator('#classe-6G2 .etape').count(), avant + 6, 'ajoutées à la suite de la file');
+  const texte = await p.textContent('#classe-6G2');
+  assert.match(texte, /Séquence 1 — Le vivant et son environnement/, 'le chapitre en intertitre');
+  assert.match(texte, /✎ Évaluation courte/);
+  assert.match(await p.textContent('#classe-5G1'), /Activité 1 : respirer dans différents milieux/);
+  await ctx.close();
+});
+
+await etape('progressions : le calendrier dit où tombe chaque étape, et chaque évaluation', async () => {
+  const { ctx, p } = await contexte();
+  await demo(p);
+  await p.goto(URL + '#/classes');
+  await p.getByRole('button', { name: 'Calendrier et évaluations' }).click();
+  await rendu(p);
+  assert.equal(await p.locator('.calendrier-etapes').count(), 4, 'un tableau par niveau');
+  assert.ok(await p.locator('.calendrier-etapes tr.eval').count() >= 4);
+  assert.match(await p.textContent('.evals-a-venir'), /602[\s\S]*Évaluation – Le vivant/);
+  // La tuile « Évaluations à venir » y mène directement.
+  await p.goto(URL + '#/accueil');
+  await p.locator('.module[data-module="annonces"] .tout-voir').click();
+  await p.waitForSelector('.calendrier-etapes');
+  await ctx.close();
+});
+
+await etape('cahier de textes : le contenu de chaque cours, « Saisi » le fait disparaître', async () => {
+  const { ctx, p } = await contexte({ permissions: ['clipboard-read', 'clipboard-write'] });
+  await demo(p);
+  await p.goto(URL + '#/cahier');
+  const n = await p.locator('.cdt').count();
+  assert.ok(n > 3, `${n} cours non saisis`);
+  const premier = p.locator('.cdt').first();
+  await premier.getByRole('button', { name: 'Copier le contenu' }).click();
+  assert.ok((await p.evaluate(() => navigator.clipboard.readText())).length > 5, 'le contenu est copié');
+  await premier.locator('input[type="checkbox"]').check();
+  await p.waitForFunction((k) => document.querySelectorAll('.cdt').length === k, n - 1);
+  await p.getByRole('button', { name: 'Par semaine' }).click();
+  await rendu(p);
+  assert.ok(await p.locator('.jour-cdt').count() >= 4);
+  assert.ok(await p.locator('.cdt.saisi').count() >= 1, 'le cours saisi reste visible, grisé, dans la semaine');
+  await ctx.close();
+});
+
+await etape('exporter en Excel : un vrai .xlsx, une feuille par classe, qui se relit', async () => {
+  const { ctx, p } = await contexte({ acceptDownloads: true });
+  await demo(p);
+  await p.goto(URL + '#/classes');
+  const [dl] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: /Exporter \(Excel\)/ }).click()]);
+  assert.equal(dl.suggestedFilename(), 'Progressions - Carnet de bord.xlsx');
+  const { format, feuilles } = await lireTableur(await readFile(await dl.path()), dl.suggestedFilename());
+  assert.equal(format, 'xlsx');
+  assert.ok(feuilles.map((f) => f.nom).includes('602'), feuilles.map((f) => f.nom).join(', '));
+  const f602 = feuilles.find((f) => f.nom === '602');
+  assert.equal(f602.lignes[0][1], 'Étape');
+  assert.ok(f602.lignes.some((l) => /Observer des cellules au microscope/.test(l[1])));
   await ctx.close();
 });
 

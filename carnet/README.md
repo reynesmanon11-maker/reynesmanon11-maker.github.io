@@ -13,6 +13,21 @@ que Pronote les connaît, cours annulés compris.
 
 ## Ce que fait l'appli
 
+- **Rangée comme Pronote** : les mêmes rubriques (Page d'accueil, Emploi du temps, Cahier de
+  textes, Progressions, Mes travaux, Mes données) et les mêmes tuiles d'accueil (« Emploi du temps
+  (semaine B) », « Cahiers de textes non saisis », « Pense-bête », « Agenda »…), avec « Tout voir »
+  et la croix pour retirer une tuile. Les collègues retrouvent leurs repères.
+- **Importe la programmation de l'année** depuis le tableur où elle est déjà : Excel (.xlsx),
+  LibreOffice (.ods), Google Sheets, Numbers, CSV, ou des cellules collées. Une feuille par niveau ;
+  le Carnet devine la ligne des titres et le rôle de chaque colonne (intitulé, chapitre, durée en
+  séances, en heures ou en minutes, évaluation, demi-groupe, jalons, matériel, photocopies, texte du
+  cahier de textes, travail à faire, semaine visée), montre les étapes qu'il en tire, et l'on
+  corrige avant d'appliquer. Le fichier est lu dans le navigateur : il ne quitte pas l'appareil.
+  Un **modèle vierge** et l'**export en Excel** (une feuille par classe, qui se réimporte tel quel)
+  servent à partager une progression avec un collègue.
+- **Le calendrier des étapes** : pour chaque niveau, chaque étape et chaque classe, le jour où elle
+  tombe d'après l'emploi du temps réel, l'écart à la semaine visée (« +1 sem. »), et les
+  prochaines évaluations, annoncées ou non.
 - **Lit l'emploi du temps de Pronote** (le lien iCal officiel, via Google Agenda) : classes,
   demi-groupes, salles, accompagnants (AESH), élèves en inclusion (ULIS), cours annulés, vacances.
 - **Une file d'étapes par classe**, partagée par niveau : une activité écrite pour la 601 sert à la 602.
@@ -25,18 +40,22 @@ que Pronote les connaît, cours annulés compris.
 - **Écrit dans Google Agenda** chaque cours avec ce qui est prévu (« 503 P2 · Activité 5 ·
   reprendre à Protocole »), dans ses propres agendas, un par niveau, aux couleurs choisies. Dans
   Google Agenda, le lien du cours ouvre directement « Où en est-on ? ».
-- **La semaine comme un emploi du temps** : une colonne par jour, chaque cours en carte complète
-  (prévu, annonces, matériel à cocher, texte Pronote), ou une grille horaire.
+- **L'emploi du temps comme dans Pronote** : une grille calée sur les heures de sonnerie de
+  l'établissement (déduites des cours), la récréation grisée, le mercredi après-midi hachuré, la
+  semaine A ou B ; ou une colonne par jour, chaque cours en carte complète (prévu, annonces,
+  matériel à cocher, texte Pronote).
 - **Vie pro et vie perso** dans une même semaine, comme un agenda papier ; les trous de la journée.
   Les copies de l'emploi du temps qu'un autre outil aurait écrites dans l'agenda perso sont écartées.
 - **Rappels déduits** : évaluations à annoncer une semaine avant, photocopies (effectif × pages),
   matériel, cours sans contenu, étape prévue en demi-groupe qui tombe sur un cours en classe entière.
 - **Avant les vacances** : la file tient-elle d'ici la coupure, classe par classe ?
-- **Tableau de bord modulable** : modules déplaçables au doigt, largeur S/M/L, masquables,
-  réglables (« À préparer » en liste, en date « préparé jusqu'au », ou en compteur ; « À faire » en
-  colonne, en ligne ou par échéance). Thème clair ou sombre, cinq couleurs, densité.
+- **Page d'accueil modulable** : tuiles déplaçables au doigt, largeur S/M/L, masquables,
+  réglables (« Cours à préparer » en liste, en date « préparé jusqu'au », ou en compteur ; « Mes
+  travaux » en colonne, en ligne ou par échéance). Thème clair ou sombre, cinq couleurs, densité.
 - **Hors connexion** : l'appli s'ouvre et se valide sans réseau, et rattrape ensuite.
-- **Cahier de textes** : le texte de la séance, prêt à coller dans Pronote.
+- **Cahier de textes** : pour chaque cours, le contenu de la séance et le travail à faire pour le
+  cours suivant, écrits une fois par étape, prêts à coller dans Pronote ; « Saisi dans Pronote »
+  les fait sortir de la liste des cahiers non saisis.
 - **Import** du « Carnet de bord SVT » de claude.ai : files, validations et tâches reprises, par
   fichier ou par un simple lien (`#importer=…`, avec confirmation).
 - **Installer et partager** : bouton « Installer » quand le navigateur le permet (marche à suivre
@@ -74,6 +93,9 @@ construction, servie telle quelle (GitHub Pages convient). Les modules JavaScrip
 | Fichier | Rôle |
 |---|---|
 | `js/ics.js` | lecture d'un fichier iCalendar (lignes repliées, fuseaux, échappements) |
+| `js/tableur.js` | lecture des .xlsx, .ods, .csv et cellules collées, écriture d'un .xlsx — sans bibliothèque |
+| `js/programmation.js` | d'un tableur à des étapes : colonnes devinées, durées, semaines, chapitres, évaluations |
+| `js/identite.js` | établissement et nom affichés en tête, devinés dans l'agenda Pronote |
 | `js/pronote.js` | ce que raconte un événement Pronote (classe, demi-groupe, AESH, ULIS, annulation) |
 | `js/moteur.js` | créneaux, file d'étapes, points d'arrêt, annonces, vacances, photocopies, trous |
 | `js/donnees.js` | documents synchronisés, fusion entre appareils, import et sauvegarde |
@@ -98,9 +120,13 @@ node tests/lancer.mjs        # puis ouvrir http://127.0.0.1:8080/
 ### Tests
 
 ```
-npm test                     # 52 tests : moteur, Pronote, iCal, données, agenda, QR code, guide Google
+npm test                     # 76 tests : moteur, Pronote, iCal, tableurs, programmation, données, agenda, QR code
 npm run test:navigateur      # parcours complets dans Chromium (Playwright), dont un faux Google
 ```
+
+Les tableurs de `tests/tableurs/` sont de vrais fichiers, enregistrés par Excel (via openpyxl) et
+par LibreOffice : cellules fusionnées, dates, durée tapée « 1:30 », feuille masquée, CSV en
+Windows-1252 avec point-virgule.
 
 Le faux Google (`tests/faux-google.mjs`) reproduit l'API Agenda v3 et Drive v3 telles que l'appli
 les appelle, et refuse toute écriture hors des agendas créés par l'appli : les tests vérifient

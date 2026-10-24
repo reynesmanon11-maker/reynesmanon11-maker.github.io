@@ -1,45 +1,68 @@
-// Le tableau de bord : des modules que chacun range, agrandit, masque et règle à sa façon.
-// La disposition est propre à l'appareil : on ne range pas son téléphone comme son ordinateur.
+// La page d'accueil, rangée comme celle de Pronote : des tuiles (emploi du temps, cahiers de textes
+// non saisis, pense-bête, agenda, mes travaux…) que chacun range, agrandit, masque et règle à sa
+// façon. La disposition est propre à l'appareil : on ne range pas son téléphone comme son ordinateur.
 import { actions, changements, saisies, envois } from '../actions.js';
 import { html, icone, ouvrirFeuille, fermerFeuille, redessinerFeuille, toast } from '../ui.js';
 import { bandeauInstallation } from './partage.js';
 import { calc, etat, changer, reglerLocal, ecrireDoc, supprimerDoc, modifierDoc, nomClasse } from '../etat.js';
 import { heureDe, heureLisible, dateCourte, dateLongue, ajouteJours, ecartJours, jourRelatif, dureeLisible, instantDe, lundiDe, jourMois } from '../dates.js';
-import { aPreparer, avantCoupure, peloton, plagesLibres, reprise, seancesLisible, EPS, semaineUtile } from '../moteur.js';
+import { aPreparer, avantCoupure, peloton, plagesLibres, reprise, seancesLisible, EPS, semaineUtile, prochainesEvaluations } from '../moteur.js';
 import { nouvelId } from '../donnees.js';
 import { carteCours, ligneEvenement, pastille, styleNiveau, horaires } from './commun.js';
-import { listeSemaine } from './semaine.js';
+import { listeSemaine, grille, lettreDe } from './semaine.js';
+import { cahiersNonSaisis, cleCahier } from './cahier.js';
 
 // ---------- Les modules ----------
 const STYLE_PREPARER = { cle: 'style', libelle: 'Présentation', defaut: 'liste', choix: [['liste', 'La liste des cours à préparer'], ['date', '« Préparé jusqu’au… », classe par classe'], ['compteur', 'Un compteur, en grand']] };
 const DISPOSITION = (defaut) => ({ cle: 'disposition', libelle: 'Disposition', defaut, choix: [['colonne', 'En colonne'], ['ligne', 'En ligne'], ['echeances', 'Par échéance']] });
 
+// Les titres reprennent ceux de Pronote quand la tuile y existe (« Emploi du temps », « Pense-bête »,
+// « Cahiers de textes non saisis », « Agenda », « Mes travaux à réaliser »). `lien` : la page
+// qu'ouvre « Tout voir » ; `compte` : le nombre affiché après le titre, comme « Agenda (10) ».
 export const MODULES = {
-  aujourdhui: { titre: "Aujourd'hui", icone: 'soleil', taille: 'L', options: [
+  semaine: { titre: 'Emploi du temps', icone: 'semaine', taille: 'L', lien: '#/semaine', options: [
+    { cle: 'presentation', libelle: 'Présentation', defaut: 'grille', choix: [['grille', 'Grille horaire, comme Pronote'], ['cartes', 'Une colonne par jour, avec le détail de chaque cours']] }] },
+  aujourdhui: { titre: "Aujourd'hui", icone: 'soleil', taille: 'L', lien: '#/semaine', options: [
     { cle: 'perso', libelle: 'Rendez-vous personnels', defaut: 'oui', choix: [['oui', 'Affichés'], ['non', 'Masqués']] },
     { cle: 'libres', libelle: 'Trous de la journée', defaut: 'oui', choix: [['oui', 'Affichés'], ['non', 'Masqués']] },
   ] },
-  preparer: { titre: 'À préparer', icone: 'alerte', taille: 'M', options: [STYLE_PREPARER,
+  valider: { titre: 'Cours à valider', icone: 'valider', taille: 'S', compte: () => aValider().length, options: [] },
+  preparer: { titre: 'Cours à préparer', icone: 'alerte', taille: 'M', lien: '#/classes', options: [STYLE_PREPARER,
     { cle: 'jours', libelle: 'Regarder jusqu’à', defaut: '14', choix: [['7', 'Une semaine'], ['14', 'Deux semaines'], ['21', 'Trois semaines']] }] },
-  taches: { titre: 'À faire', icone: 'taches', taille: 'M', options: [DISPOSITION('colonne')] },
-  peloton: { titre: 'Où en sont mes classes', icone: 'livre', taille: 'M', options: [] },
+  cahier: { titre: 'Cahiers de textes non saisis', icone: 'cahier', taille: 'M', lien: '#/cahier', compte: () => cahiersNonSaisis().length, options: [] },
+  annonces: { titre: 'Évaluations à venir', icone: 'annonce', taille: 'M', lien: '#/classes/calendrier', compte: () => evaluationsAVenir().length, options: [
+    { cle: 'jours', libelle: 'Regarder jusqu’à', defaut: '42', choix: [['14', 'Deux semaines'], ['42', 'Six semaines'], ['365', 'Toute l’année connue']] }] },
+  taches: { titre: 'Mes travaux à réaliser', icone: 'taches', taille: 'M', lien: '#/taches', compte: () => Object.values(calc().v.taches).filter((t) => !t.fait).length, options: [DISPOSITION('colonne')] },
+  notes: { titre: 'Pense-bête', icone: 'crayon', taille: 'S', options: [] },
+  agenda: { titre: 'Agenda', icone: 'agenda', taille: 'S', lien: '#/semaine', compte: () => agendaAVenir().length, options: [] },
   photocopies: { titre: 'Photocopies et matériel', icone: 'imprimante', taille: 'M', options: [
     { cle: 'jours', libelle: 'Pour les', defaut: '7', choix: [['3', '3 prochains jours'], ['7', '7 prochains jours'], ['14', '2 prochaines semaines']] },
     { cle: 'disposition', libelle: 'Disposition', defaut: 'colonne', choix: [['colonne', 'En colonne'], ['ligne', 'En ligne']] }] },
-  annonces: { titre: 'Évaluations à annoncer', icone: 'annonce', taille: 'S', options: [] },
+  peloton: { titre: 'Progression des classes', icone: 'livre', taille: 'M', lien: '#/classes', options: [] },
   vacances: { titre: 'Avant les vacances', icone: 'vacances', taille: 'S', options: [] },
   libres: { titre: 'Trous dans la journée', icone: 'cafe', taille: 'S', options: [
     { cle: 'min', libelle: 'Montrer les trous de', defaut: '30', choix: [['30', '30 min et plus'], ['55', 'une heure et plus']] }] },
-  notes: { titre: 'Bloc-notes', icone: 'crayon', taille: 'S', options: [] },
-  semaine: { titre: 'Ma semaine', icone: 'semaine', taille: 'L', options: [] },
 };
-// Sur ordinateur, la semaine en colonnes d'abord, comme l'emploi du temps de l'ancien carnet ; sur
-// téléphone, où cinq colonnes s'empileraient, la journée d'abord. Chaque appareil garde ensuite la
-// disposition qu'on lui donne.
+// Sur ordinateur, l'emploi du temps de la semaine d'abord, comme sur l'accueil de Pronote ; sur
+// téléphone, où une grille de cinq jours ne tient pas, la journée d'abord. Chaque appareil garde
+// ensuite la disposition qu'on lui donne.
 const etroit = () => { try { return matchMedia('(max-width: 760px)').matches; } catch { return false; } };
-const AUTRES = ['preparer', 'taches', 'peloton', 'photocopies', 'vacances', 'annonces', 'libres', 'notes'];
+const AUTRES = ['valider', 'preparer', 'cahier', 'annonces', 'taches', 'notes', 'agenda', 'photocopies', 'peloton', 'vacances', 'libres'];
 const ordreDefaut = () => (etroit() ? ['aujourdhui', ...AUTRES, 'semaine'] : ['semaine', ...AUTRES, 'aujourdhui']);
 const masquesDefaut = () => (etroit() ? ['semaine'] : ['aujourdhui']);
+
+const aValider = () => { const c = calc(); return c.creneaux.filter((x) => (c.plan.parCreneau[x.cle] || {}).aValider); };
+function evaluationsAVenir() {
+  const c = calc();
+  const limite = ajouteJours(c.auj, Number(option('annonces', 'jours')) || 42);
+  return prochainesEvaluations(c.v, c.plan, c.creneaux, { maintenant: c.maintenant }).filter((e) => e.jour <= limite);
+}
+function agendaAVenir() {
+  const c = calc();
+  const limite = ajouteJours(c.auj, 31);
+  return c.etablissement.filter((e) => e.jour1 >= c.auj && e.jour0 <= limite).sort((a, b) => String(a.jour0).localeCompare(String(b.jour0)) || (a.debut || 0) - (b.debut || 0));
+}
+export const enOrganisation = () => organiser;
 
 export function disposition() {
   const d = etat.local.disposition || {};
@@ -59,10 +82,60 @@ let organiser = false;
 
 /** Tous les cours passés sans point d'arrêt, ce matin compris : le même compte que le résumé en tête. */
 function bandeauAValider() {
+  const d = disposition();
+  if (d.ordre.includes('valider') && !d.masques.includes('valider')) return '';
+  const l = aValider();
+  return l.length ? html`<div class="bandeau"><span><strong>${l.length} cours à valider</strong> — dites où vous vous êtes arrêtés, la suite se recale.</span>
+      <span class="outils">${l.slice(-4).map((cr) => html`<button class="btn mini" data-action="valider" data-cle="${cr.cle}">${nomClasse(cr.code)} · ${dateCourte(cr.jour)}</button>`)}</span></div>` : '';
+}
+
+/** Comme « Appels non faits » dans Pronote : les cours passés dont on n'a pas dit où l'on s'est arrêté. */
+function modValider() {
+  const l = aValider();
+  if (!l.length) return html`<p class="vide">${icone('valider')} Tous les cours passés sont validés.</p>`;
+  return html`<p class="aide">Dites où chaque classe s'est arrêtée : la suite se recale sur les cours suivants.</p>
+    <div class="outils">${l.slice(-12).reverse().map((cr) => html`<button class="btn mini" data-action="valider" data-cle="${cr.cle}">${nomClasse(cr.code)} · ${dateCourte(cr.jour)}</button>`)}</div>
+    ${l.length > 12 ? html`<p class="aide">… et ${l.length - 12} plus anciens.</p>` : ''}`;
+}
+
+function modCahier() {
+  const l = cahiersNonSaisis();
+  if (!l.length) return html`<p class="vide">${icone('valider')} Tout est saisi.</p>`;
   const c = calc();
-  const aValider = c.creneaux.filter((x) => (c.plan.parCreneau[x.cle] || {}).aValider);
-  return aValider.length ? html`<div class="bandeau"><span><strong>${aValider.length} cours à valider</strong> — dites où vous vous êtes arrêtés, la suite se recale.</span>
-      <span class="outils">${aValider.slice(-4).map((cr) => html`<button class="btn mini" data-action="valider" data-cle="${cr.cle}">${nomClasse(cr.code)} · ${dateCourte(cr.jour)}</button>`)}</span></div>` : '';
+  return html`<ul class="liste">${l.slice(-6).reverse().map((cr) => html`<li class="tache-ligne">
+      <span><span class="heure">${dateCourte(cr.jour)}</span> ${pastille(cr.code)} ${(c.plan.parCreneau[cr.cle] || {}).aValider ? html`<span class="aide">à valider</span>` : ''}</span>
+      <span class="outils"><button class="btn mini" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="tout" title="Copier le contenu et le travail à faire">${icone('copier')} Copier</button>
+        <label class="coche"><input type="checkbox" data-change="coche" data-id="${cleCahier(cr.cle)}"><span>Saisi</span></label></span></li>`)}</ul>
+    ${l.length > 6 ? html`<p class="aide">… et ${l.length - 6} autres.</p>` : ''}`;
+}
+
+/** Les évaluations des semaines à venir, toutes classes confondues : annoncées ou non. */
+function modAnnonces() {
+  const c = calc();
+  const evals = evaluationsAVenir();
+  const alertes = Object.values(c.plan.alertesEval).flat();
+  const annonces = {};
+  for (const cr of c.creneaux) for (const a of c.plan.annonces[cr.cle] || []) if (cr.jour >= c.auj) annonces[`${a.code}|${a.u}`] = { cr, a };
+  if (!evals.length && !alertes.length) return html`<p class="vide">Aucune évaluation prévue dans l'emploi du temps connu.</p>`;
+  return html`<ul class="liste">${evals.map((e) => {
+    const x = annonces[`${e.code}|${e.u}`];
+    const alerte = alertes.find((a) => a.code === e.code && a.u === e.u);
+    return html`<li class="annonce${x && x.a.tard ? ' tard' : ''}${e.annoncee ? ' faite' : ''}"><span><span class="heure">${dateCourte(e.jour)}</span> ${pastille(e.code)} ${e.titre}<br>
+        <span class="aide">${e.annoncee ? 'annoncée' : x ? `${x.a.tard ? 'à dire dès' : 'à annoncer'} ${jourRelatif(x.cr.jour, c.auj)}` : alerte ? (alerte.occasion ? `annonce non cochée (prévue le ${dateCourte(alerte.occasion)})` : "pas de cours avant pour l'annoncer") : 'à annoncer'}</span></span>
+      ${e.annoncee ? '' : html`<button class="btn mini" data-action="annonce-faite" data-code="${e.code}" data-u="${e.u}">Annoncée</button>`}</li>`;
+  })}</ul>`;
+}
+
+/** L'agenda de l'établissement, comme la tuile « Agenda » de Pronote : réunions, conseils, sorties. */
+function modAgenda() {
+  const c = calc();
+  const l = agendaAVenir();
+  if (!l.length) return html`<p class="vide">Rien à l'agenda de l'établissement ce mois-ci.</p>`;
+  return html`<ul class="liste agenda-liste">${l.slice(0, 8).map((e) => {
+    const j = String(e.jour0).slice(8, 10);
+    return html`<li><span class="date-badge"><b>${Number(j)}</b><span>${jourMois(e.jour0).replace(/^\d+\s*/, '')}</span></span>
+      <button class="lien-evt" data-action="ouvrir-evenement" data-genre="etab" data-id="${e.id}"><b>${e.titre}</b><span class="aide">${e.debut ? `${dateCourte(e.jour0)} · ${heureLisible(heureDe(e.debut, c.fuseau))}–${heureLisible(heureDe(e.fin, c.fuseau))}` : e.jour1 > e.jour0 ? `du ${jourMois(e.jour0)} au ${jourMois(e.jour1)}` : dateCourte(e.jour0)}</span></button></li>`;
+  })}</ul>${l.length > 8 ? html`<p class="aide">… et ${l.length - 8} autres.</p>` : ''}`;
 }
 
 function modAujourdhui() {
@@ -181,16 +254,6 @@ function modPhotocopies() {
   return option('photocopies', 'disposition') === 'ligne' ? html`<div class="taches-ligne">${items.map(ligne)}</div>` : html`<div class="liste">${items.map(ligne)}</div>`;
 }
 
-function modAnnonces() {
-  const c = calc();
-  const l = [];
-  for (const cr of c.creneaux) for (const a of c.plan.annonces[cr.cle] || []) if (cr.jour >= c.auj) l.push({ cr, a });
-  const alertes = Object.entries(c.plan.alertesEval).flatMap(([, x]) => x);
-  if (!l.length && !alertes.length) return html`<p class="vide">Aucune évaluation à annoncer.</p>`;
-  return html`<ul class="liste">${l.map(({ cr, a }) => html`<li class="annonce${a.tard ? ' tard' : ''}"><span>${pastille(a.code)} ${a.titre}<br><span class="aide">le ${dateCourte(a.jourEval)} · ${a.tard ? 'à dire dès' : 'à annoncer'} ${jourRelatif(cr.jour, c.auj)}</span></span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">Fait</button></li>`)}
-    ${alertes.map((a) => html`<li class="annonce tard"><span>${pastille(a.code)} ${a.titre} (${dateCourte(a.jourEval)})<br><span class="aide">${a.occasion ? `annonce non cochée, à faire le ${dateCourte(a.occasion)}` : "pas de cours avant pour l'annoncer"}</span></span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">Fait</button></li>`)}</ul>`;
-}
-
 function modVacances() {
   const c = calc();
   const prochaine = c.coupures.find((k) => k.debut > c.auj);
@@ -214,18 +277,24 @@ function modLibres() {
 }
 
 function modNotes() {
-  return html`<textarea id="bloc-notes" data-saisie="notes" aria-label="Bloc-notes" placeholder="Idées, choses à ne pas oublier…">${calc().v.notes}</textarea><p class="aide">Enregistré au fil de la frappe.</p>`;
+  return html`<textarea id="bloc-notes" data-saisie="notes" aria-label="Pense-bête" placeholder="Idées, choses à ne pas oublier…">${calc().v.notes}</textarea><p class="aide">Enregistré au fil de la frappe.</p>`;
 }
 
 function modSemaine() {
   const c = calc();
   const lundi = semaineUtile(c.tousCreneaux, c.auj);
-  return html`${bandeauAValider()}
-    <p class="aide">${lundi === lundiDe(c.auj) ? 'Cette semaine' : 'Semaine'} du ${jourMois(lundi)} au ${jourMois(ajouteJours(lundi, 4))} · <a href="#/semaine">les autres semaines</a></p>
-    ${listeSemaine({ compacte: true })}`;
+  return html`<p class="aide">${lundi === lundiDe(c.auj) ? 'Cette semaine' : 'Semaine'} du ${jourMois(lundi)} au ${jourMois(ajouteJours(lundi, 4))} · touchez un cours pour dire où la classe en est</p>
+    ${option('semaine', 'presentation') === 'cartes' ? listeSemaine({ compacte: true }) : grille(lundi)}`;
 }
 
-const RENDUS = { aujourdhui: modAujourdhui, preparer: modPreparer, taches: modTaches, peloton: modPeloton, photocopies: modPhotocopies, annonces: modAnnonces, vacances: modVacances, libres: modLibres, notes: modNotes, semaine: modSemaine };
+const RENDUS = { aujourdhui: modAujourdhui, valider: modValider, preparer: modPreparer, cahier: modCahier, taches: modTaches, peloton: modPeloton, photocopies: modPhotocopies, annonces: modAnnonces, agenda: modAgenda, vacances: modVacances, libres: modLibres, notes: modNotes, semaine: modSemaine };
+
+/** « Emploi du temps (semaine B) » : le titre de la tuile peut dépendre de l'état. */
+function titreModule(id) {
+  if (id !== 'semaine') return MODULES[id].titre;
+  const c = calc(), l = lettreDe(semaineUtile(c.tousCreneaux, c.auj));
+  return l ? `Emploi du temps (semaine ${l})` : MODULES.semaine.titre;
+}
 
 // ---------- La page ----------
 
@@ -253,11 +322,14 @@ export function rendreAccueil() {
   const modules = visibles.map((id, k) => {
     const m = MODULES[id];
     const taille = d.tailles[id] || m.taille;
-    return html`<section class="module carte taille-${taille}" data-module="${id}" aria-label="${m.titre}">
+    const titre = titreModule(id);
+    const n = m.compte ? m.compte() : 0;
+    return html`<section class="module carte taille-${taille}" data-module="${id}" aria-label="${titre}">
       <header class="module-tete">
         <button class="poignee" data-poignee aria-label="Déplacer « ${m.titre} »" title="Glisser pour déplacer">${icone('poignee')}</button>
-        <h2>${icone(m.icone)}${m.titre}</h2>
+        <h2>${icone(m.icone)}${titre}${n ? html` <span class="compte">(${n})</span>` : ''}</h2>
         <div class="droite">
+          ${!organiser && m.lien ? html`<a class="tout-voir" href="${m.lien}">Tout voir ${icone('ouvrir')}</a>` : ''}
           <div class="reglage-module">
             <button class="btn-rond" data-action="module-monter" data-id="${id}" aria-label="Monter" ${k === 0 ? 'disabled' : ''}>${icone('haut')}</button>
             <button class="btn-rond" data-action="module-descendre" data-id="${id}" aria-label="Descendre" ${k === visibles.length - 1 ? 'disabled' : ''}>${icone('bas')}</button>
@@ -265,7 +337,8 @@ export function rendreAccueil() {
             ${m.options.length ? html`<button class="btn-rond" data-action="module-options" data-id="${id}" aria-label="Réglages du module">${icone('reglages')}</button>` : ''}
             <button class="btn-rond" data-action="module-masquer" data-id="${id}" aria-label="Masquer">${icone('oeil-barre')}</button>
           </div>
-          ${!organiser && m.options.length ? html`<button class="btn-rond" data-action="module-options" data-id="${id}" aria-label="Réglages de « ${m.titre} »" title="Réglages">${icone('reglages')}</button>` : ''}
+          ${!organiser && m.options.length ? html`<button class="btn-rond petit" data-action="module-options" data-id="${id}" aria-label="Réglages de « ${m.titre} »" title="Réglages">${icone('reglages')}</button>` : ''}
+          ${!organiser ? html`<button class="btn-rond petit" data-action="module-fermer" data-id="${id}" aria-label="Retirer « ${m.titre} » de la page d'accueil" title="Retirer de la page d'accueil">${icone('croix')}</button>` : ''}
         </div>
       </header>
       <div class="module-corps">${RENDUS[id]()}</div>
@@ -275,13 +348,12 @@ export function rendreAccueil() {
     ${etat.local.mode === 'demo' ? html`<div class="bandeau"><span><strong>Mode démo</strong> — un emploi du temps et des classes fictifs, pour essayer. Tout se règle et se valide.</span><span class="outils"><a class="btn mini plein" href="#/demarrer">Commencer pour de vrai</a><button class="btn mini" data-action="partager">${icone('partager')} Partager</button></span></div>` : ''}
     ${bandeauInstallation(etat.local.installPlusTard)}
     ${c.inconnus.length ? html`<div class="bandeau info"><span><strong>Pronote montre ${c.inconnus.length} classe${c.inconnus.length > 1 ? 's' : ''} non suivie${c.inconnus.length > 1 ? 's' : ''}</strong> : ${c.inconnus.join(', ')}.</span><span class="outils"><button class="btn mini plein" data-action="suivre-toutes">Les suivre</button><button class="btn mini" data-action="ignorer-inconnues">Ignorer</button></span></div>` : ''}
-    <div class="titre-page"><div><h1>Bonjour !</h1>${resume()}</div>
-      <div class="outils">
-        <button class="btn${organiser ? ' plein' : ''}" data-action="organiser" aria-pressed="${organiser}">${icone('organiser')} ${organiser ? 'Terminé' : 'Personnaliser'}</button>
-      </div></div>
-    ${organiser ? html`<div class="bandeau info"><span>Glissez les modules par leur poignée ${icone('poignee')}, ou utilisez ↑ ↓. S, M, L règlent la largeur. La disposition est propre à cet appareil.</span>
-      <span class="modules-caches">${caches.length ? caches.map((id) => html`<button class="btn mini" data-action="module-afficher" data-id="${id}">${icone('plus')} ${MODULES[id].titre}</button>`) : html`<span class="aide">Tous les modules sont affichés.</span>`}
-      <button class="btn mini discret" data-action="disposition-defaut">Disposition d'origine</button></span></div>` : ''}
+    <h1 class="visuellement-cache">Page d'accueil</h1>
+    ${resume()}
+    ${organiser ? html`<div class="bandeau info"><span>Glissez les tuiles par leur poignée ${icone('poignee')}, ou utilisez ↑ ↓. S, M, L règlent la largeur. La disposition est propre à cet appareil.</span>
+      <span class="modules-caches">${caches.length ? caches.map((id) => html`<button class="btn mini" data-action="module-afficher" data-id="${id}">${icone('plus')} ${MODULES[id].titre}</button>`) : html`<span class="aide">Toutes les tuiles sont affichées.</span>`}
+      <button class="btn mini discret" data-action="disposition-defaut">Disposition d'origine</button>
+      <button class="btn mini plein" data-action="organiser">${icone('valider')} Terminé</button></span></div>` : ''}
     <div class="tableau${organiser ? ' organiser' : ''}" id="tableau">${modules}</div>`;
 }
 
@@ -299,6 +371,12 @@ actions['module-monter'] = (el) => deplacer(el.dataset.id, -1);
 actions['module-descendre'] = (el) => deplacer(el.dataset.id, 1);
 actions['module-taille'] = (el) => regler({ tailles: { ...disposition().tailles, [el.dataset.id]: el.dataset.taille } });
 actions['module-masquer'] = (el) => regler({ masques: [...new Set([...disposition().masques, el.dataset.id])] });
+// La croix de la tuile, comme dans Pronote : elle la retire, et « Annuler » la remet.
+actions['module-fermer'] = (el) => {
+  const id = el.dataset.id;
+  regler({ masques: [...new Set([...disposition().masques, id])] });
+  toast(`« ${MODULES[id].titre} » retirée de la page d'accueil.`, { action: { libelle: 'Annuler', faire: () => regler({ masques: disposition().masques.filter((x) => x !== id) }) } });
+};
 actions['module-afficher'] = (el) => regler({ masques: disposition().masques.filter((x) => x !== el.dataset.id) });
 actions['disposition-defaut'] = () => { reglerLocal({ disposition: null }); toast('Disposition d’origine rétablie.'); };
 export function surGlisser(ordre) {

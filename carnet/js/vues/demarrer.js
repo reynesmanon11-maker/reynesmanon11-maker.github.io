@@ -13,6 +13,7 @@ import * as G from '../google.js';
 import { lireAgendas, agendasPronote, lireLienIcal, lireTexteIcal, bilanLecture, synchroniser, messageErreur, recupererDrive } from '../synchro.js';
 import { COULEURS_NIVEAUX, COULEURS_EVENEMENT, DESCRIPTION_AGENDA } from '../agenda.js';
 import { installation } from '../installation.js';
+import { ouvrirImportProgression } from './programmation.js';
 
 let etape = 'accueil';
 let voie = null; // 'google' | 'local'
@@ -172,8 +173,9 @@ function ecranProgression() {
     <label class="champ"><span>Suivre la progression à partir du</span><input type="date" value="${debut}" data-change="date-debut" style="max-width:14em"></label>
     <p>Pour chaque classe, une file d'étapes (activité, bilan, évaluation…). Vous pouvez :</p>
     <div class="choix">
-      <button data-action="progression-vide"><strong>Partir de zéro</strong><span>Les classes sont prêtes ; vous ajoutez les étapes depuis l'onglet Classes.</span></button>
-      <label class="btn" style="flex-direction:column;align-items:flex-start;white-space:normal;padding:16px;border-radius:16px"><strong>Importer un fichier</strong><span class="aide">Une sauvegarde du Carnet, l'export du « Carnet de bord SVT » de claude.ai, ou la progression d'un collègue.</span><input type="file" accept=".json,application/json" data-change="fichier-progression" class="visuellement-cache"></label>
+      <button data-action="progression-tableur"><strong>Ma programmation (Excel…)</strong><span>Le tableur de l'année, tel quel : Excel, LibreOffice, Google Sheets, CSV, ou des cellules collées. Une feuille par niveau, c'est parfait.</span></button>
+      <button data-action="progression-vide"><strong>Partir de zéro</strong><span>Les classes sont prêtes ; vous ajoutez les étapes depuis Progressions.</span></button>
+      <label class="btn" style="flex-direction:column;align-items:flex-start;white-space:normal;padding:16px;border-radius:16px"><strong>Une sauvegarde du Carnet</strong><span class="aide">Le fichier de sauvegarde (.json), l'export du « Carnet de bord SVT » de claude.ai, ou celui d'un collègue.</span><input type="file" accept=".json,application/json" data-change="fichier-progression" class="visuellement-cache"></label>
     </div></section>`;
 }
 
@@ -363,6 +365,7 @@ function terminer() {
   toast('C’est parti. Ajoutez des étapes à vos classes depuis l’onglet Classes.');
 }
 actions['progression-vide'] = () => terminer();
+actions['progression-tableur'] = () => ouvrirImportProgression({ surFin: (importe) => { if (importe) terminer(); } });
 changements['fichier-progression'] = async (el) => {
   const f = el.files && el.files[0];
   if (!f) return;

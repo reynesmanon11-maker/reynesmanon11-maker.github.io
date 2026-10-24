@@ -34,15 +34,15 @@ Google met parfois quelques minutes à remplir le nouvel agenda.
 ## 3. Ouvrir et installer le Carnet
 
 Ouvrez **<https://reynesmanon11-maker.github.io/carnet/>** — ou visez avec l'appareil photo du
-téléphone le QR code qu'un collègue vous montre (Réglages → **Partager**). Puis installez-le
+téléphone le QR code qu'un collègue vous montre (Mes données → **Partager**). Puis installez-le
 pour l'avoir comme une application :
 
 | Appareil | Installer |
 |---|---|
-| Android (Chrome), ordinateur (Chrome, Edge) | le bouton **Installer** que le Carnet propose sur l'accueil (ou dans Réglages) |
+| Android (Chrome), ordinateur (Chrome, Edge) | le bouton **Installer** que le Carnet propose sur l'accueil (ou dans Mes données) |
 | iPhone, iPad (Safari) | bouton Partager → **Sur l'écran d'accueil** (le Carnet montre le chemin) |
 
-Pour retrouver sur le téléphone le Carnet ouvert sur l'ordinateur : Réglages → **Partager**, et
+Pour retrouver sur le téléphone le Carnet ouvert sur l’ordinateur : Mes données → **Partager**, et
 visez le QR code avec le téléphone. Une fois sur le Microsoft Store ou le Play Store, il
 s'installera aussi depuis le store.
 
@@ -75,15 +75,44 @@ revient au Carnet. Si la connexion coince, l'écran propose « Essayer l'autre f
    **Masquez ensuite l'agenda Pronote dans Google Agenda** (décochez-le dans la liste de gauche) :
    le Carnet le remplace, en couleurs, et continue de le lire. Sinon chaque cours apparaît deux fois.
 4. **Vie perso** — les agendas dont les rendez-vous s'affichent à côté des cours.
-5. **Progression** — partir de zéro, ou importer un fichier (sauvegarde, export du « Carnet de
-   bord SVT » de claude.ai, progression d'un collègue).
+5. **Progression** — **votre programmation** (le tableur de l'année, voir ci-dessous), partir de
+   zéro, ou une sauvegarde du Carnet (la vôtre, l'export du « Carnet de bord SVT » de claude.ai,
+   celle d'un collègue).
 
-## 6. Écrire ses étapes
+## 6. Importer sa programmation
 
-Onglet **Classes** → **Nouvelle étape** : un intitulé, une durée en séances, un format (classe
-entière, demi-groupe), des **jalons** (un modèle « démarche d'investigation », « activité
-documentaire », « TP »… ou les vôtres), le matériel, les pages à photocopier, le texte du cahier
-de textes.
+Rubrique **Progressions** → **Importer une programmation**, puis le fichier tel qu'il est : Excel
+(.xlsx), LibreOffice (.ods), CSV — depuis Google Sheets, *Fichier → Télécharger → Microsoft
+Excel* ; depuis Numbers, *Exporter vers → Excel*. Un ancien .xls s'enregistre d'abord en .xlsx.
+On peut aussi copier le tableau dans le tableur, ou dans Word, et le coller dans la case prévue.
+
+Le plus pratique est **une feuille par niveau** (nommée « 6e », « 5e »…) et **une ligne par
+séance ou par activité**. Le Carnet :
+
+- trouve la ligne des titres de colonnes et devine le rôle de chacune (intitulé, chapitre,
+  durée, type, évaluation, demi-groupe, jalons, matériel, photocopies, texte du cahier de textes,
+  travail à faire, semaine visée) — tout se corrige dans **Colonnes reconnues** ;
+- comprend les durées comme on les écrit : `1`, `1,5`, `½`, `2 séances`, `1h30` (une heure de cours
+  = une séance), `15 min`, `2 semaines` (d'après le nombre de cours par semaine de la classe) ;
+- reconnaît une ligne de chapitre (« Séquence 2 — … » seule sur sa ligne, ou une colonne Chapitre
+  fusionnée), une évaluation (« Évaluation », « DS », « contrôle », un « x » dans la colonne), une
+  semaine visée (`S45`, `semaine 46`, une date) ;
+- montre les étapes qu'il en tire, feuille par feuille, avant d'écrire quoi que ce soit.
+
+On choisit ensuite les classes du niveau, et, si elles ont déjà des étapes, **Ajouter à la suite**
+ou **Remplacer la file** (une étape au même intitulé garde son suivi). Le fichier est lu dans le
+navigateur : il ne part nulle part.
+
+Pas encore de tableur ? **Télécharger le modèle (Excel)**, dans la même fenêtre : les colonnes que
+le Carnet reconnaît, avec trois lignes d'exemple. Et pour donner sa progression à un collègue :
+**Exporter (Excel)**, une feuille par classe, qui se réimporte telle quelle.
+
+## 7. Écrire ou retoucher ses étapes
+
+Rubrique **Progressions** → **Nouvelle étape** (ou le crayon d'une étape) : un intitulé, le
+chapitre, une durée en séances, un format (classe entière, demi-groupe), des **jalons** (un modèle
+« démarche d'investigation », « activité documentaire », « TP »… ou les vôtres), le matériel, les
+pages à photocopier, le texte du cahier de textes, le travail à faire, la semaine visée.
 
 Une étape appartient au niveau : écrite pour la 601, elle se reprend pour la 602 en un clic
 (« Reprendre une étape des 6e »), ou toute la file d'un coup (« Même file pour… »). Une classe
@@ -92,38 +121,58 @@ reprise en cours d'année : **Point de départ**.
 Une **évaluation** n'est jamais coupée sur deux cours : si elle ne tient pas dans la fin d'une
 heure, elle commence au cours suivant. Même chose pour une étape cochée « Ne pas couper ».
 
-## 7. Après chaque cours
+## 8. Après chaque cours
 
 Touchez **Où en est-on ?** sur le cours (dans le Carnet, ou depuis l'événement dans Google
 Agenda), puis le **dernier jalon terminé** — ou **Comme prévu**. C'est tout : la suite glisse sur
 les prochains cours, dans le Carnet comme dans Google Agenda.
 
-Un cours oublié ? Aucune importance : le dernier point d'arrêt validé fait foi.
+Un cours oublié ? Aucune importance : le dernier point d'arrêt validé fait foi. La tuile **Cours à
+valider** de la page d'accueil liste ceux qui attendent.
 
-## 8. Faire connaître le Carnet
+## 9. Le cahier de textes
 
-Réglages → **Partager** (ou l'icône de partage en haut, sur ordinateur) : un QR code à viser
+Rubrique **Cahier de textes** : pour chaque cours, le **contenu de la séance** (les étapes faites,
+avec leur texte) et le **travail à faire** pour le cours suivant. **Copier**, coller dans Pronote,
+puis cocher **Saisi dans Pronote** : le cours quitte la liste des « non saisis » (et la tuile du
+même nom). Les textes s'écrivent une fois, dans l'étape, pour toutes les classes du niveau.
+
+## 10. Où tomberont les évaluations
+
+Rubrique **Progressions** → **Calendrier et évaluations** : un tableau par niveau, une ligne par
+étape, une colonne par classe, avec le jour où chaque étape tombe d'après l'emploi du temps réel
+(cours annulés et vacances compris), l'écart à la semaine visée de la programmation (« +1 sem. »),
+et en tête les prochaines évaluations, annoncées ou à annoncer. Les dates bougent dès qu'un cours
+saute ou qu'une validation change le rythme.
+
+## 11. Faire connaître le Carnet
+
+Mes données → **Partager** (ou l'icône de partage en haut, sur ordinateur) : un QR code à viser
 avec un téléphone, le lien à copier, et un message tout prêt pour un collègue, qui dit en trois
 lignes comment commencer.
 
-## 9. La semaine, comme un emploi du temps
+## 12. L'emploi du temps, comme dans Pronote
 
-Sur ordinateur, l'accueil s'ouvre sur **Ma semaine** : une colonne par jour, et dans chaque
-colonne la carte de chaque cours — horaires, demi-groupes, salle, ce qui est prévu et pour
-combien de temps, les annonces à faire, le matériel **à prévoir** en cases à cocher, et le
-bouton **Texte Pronote** qui copie le texte du cahier de textes. Pendant les vacances ou le
-week-end, c'est la semaine des prochains cours qui s'affiche. Sur téléphone, l'accueil montre
-d'abord la journée.
+Le Carnet est rangé comme l'espace professeur de Pronote : **Page d'accueil**, **Emploi du
+temps**, **Cahier de textes**, **Progressions**, **Mes travaux**, **Mes données**. Sur ordinateur,
+la page d'accueil s'ouvre sur la tuile **Emploi du temps** : la grille de la semaine, calée sur
+les heures de sonnerie de l'établissement, la récréation grisée, le mercredi après-midi hachuré.
+Touchez un cours pour dire où la classe en est. La semaine A ou B se règle dans **Mes données**.
 
-L'onglet **Semaine** propose la même vue (**Cartes**) et une **Grille horaire**, où cours,
-réunions et rendez-vous perso se placent à leur heure, comme dans un agenda papier.
+La rubrique **Emploi du temps** propose aussi les **Cartes** : une colonne par jour, la carte de
+chaque cours — horaires, demi-groupes, salle, ce qui est prévu et pour combien de temps, les
+annonces à faire, le matériel **à prévoir** en cases à cocher, le bouton **Texte Pronote**.
+Pendant les vacances ou le week-end, c'est la semaine des prochains cours qui s'affiche. Sur
+téléphone, l'accueil montre d'abord la journée.
 
-## 10. Ranger son tableau de bord
+## 13. Ranger sa page d'accueil
 
-Accueil → **Personnaliser** : glissez les modules par leur poignée (ou ↑ ↓), réglez leur largeur
-(S, M, L), masquez ceux qui ne servent pas, et réglez chacun avec ⚙ (« À préparer » en liste, en
-date ou en compteur ; « À faire » en colonne, en ligne ou par échéance…). La disposition est
-propre à chaque appareil : on ne range pas son téléphone comme son ordinateur.
+Comme dans Pronote, chaque tuile a **Tout voir** et sa **croix** pour la retirer. La roue
+dentée à côté de « Page d'accueil » ouvre la mise en page : glissez les tuiles par leur poignée
+(ou ↑ ↓), réglez leur largeur (S, M, L), remettez celles qu'on avait retirées, et réglez chacune
+avec ⚙ (« Cours à préparer » en liste, en date ou en compteur ; « Mes travaux » en colonne, en
+ligne ou par échéance…). La disposition est propre à chaque appareil : on ne range pas son
+téléphone comme son ordinateur.
 
 ## Questions fréquentes
 
@@ -134,7 +183,7 @@ l'effectif des classes restent. Le contenu du lien ne part vers aucun serveur.
 
 **Un cours annulé dans Pronote apparaît encore.** Google relit les agendas abonnés toutes les
 8 à 24 heures environ, sans qu'on puisse le forcer. Le Carnet montre à quelle heure Google a relu
-Pronote pour la dernière fois (Réglages).
+Pronote pour la dernière fois (Mes données).
 
 **Le téléphone et l'ordinateur ne montrent pas la même chose.** Le Carnet se synchronise à
 l'ouverture, toutes les 15 minutes quand il est ouvert, et quelques secondes après chaque

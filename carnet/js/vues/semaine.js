@@ -1,16 +1,23 @@
-// La semaine : une colonne par jour avec les cartes de cours, comme l'emploi du temps de l'ancien
-// carnet (vue « Cartes », par défaut), ou une grille horaire où cours, vie de l'établissement et
-// vie perso se placent à leur heure, comme un agenda papier.
+// L'emploi du temps : une grille horaire à la manière de Pronote (par défaut), où cours, vie de
+// l'établissement et vie perso se placent à leur heure ; ou une colonne par jour avec la carte
+// complète de chaque cours, comme l'emploi du temps de l'ancien carnet (vue « Cartes »).
 import { actions } from '../actions.js';
 import { html, icone } from '../ui.js';
 import { calc, etat, changer, reglerLocal, nomClasse, niveauClasse, couleurNiveau } from '../etat.js';
-import { lundiDe, ajouteJours, dateCourte, dateLongue, minutesDe, heureDe, heureLisible, jourMois } from '../dates.js';
-import { semaineUtile } from '../moteur.js';
+import { lundiDe, ajouteJours, dateCourte, dateLongue, minutesDe, heureDe, heureLisible, jourMois, jourDe, jourSemaine } from '../dates.js';
+import { semaineUtile, placesHoraires, apresMidiLibre, lettreSemaine } from '../moteur.js';
 import { carteCours, ligneEvenement, styleNiveau } from './commun.js';
 import { ouvrirFeuille } from '../ui.js';
 
 let lundiAffiche = null;
 const PX = 1.05; // pixels par minute
+const hm = (m) => `${String(Math.floor(m / 60)).padStart(2, '0')}h${String(m % 60).padStart(2, '0')}`;
+
+/** « A » ou « B » si l'établissement alterne (réglé dans Mes données), sinon ''. */
+export function lettreDe(lundi) {
+  const c = calc();
+  return lettreSemaine(lundi, c.v.reglages.semaineAB, c.coupures);
+}
 
 function semaine() {
   const c = calc();
@@ -18,7 +25,7 @@ function semaine() {
   return lundiAffiche;
 }
 
-const vueChoisie = () => etat.local.vueSemaine || 'liste';
+const vueChoisie = () => etat.local.vueSemaine || 'grille';
 
 function evenementsDuJour(jour) {
   const c = calc();
@@ -73,27 +80,42 @@ function bloc(x, debutGrille) {
     <b>${x.e.titre}</b><span class="sous">${heures}</span></button>`;
 }
 
-function grille() {
+/**
+ * La grille horaire, à la manière de Pronote : les heures de sonnerie de l'établissement (déduites
+ * des cours) en repère, la récréation grisée, le mercredi après-midi hachuré quand il n'y a jamais
+ * cours. Aussi le module « Emploi du temps » de l'accueil.
+ */
+export function grille(lundi = semaine()) {
   const c = calc();
-  const lundi = semaine();
   let jours = [0, 1, 2, 3, 4].map((k) => ajouteJours(lundi, k));
   const we = [5, 6].map((k) => ajouteJours(lundi, k)).filter((j) => evenementsDuJour(j).minutes.some((e) => e.genre !== 'perso'));
   jours = [...jours, ...we];
   const tous = jours.map((j) => ({ jour: j, ...evenementsDuJour(j) }));
+  const { places, recres } = placesHoraires(c.cours, c.fuseau);
   const mins = tous.flatMap((d) => d.minutes.map((e) => minutesDe(e.debut, c.fuseau)));
   const maxs = tous.flatMap((d) => d.minutes.map((e) => minutesDe(e.fin, c.fuseau) || 24 * 60));
-  const debut = Math.max(6 * 60, Math.min(8 * 60, ...mins.map((m) => Math.floor(m / 60) * 60)));
-  const fin = Math.min(22 * 60, Math.max(17 * 60, ...maxs.map((m) => Math.ceil(m / 60) * 60)));
+  // Avec des heures de sonnerie, la grille commence à la première et finit à la dernière, comme
+  // dans Pronote ; un rendez-vous plus tôt ou plus tard l'élargit à l'heure ronde.
+  const avant = mins.filter((m) => !places.length || m < places[0]).map((m) => Math.floor(m / 60) * 60);
+  const apres = maxs.filter((m) => !places.length || m > places[places.length - 1]).map((m) => Math.ceil(m / 60) * 60);
+  const debut = Math.max(6 * 60, Math.min(places.length ? places[0] : 8 * 60, ...avant));
+  const fin = Math.min(22 * 60, Math.max(places.length ? places[places.length - 1] : 17 * 60, ...apres));
   const hauteur = (fin - debut) * PX;
-  const heures = [];
-  for (let m = debut; m <= fin; m += 60) heures.push(m);
+  const reperes = places.length ? places.filter((m) => m >= debut && m <= fin) : Array.from({ length: Math.floor((fin - debut) / 60) + 1 }, (_, k) => debut + 60 * k);
+  if (places.length) { if (reperes[0] !== debut) reperes.unshift(debut); if (reperes[reperes.length - 1] !== fin) reperes.push(fin); }
   const maintenant = minutesDe(c.maintenant, c.fuseau);
+  // Le mercredi après-midi : à partir de la fin du dernier cours du mercredi matin.
+  const hachure = apresMidiLibre(c.cours, c.fuseau)
+    ? Math.max(...c.cours.filter((x) => x && x.type === 'cours' && x.debut && jourSemaine(jourDe(x.debut, c.fuseau)) === 2).map((x) => minutesDe(x.fin, c.fuseau)))
+    : null;
   return html`<div class="grille" style="--h:${hauteur}px">
-    <div class="grille-heures" style="margin-top:50px;height:${hauteur}px">${heures.map((m) => html`<span style="top:${(m - debut) * PX}px">${m / 60}h</span>`)}</div>
+    <div class="grille-heures" style="margin-top:50px;height:${hauteur}px">${reperes.map((m) => html`<span style="top:${(m - debut) * PX}px">${hm(m)}</span>`)}</div>
     <div class="grille-jours">${tous.map((d) => html`<div class="colonne-jour${d.jour === c.auj ? ' auj' : ''}">
       <div class="tete-jour">${dateCourte(d.jour)}${d.journees.length ? html`<div class="bandeau-journee${d.journees.some((x) => x.genre === 'vac') ? ' vac' : ''}" title="${d.journees.map((x) => x.titre).join(' · ')}">${d.journees[0].titre}${d.journees.length > 1 ? ` +${d.journees.length - 1}` : ''}</div>` : ''}</div>
       <div class="corps-jour" style="height:${hauteur}px">
-        ${heures.map((m) => html`<div class="ligne-heure" style="top:${(m - debut) * PX}px"></div><div class="ligne-heure demi" style="top:${(m + 30 - debut) * PX}px"></div>`)}
+        ${recres.filter(([a, b]) => a >= debut && b <= fin).map(([a, b]) => html`<div class="recre" style="top:${(a - debut) * PX}px;height:${(b - a) * PX}px" title="Récréation ${hm(a)}–${hm(b)}"></div>`)}
+        ${hachure != null && jourSemaine(d.jour) === 2 && hachure < fin ? html`<div class="hachure" style="top:${(Math.max(debut, hachure) - debut) * PX}px;height:${(fin - Math.max(debut, hachure)) * PX}px" title="Pas de cours le mercredi après-midi"></div>` : ''}
+        ${reperes.map((m) => html`<div class="ligne-heure" style="top:${(m - debut) * PX}px"></div>`)}
         ${d.jour === c.auj && maintenant >= debut && maintenant <= fin ? html`<div class="maintenant" style="top:${(maintenant - debut) * PX}px"></div>` : ''}
         ${disposer(d.minutes, c.fuseau).map((x) => bloc(x, debut))}
       </div></div>`)}</div>
@@ -131,18 +153,18 @@ export function rendreSemaine() {
   return html`
     <div class="semaine-outils">
       <button class="btn-rond" data-action="semaine-avant" aria-label="Semaine précédente">${icone('gauche')}</button>
-      <h2>Semaine du ${jourMois(lundi)} au ${jourMois(vendredi)}</h2>
+      <h2>Semaine du ${jourMois(lundi)} au ${jourMois(vendredi)}${lettreDe(lundi) ? ` (semaine ${lettreDe(lundi)})` : ''}</h2>
       <button class="btn-rond" data-action="semaine-apres" aria-label="Semaine suivante">${icone('droite')}</button>
       ${lundi !== semaineUtile(c.tousCreneaux, c.auj) ? html`<button class="btn mini" data-action="semaine-auj">${semaineUtile(c.tousCreneaux, c.auj) === lundiDe(c.auj) ? 'Cette semaine' : 'Prochains cours'}</button>` : ''}
       <span class="segmente" role="group" aria-label="Affichage" style="margin-left:auto">
-        <button data-action="semaine-vue" data-vue="liste" aria-pressed="${vue === 'liste'}">Cartes</button>
-        <button data-action="semaine-vue" data-vue="grille" aria-pressed="${vue === 'grille'}">Grille horaire</button></span>
+        <button data-action="semaine-vue" data-vue="grille" aria-pressed="${vue === 'grille'}">Grille horaire</button>
+        <button data-action="semaine-vue" data-vue="liste" aria-pressed="${vue === 'liste'}">Cartes</button></span>
       <button class="btn mini${etat.local.persoVisible ? ' plein' : ''}" data-action="semaine-perso" aria-pressed="${etat.local.persoVisible}">${icone('personne')} Vie perso</button>
     </div>
     <div class="legende">${niveaux.map((n) => html`<span><i style="--c:${couleurNiveau(n, c.v)}"></i>${n}</span>`)}
       <span><i style="--c:var(--etab)"></i>Établissement</span><span><i style="--c:var(--perso)"></i>Perso</span>
       <span><i style="--c:var(--alerte)"></i>À préparer</span></div>
-    ${vue === 'grille' ? grille() : listeSemaine()}`;
+    ${vue === 'grille' ? grille(lundi) : listeSemaine()}`;
 }
 
 actions['semaine-avant'] = () => { lundiAffiche = ajouteJours(semaine(), -7); changer(); };

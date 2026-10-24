@@ -85,8 +85,24 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
 - Le site passe par Jekyll, qui lit **tous** les `.md` du dépôt (ce fichier compris) comme des
   modèles : une double accolade ouvrante, ou une accolade suivie d'un pourcentage, y fait échouer
   la publication du site entier. Ne jamais en écrire, même entre accents graves.
-- Ne pas confondre avec l'ancien « Carnet de bord SVT » (page claude.ai et tâche du matin « Mise
-  à jour du carnet SVT ») : il tourne encore jusqu'à ce que le nouveau soit branché à Google.
+- **Rangé comme l'espace professeur de Pronote**, pour que les collègues retrouvent leurs repères :
+  rubriques Page d'accueil, Emploi du temps, Cahier de textes, Progressions, Mes travaux, Mes données
+  (barre sombre `nav.nav-haut`, et `nav.nav-bas` sur téléphone : les deux se modifient ensemble,
+  avec `TITRES` dans `carnet/js/app.js`), tuiles d'accueil avec « Tout voir » et une croix, noms de
+  tuiles de Pronote quand elles y existent. On reprend la structure et le vocabulaire, **jamais la
+  marque ni le logo** de Pronote.
+- **Programmation importée d'un tableur** : `carnet/js/tableur.js` lit (.xlsx, .ods, .csv, collage)
+  et écrit (.xlsx) sans bibliothèque ; `carnet/js/programmation.js` devine colonnes, durées,
+  semaines, chapitres et évaluations. Une heure de cours = une séance (« 1h30 » = 1,5). Les
+  fichiers de `carnet/tests/tableurs/` sont de vrais fichiers d'Excel et de LibreOffice : ne pas
+  les réécrire à la main.
+- **Agendas Google : renommer avant de créer.** Google limite les créations d'agendas, pas les
+  renommages : un agenda du Carnet inutile (doublon vide, niveau disparu) est renommé pour devenir
+  celui qui manque ; les restes se suppriment d'un bouton dans Mes données.
+- L'ancien « Carnet de bord SVT » (page claude.ai) est **à la retraite** : il n'écrit plus rien dans
+  Google Agenda, sa tâche du matin « Mise à jour du carnet SVT » est en pause (ne pas la relancer :
+  elle recréerait ses copies), et son bandeau emporte ses données vers le Carnet (`#importer=`) et
+  retire, sur confirmation, ses copies marquées « carnetsvt » de l'agenda principal.
 
 ## Conventions
 

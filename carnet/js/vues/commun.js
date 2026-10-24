@@ -90,6 +90,21 @@ export function textePronote(cr) {
   }).join('\n\n');
 }
 
+/**
+ * Le travail à faire donné dans un cours : celui des étapes qui s'y terminent (« Apprendre le
+ * bilan » se donne à la fin du bilan), pour le cours suivant de la classe.
+ */
+export function travailCours(cr) {
+  const { plan, v, creneaux } = calc();
+  const pc = plan.parCreneau[cr.cle];
+  if (!pc || !pc.segments) return null;
+  const textes = pc.segments.filter((s) => !s.recul && s.a >= 1 - EPS).map((s) => String((v.etapes[s.eid] || {}).devoirs || '').trim()).filter(Boolean);
+  if (!textes.length) return null;
+  let suivant = null;
+  for (const x of creneaux) if (x.code === cr.code && !x.annule && x.debut > cr.debut && (!suivant || x.debut < suivant.debut)) suivant = x;
+  return { texte: [...new Set(textes)].join('\n'), pour: suivant ? suivant.jour : null };
+}
+
 /** Ce qu'il faut préparer pour un cours à venir : une case à cocher par étape qui y commence. */
 export function aPrevoirCours(cr) {
   const { plan, v } = calc();

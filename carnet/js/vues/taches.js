@@ -1,4 +1,4 @@
-// À faire : les tâches écrites à la main, et ce que le Carnet déduit tout seul de la progression
+// Mes travaux : les tâches écrites à la main, et ce que le Carnet déduit tout seul de la progression
 // (cours à valider, cours sans contenu, évaluations à annoncer, photocopies).
 import { actions, envois } from '../actions.js';
 import { html, icone, toast } from '../ui.js';
@@ -25,7 +25,7 @@ export function rendreTaches() {
   const prep = aPreparer(c.v, c.plan, c.creneaux, { auj: c.auj, jours: 7 }).filter((p) => !(c.v.coches[p.id] && c.v.coches[p.id].fait));
 
   return html`
-    <div class="titre-page"><div><h1>À faire</h1><p>Vos tâches, et ce que le Carnet déduit de votre progression.</p></div></div>
+    <div class="titre-page"><div><h1>Mes travaux</h1><p>Vos tâches, et ce que le Carnet déduit de votre progression.</p></div></div>
     <div class="classes">
       <section class="carte"><h2>Mes tâches</h2>
         <form class="section-feuille" data-envoi="tache-ajouter" style="margin-top:10px">

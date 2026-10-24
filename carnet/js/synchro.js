@@ -120,7 +120,12 @@ export async function lireAgendas() {
   let pronote = etat.brut.pronote, pronoteMaj = etat.brut.pronoteMaj;
   const src = r.source || {};
   if (src.agendaPronote) {
-    const res = await G.listerEvenements(src.agendaPronote, { timeMin: t(ajouteJours(lundi, -42)), timeMax: t(ajouteJours(lundi, 7 * 12)) });
+    // Jusqu'à la fin de l'année scolaire (au moins douze semaines) : c'est ce qui permet de dire où
+    // tomberont les évaluations de la programmation.
+    const [a, m] = lundi.split('-').map(Number);
+    const finAnnee = `${m >= 8 ? a + 1 : a}-07-14`;
+    const horizon = finAnnee > ajouteJours(lundi, 7 * 12) ? finAnnee : ajouteJours(lundi, 7 * 12);
+    const res = await G.listerEvenements(src.agendaPronote, { timeMin: t(ajouteJours(lundi, -42)), timeMax: t(horizon) });
     pronote = res.evenements.map((e) => depuisGoogle(e, tz)).filter(Boolean);
     pronoteMaj = res.maj || null;
   }
@@ -164,7 +169,22 @@ export async function ecrireAgendas({ surProgres } = {}) {
     if (id && !connus[id]) id = null; // supprimé par l'utilisateur dans Google Agenda
     if (!id) {
       // Un agenda du Carnet de ce nom existe déjà (synchronisation interrompue, autre appareil) : on le reprend.
-      id = Object.keys(connus).find((k) => duCarnet(k) && connus[k].nom === a.nom) || null;
+      id = Object.keys(connus).find((k) => duCarnet(k) && connus[k].nom === a.nom && !Object.values(ids).includes(k)) || null;
+      // Sinon, un agenda du Carnet qui ne sert à rien (le doublon d'un agenda gardé, ou un niveau
+      // qu'on n'a plus) : on le renomme. Google limite les créations d'agendas, pas les renommages.
+      if (!id) {
+        const pris = new Set(Object.values(ids));
+        const inutile = (k) => duCarnet(k) && !pris.has(k)
+          && (!voulus.some((x) => x.nom === connus[k].nom) || Object.values(ids).some((j) => j !== k && connus[j] && connus[j].nom === connus[k].nom));
+        const libre = Object.keys(connus).find(inutile);
+        if (libre) {
+          try {
+            await G.renommerAgenda(libre, a.nom);
+            connus[libre] = { ...connus[libre], nom: a.nom };
+            id = libre;
+          } catch (err) { if (err.code === 'jeton') throw err; }
+        }
+      }
       if (!id) {
         if (enAttente) { enAttente++; continue; }
         try {
@@ -218,6 +238,27 @@ export async function ecrireAgendas({ surProgres } = {}) {
   if (erreurs.length) throw erreurs[0];
   reglerLocal({ derniereEcriture: Date.now() });
   return { creer: creer.length, modifier: modifier.length, supprimer: supprimer.length, total: taches.length, enAttente };
+}
+
+/**
+ * Les agendas créés par le Carnet qui ne servent plus (un niveau qu'on n'a plus, le reste d'une
+ * synchronisation interrompue) : la synchronisation les renomme quand il en faut un nouveau ; ceux
+ * qui restent, on peut les supprimer d'ici.
+ */
+export function agendasInutiles() {
+  const e = reglages().ecriture || {};
+  const gardes = new Set(Object.values(e.calendriers || {}));
+  return Object.entries(etat.brut.agendas || {})
+    .filter(([id, a]) => a.description === DESCRIPTION_AGENDA && (a.role || 'owner') === 'owner' && !gardes.has(id))
+    .map(([id, a]) => ({ id, nom: a.nom }));
+}
+export async function retirerInutiles() {
+  let n = 0;
+  for (const { id } of agendasInutiles()) {
+    try { await G.supprimerAgenda(id); n++; } catch (err) { if (err.code === 'jeton') throw err; }
+  }
+  await lireAgendas();
+  return n;
 }
 
 /** Retire du Google Agenda tout ce que le Carnet y a écrit, puis ses agendas. */
