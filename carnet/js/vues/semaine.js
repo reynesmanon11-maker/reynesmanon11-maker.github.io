@@ -8,6 +8,7 @@ import { lundiDe, ajouteJours, dateCourte, dateLongue, minutesDe, heureDe, heure
 import { semaineUtile, placesHoraires, apresMidiLibre, lettreSemaine } from '../moteur.js';
 import { carteCours, ligneEvenement, styleNiveau } from './commun.js';
 import { ouvrirFeuille } from '../ui.js';
+import { agendasModifiables } from './rendezvous.js';
 
 let lundiAffiche = null;
 const PX = 1.05; // pixels par minute
@@ -104,6 +105,7 @@ export function grille(lundi = semaine()) {
   const reperes = places.length ? places.filter((m) => m >= debut && m <= fin) : Array.from({ length: Math.floor((fin - debut) / 60) + 1 }, (_, k) => debut + 60 * k);
   if (places.length) { if (reperes[0] !== debut) reperes.unshift(debut); if (reperes[reperes.length - 1] !== fin) reperes.push(fin); }
   const maintenant = minutesDe(c.maintenant, c.fuseau);
+  const ecrire = agendasModifiables().length > 0;
   // Le mercredi après-midi : à partir de la fin du dernier cours du mercredi matin.
   const hachure = apresMidiLibre(c.cours, c.fuseau)
     ? Math.max(...c.cours.filter((x) => x && x.type === 'cours' && x.debut && jourSemaine(jourDe(x.debut, c.fuseau)) === 2).map((x) => minutesDe(x.fin, c.fuseau)))
@@ -112,7 +114,7 @@ export function grille(lundi = semaine()) {
     <div class="grille-heures" style="margin-top:50px;height:${hauteur}px">${reperes.map((m) => html`<span style="top:${(m - debut) * PX}px">${hm(m)}</span>`)}</div>
     <div class="grille-jours">${tous.map((d) => html`<div class="colonne-jour${d.jour === c.auj ? ' auj' : ''}">
       <div class="tete-jour">${dateCourte(d.jour)}${d.journees.length ? html`<div class="bandeau-journee${d.journees.some((x) => x.genre === 'vac') ? ' vac' : ''}" title="${d.journees.map((x) => x.titre).join(' · ')}">${d.journees[0].titre}${d.journees.length > 1 ? ` +${d.journees.length - 1}` : ''}</div>` : ''}</div>
-      <div class="corps-jour" style="height:${hauteur}px">
+      <div class="corps-jour" style="height:${hauteur}px"${ecrire ? html` data-action="rdv-creneau" data-jour="${d.jour}" data-debut="${debut}" data-px="${PX}" title="Toucher une case vide pour ajouter un rendez-vous"` : ''}>
         ${recres.filter(([a, b]) => a >= debut && b <= fin).map(([a, b]) => html`<div class="recre" style="top:${(a - debut) * PX}px;height:${(b - a) * PX}px" title="Récréation ${hm(a)}–${hm(b)}"></div>`)}
         ${hachure != null && jourSemaine(d.jour) === 2 && hachure < fin ? html`<div class="hachure" style="top:${(Math.max(debut, hachure) - debut) * PX}px;height:${(fin - Math.max(debut, hachure)) * PX}px" title="Pas de cours le mercredi après-midi"></div>` : ''}
         ${reperes.map((m) => html`<div class="ligne-heure" style="top:${(m - debut) * PX}px"></div>`)}
@@ -160,6 +162,7 @@ export function rendreSemaine() {
         <button data-action="semaine-vue" data-vue="grille" aria-pressed="${vue === 'grille'}">Grille horaire</button>
         <button data-action="semaine-vue" data-vue="liste" aria-pressed="${vue === 'liste'}">Cartes</button></span>
       <button class="btn mini${etat.local.persoVisible ? ' plein' : ''}" data-action="semaine-perso" aria-pressed="${etat.local.persoVisible}">${icone('personne')} Vie perso</button>
+      ${agendasModifiables().length ? html`<button class="btn mini" data-action="rdv-nouveau" data-jour="${lundi >= c.auj ? lundi : c.auj}">${icone('plus')} Rendez-vous</button>` : ''}
     </div>
     <div class="legende">${niveaux.map((n) => html`<span><i style="--c:${couleurNiveau(n, c.v)}"></i>${n}</span>`)}
       <span><i style="--c:var(--etab)"></i>Établissement</span><span><i style="--c:var(--perso)"></i>Perso</span>
@@ -177,11 +180,15 @@ actions['ouvrir-evenement'] = (el) => {
   const source = el.dataset.genre === 'perso' ? c.perso : c.etablissement;
   const e = source.find((x) => x.id === el.dataset.id);
   if (!e) return;
+  const perso = el.dataset.genre === 'perso';
+  const modifiable = perso && e.modifiable && agendasModifiables().some((a) => a.id === e.agendaId);
   ouvrirFeuille(() => ({
     titre: e.titre,
     corps: html`<p>${dateLongue(e.jour0)}${e.debut ? ` · ${heureLisible(heureDe(e.debut, c.fuseau))}–${heureLisible(heureDe(e.fin, c.fuseau))}` : ''}</p>
       ${e.lieu ? html`<p class="aide">${e.lieu}</p>` : ''}
       ${e.description ? html`<pre class="pronote-texte">${e.description}</pre>` : ''}
-      <p class="aide">${el.dataset.genre === 'perso' ? `Agenda personnel${e.agenda ? ` « ${e.agenda} »` : ''} — le Carnet le lit sans jamais le modifier.` : 'Événement de l’établissement, lu dans Pronote.'}</p>`,
+      <p class="aide">${perso ? `Agenda personnel${e.agenda ? ` « ${e.agenda} »` : ''}${modifiable ? ' — ce que vous changez ici change aussi dans Google Agenda.' : ' — en lecture seule (agenda partagé, ou invitation).'}` : 'Événement de l’établissement, lu dans Pronote : il se change dans Pronote.'}</p>`,
+    pied: modifiable ? html`<button class="btn danger" data-action="rdv-supprimer" data-id="${e.id}">${icone('corbeille')} Supprimer</button>
+      <button class="btn plein" data-action="rdv-modifier" data-id="${e.id}">${icone('crayon')} Modifier</button>` : '',
   }));
 };

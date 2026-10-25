@@ -80,7 +80,8 @@ export function evenementsDemo(fuseau) {
   }
   pronote.push(journee('demo-vac', 'Vacances', debutVacances, finVacances));
   pronote.push(journee('demo-parcours', 'PARCOURS CITOYEN : semaine de la laïcité', ajouteJours(lundi, 7), ajouteJours(lundi, 11), 'Activités banalisées en heure de vie de classe.'));
-  return { pronote, perso, agendas: { 'demo-perso': { nom: 'Personnel', couleur: '#55606e' } } };
+  for (const e of perso) Object.assign(e, { agenda: 'Personnel', agendaId: 'demo-perso', modifiable: true });
+  return { pronote, perso, agendas: { 'demo-perso': { nom: 'Personnel', couleur: '#55606e', role: 'owner' } } };
 }
 
 const DEMARCHE = ['Situation déclenchante', 'Problème', 'Hypothèses', 'Protocole', 'Résultats', 'Bilan'];

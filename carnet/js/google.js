@@ -1,10 +1,12 @@
 // Google : connexion (Google Identity Services, jeton d'accès dans le navigateur, sans serveur),
-// Agenda (lecture des agendas abonnés, écriture dans les seuls agendas créés par l'appli) et
-// Drive (un fichier caché, propre à l'appli, pour retrouver ses données sur chaque appareil).
+// Agenda (lecture des agendas, écriture des cours dans les agendas créés par l'appli, et des
+// rendez-vous perso quand on les crée, modifie ou supprime dans le Carnet) et Drive (un fichier
+// caché, propre à l'appli, pour retrouver ses données sur chaque appareil).
 //
-// Autorisations demandées, les plus étroites possibles :
+// Autorisations demandées :
 //   calendar.calendarlist.readonly  voir la liste des agendas (pour trouver celui de Pronote)
-//   calendar.events.readonly        lire les cours et les rendez-vous — sans pouvoir les modifier
+//   calendar.events                 lire les cours et les rendez-vous ; modifier un rendez-vous
+//                                   perso, mais seulement quand on le fait soi-même dans le Carnet
 //   calendar.app.created            créer SES agendas « Carnet », leur donner une couleur, y écrire
 //   drive.appdata                   un dossier caché, propre à l'appli, invisible dans Drive
 // Le jeton vit en mémoire, une heure ; il n'est jamais écrit sur l'appareil.
@@ -15,7 +17,7 @@ import { installee, surAndroid, adresseAppli } from './installation.js';
 export const PORTEES = [
   'openid', 'email',
   'https://www.googleapis.com/auth/calendar.calendarlist.readonly',
-  'https://www.googleapis.com/auth/calendar.events.readonly',
+  'https://www.googleapis.com/auth/calendar.events',
   'https://www.googleapis.com/auth/calendar.app.created',
   'https://www.googleapis.com/auth/drive.appdata',
 ];
@@ -32,6 +34,9 @@ export class ErreurGoogle extends Error {
 export const googleConfigure = () => !!CONFIG.googleClientId;
 export const connecte = () => !!jeton && Date.now() < expiration - 60000;
 export const porteesManquantes = () => manquantes;
+/** Les rendez-vous perso se modifient seulement si l'autorisation a été accordée (une connexion d'avant ne l'a pas). */
+export const PORTEE_EVENEMENTS = 'https://www.googleapis.com/auth/calendar.events';
+export const peutModifierRendezVous = () => connecte() && !manquantes.includes(PORTEE_EVENEMENTS);
 export function oublierJeton() { jeton = null; expiration = 0; }
 
 const CLE_RETOUR = 'carnet-connexion-google', CLE_METHODE = 'carnet-methode-connexion';
@@ -214,6 +219,8 @@ export const supprimerAgenda = (id) => api(`${CAL}/calendars/${encodeURIComponen
 export const renommerAgenda = (id, nom) => api(`${CAL}/calendars/${encodeURIComponent(id)}`, { methode: 'PATCH', corps: { summary: nom } });
 export const creerEvenement = (cal, corps) => api(`${CAL}/calendars/${encodeURIComponent(cal)}/events`, { methode: 'POST', params: { sendUpdates: 'none' }, corps });
 export const remplacerEvenement = (cal, id, corps) => api(`${CAL}/calendars/${encodeURIComponent(cal)}/events/${encodeURIComponent(id)}`, { methode: 'PUT', params: { sendUpdates: 'none' }, corps });
+/** Ne change que les champs donnés : un rendez-vous garde ses invités, ses rappels, sa visio. */
+export const modifierEvenement = (cal, id, champs) => api(`${CAL}/calendars/${encodeURIComponent(cal)}/events/${encodeURIComponent(id)}`, { methode: 'PATCH', params: { sendUpdates: 'none' }, corps: champs });
 export async function supprimerEvenement(cal, id) {
   try { await api(`${CAL}/calendars/${encodeURIComponent(cal)}/events/${encodeURIComponent(id)}`, { methode: 'DELETE', params: { sendUpdates: 'none' } }); }
   catch (e) { if (e.code !== 'absent') throw e; }

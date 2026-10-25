@@ -282,6 +282,41 @@ await etape('mise en route avec l’import de l’ancien carnet : étapes import
   await c5.close();
 });
 
+await etape('rendez-vous perso : créé, déplacé, supprimé dans le Carnet, et fait dans Google Agenda', async () => {
+  const perso = () => google.etat.agendas['prof.test@gmail.com'].evenements;
+  const avant = perso().length;
+  google.vider();
+  await p.goto(URL + '#/semaine');
+  await p.getByRole('button', { name: /Rendez-vous/ }).click();
+  await p.fill('#rdv-titre', 'Inspection Yamina');
+  await p.fill('#rdv-jour', '2026-11-06');
+  await p.fill('#rdv-debut', '14:00');
+  await p.fill('#rdv-fin', '15:00');
+  await p.getByRole('button', { name: 'Enregistrer' }).click();
+  await p.waitForFunction(() => /ajouté à Google Agenda/.test(document.querySelector('.toast')?.textContent || ''));
+  const cree = perso().find((e) => e.summary === 'Inspection Yamina');
+  assert.ok(cree, 'écrit dans l’agenda principal');
+  assert.equal(new Date(cree.start.dateTime).toISOString(), '2026-11-06T13:00:00.000Z');
+  // Déplacé d'une heure : seuls les champs changés partent, le rendez-vous garde le reste.
+  cree.attendees = [{ email: 'collegue@example.com' }];
+  await p.locator('.bloc.perso', { hasText: 'Inspection Yamina' }).click();
+  await p.getByRole('button', { name: 'Modifier' }).click();
+  await p.fill('#rdv-debut', '15:00');
+  await p.fill('#rdv-fin', '16:00');
+  await p.getByRole('button', { name: 'Enregistrer' }).click();
+  await p.waitForFunction(() => /modifié dans Google Agenda/.test(document.querySelector('.toast')?.textContent || ''));
+  const deplace = perso().find((e) => e.id === cree.id);
+  assert.equal(new Date(deplace.start.dateTime).toISOString(), '2026-11-06T14:00:00.000Z');
+  assert.deepEqual(deplace.attendees, [{ email: 'collegue@example.com' }], 'les invités restent');
+  await p.locator('.bloc.perso', { hasText: 'Inspection Yamina' }).click();
+  await p.getByRole('button', { name: /Supprimer/ }).click();
+  await p.getByRole('button', { name: /Toucher encore/ }).click();
+  await p.waitForFunction(() => /supprimé de Google Agenda/.test(document.querySelector('.toast')?.textContent || ''));
+  assert.equal(perso().length, avant);
+  assert.deepEqual(google.ecritures().filter((a) => /prof\.test/.test(a.chemin)).map((a) => a.methode), ['POST', 'PATCH', 'DELETE'], 'une écriture par geste, aucune autre');
+  assert.ok(!google.ecritures().some((a) => /pronote123/.test(a.chemin)), 'rien dans l’agenda de Pronote');
+});
+
 // La mise en route Google jusqu'au tableau de bord, sur un faux Google donné.
 async function miseEnRoute(g) {
   const { ctx, p: pg } = await appareil({ g });

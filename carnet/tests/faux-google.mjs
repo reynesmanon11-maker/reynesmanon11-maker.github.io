@@ -12,6 +12,8 @@ export function fauxGoogle({ agendas, refusCreations = 0 }) {
   };
   const id = (p) => `${p}${++etat.n}`;
   const entree = (cid, a) => ({ id: cid, summary: a.summary, description: a.description || '', accessRole: a.accessRole || 'owner', primary: !!a.primary, backgroundColor: a.backgroundColor || '#9fe1e7', foregroundColor: a.foregroundColor || '#000000' });
+  // Avec calendar.events, on écrit dans tout agenda dont on est propriétaire ou rédacteur ; jamais dans un agenda abonné (Pronote).
+  const ecrivable = (a) => a.creeParAppli || ['owner', 'writer'].includes(a.accessRole || 'owner');
   const instant = (x) => (x.dateTime ? Date.parse(x.dateTime) : Date.parse(`${String(x.date).slice(0, 10)}T00:00:00Z`));
 
   function repondre(route, statut, corps) {
@@ -87,7 +89,7 @@ export function fauxGoogle({ agendas, refusCreations = 0 }) {
         return repondre(route, 200, { items, updated: '2026-11-04T06:00:00.000Z' });
       }
       if (methode === 'POST') {
-        if (!a.creeParAppli) return repondre(route, 403, { error: { message: 'Insufficient Permission: calendar.app.created' } });
+        if (!ecrivable(a)) return repondre(route, 403, { error: { message: 'Forbidden: reader' } });
         const e = { ...JSON.parse(corps), id: id('ev'), status: 'confirmed' };
         a.evenements.push(e);
         return repondre(route, 200, e);
@@ -96,9 +98,10 @@ export function fauxGoogle({ agendas, refusCreations = 0 }) {
     if ((m = chemin.match(/^\/calendar\/v3\/calendars\/([^/]+)\/events\/([^/]+)$/))) {
       const a = etat.agendas[m[1]];
       if (!a) return repondre(route, 404, { error: { message: 'Not Found' } });
-      if (!a.creeParAppli) return repondre(route, 403, { error: { message: 'Insufficient Permission' } });
+      if (!ecrivable(a)) return repondre(route, 403, { error: { message: 'Forbidden: reader' } });
       const k = a.evenements.findIndex((e) => e.id === m[2]);
       if (k < 0) return repondre(route, 404, { error: { message: 'Not Found' } });
+      if (methode === 'PATCH') { a.evenements[k] = { ...a.evenements[k], ...JSON.parse(corps), id: m[2] }; return repondre(route, 200, a.evenements[k]); }
       if (methode === 'PUT') { a.evenements[k] = { ...JSON.parse(corps), id: m[2], status: 'confirmed' }; return repondre(route, 200, a.evenements[k]); }
       if (methode === 'DELETE') { a.evenements.splice(k, 1); return repondre(route, 204, null); }
     }

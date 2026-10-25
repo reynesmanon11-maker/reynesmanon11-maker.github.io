@@ -50,7 +50,8 @@ s'installera aussi depuis le store.
 
 Choisissez **Avec mon compte Google**. Google demande trois autorisations ; le Carnet pourra :
 
-- **lire** vos agendas — sans pouvoir modifier ni supprimer vos rendez-vous ;
+- **lire** vos agendas, et **modifier vos rendez-vous perso** quand vous les ajoutez, déplacez ou
+  supprimez vous-même dans le Carnet (jamais de lui-même, jamais l'agenda de Pronote) ;
 - **créer ses propres agendas** (« Carnet · 6e »…) et y écrire vos cours ;
 - garder ses données dans un **dossier caché de votre Google Drive**, propre à l'appli.
 

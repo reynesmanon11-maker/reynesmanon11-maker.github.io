@@ -114,7 +114,7 @@ export function rendreReglages() {
       <ul class="petit">
         <li>Il lit l'<b>emploi du temps</b> exporté par Pronote — jamais votre mot de passe, ni notes, ni élèves.</li>
         <li>Vos classes, étapes et validations restent <b>sur cet appareil</b>${mode === 'google' ? html` et dans un <b>dossier caché de votre Google Drive</b>, que seule l'appli peut lire` : ''}. Aucun serveur du Carnet ne les reçoit.</li>
-        ${mode === 'google' ? html`<li>Dans Google Agenda, il <b>lit</b> les agendas choisis et <b>n'écrit que dans les siens</b> (« Carnet · … »).</li>` : ''}
+        ${mode === 'google' ? html`<li>Dans Google Agenda, il <b>lit</b> les agendas choisis et écrit vos cours <b>dans les siens</b> (« Carnet · … »). Dans vos agendas perso, il ne change un rendez-vous que <b>quand vous le faites vous-même</b> dans le Carnet.</li>` : ''}
         <li>Aucune donnée d'élève n'est demandée ni stockée.</li>
       </ul>
     </section>

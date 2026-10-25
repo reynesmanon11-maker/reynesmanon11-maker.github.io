@@ -236,6 +236,36 @@ await etape('semaine : grille, liste, semaine suivante', async () => {
   await ctx.close();
 });
 
+await etape('rendez-vous perso : ajouté, modifié, supprimé depuis le Carnet', async () => {
+  const { ctx, p } = await contexte();
+  await demo(p);
+  await p.goto(URL + '#/semaine');
+  await p.getByRole('button', { name: /Rendez-vous/ }).click();
+  await p.fill('#rdv-titre', 'Inspection Yamina');
+  await p.fill('#rdv-jour', '2026-11-06');
+  await p.fill('#rdv-debut', '14:00');
+  await p.fill('#rdv-fin', '15:30');
+  await p.getByRole('button', { name: 'Enregistrer' }).click();
+  const bloc = p.locator('.bloc.perso', { hasText: 'Inspection Yamina' });
+  await bloc.waitFor();
+  await bloc.click();
+  await p.getByRole('button', { name: 'Modifier' }).click();
+  await p.fill('#rdv-titre', 'Inspection de Yamina');
+  await p.getByRole('button', { name: 'Enregistrer' }).click();
+  await p.locator('.bloc.perso', { hasText: 'Inspection de Yamina' }).waitFor();
+  await p.locator('.bloc.perso', { hasText: 'Inspection de Yamina' }).click();
+  await p.getByRole('button', { name: /Supprimer/ }).click();
+  await p.getByRole('button', { name: /Toucher encore/ }).click();
+  await p.locator('.bloc.perso', { hasText: 'Yamina' }).waitFor({ state: 'detached' });
+  // Une case vide de la grille propose un rendez-vous à cette heure-là.
+  const jeudi = p.locator('.corps-jour[data-jour="2026-11-05"]');
+  const r = await jeudi.boundingBox();
+  await jeudi.click({ position: { x: r.width - 8, y: r.height - 12 } });
+  await p.waitForSelector('#rdv-titre');
+  assert.equal(await p.inputValue('#rdv-jour'), '2026-11-05');
+  await ctx.close();
+});
+
 await etape('téléphone (390 px) : aucune page ne déborde', async () => {
   const { ctx, p } = await contexte({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await demo(p);

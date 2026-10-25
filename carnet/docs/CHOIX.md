@@ -65,14 +65,22 @@ Le prix à payer :
 | Autorisation | Pour | Ce qu'elle ne permet pas |
 |---|---|---|
 | `calendar.calendarlist.readonly` | trouver l'agenda de Pronote et les agendas perso | ni créer, ni modifier, ni supprimer un agenda |
-| `calendar.events.readonly` | lire les cours et les rendez-vous perso | modifier ou supprimer un rendez-vous |
+| `calendar.events` | lire les cours et les rendez-vous perso ; ajouter, modifier, supprimer un rendez-vous perso quand on le fait dans le Carnet | toucher à l'agenda de Pronote (abonné, en lecture seule chez Google) |
 | `calendar.app.created` | créer « Carnet · 6e »… et y écrire les cours | toucher à un agenda que l'appli n'a pas créé |
 | `drive.appdata` | la copie des données, pour les autres appareils | voir le moindre fichier du Drive |
 | `openid`, `email` | afficher le compte connecté | — |
 
-Conséquence voulue : même une erreur de programmation ne pourrait pas effacer un rendez-vous
-personnel ni l'agenda de Pronote. Les tests le vérifient avec un faux Google qui refuse toute
-écriture ailleurs.
+Jusqu'à la version 0.4, le Carnet ne pouvait que lire les rendez-vous perso
+(`calendar.events.readonly`). À la demande de l'utilisatrice, qui veut tout faire depuis le
+Carnet, il les modifie désormais dans les deux sens : un rendez-vous ajouté, déplacé ou supprimé
+dans le Carnet l'est aussitôt dans Google Agenda, et ce qui change dans Google revient dans le
+Carnet à la synchronisation suivante. L'autorisation est plus large, donc les garde-fous sont
+dans le code : une écriture dans un agenda perso ne part **que d'un geste de l'utilisatrice**
+(enregistrer, supprimer avec confirmation), jamais de la synchronisation ; seulement dans les
+agendas perso choisis, dont elle est propriétaire ou rédactrice ; jamais dans un rendez-vous dont
+elle n'est qu'invitée ; seuls les champs modifiés repartent (invités, rappels et visio restent).
+Les tests vérifient que la synchronisation n'écrit jamais dans l'agenda perso ni dans Pronote.
+Un compte connecté avant la version 0.5 se voit redemander l'accord à la première modification.
 
 ## Le point d'arrêt plutôt que le planning
 

@@ -1,6 +1,6 @@
 {
   "name": "carnet-de-bord",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "type": "module",
   "description": "Emploi du temps Pronote, agenda perso et progression de chaque classe, au même endroit.",

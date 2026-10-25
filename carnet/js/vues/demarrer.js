@@ -57,7 +57,7 @@ function ecranConnexion() {
   return html`${fil()}<section class="carte section-feuille"><h2>Se connecter à Google</h2>
     <p>Le Carnet demandera à Google l'autorisation de :</p>
     <ul>
-      <li><b>lire</b> vos agendas (dont celui de Pronote) — sans pouvoir modifier ni supprimer vos rendez-vous ;</li>
+      <li><b>lire</b> vos agendas (dont celui de Pronote), et <b>modifier vos rendez-vous perso</b> quand vous les ajoutez, déplacez ou supprimez vous-même dans le Carnet — jamais tout seul, jamais l'agenda de Pronote ;</li>
       <li><b>créer ses propres agendas</b> « Carnet », leur donner une couleur et y écrire vos cours ;</li>
       <li>garder ses données dans un <b>dossier caché de votre Google Drive</b>, propre à l'appli.</li>
     </ul>
@@ -162,7 +162,7 @@ function ecranPerso() {
     .filter((a) => a.id !== src.agendaPronote && !ecrits.has(a.id) && a.description !== DESCRIPTION_AGENDA && !/numéros de semaine|#weeknum|#holiday/i.test(`${a.id} ${a.nom}`));
   const choisis = new Set(src.agendasPerso || agendas.filter((a) => a.principal).map((a) => a.id));
   return html`${fil()}<section class="carte section-feuille"><h2>Votre vie perso dans le Carnet</h2>
-    <p>Les rendez-vous de ces agendas apparaissent dans la semaine du Carnet, à côté des cours, pour voir d'un coup d'œil comment tout s'imbrique. Le Carnet les lit, il ne les modifie jamais.</p>
+    <p>Les rendez-vous de ces agendas apparaissent dans la semaine du Carnet, à côté des cours, pour voir d'un coup d'œil comment tout s'imbrique. Vous pourrez aussi les ajouter, les modifier ou les supprimer depuis le Carnet : le changement est fait aussitôt dans Google Agenda. Le Carnet n'y touche jamais de lui-même.</p>
     <div class="liste">${agendas.length ? agendas.map((a) => html`<label class="coche"><input type="checkbox" name="perso" value="${a.id}"${choisis.has(a.id) ? ' checked' : ''}><span><span class="classe-pastille" style="--niv:${a.couleur || 'var(--perso)'}">${a.nom}</span></span></label>`) : html`<p class="vide">Aucun autre agenda.</p>`}</div>
     <div class="outils"><button class="btn plein" data-action="perso-ok">Continuer</button></div></section>`;
 }

@@ -182,7 +182,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 18px 16px 40px; display: flex
 .lien { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
 .champ { display: flex; flex-direction: column; gap: 4px; font-size: .86rem; color: var(--doux); min-width: 0; }
 .champ > span { font-weight: 550; }
-input[type="text"], input[type="url"], input[type="number"], input[type="date"], input[type="search"], select, textarea {
+input[type="text"], input[type="url"], input[type="number"], input[type="date"], input[type="time"], input[type="search"], select, textarea {
   border: 1px solid var(--trait-fort); background: var(--carte); border-radius: 10px; padding: 8px 10px; color: var(--encre); width: 100%; max-width: 100%;
 }
 textarea { min-height: 80px; resize: vertical; }

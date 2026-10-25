@@ -136,7 +136,12 @@ export async function lireAgendas() {
       const res = await G.listerEvenements(id, { timeMin: t(ajouteJours(lundi, -7)), timeMax: t(ajouteJours(lundi, 7 * 6)) });
       for (const e of res.evenements) {
         const n = depuisGoogle(e, tz);
-        if (n && e.status !== 'cancelled' && e.transparency !== 'transparent') perso.push({ ...n, agenda: agendas[id].nom });
+        if (n && e.status !== 'cancelled' && e.transparency !== 'transparent') {
+          // Modifiable depuis le Carnet : un agenda dont on est propriétaire ou rédacteur, et pas
+          // l'occurrence d'un rendez-vous dont on n'est qu'invité.
+          const invite = (e.attendees || []).some((a) => a.self) && !(e.organizer && e.organizer.self);
+          perso.push({ ...n, agenda: agendas[id].nom, agendaId: id, modifiable: ['owner', 'writer'].includes(agendas[id].role) && !invite, repete: !!e.recurringEventId });
+        }
       }
     } catch (e) { if (e.code === 'jeton') throw e; }
   }
