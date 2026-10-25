@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Carnet de bord">
+  <!-- Le calendrier dont la page se tourne : le « 1 » d'un nouveau jour de classe. Trait bleu nuit, accents turquoise, bordure pour le contraste. -->
+  <rect x="10.0" y="10.0" width="492" height="492" rx="102.0" fill="#ffffff" stroke="#2f4355" stroke-width="20"/>
+  <g transform="translate(256 266) scale(.98) translate(-256 -290)"><g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M150 404h-8a24 24 0 0 1-24-24V176a24 24 0 0 1 24-24h228a24 24 0 0 1 24 24v118" stroke="#2f4355" stroke-width="18"/>
+    <path d="M118 216h276" stroke="#2f4355" stroke-width="18"/>
+    <rect x="171" y="118" width="28" height="64" rx="14" fill="#fff" stroke="#2f4355" stroke-width="16"/>
+    <rect x="242" y="118" width="28" height="64" rx="14" fill="#fff" stroke="#2f4355" stroke-width="16"/>
+    <rect x="313" y="118" width="28" height="64" rx="14" fill="#fff" stroke="#2f4355" stroke-width="16"/>
+    <path d="M188 254h182a22 22 0 0 1 22 22v66l-62 62H210a22 22 0 0 1-22-22Z" fill="#fff" stroke="#2f4355" stroke-width="18"/>
+    <path d="M392 342h-42a20 20 0 0 0-20 20v42" fill="#fff" stroke="#2f4355" stroke-width="16"/>
+    <path d="M258 308l24-14v86" stroke="#3cccb2" stroke-width="22"/>
+  </g>
+  <g fill="none" stroke-linecap="round">
+    <path d="M152 462q18-12 36 0t36 0t36 0t36 0" stroke="#3cccb2" stroke-width="12"/>
+    <path d="M110 82v22M99 93h22" stroke="#3cccb2" stroke-width="10"/>
+    <path d="M404 66v22M393 77h22" stroke="#3cccb2" stroke-width="10"/>
+    <circle cx="438" cy="118" r="10" stroke="#2f4355" stroke-width="8"/>
+  </g>
+  <circle cx="226" cy="80" r="7" fill="#2f4355"/><circle cx="330" cy="88" r="7" fill="#3cccb2"/></g>
+</svg>

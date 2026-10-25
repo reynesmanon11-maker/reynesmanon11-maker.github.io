@@ -17,22 +17,22 @@
   ],
   "icons": [
     {
-      "src": "icones/calendrier.svg",
+      "src": "icones/logo.svg",
       "sizes": "any",
       "type": "image/svg+xml"
     },
     {
-      "src": "icones/calendrier-192.png",
+      "src": "icones/logo-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icones/calendrier-512.png",
+      "src": "icones/logo-512.png",
       "sizes": "512x512",
       "type": "image/png"
     },
     {
-      "src": "icones/calendrier-masquable-512.png",
+      "src": "icones/logo-masquable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -44,7 +44,7 @@
       "url": "./#/semaine",
       "icons": [
         {
-          "src": "icones/calendrier-192.png",
+          "src": "icones/logo-192.png",
           "sizes": "192x192"
         }
       ]
@@ -54,7 +54,7 @@
       "url": "./#/classes",
       "icons": [
         {
-          "src": "icones/calendrier-192.png",
+          "src": "icones/logo-192.png",
           "sizes": "192x192"
         }
       ]
@@ -64,7 +64,7 @@
       "url": "./#/taches",
       "icons": [
         {
-          "src": "icones/calendrier-192.png",
+          "src": "icones/logo-192.png",
           "sizes": "192x192"
         }
       ]

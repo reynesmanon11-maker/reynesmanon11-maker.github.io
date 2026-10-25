@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (en classe, le Wi-Fi est capricieux).
 // Les fichiers de l'appli viennent du cache, mis à jour en arrière-plan ; Google et Pronote
 // ne sont jamais mis en cache ici (données personnelles, jetons).
-const VERSION = 'carnet-0.5.1-1';
+const VERSION = 'carnet-0.5.2-1';
 const FICHIERS = [
   './', 'index.html', 'confidentialite.html', 'manifest.webmanifest', 'config.js', 'css/app.css',
   'js/avant.js', 'js/app.js', 'js/actions.js', 'js/ui.js', 'js/stockage.js', 'js/etat.js', 'js/dates.js',
@@ -12,7 +12,7 @@ const FICHIERS = [
   'js/vues/reglages.js', 'js/vues/demarrer.js', 'js/vues/creneau.js', 'js/vues/partage.js', 'js/vues/importlien.js',
   'js/vues/programmation.js', 'js/vues/cahier.js', 'js/vues/rendezvous.js',
   'polices/onest-latin.woff2', 'polices/onest-latin-ext.woff2',
-  'icones/calendrier.svg', 'icones/calendrier-192.png', 'icones/calendrier-512.png', 'icones/calendrier-masquable-512.png', 'icones/calendrier-180.png',
+  'icones/logo.svg', 'icones/logo-192.png', 'icones/logo-512.png', 'icones/logo-masquable-512.png', 'icones/logo-180.png', 'icones/favicon.svg', 'icones/favicon-32.png',
 ];
 
 self.addEventListener('install', (e) => {
