@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (en classe, le Wi-Fi est capricieux).
 // Les fichiers de l'appli viennent du cache, mis à jour en arrière-plan ; Google et Pronote
 // ne sont jamais mis en cache ici (données personnelles, jetons).
-const VERSION = 'carnet-0.5.3-1';
+const VERSION = 'carnet-0.5.4-1';
 const FICHIERS = [
   './', 'index.html', 'confidentialite.html', 'manifest.webmanifest', 'config.js', 'css/app.css',
   'js/avant.js', 'js/app.js', 'js/actions.js', 'js/ui.js', 'js/stockage.js', 'js/etat.js', 'js/dates.js',
@@ -18,7 +18,9 @@ const FICHIERS = [
 self.addEventListener('install', (e) => {
   // « reload » : une nouvelle version se remplit au serveur, jamais au cache HTTP du navigateur
   // (GitHub Pages garde les fichiers dix minutes) — sinon elle pourrait garder l'ancienne icône.
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FICHIERS.map((f) => new Request(f, { cache: 'reload' })))));
+  // La nouvelle version prend la main tout de suite : sinon elle attendrait que toutes les fenêtres
+  // du Carnet soient fermées — une appli installée ne l'est presque jamais.
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FICHIERS.map((f) => new Request(f, { cache: 'reload' })))).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (e) => {

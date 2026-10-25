@@ -225,16 +225,20 @@ async function demarrer() {
   let sw = null;
   try { if (location.protocol !== 'file:' && !CONFIG.apercu) sw = navigator.serviceWorker || null; } catch { /* pas de service worker */ }
   if (sw) {
+    // Une nouvelle version a pris la main : on recharge tout de suite, sauf si l'on est en train
+    // d'écrire (une feuille ouverte, un champ actif) — alors on le propose.
+    const avaitUneVersion = !!sw.controller;
+    let recharge = false;
+    sw.addEventListener('controllerchange', () => {
+      if (!avaitUneVersion || recharge) return;
+      const occupe = feuilleOuverte() || /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || '');
+      if (occupe) { toast('Une nouvelle version du Carnet est prête.', { action: { libelle: 'Recharger', faire: () => location.reload() } }); return; }
+      recharge = true;
+      location.reload();
+    });
     sw.register('sw.js').then((reg) => {
-      reg.addEventListener('updatefound', () => {
-        const n = reg.installing;
-        if (!n) return;
-        n.addEventListener('statechange', () => {
-          if (n.state === 'installed' && sw.controller) {
-            toast('Une nouvelle version du Carnet est prête.', { action: { libelle: 'Recharger', faire: () => location.reload() } });
-          }
-        });
-      });
+      // Une appli restée ouverte cherche aussi les mises à jour, une fois par heure.
+      setInterval(() => { reg.update().catch(() => {}); }, 60 * 60 * 1000);
     }).catch(() => { /* aperçu sans service worker : l'appli marche en ligne */ });
   }
 }
