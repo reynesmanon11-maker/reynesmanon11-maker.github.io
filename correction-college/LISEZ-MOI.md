@@ -9,9 +9,19 @@ sur 20 comme on l'avait fait pour le lycée.
   `competences_svt_cycle4.json`.
 - Source : captures d'écran de la grille de compétences fournies par Manon
   (octobre 2026). « Tous les niveaux » = la compétence s'évalue sur tout le cycle.
-- Échelle de maîtrise : **à définir avec Manon** (ex. 4 niveaux : insuffisante /
-  fragile / satisfaisante / très bonne, ou 1-2-3-4, ou A-B-C-D). Champ
-  `echelle_maitrise` laissé vide dans les JSON en attendant.
+- Échelle de maîtrise retenue (celle de l'activité type de sa collègue) :
+  **I = insuffisant · F = fragile · S = satisfaisant · E = excellent**.
+  Une compétence atteinte à **S ou E au moins une fois = acquise** (l'élève a
+  montré qu'il sait la faire).
+- Conversion en note (optionnelle) : points par niveau éditables, défaut
+  I=1 · F=2 · S=3 · E=4 ; note /20 = (somme ÷ (4 × nb compétences)) × 20.
+- Mode d'évaluation par niveau : **6e** compétences seules · **5e** et **4e**
+  mixte (compétences + note) · **3e** note affichée avec compétences derrière.
+- Trame d'une évaluation (modèle de sa collègue) : un tableau « Compétences
+  travaillées » en tête, listant 1 à 3 compétences **reformulées à hauteur
+  d'élève** (« j'ai justifié chaque classement avec un indice… »), chacune
+  cochée I/F/S/E. Chaque reformulation renvoie à une compétence officielle des
+  JSON.
 - À relire / corriger librement : si un intitulé est imprécis, le modifier ici
   **et** dans le JSON correspondant.
 

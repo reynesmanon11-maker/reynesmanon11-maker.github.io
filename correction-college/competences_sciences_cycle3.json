@@ -3,7 +3,22 @@
   "cycle": "cycle 3",
   "discipline": "Sciences et technologie (dont SVT)",
   "evaluation": "par compétences (niveaux de maîtrise), et non par note sur 20",
-  "echelle_maitrise": null,
+  "echelle_maitrise": {
+    "niveaux": [
+      { "code": "I", "label": "Insuffisant", "points_defaut": 1 },
+      { "code": "F", "label": "Fragile", "points_defaut": 2 },
+      { "code": "S", "label": "Satisfaisant", "points_defaut": 3 },
+      { "code": "E", "label": "Excellent", "points_defaut": 4 }
+    ],
+    "acquisition": "Une compétence atteinte à S (satisfaisant) ou E (excellent) au moins une fois est considérée ACQUISE : l'élève a montré qu'il sait la faire.",
+    "conversion_note": "Optionnelle. Points par niveau éditables (défaut I=1, F=2, S=3, E=4). Note /20 = (somme des points obtenus / (4 × nombre de compétences évaluées)) × 20.",
+    "modes_par_niveau": {
+      "6e": "compétences seules (pas de note) — cycle 3",
+      "5e": "mixte (compétences + note) — cycle 4",
+      "4e": "mixte (compétences + note) — cycle 4",
+      "3e": "note affichée, mais compétences renseignées derrière — cycle 4"
+    }
+  },
   "competences": [
     {
       "id": "demarches",
