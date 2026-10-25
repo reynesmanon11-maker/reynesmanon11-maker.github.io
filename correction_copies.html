@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Correction·IA v9.19 — remédiation : un seul bouton Imprimer/Enregistrer en PDF (rendu natif fiable), html2pdf retiré -->
+<!-- Correction·IA v10.0 — mode COLLÈGE : évaluation par compétences I/F/S/E selon le niveau (6e cycle 3 / 5e-4e-3e cycle 4), grille de compétences + reformulation élève, correction par compétences, note optionnelle, suivi d'acquisition -->
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
@@ -140,6 +140,13 @@
   .rcrit .rmax { font-family: 'DM Mono', monospace; color: var(--muted2); font-size: 0.78rem; }
   .rcrit .rniv { font-size: 0.7rem; color: var(--blue); margin-top: 3px; }
   .rcrit textarea.rcom { width: 100%; margin-top: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted2); font-size: 0.76rem; padding: 7px 10px; resize: vertical; min-height: 34px; outline: none; line-height: 1.5; }
+  .ifse-sel { display: inline-flex; gap: 4px; flex-shrink: 0; }
+  .ifse-btn { width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid var(--border2); background: var(--surface); color: var(--muted2); font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all .12s; }
+  .ifse-btn:hover { border-color: var(--muted2); }
+  .ifse-btn.on.ifse-I { background: #e0576b; border-color: #e0576b; color: #fff; }
+  .ifse-btn.on.ifse-F { background: #e08a2a; border-color: #e08a2a; color: #fff; }
+  .ifse-btn.on.ifse-S { background: #4f7cf0; border-color: #4f7cf0; color: #fff; }
+  .ifse-btn.on.ifse-E { background: #22b07d; border-color: #22b07d; color: #fff; }
   .rpartie-label { font-size: 0.72rem; color: var(--purple); font-weight: 700; text-transform: uppercase; letter-spacing: .04em; margin-top: 14px; }
 
   .dots { display: inline-flex; gap: 3px; align-items: center; }
@@ -311,7 +318,7 @@
 </div>
 
 <div id="topbar">
-  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v9.19</span></div>
+  <div class="logo"><span class="mark">🐧</span>Correction·<span>IA</span><span style="font-size:0.62rem;font-weight:600;color:var(--muted2);background:var(--purple-soft);border-radius:6px;padding:2px 7px;margin-left:8px;align-self:center">v10.0</span></div>
   <div class="row"><button class="pillbtn" id="forgetKeyBtn">🔒 Oublier la clé</button></div>
 </div>
 
@@ -354,7 +361,7 @@
             <details style="margin-top:8px"><summary style="font-size:0.72rem;color:var(--muted2);cursor:pointer">…ou coller le texte du sujet</summary>
               <textarea class="field" id="d2-sujet" style="margin-top:6px" placeholder="Collez ici l'énoncé du devoir…"></textarea></details>
           </div>
-          <div class="col" style="min-width:260px">
+          <div class="col" style="min-width:260px" id="d2-baremecol">
             <label>Grille de correction / barème</label>
             <div class="sub" style="margin:4px 0 8px">Indiquez d'abord le <b>total de votre barème</b> — c'est lui qui fait foi, l'IA ne le change pas.</div>
             <input class="field" id="d2-notemaxdecl" type="number" step="0.25" min="0" placeholder="Total de votre barème (ex : 9)" style="max-width:260px">
@@ -369,9 +376,24 @@
             <div id="d2-structerr"></div>
           </div>
         </div>
-        <div class="row" style="margin-top:14px">
+        <div class="row" style="margin-top:14px" id="d2-buildrow">
           <button class="btn purple" id="d2-buildgrille">✏️ Construire / éditer ma grille</button>
         </div>
+      </div>
+      <div class="card" id="d2-collegecard" style="display:none">
+        <h3>🎓 Compétences évaluées <span style="color:var(--muted2);font-weight:400;font-size:0.85rem">(collège — I/F/S/E)</span></h3>
+        <div class="sub" id="d2-collegemode"></div>
+        <div id="d2-complist" style="margin-top:10px"></div>
+        <div class="row" style="margin-top:12px; gap:8px; align-items:flex-end; flex-wrap:wrap">
+          <div class="col" style="min-width:220px"><label>Grande compétence</label><select id="d2-compgrande"></select></div>
+          <div class="col" style="min-width:300px; flex:1"><label>Item (sous-compétence officielle)</label><select id="d2-compitem"></select></div>
+          <button class="btn secondary small" id="d2-compadd">+ Ajouter</button>
+        </div>
+        <div class="row" style="margin-top:10px; gap:10px; align-items:center; flex-wrap:wrap">
+          <button class="btn purple small" id="d2-compia">✨ Proposer les compétences depuis le sujet (IA)</button>
+          <div id="d2-compia-load" style="display:none" class="loadrow"><div class="dot3"><span></span><span></span><span></span></div> Lecture du sujet…</div>
+        </div>
+        <div id="d2-compia-err"></div>
       </div>
       <div class="card">
         <h3>🎯 Copies de référence <span style="color:var(--muted2);font-weight:400;font-size:0.85rem">(calibrage — facultatif mais très efficace)</span></h3>
@@ -760,6 +782,28 @@ function severiteDirectives() {
 }
 function newCritere() { return { id: 'c' + uid(), intitule: '', points: 1, attendus: '', competence: '', regle: '', niveaux: [] }; }
 
+// ════════ MODE COLLÈGE : évaluation par compétences (I/F/S/E) ════════
+const COLLEGE_MODE = {
+  niveaux: ['sixieme', 'cinquieme', 'quatrieme', 'troisieme'],
+  mode: { sixieme: 'competences', cinquieme: 'mixte', quatrieme: 'mixte', troisieme: 'note' },
+  cycle: { sixieme: 'cycle3', cinquieme: 'cycle4', quatrieme: 'cycle4', troisieme: 'cycle4' }
+};
+function isCollege(v) { return COLLEGE_MODE.niveaux.includes(v); }
+function collegeMode(v) { return COLLEGE_MODE.mode[v] || 'note'; } // 'competences' | 'mixte' | 'note'
+function cycleOf(v) { return COLLEGE_MODE.cycle[v] || 'cycle4'; }
+function collegeModeLabel(v) { return { competences: 'compétences seules (pas de note)', mixte: 'mixte : compétences + note', note: 'note affichée (compétences derrière)' }[collegeMode(v)] || ''; }
+// Échelle de maîtrise I/F/S/E (points par défaut I=1·F=2·S=3·E=4, modifiables dans les réglages)
+function ifsePoints() { const p = (db.profile && db.profile.ifse) || {}; return { I: p.I ?? 1, F: p.F ?? 2, S: p.S ?? 3, E: p.E ?? 4 }; }
+function ifseNiveaux() { const p = ifsePoints(); return [{ points: p.I, descripteur: 'Insuffisant' }, { points: p.F, descripteur: 'Fragile' }, { points: p.S, descripteur: 'Satisfaisant' }, { points: p.E, descripteur: 'Excellent' }]; }
+function ifseCode(points) { const p = ifsePoints(); if (points >= p.E) return 'E'; if (points >= p.S) return 'S'; if (points >= p.F) return 'F'; return 'I'; }
+function ifseLabel(points) { return { I: 'Insuffisant', F: 'Fragile', S: 'Satisfaisant', E: 'Excellent' }[ifseCode(points)]; }
+function ifseAcquise(points) { return ifseCode(points) === 'S' || ifseCode(points) === 'E'; } // acquis dès S ou E
+function newCompetence(grande, item) { return { id: 'c' + uid(), intitule: item, competence: grande, attendus: '', regle: '', points: ifsePoints().E, niveaux: ifseNiveaux() }; }
+// Note /20 d'une grille de compétences collège : moyenne des points ramenée sur 20 (max = E)
+function collegeNote20(crits) { if (!crits.length) return null; const max = ifsePoints().E; const sum = crits.reduce((s, c) => s + (c.points_obtenus != null ? c.points_obtenus : critMax(c)), 0); return Math.round((sum / (max * crits.length)) * 20 * 100) / 100; }
+const REFERENTIELS = {"cycle3":[{"g":"Pratiquer des démarches scientifiques et technologiques","items":["Proposer, avec l'aide du professeur, une démarche pour résoudre un problème ou répondre à une question de nature scientifique ou technologique.","Formuler une question ou une problématique scientifique ou technologique simple.","Proposer une ou des hypothèses pour répondre à une question ou un problème.","Proposer des expériences simples pour tester une hypothèse.","Interpréter un résultat, en tirer une conclusion.","Formaliser une partie de sa recherche sous une forme écrite ou orale.","Formuler une question ou un problème scientifique ou technologique.","Formuler des hypothèses fondées et qui peuvent être éprouvées.","Concevoir et mettre en œuvre des expériences ou d'autres stratégies de résolution pour tester ces hypothèses.","Proposer et/ou suivre un protocole expérimental.","Participer à l'élaboration et à la conduite d'un projet.","Utiliser des instruments d'observation, de mesure, des techniques de préparation, de collecte.","Exploiter des documents de natures variées et évaluer leur fiabilité.","Modéliser des phénomènes naturels.","Étudier les phénomènes naturels en mobilisant des grandeurs physiques et en réalisant des calculs.","Interpréter des résultats de façon raisonnée et en tirer des conclusions en mobilisant des arguments scientifiques.","Communiquer sur les démarches, les résultats et les choix en argumentant."]},{"g":"Concevoir, créer, réaliser","items":["Identifier les évolutions des besoins et des objets techniques dans leur contexte.","Identifier les principales familles de matériaux.","Décrire le fonctionnement d'objets techniques, leurs fonctions et leurs composants.","Réaliser en équipe tout ou une partie d'un objet technique répondant à un besoin.","Repérer et comprendre la communication et la gestion de l'information.","Imaginer un objet technique en réponse à un besoin.","Associer des solutions technologiques à des fonctions techniques.","Concevoir et réaliser une maquette pour modéliser un phénomène naturel ou un objet technique."]},{"g":"S'approprier des outils et des méthodes","items":["Choisir ou utiliser le matériel adapté pour mener une observation, effectuer une mesure, réaliser une expérience ou une production.","Faire le lien entre la mesure réalisée, les unités et l'outil utilisés.","Garder une trace écrite ou numérique des recherches, des observations et des expériences réalisées.","Organiser seul ou en groupe un espace de réalisation expérimentale.","Effectuer des recherches bibliographiques simples et ciblées. Extraire les informations pertinentes d'un document et les mettre en relation pour répondre à une question.","Utiliser les outils mathématiques adaptés."]},{"g":"Pratiquer des langages","items":["Rendre compte des observations, expériences, hypothèses, conclusions en utilisant un vocabulaire précis.","Exploiter un document constitué de divers supports (texte, schéma, graphique, tableau, algorithme simple, carte heuristique).","Utiliser différents modes de représentation (schéma, dessin, croquis, tableau, graphique, texte, etc.) et passer d'une représentation à une autre.","Expliquer un phénomène à l'oral et à l'écrit.","Rendre compte de ses activités en utilisant un vocabulaire précis et des formes langagières spécifiques des sciences et des techniques."]},{"g":"Mobiliser des outils numériques","items":["Utiliser des outils numériques pour : communiquer des résultats ; traiter des données ; simuler des phénomènes ; représenter des objets techniques.","Identifier des sources d'informations fiables.","Utiliser des outils numériques pour : communiquer des résultats ; faire des recherches ; traiter des données ; simuler des phénomènes.","Appliquer les principes de l'algorithmique et de la programmation par blocs pour écrire ou comprendre un code simple.","Modifier ou paramétrer le fonctionnement d'un objet communicant."]},{"g":"Adopter un comportement éthique et responsable","items":["Relier des connaissances acquises en sciences et technologie à des questions de santé, de sécurité et d'environnement.","Mettre en œuvre une action responsable et citoyenne, individuellement ou collectivement, en et hors milieu scolaire, et en témoigner.","Comprendre et expliquer des décisions collectives et responsables."]},{"g":"Se situer dans l'espace et dans le temps","items":["Replacer des évolutions scientifiques et technologiques dans un contexte historique, géographique, économique et culturel.","Se situer dans l'environnement et maîtriser les notions d'échelle.","Maîtriser les notions d'échelles spatiale et temporelle et en citer quelques ordres de grandeur caractéristiques.","Identifier comment se construit un savoir scientifique en lien avec un contexte historique, géographique, économique et culturel."]},{"g":"Faire preuve d'esprit critique","items":["Identifier des sources d'informations fiables.","Vérifier l'existence de preuves et en évaluer la qualité.","Évaluer la pertinence des arguments et/ou identifier des arguments fallacieux.","Distinguer ce qui relève d'une croyance de ce qui constitue un savoir scientifique."]}],"cycle4":[{"g":"Pratiquer des démarches scientifiques","items":["Formuler une question ou un problème scientifique.","Proposer une ou des hypothèses pour résoudre un problème ou une question. Concevoir des expériences pour la ou les tester.","Utiliser des instruments d'observation, de mesures et des techniques de préparation et de collecte.","Interpréter des résultats et en tirer des conclusions.","Communiquer sur ses démarches, ses résultats et ses choix, en argumentant.","Identifier et choisir des notions, des outils et des techniques, ou des modèles simples pour mettre en œuvre une démarche scientifique."]},{"g":"Concevoir, créer, réaliser","items":["Concevoir et mettre en œuvre un protocole expérimental."]},{"g":"Utiliser des outils et mobiliser des méthodes pour apprendre","items":["Apprendre à organiser son travail (par ex. pour mettre en œuvre un protocole expérimental).","Identifier et choisir les outils et les techniques pour garder trace de ses recherches (à l'oral et à l'écrit)."]},{"g":"Pratiquer des langages","items":["Lire et exploiter des données présentées sous différentes formes : tableaux, graphiques, diagrammes, dessins, conclusions de recherches, cartes heuristiques, etc.","Représenter des données sous différentes formes, passer d'une représentation à une autre et choisir celle qui est adaptée à la situation de travail.","Interpréter un document."]},{"g":"Utiliser des outils numériques","items":["Conduire une recherche d'informations sur internet pour répondre à une question ou un problème scientifique, en choisissant des mots-clés pertinents, et en évaluant la fiabilité des sources et la validité des résultats.","Utiliser des logiciels d'acquisition de données, de simulation et des bases de données."]},{"g":"Adopter un comportement éthique et responsable","items":["Identifier les impacts (bénéfices et nuisances) des activités humaines sur l'environnement à différentes échelles.","Fonder ses choix de comportement responsable vis-à-vis de sa santé ou de l'environnement sur des arguments scientifiques.","Comprendre les responsabilités individuelle et collective en matière de préservation des ressources de la planète (biodiversité, ressources minérales et ressources énergétiques) et de santé.","Participer à l'élaboration de règles de sécurité et les appliquer au laboratoire et sur le terrain.","Distinguer ce qui relève d'une croyance ou d'une idée et ce qui constitue un savoir scientifique."]},{"g":"Se situer dans l'espace et dans le temps","items":["Situer l'espèce humaine dans l'évolution des espèces.","Appréhender différentes échelles de temps géologique et biologique (ex : histoire de la Terre ; apparition de la vie, évolution et extinction des espèces vivantes…).","Appréhender différentes échelles spatiales d'un même phénomène/d'une même fonction (ex : nutrition : niveau de l'organisme, niveau des organes et niveau cellulaire).","Identifier par l'histoire des sciences et des techniques comment se construit un savoir scientifique."]},{"g":"Mobiliser les connaissances","items":["Maîtriser les connaissances du Thème 1 : La planète Terre, l'environnement et l'action humaine.","Maîtriser les connaissances du Thème 2 : Le corps humain et la santé.","Maîtriser les connaissances du Thème 3 : Le vivant et son évolution."]}]};
+
+
 const STRUCT_TOOL = {
   name: 'structurer_grille', description: 'Enregistre la grille de correction structurée.',
   input_schema: { type: 'object', properties: {
@@ -912,8 +956,73 @@ function renderDevoirEditor() {
   renderPdfBadge('d2-sujet-badge', d.sujetPdf, async () => { await pdfDrop(d.sujetPdf); d.sujetPdf = null; saveDB(); renderDevoirEditor(); });
   renderPdfBadge('d2-grille-badge', d.grillePdf, async () => { await pdfDrop(d.grillePdf); d.grillePdf = null; saveDB(); renderDevoirEditor(); });
   renderReferences(d);
-  renderGrilleEditor(d);
+  const college = isCollege(d.niveau);
+  $('d2-collegecard').style.display = college ? '' : 'none';
+  $('d2-baremecol').style.display = college ? 'none' : '';
+  $('d2-buildrow').style.display = college ? 'none' : '';
+  if (college) { $('d2-grillecard').style.display = 'none'; renderCollege(d); }
+  else renderGrilleEditor(d);
 }
+// ─── Grille de compétences collège ───
+function ensureCollegeGrille(d) { if (!d.grille || !d.grille.parties || !d.grille.parties.length) d.grille = { remarque: '', parties: [{ titre: 'Compétences évaluées', criteres: [] }] }; }
+function collegeCrits(d) { ensureCollegeGrille(d); return d.grille.parties[0].criteres; }
+function fillCompItems() {
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  const ref = REFERENTIELS[cycleOf(d.niveau)] || [], g = ref[+$('d2-compgrande').value];
+  $('d2-compitem').innerHTML = (g ? g.items : []).map((it, i) => `<option value="${i}">${esc(it.length > 95 ? it.slice(0, 92) + '…' : it)}</option>`).join('');
+}
+function renderCollege(d) {
+  const cyc = cycleOf(d.niveau), ref = REFERENTIELS[cyc] || [];
+  $('d2-collegemode').innerHTML = `Niveau <b>${esc(niveauLabel(d.niveau))}</b> · ${cyc === 'cycle3' ? 'cycle 3' : 'cycle 4'} · évaluation : <b>${esc(collegeModeLabel(d.niveau))}</b>.<br>Choisissez les compétences travaillées dans ce devoir ; l'IA les positionnera ensuite sur <b>I / F / S / E</b> pour chaque copie.`;
+  const gsel = $('d2-compgrande');
+  if (gsel.dataset.cyc !== cyc) { gsel.innerHTML = ref.map((c, i) => `<option value="${i}">${esc(c.g)}</option>`).join(''); gsel.dataset.cyc = cyc; fillCompItems(); }
+  const crits = collegeCrits(d), box = $('d2-complist');
+  if (!crits.length) { box.innerHTML = '<div class="empty" style="padding:8px 0">Aucune compétence choisie. Ajoutez-en ci-dessous, ou laissez l\'IA les proposer depuis le sujet.</div>'; }
+  else box.innerHTML = crits.map((c, i) => `
+    <div class="refitem" style="border:1px solid var(--border2);border-radius:9px;padding:10px 12px;margin-bottom:8px">
+      <div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px">
+        <div style="flex:1">
+          <div style="font-size:0.72rem;color:var(--purple);font-weight:600">${i + 1}. ${esc(c.competence || '')}</div>
+          <textarea class="field creform" data-i="${i}" rows="2" style="margin-top:4px" placeholder="Reformulation à hauteur d'élève (ex : « j'ai justifié chaque classement avec un indice »)">${esc(c.intitule || '')}</textarea>
+          <div style="font-size:0.68rem;color:var(--muted2);margin-top:3px">Évaluée sur I · F · S · E</div>
+        </div>
+        <button class="iconbtn compdel" data-i="${i}" title="Retirer">🗑️</button>
+      </div>
+    </div>`).join('');
+  box.querySelectorAll('.creform').forEach(t => t.addEventListener('input', () => { crits[+t.dataset.i].intitule = t.value; saveDB(); }));
+  box.querySelectorAll('.compdel').forEach(b => b.addEventListener('click', () => { crits.splice(+b.dataset.i, 1); saveDB(); renderCollege(d); }));
+}
+$('d2-compgrande').addEventListener('change', fillCompItems);
+$('d2-compadd').onclick = () => {
+  const d = devoirById($('d2-devoir').value); if (!d) return;
+  const ref = REFERENTIELS[cycleOf(d.niveau)] || [], g = ref[+$('d2-compgrande').value]; if (!g) return;
+  const item = g.items[+$('d2-compitem').value]; if (!item) return;
+  collegeCrits(d).push(newCompetence(g.g, item)); saveDB(); renderCollege(d);
+};
+const COMP_TOOL = { name: 'proposer_competences', description: "Compétences évaluées par le sujet, reformulées à hauteur d'élève.", input_schema: { type: 'object', properties: {
+  competences: { type: 'array', description: '2 à 4 compétences.', items: { type: 'object', properties: {
+    grande_competence: { type: 'string', description: 'Le nom EXACT de la grande compétence, pris dans la liste officielle.' },
+    item_officiel: { type: 'string', description: "L'item officiel choisi dans la liste." },
+    reformulation: { type: 'string', description: "Reformulation COURTE à hauteur d'élève, commençant par « j'ai »." }
+  }, required: ['grande_competence', 'item_officiel', 'reformulation'] } }
+}, required: ['competences'] } };
+$('d2-compia').onclick = async () => {
+  const d = devoirById($('d2-devoir').value), err = $('d2-compia-err'); err.innerHTML = '';
+  if (!d) return; if (!API_KEY) { $('overlay').classList.remove('off'); return; }
+  const sujetB64 = await pdfB64(d.sujetPdf);
+  if (!sujetB64 && !(d.sujet || '').trim()) { err.innerHTML = '<div class="err-msg">Ajoutez d\'abord le sujet (PDF ou texte) pour que l\'IA propose les compétences.</div>'; return; }
+  const ref = REFERENTIELS[cycleOf(d.niveau)] || [], liste = ref.map(c => `• ${c.g} :\n   - ${c.items.join('\n   - ')}`).join('\n');
+  $('d2-compia-load').style.display = 'flex'; $('d2-compia').disabled = true;
+  try {
+    const content = [{ type: 'text', text: `Voici un sujet d'évaluation de ${niveauLabel(d.niveau)} (collège, ${cycleOf(d.niveau) === 'cycle3' ? 'cycle 3' : 'cycle 4'}). À partir des tâches réellement demandées à l'élève, choisis 2 à 4 compétences travaillées PARMI la liste officielle ci-dessous (sans en inventer), et pour chacune rédige une reformulation COURTE à hauteur d'élève commençant par « j'ai » (ex : « j'ai justifié chaque classement avec un indice trouvé dans le document »).\n\nLISTE OFFICIELLE :\n${liste}` }];
+    if (sujetB64) { content.push({ type: 'text', text: '\nSUJET (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: sujetB64 } }); }
+    else content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
+    const out = await callClaude({ system: "Tu aides un professeur de collège à repérer les compétences évaluées par une activité et à les reformuler à hauteur d'élève. Choisis les items UNIQUEMENT dans la liste officielle fournie. Utilise proposer_competences.", userContent: content, tool: COMP_TOOL, maxTokens: 1500 });
+    (out.competences || []).forEach(c => collegeCrits(d).push(newCompetence(cleanText(c.grande_competence), cleanText(c.reformulation || c.item_officiel))));
+    saveDB(); renderCollege(d);
+  } catch (e) { err.innerHTML = `<div class="err-msg">${esc(e.message)}</div>`; }
+  finally { $('d2-compia-load').style.display = 'none'; $('d2-compia').disabled = false; }
+};
 function renderReferences(d) {
   d.references = d.references || [];
   const box = $('d2-reflist');
@@ -969,7 +1078,7 @@ function renderPdfBadge(boxId, pdf, onRemove) {
 $('d2-sujet').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.sujet = e.target.value; saveDB(); } });
 $('d2-brute').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { d.grilleBrute = e.target.value; saveDB(); } });
 $('d2-notemaxdecl').addEventListener('input', e => { const d = devoirById($('d2-devoir').value); if (d) { const v = e.target.value.trim(); d.noteMaxDecl = v === '' ? null : (parseFloat(v.replace(',', '.')) || 0); saveDB(); if (d.grille) renderGrilleEditor(d); } });
-$('d2-niveau').addEventListener('change', e => { const d = devoirById($('d2-devoir').value); if (d) { d.niveau = e.target.value; saveDB(); } });
+$('d2-niveau').addEventListener('change', e => { const d = devoirById($('d2-devoir').value); if (d) { d.niveau = e.target.value; if (isCollege(d.niveau)) ensureCollegeGrille(d); saveDB(); renderDevoirEditor(); } });
 
 // Zones PDF sujet / grille
 function wirePdfZone(dzId, inputId, field) {
@@ -1152,6 +1261,10 @@ function updateGrilleState() {
   const niveauInfo = niveau
     ? ` Exigence : <b>${esc(niveauLabel(niveau))}</b>.`
     : ` <b>⚠️ Niveau non précisé</b> — indiquez-le (classe dans Réglages, ou devoir dans Évaluations) pour adapter l'exigence (Bac, Brevet…).`;
+  if (isCollege(niveau)) {
+    box.innerHTML = `<div class="ok-msg">🎓 Mode collège (<b>${esc(niveauLabel(niveau))}</b>, ${cycleOf(niveau) === 'cycle3' ? 'cycle 3' : 'cycle 4'}) — <b>${esc(collegeModeLabel(niveau))}</b>. ${nc} compétence(s) évaluée(s) sur I/F/S/E.${d.sujetPdf || d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}</div>`;
+    return;
+  }
   box.innerHTML = `<div class="ok-msg">✅ Grille prête : ${nc} critères, note sur ${fmtPts(grilleNoteMax(d.grille))}.${d.sujetPdf || d.sujet ? ' Sujet fourni.' : ' <b>Astuce :</b> ajouter le sujet améliore la précision.'}${niveauInfo}</div>`;
 }
 document.querySelectorAll('#panel-correction .tabbar2 .chip').forEach(chip => chip.addEventListener('click', () => {
@@ -1193,7 +1306,7 @@ function renderQueue() {
   box.innerHTML = queue.map(q => `
     <div class="qitem"><span class="qname">${esc(q.eleveNom)}</span>
       <span class="qsrc">${q.kind === 'texte' ? '📝 texte' : q.files.map(f => esc(f.name)).join(', ')}</span>
-      <span class="qstatus ${q.status}">${labels[q.status]}${q.status === 'done' && q.result ? ` — ${fmtPts(q.result.note)}/${fmtPts(q.result.note_max)}` : ''}</span>
+      <span class="qstatus ${q.status}">${labels[q.status]}${q.status === 'done' && q.result ? ` — ${displayNote(q.result)}` : ''}</span>
       ${q.status === 'done' ? `<button class="btn small" data-review="${q.id}">Relire ✔</button>` : ''}
       ${q.status === 'err' ? `<button class="btn secondary small" data-retry="${q.id}" title="${esc(q.error || '')}">↻ Réessayer</button>` : ''}
       <button class="btn danger small" data-qdel="${q.id}">✕</button></div>`).join('');
@@ -1226,8 +1339,12 @@ async function corrigerCopie(q) {
     if (c.niveaux && c.niveaux.length) s += `\n    Niveaux : ` + c.niveaux.map(nv => `${fmtPts(nv.points)}="${nv.descripteur}"`).join(' ; ');
     return s;
   }).join('\n')).join('\n');
+  const college = isCollege(niveau), cmode = college ? collegeMode(niveau) : null;
   // ── Préfixe STABLE (identique pour toutes les copies de ce devoir) : mis en cache API pour économiser ──
-  const content = [{ type: 'text', text: `Corrige la copie pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés ; si un critère porte une RÈGLE DE NOTATION, applique EXACTEMENT ce barème de points partiels, sans le réinterpréter) :\n${grilleTxt}` }];
+  const introTxt = college
+    ? `Tu évalues une copie de collège (${niveauLabel(niveau)}) PAR COMPÉTENCES. Pour CHAQUE compétence de la grille (repérée par son id), positionne l'élève sur l'échelle de maîtrise en choisissant les points du niveau atteint : 1 = Insuffisant, 2 = Fragile, 3 = Satisfaisant, 4 = Excellent. Base-toi UNIQUEMENT sur ce que l'élève a réellement produit dans sa copie.\n\nGRILLE DE COMPÉTENCES (points_obtenus ∈ {1,2,3,4}) :\n${grilleTxt}`
+    : `Corrige la copie pour « ${d.nom} »${d.matiere ? ` (${d.matiere})` : ''}.\n\nGRILLE (évalue chaque critère par son id ; pour un critère à niveaux, choisis les points du niveau atteint, demi-niveaux autorisés ; si un critère porte une RÈGLE DE NOTATION, applique EXACTEMENT ce barème de points partiels, sans le réinterpréter) :\n${grilleTxt}`;
+  const content = [{ type: 'text', text: introTxt }];
   const sujetB64 = await pdfB64(d.sujetPdf);
   if (sujetB64) { content.push({ type: 'text', text: '\nSUJET distribué aux élèves (PDF) :' }); content.push({ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: sujetB64 } }); }
   else if (d.sujet) content.push({ type: 'text', text: '\nSUJET :\n' + d.sujet });
@@ -1254,7 +1371,7 @@ async function corrigerCopie(q) {
     else content.push({ type: 'image', source: { type: 'base64', media_type: f.mediaType, data: f.base64 } });
   }
   const out = await callClaude({
-    system: `Tu es un correcteur EXIGEANT de niveau examen (comme un correcteur officiel du bac, ou un service de correction du type Ed.ai). Tu corriges une copie en remplissant la grille critère par critère. Un critère non traité = 0 avec explication. Signale toute illisibilité/page manquante dans le commentaire concerné.
+    system: college ? collegeSystemPrompt(niveau) : `Tu es un correcteur EXIGEANT de niveau examen (comme un correcteur officiel du bac, ou un service de correction du type Ed.ai). Tu corriges une copie en remplissant la grille critère par critère. Un critère non traité = 0 avec explication. Signale toute illisibilité/page manquante dans le commentaire concerné.
 
 MÉTHODE DE NOTATION — DÉDUCTIVE, PAS ADDITIVE (c'est essentiel).
 Ne pars JAMAIS de 0 en ajoutant des points « parce que l'élément est là ». Pour CHAQUE critère :
@@ -1297,9 +1414,39 @@ IMPORTANT : renseigne UNIQUEMENT les champs prévus par l'outil (texte simple, s
   });
   const note = evaluations.reduce((s, e) => s + e.points_obtenus, 0);
   const observations = (out.observations || []).map(o => ({ citation: cleanText(o.citation), categorie: cleanText(o.categorie), type: o.type === 'reussite' ? 'reussite' : 'erreur', commentaire: cleanText(o.commentaire) }));
-  return { note: Math.round(note * 100) / 100, note_max: grilleNoteMax(d.grille), appreciation: cleanText(out.appreciation_globale), forts: (out.points_forts || []).map(cleanText).filter(Boolean), faibles: (out.points_a_travailler || []).map(cleanText).filter(Boolean), observations, evaluations };
+  const note_max = grilleNoteMax(d.grille);
+  const result = { note: Math.round(note * 100) / 100, note_max, appreciation: cleanText(out.appreciation_globale), forts: (out.points_forts || []).map(cleanText).filter(Boolean), faibles: (out.points_a_travailler || []).map(cleanText).filter(Boolean), observations, evaluations };
+  if (college) { result.college = true; result.niveau = niveau; result.cycle = cycleOf(niveau); result.evalMode = cmode; result.note20 = note_max ? Math.round(note / note_max * 20 * 100) / 100 : null; }
+  return result;
+}
+function collegeSystemPrompt(niveau) {
+  return `Tu es un professeur de collège bienveillant et juste qui évalue PAR COMPÉTENCES. ${niveauDirectives(niveau)}
+
+Pour CHAQUE compétence de la grille, positionne l'élève sur l'échelle de maîtrise à 4 niveaux, en choisissant les points correspondants (points_obtenus ∈ {1,2,3,4}) :
+• 1 = Insuffisant : compétence non mobilisée, ou de façon erronée.
+• 2 = Fragile : début de mobilisation, incomplet ou avec des erreurs importantes.
+• 3 = Satisfaisant : compétence mobilisée correctement, attendu globalement atteint (quelques imprécisions tolérées).
+• 4 = Excellent : compétence pleinement et rigoureusement maîtrisée.
+Base-toi UNIQUEMENT sur ce que l'élève a réellement produit. Au collège on valorise la démarche, l'effort et la progression : reste JUSTE mais pas sévère comme au bac. Une compétence non traitée = Insuffisant.
+
+Dans le commentaire de chaque compétence : une phrase COURTE, concrète et ENCOURAGEANTE, qui dit ce qui est réussi et ce qui aiderait à progresser, en citant un élément de la copie quand c'est possible.
+Dans "observations" : quelques points précis (réussites ET pistes de progrès) en citant la copie.
+Dans "appreciation_globale" : un petit mot bienveillant et personnalisé. "points_forts" = ce que l'élève sait faire ; "points_a_travailler" = compétences à retravailler.
+
+${profileDirectives()}
+
+IMPORTANT : renseigne UNIQUEMENT les champs prévus par l'outil (texte simple, sans balise ni code). Utilise remplir_grille.`;
 }
 
+// Affichage synthétique de la note / du niveau selon le mode (collège vs lycée)
+function displayNote(r) {
+  if (r && r.college) {
+    if (r.evalMode === 'competences') return 'compét.';
+    const n20 = r.note20 != null ? r.note20 : (r.note_max ? Math.round(r.note / r.note_max * 20 * 100) / 100 : 0);
+    return fmtPts(n20) + '/20';
+  }
+  return fmtPts(r.note) + '/' + fmtPts(r.note_max);
+}
 function openReviewQueue(qid) { const q = queue.find(x => x.id === qid); if (!q || !q.result) return; reviewTarget = { type: 'queue', id: qid }; reviewData = q.result; showReview(q.result, q.eleveNom); }
 function nivAtteint(ev) {
   if (!ev.niveaux || !ev.niveaux.length) return '';
@@ -1310,28 +1457,51 @@ function nivAtteint(ev) {
 function showReview(r, eleveNom) {
   $('review-card').style.display = '';
   $('rv-title').textContent = 'Relecture — ' + eleveNom; $('rv-eleve').textContent = eleveNom;
-  $('rv-note').textContent = fmtPts(r.note); $('rv-notemax').textContent = fmtPts(r.note_max);
+  const college = !!r.college;
+  if (college && r.evalMode === 'competences') { $('rv-note').textContent = '🎓'; $('rv-notemax').textContent = 'compét.'; }
+  else if (college) { const n20 = r.note20 != null ? r.note20 : (r.note_max ? Math.round(r.note / r.note_max * 20 * 100) / 100 : 0); $('rv-note').textContent = fmtPts(n20); $('rv-notemax').textContent = '20'; }
+  else { $('rv-note').textContent = fmtPts(r.note); $('rv-notemax').textContent = fmtPts(r.note_max); }
   $('rv-appreciation').value = r.appreciation;
   $('rv-forts').innerHTML = (r.forts || []).map(p => `<span class="tag ok">${esc(p)}</span>`).join('');
   $('rv-faibles').innerHTML = (r.faibles || []).map(p => `<span class="tag warn">${esc(p)}</span>`).join('');
   let last = null, html = '';
   r.evaluations.forEach((ev, i) => {
     if (ev.partie !== last) { html += `<div class="rpartie-label">${esc(ev.partie || '')}</div>`; last = ev.partie; }
-    html += `<div class="rcrit"><div class="rhead">
-      <span class="rname">${esc(ev.intitule)} <span class="ccomp" style="margin-left:6px">${esc(ev.competence || '')}</span></span>
-      <input class="rpts" type="number" step="0.25" min="0" max="${ev.points_max}" data-i="${i}" value="${ev.points_obtenus}">
-      <span class="rmax">/ ${fmtPts(ev.points_max)}</span></div>
-      ${ev.niveaux && ev.niveaux.length ? `<div class="rniv" data-niv="${i}">Niveau : ${esc(nivAtteint(ev))}</div>` : ''}
-      <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea></div>`;
+    if (college) {
+      html += `<div class="rcrit"><div class="rhead" style="align-items:flex-start">
+        <span class="rname" style="flex:1">${esc(ev.intitule)}<span class="ccomp" style="display:block;margin-top:2px">${esc(ev.competence || '')}</span></span>
+        <span class="ifse-sel" data-i="${i}">${['I', 'F', 'S', 'E'].map(code => `<button type="button" class="ifse-btn ifse-${code}${ifseCode(ev.points_obtenus) === code ? ' on' : ''}" data-i="${i}" data-code="${code}" title="${esc({ I: 'Insuffisant', F: 'Fragile', S: 'Satisfaisant', E: 'Excellent' }[code])}">${code}</button>`).join('')}</span></div>
+        <div class="rniv" data-niv="${i}">Maîtrise : <b>${esc(ifseLabel(ev.points_obtenus))}</b></div>
+        <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea></div>`;
+    } else {
+      html += `<div class="rcrit"><div class="rhead">
+        <span class="rname">${esc(ev.intitule)} <span class="ccomp" style="margin-left:6px">${esc(ev.competence || '')}</span></span>
+        <input class="rpts" type="number" step="0.25" min="0" max="${ev.points_max}" data-i="${i}" value="${ev.points_obtenus}">
+        <span class="rmax">/ ${fmtPts(ev.points_max)}</span></div>
+        ${ev.niveaux && ev.niveaux.length ? `<div class="rniv" data-niv="${i}">Niveau : ${esc(nivAtteint(ev))}</div>` : ''}
+        <textarea class="rcom" data-i="${i}">${esc(ev.commentaire)}</textarea></div>`;
+    }
   });
   $('rv-grid').innerHTML = html;
-  $('rv-grid').querySelectorAll('.rpts').forEach(inp => inp.addEventListener('input', () => {
-    const ev = r.evaluations[+inp.dataset.i]; let v = parseFloat(inp.value); if (isNaN(v)) v = 0;
-    ev.points_obtenus = Math.max(0, Math.min(ev.points_max, v));
-    r.note = Math.round(r.evaluations.reduce((s, e) => s + e.points_obtenus, 0) * 100) / 100;
-    $('rv-note').textContent = fmtPts(r.note);
-    const nv = $('rv-grid').querySelector(`.rniv[data-niv="${inp.dataset.i}"]`); if (nv) nv.textContent = 'Niveau : ' + nivAtteint(ev);
-  }));
+  if (college) {
+    const pmap = ifsePoints();
+    $('rv-grid').querySelectorAll('.ifse-btn').forEach(b => b.addEventListener('click', () => {
+      const i = +b.dataset.i, ev = r.evaluations[i]; ev.points_obtenus = pmap[b.dataset.code];
+      b.parentNode.querySelectorAll('.ifse-btn').forEach(x => x.classList.toggle('on', x === b));
+      const nv = $('rv-grid').querySelector(`.rniv[data-niv="${i}"]`); if (nv) nv.innerHTML = 'Maîtrise : <b>' + esc(ifseLabel(ev.points_obtenus)) + '</b>';
+      r.note = Math.round(r.evaluations.reduce((s, e) => s + e.points_obtenus, 0) * 100) / 100;
+      r.note20 = r.note_max ? Math.round(r.note / r.note_max * 20 * 100) / 100 : null;
+      if (r.evalMode !== 'competences') $('rv-note').textContent = fmtPts(r.note20);
+    }));
+  } else {
+    $('rv-grid').querySelectorAll('.rpts').forEach(inp => inp.addEventListener('input', () => {
+      const ev = r.evaluations[+inp.dataset.i]; let v = parseFloat(inp.value); if (isNaN(v)) v = 0;
+      ev.points_obtenus = Math.max(0, Math.min(ev.points_max, v));
+      r.note = Math.round(r.evaluations.reduce((s, e) => s + e.points_obtenus, 0) * 100) / 100;
+      $('rv-note').textContent = fmtPts(r.note);
+      const nv = $('rv-grid').querySelector(`.rniv[data-niv="${inp.dataset.i}"]`); if (nv) nv.textContent = 'Niveau : ' + nivAtteint(ev);
+    }));
+  }
   $('rv-grid').querySelectorAll('.rcom').forEach(ta => ta.addEventListener('input', () => { r.evaluations[+ta.dataset.i].commentaire = ta.value; }));
   $('rv-appreciation').oninput = () => { r.appreciation = $('rv-appreciation').value; };
   renderObs(r);
@@ -1362,7 +1532,7 @@ function renderHistory() {
   if (!devoirId) { box.innerHTML = '<div class="empty">Choisissez un devoir.</div>'; return; }
   if (list.length === 0) { box.innerHTML = '<div class="empty">Aucune copie enregistrée pour ce devoir.</div>'; return; }
   box.innerHTML = `<table><thead><tr><th>Élève</th><th>Note</th><th>À travailler</th><th></th></tr></thead><tbody>` +
-    list.map(c => `<tr><td>${esc(c.eleveNom)}</td><td style="font-family:'DM Mono',monospace">${fmtPts(c.note)} / ${fmtPts(c.note_max)}</td><td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
+    list.map(c => `<tr><td>${esc(c.eleveNom)}</td><td style="font-family:'DM Mono',monospace">${displayNote(c)}</td><td>${(c.faibles || []).slice(0, 2).map(esc).join(', ')}</td>
     <td class="noprint"><button class="btn purple small" data-remed="${c.id}" title="Générer une remédiation ciblée">✨ Remédiation</button> <button class="btn secondary small" data-pdf="${c.id}">⬇️ PDF</button> <button class="btn small" data-print="${c.id}">🖨️</button> <button class="btn secondary small" data-view="${c.id}">Voir</button> <button class="btn danger small" data-del="${c.id}">✕</button></td></tr>`).join('') + `</tbody></table>`;
   box.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => { if (!confirm('Supprimer cette copie ?')) return; db.copies = db.copies.filter(c => c.id !== b.dataset.del); saveDB(); renderHistory(); }));
   box.querySelectorAll('[data-remed]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.remed); if (c) launchRemediation(c.classeId, c.eleveId); }));
@@ -1525,6 +1695,23 @@ function drawEleveDetail() {
   const copies = db.copies.filter(c => c.eleveId === el.id).sort((a, b) => a.date.localeCompare(b.date));
   const comps = competenceAgg(copies), bc = t => t < .5 ? 'var(--red)' : t < .7 ? 'var(--amber)' : 'var(--green)';
   const faibles = [...new Set(copies.flatMap(c => c.faibles || []))].slice(0, 6);
+  // Suivi d'acquisition par compétences (copies collège) : meilleur niveau atteint, acquise dès S ou E
+  const collCopies = copies.filter(c => c.college);
+  const acq = {};
+  collCopies.forEach(c => (c.evaluations || []).forEach(ev => {
+    const name = (ev.competence || '').trim() || (ev.intitule || '').trim() || '—';
+    if (!acq[name]) acq[name] = { best: ev.points_obtenus, count: 0, acquired: false };
+    acq[name].best = Math.max(acq[name].best, ev.points_obtenus); acq[name].count++;
+    if (ifseAcquise(ev.points_obtenus)) acq[name].acquired = true;
+  }));
+  const acqList = Object.entries(acq).sort((a, b) => b[1].best - a[1].best);
+  const nbAcq = acqList.filter(([, v]) => v.acquired).length;
+  const chip = pts => { const c = ifseCode(pts); return `<span class="ifse-btn ifse-${c} on" style="width:26px;height:26px;cursor:default;display:inline-flex;align-items:center;justify-content:center">${c}</span>`; };
+  const suiviCard = acqList.length ? `<div class="card"><div class="row" style="justify-content:space-between;align-items:center"><h3 style="margin:0">🎓 Suivi des compétences (collège)</h3><span class="ok-msg" style="margin:0;display:inline-block">${nbAcq}/${acqList.length} acquise(s)</span></div>
+    <div class="sub">Meilleur niveau atteint sur l'année. Une compétence est <b>acquise</b> dès qu'elle est atteinte à S ou E au moins une fois.</div>
+    <table style="margin-top:8px"><thead><tr><th>Compétence</th><th style="text-align:center">Meilleur niveau</th><th style="text-align:center">Fois évaluée</th><th>Statut</th></tr></thead><tbody>
+    ${acqList.map(([name, v]) => `<tr><td style="font-size:0.82rem">${esc(name)}</td><td style="text-align:center">${chip(v.best)}</td><td style="text-align:center;font-family:'DM Mono',monospace">${v.count}</td><td>${v.acquired ? '<span class="tag ok">✓ Acquise</span>' : '<span class="tag warn">En cours</span>'}</td></tr>`).join('')}
+    </tbody></table></div>` : '';
   box.innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><h3>👤 ${esc(el.nom)}</h3><button class="btn purple small" id="e-remed">✨ Remédiation individuelle</button></div>
     ${copies.length === 0 ? '<div class="empty">Aucune copie corrigée.</div>' : `
     <table style="margin-top:8px"><thead><tr><th>Devoir</th><th>Date</th><th>Note</th><th>/20</th><th></th></tr></thead><tbody>
@@ -1533,7 +1720,7 @@ function drawEleveDetail() {
     <div style="margin-top:14px"><label>Compétences (taux de réussite)</label>
       ${comps.map(c => `<div class="row" style="gap:10px; margin-top:8px"><div style="width:230px; font-size:0.8rem">${esc(c.nom)}</div>${dotsHTML(c.taux)}<div class="bar-wrap" style="flex:1"><div class="bar-fill" style="width:${(c.taux * 100).toFixed(0)}%; background:${bc(c.taux)}"></div></div><div style="width:40px; font-size:0.74rem; color:var(--muted2); font-family:'DM Mono',monospace">${(c.taux * 100).toFixed(0)}%</div></div>`).join('')}
     </div>
-    ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}</div>`;
+    ${faibles.length ? `<div style="margin-top:12px"><label>Axes de progrès relevés</label><div class="taglist">${faibles.map(f => `<span class="tag warn">${esc(f)}</span>`).join('')}</div></div>` : ''}`}</div>` + suiviCard;
   const btn = $('e-remed');
   if (btn) btn.addEventListener('click', () => launchRemediation(classe.id, el.id));
   box.querySelectorAll('[data-eprint]').forEach(b => b.addEventListener('click', () => { const c = db.copies.find(x => x.id === b.dataset.eprint); if (c) { reviewTarget = { type: 'copie', id: c.id }; printCopie(c, c.eleveNom); } }));
