@@ -1,7 +1,7 @@
 // Service worker : l'appli s'ouvre même sans réseau (en classe, le Wi-Fi est capricieux).
 // Les fichiers de l'appli viennent du cache, mis à jour en arrière-plan ; Google et Pronote
 // ne sont jamais mis en cache ici (données personnelles, jetons).
-const VERSION = 'carnet-0.5.0-2';
+const VERSION = 'carnet-0.5.1-1';
 const FICHIERS = [
   './', 'index.html', 'confidentialite.html', 'manifest.webmanifest', 'config.js', 'css/app.css',
   'js/avant.js', 'js/app.js', 'js/actions.js', 'js/ui.js', 'js/stockage.js', 'js/etat.js', 'js/dates.js',
@@ -12,11 +12,13 @@ const FICHIERS = [
   'js/vues/reglages.js', 'js/vues/demarrer.js', 'js/vues/creneau.js', 'js/vues/partage.js', 'js/vues/importlien.js',
   'js/vues/programmation.js', 'js/vues/cahier.js', 'js/vues/rendezvous.js',
   'polices/onest-latin.woff2', 'polices/onest-latin-ext.woff2',
-  'icones/icone.svg', 'icones/icone-192.png', 'icones/icone-512.png', 'icones/icone-masquable-512.png', 'icones/icone-180.png',
+  'icones/calendrier.svg', 'icones/calendrier-192.png', 'icones/calendrier-512.png', 'icones/calendrier-masquable-512.png', 'icones/calendrier-180.png',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FICHIERS)));
+  // « reload » : une nouvelle version se remplit au serveur, jamais au cache HTTP du navigateur
+  // (GitHub Pages garde les fichiers dix minutes) — sinon elle pourrait garder l'ancienne icône.
+  e.waitUntil(caches.open(VERSION).then((c) => c.addAll(FICHIERS.map((f) => new Request(f, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (e) => {
@@ -28,7 +30,7 @@ self.addEventListener('fetch', (e) => {
   if (e.request.method !== 'GET' || u.origin !== self.location.origin) return;
   e.respondWith(caches.open(VERSION).then(async (cache) => {
     const enCache = await cache.match(e.request, { ignoreSearch: true });
-    const reseau = fetch(e.request).then((r) => {
+    const reseau = fetch(e.request, { cache: 'no-cache' }).then((r) => {
       if (r.ok && r.type === 'basic') cache.put(e.request, r.clone());
       return r;
     }).catch(() => null);
