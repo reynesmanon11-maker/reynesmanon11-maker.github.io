@@ -134,9 +134,17 @@ valider** de la page d'accueil liste ceux qui attendent.
 ## 9. Le cahier de textes
 
 Rubrique **Cahier de textes** : pour chaque cours, le **contenu de la séance** (les étapes faites,
-avec leur texte) et le **travail à faire** pour le cours suivant. **Copier**, coller dans Pronote,
-puis cocher **Saisi dans Pronote** : le cours quitte la liste des « non saisis » (et la tuile du
-même nom). Les textes s'écrivent une fois, dans l'étape, pour toutes les classes du niveau.
+avec leur texte) et le **travail à faire** pour le cours suivant. Après le cours :
+
+1. **Où en est-on ?** — le texte suit ce qui a vraiment été fait : une séance qui a débordé ou
+   qui s'est arrêtée plus tôt change le contenu de ce cours et la suite des suivants ;
+2. **Copier pour Pronote**, puis coller dans le cahier de textes de Pronote (**Ouvrir Pronote**
+   apparaît quand son adresse est réglée dans Mes données). Copier marque le cours « saisi » ;
+   « Annuler » le remet dans la liste.
+
+Le sens est Carnet → Pronote : Pronote n'exporte pas son cahier de textes (le lien iCal ne contient
+que l'emploi du temps), et le lire demanderait le mot de passe Pronote, que le Carnet ne demande
+jamais. Les textes s'écrivent une fois, dans l'étape, pour toutes les classes du niveau.
 
 ## 10. Où tomberont les évaluations
 

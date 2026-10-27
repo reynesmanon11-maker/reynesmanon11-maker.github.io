@@ -1,14 +1,25 @@
 // Le cahier de textes, rangé comme celui de Pronote : pour chaque cours, le contenu de la séance
-// et le travail à faire pour le cours suivant, prêts à recopier. Le Carnet ne peut pas écrire dans
-// Pronote : on copie, on colle, et l'on coche « Saisi dans Pronote » pour ne plus le voir.
+// et le travail à faire pour le cours suivant, prêts à recopier. Le sens est Carnet → Pronote :
+// Pronote n'exporte pas son cahier de textes (le lien iCal ne contient que l'emploi du temps), et
+// le lire supposerait le mot de passe Pronote, que le Carnet ne demande jamais. Le texte suit donc
+// ce qui a vraiment été fait : on dit où la classe s'est arrêtée (« Où en est-on ? »), puis on
+// copie ; copier vaut « saisi », avec de quoi annuler.
 import { actions } from '../actions.js';
 import { html, icone, toast, copier } from '../ui.js';
-import { calc, etat, changer, reglerLocal, ecrireDoc } from '../etat.js';
+import { calc, etat, changer, reglerLocal, ecrireDoc, supprimerDoc } from '../etat.js';
 import { ajouteJours, dateCourte, dateLongue, jourMois, lundiDe } from '../dates.js';
 import { semaineUtile } from '../moteur.js';
 import { pastille, styleNiveau, horaires, textePronote, travailCours, etiquetteEtat } from './commun.js';
 
 let lundiAffiche = null;
+
+/** L'adresse de Pronote (réglée dans Mes données, ou devinée dans le lien iCal) : https://…/pronote/ */
+export function adressePronote() {
+  const r = calc().v.reglages;
+  if (r.adressePronote) return r.adressePronote;
+  const m = String((etat.local.ics && etat.local.ics.url) || '').match(/^(https:\/\/[^/?#]+\/pronote\/)/i);
+  return m ? m[1] : '';
+}
 export const cleCahier = (cle) => `cdt_${cle}`;
 export const estSaisi = (v, cle) => !!(v.coches[cleCahier(cle)] && v.coches[cleCahier(cle)].fait);
 
@@ -47,8 +58,10 @@ export function ligneCahier(cr, { date = true } = {}) {
       ${contenu ? html`<pre class="pronote-texte">${contenu}</pre>` : html`<p class="vide petit">Rien de prévu pour ce cours.</p>`}</div>
     ${t ? html`<div class="cdt-bloc"><h4>Travail à faire${t.pour ? html` pour le ${dateCourte(t.pour)}` : ''}</h4><pre class="pronote-texte">${t.texte}</pre></div>` : ''}
     <div class="cours-actions">
-      ${contenu ? html`<button class="btn mini" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="contenu">${icone('copier')} Copier le contenu</button>` : ''}
-      ${t ? html`<button class="btn mini" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="travail">${icone('copier')} Copier le travail</button>` : ''}
+      ${pc.aValider ? html`<button class="btn mini plein" data-action="valider" data-cle="${cr.cle}">${icone('valider')} Où en est-on ?</button>` : ''}
+      ${contenu ? html`<button class="btn mini${pc.aValider ? '' : ' plein'}" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="tout" title="Le contenu et le travail à faire, d'un coup">${icone('copier')} Copier pour Pronote</button>` : ''}
+      ${contenu && t ? html`<button class="btn mini discret" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="contenu">Contenu seul</button><button class="btn mini discret" data-action="cdt-copier" data-cle="${cr.cle}" data-quoi="travail">Travail seul</button>` : ''}
+      ${adressePronote() ? html`<a class="btn mini discret" href="${adressePronote()}" target="_blank" rel="noopener">${icone('ouvrir')} Ouvrir Pronote</a>` : ''}
       <label class="coche cdt-saisi"><input type="checkbox" data-change="coche" data-id="${cleCahier(cr.cle)}"${saisi ? ' checked' : ''}><span>Saisi dans Pronote</span></label>
     </div>`}
   </li>`;
@@ -88,7 +101,7 @@ export function rendreCahier() {
       ${jours.every((j) => !c.creneaux.some((x) => x.jour === j)) ? html`<p class="vide">Pas de cours suivi cette semaine.</p>` : ''}`;
   }
   return html`
-    <div class="titre-page"><div><h1>Cahier de textes</h1><p>Le contenu de chaque séance et le travail à faire, écrits une fois par étape et repris pour toutes les classes du niveau. Copiez, collez dans Pronote, cochez « Saisi ».</p></div></div>
+    <div class="titre-page"><div><h1>Cahier de textes</h1><p>Après le cours : <b>Où en est-on ?</b> (le texte suit ce qui a vraiment été fait, même si la séance a débordé ou s'est arrêtée plus tôt), puis <b>Copier pour Pronote</b> et coller dans Pronote. Le texte s'écrit une fois par étape et vaut pour toutes les classes du niveau.</p></div></div>
     <div class="segmente" role="group" aria-label="Affichage">
       <button data-action="cdt-vue" data-vue="a-saisir" aria-pressed="${vue === 'a-saisir'}">Non saisis${nonSaisis.length ? ` (${nonSaisis.length})` : ''}</button>
       <button data-action="cdt-vue" data-vue="semaine" aria-pressed="${vue === 'semaine'}">Par semaine</button>
@@ -112,6 +125,12 @@ actions['cdt-copier'] = async (el) => {
   const cr = calc().tousCreneaux.find((x) => x.cle === el.dataset.cle);
   if (!cr) return;
   const ok = await copier(texteCahier(cr, el.dataset.quoi), el.closest('.cdt')?.querySelector('.pronote-texte'));
-  toast(ok ? 'Copié : collez-le dans le cahier de textes de Pronote.' : 'La copie a été refusée : le texte est sélectionné, faites Ctrl+C.');
+  if (!ok) { toast('La copie a été refusée : le texte est sélectionné, faites Ctrl+C.'); return; }
+  // Copier pour Pronote, c'est le saisir : le cours quitte la liste, « Annuler » l'y remet.
+  const cle = cleCahier(cr.cle), deja = estSaisi(calc().v, cr.cle);
+  if (el.dataset.quoi === 'tout' && !deja) {
+    ecrireDoc(`coches/${cle}`, { fait: true });
+    toast('Copié : collez-le dans Pronote. Marqué « saisi ».', { action: { libelle: 'Annuler', faire: () => supprimerDoc(`coches/${cle}`) } });
+  } else toast('Copié : collez-le dans le cahier de textes de Pronote.');
 };
 export { lundiDe };

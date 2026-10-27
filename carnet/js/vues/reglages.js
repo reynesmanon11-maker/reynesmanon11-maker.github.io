@@ -37,8 +37,9 @@ export function rendreReglages() {
       <div class="grille-champs">
         <label class="champ"><span>Établissement</span><input type="text" id="regler-etablissement" value="${r.etablissement || ''}" placeholder="${id.devine.etablissement || 'COLLÈGE …'}" data-change="regler-etablissement"></label>
         <label class="champ"><span>Nom affiché</span><input type="text" id="regler-nom" value="${r.nomAffiche || ''}" placeholder="${id.devine.nom || 'Mme …'}" data-change="regler-nom"></label>
+        <label class="champ"><span>Adresse de votre Pronote</span><input type="url" id="regler-pronote" value="${r.adressePronote || ''}" placeholder="https://…index-education.net/pronote/" data-change="regler-pronote"></label>
       </div>
-      <p class="aide">Affichés en tête de page, comme dans Pronote. Laissés vides, le Carnet reprend ce que dit l'agenda Pronote${id.devine.nom || id.devine.etablissement ? ` (${[id.devine.etablissement, id.devine.nom].filter(Boolean).join(' · ')})` : ''}.</p>
+      <p class="aide">L'adresse de Pronote ajoute « Ouvrir Pronote » au cahier de textes. Le nom et l'établissement sont affichés en tête de page, comme dans Pronote. Laissés vides, le Carnet reprend ce que dit l'agenda Pronote${id.devine.nom || id.devine.etablissement ? ` (${[id.devine.etablissement, id.devine.nom].filter(Boolean).join(' · ')})` : ''}.</p>
       <div class="outils"><span>La semaine du ${jourMois(lundiRef)} est une</span><span class="segmente" role="group" aria-label="Semaine A ou B">
         ${[['A', 'semaine A'], ['B', 'semaine B'], ['', 'pas d’alternance']].map(([k, v]) => html`<button data-action="regler-ab" data-valeur="${k}" aria-pressed="${(lettre || '') === k}">${v}</button>`)}</span></div>
       <p class="aide">Pour l'afficher sur l'emploi du temps. Les vacances ne comptent pas : la lettre reprend où elle en était.</p>
@@ -133,6 +134,11 @@ actions['retirer-inutiles'] = async (el) => {
 };
 changements['regler-etablissement'] = (el) => modifierReglages((r) => { r.etablissement = el.value.trim(); });
 changements['regler-nom'] = (el) => modifierReglages((r) => { r.nomAffiche = el.value.trim(); });
+changements['regler-pronote'] = (el) => {
+  const v = el.value.trim();
+  if (v && !/^https:\/\//i.test(v)) { toast('L’adresse de Pronote commence par https://'); return; }
+  modifierReglages((r) => { r.adressePronote = v; });
+};
 actions['regler-ab'] = (el) => {
   const c = calc();
   const lundi = semaineUtile(c.tousCreneaux, c.auj);

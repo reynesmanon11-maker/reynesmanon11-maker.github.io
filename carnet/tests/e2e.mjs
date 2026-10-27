@@ -327,11 +327,13 @@ await etape('cahier de textes : le contenu de chaque cours, « Saisi » le fait 
   await p.goto(URL + '#/cahier');
   const n = await p.locator('.cdt').count();
   assert.ok(n > 3, `${n} cours non saisis`);
-  const premier = p.locator('.cdt').first();
-  await premier.getByRole('button', { name: 'Copier le contenu' }).click();
+  const premier = p.locator('.cdt').filter({ has: p.getByRole('button', { name: 'Copier pour Pronote' }) }).first();
+  await premier.getByRole('button', { name: 'Copier pour Pronote' }).click();
   assert.ok((await p.evaluate(() => navigator.clipboard.readText())).length > 5, 'le contenu est copié');
-  await premier.locator('input[type="checkbox"]').check();
+  // Copier pour Pronote vaut « saisi » : le cours quitte la liste.
   await p.waitForFunction((k) => document.querySelectorAll('.cdt').length === k, n - 1);
+  await p.locator('.cdt input[type="checkbox"]').first().check();
+  await p.waitForFunction((k) => document.querySelectorAll('.cdt').length === k, n - 2);
   await p.getByRole('button', { name: 'Par semaine' }).click();
   await rendu(p);
   assert.ok(await p.locator('.jour-cdt').count() >= 4);
