@@ -48,7 +48,7 @@ function ecranAccueil() {
         <span>À partir du lien iCal de Pronote ou d'un fichier .ics. Les données restent sur cet appareil.</span></button>
     </div>
     ${google ? '' : html`<p class="aide">La connexion Google s'active une seule fois, par la personne qui publie le Carnet : <a href="brancher-google.html">comment l'activer</a>.</p>`}
-    <p class="aide">Le Carnet ne demande jamais votre mot de passe Pronote et ne lit ni notes ni élèves : seulement l'emploi du temps que Pronote exporte.</p>
+    <p class="aide">Le Carnet ne demande jamais votre mot de passe Pronote et ne lit ni notes ni élèves : seulement l'emploi du temps que Pronote exporte. <a href="confidentialite.html">Confidentialité : ce que le Carnet fait de vos données</a>.</p>
     <p class="outils">${installation() ? html`<button class="btn" data-action="installer">${icone('telecharger')} Installer l'appli sur cet appareil</button>` : ''}
       <button class="btn" data-action="partager">${icone('partager')} L'ouvrir sur un téléphone, ou la partager</button></p>`;
 }

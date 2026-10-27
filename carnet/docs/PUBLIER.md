@@ -78,7 +78,12 @@ Le compte développeur est **gratuit pour les particuliers** depuis septembre 20
    description, classification par âge, adresse de `confidentialite.html`. Certification :
    quelques jours.
 
-Les captures d'écran sont prêtes dans `captures/` (téléphone et ordinateur).
+Les captures d'écran sont prêtes dans `captures/` : quatre pour ordinateur en 1366 × 768 (la taille
+minimale du Store), deux pour téléphone, et le logo en 300 × 300.
+
+Description courte proposée : « Le carnet de bord de l'enseignant : emploi du temps Pronote,
+progression de chaque classe, cahier de textes prêt à copier et rendez-vous perso, au même
+endroit. » Catégorie : Éducation. Public : adultes (outil d'enseignant).
 
 ## 4. Play Store
 
@@ -106,36 +111,40 @@ Les captures d'écran sont prêtes dans `captures/` (téléphone et ordinateur).
 
 ## 5. Vérification Google
 
-Indispensable pour ouvrir l'appli à n'importe quel compte Google : lire les agendas est une
-autorisation « sensible ». Ce qu'il faut :
+Indispensable pour ouvrir l'appli à n'importe quel compte Google sans avertissement : les
+autorisations d'Agenda sont « sensibles ». Pas d'audit de sécurité (réservé aux autorisations
+« restreintes », comme tout le Drive) ; gratuit ; quelques jours à quelques semaines. Avec le
+compte Google propriétaire du projet :
 
-- l'appli et sa page de confidentialité sur un domaine dont la propriété est prouvée dans
-  **Google Search Console** : pour un site `github.io`, en déposant à la racine le petit fichier
-  HTML que fournit Google (un nom de domaine à soi, une dizaine d'euros par an, simplifie tout) ;
-- une justification de chaque autorisation (le tableau du README et de `confidentialite.html`
-  sert de base) ;
-- une **courte vidéo** (YouTube, non répertoriée) : la connexion, l'écran d'accord, puis ce que
-  l'appli fait de chaque autorisation ;
-- passer l'appli **En production** (Audience → Publier l'application).
+1. **Prouver que le domaine est à soi** : <https://search.google.com/search-console> → Ajouter une
+   propriété → **Préfixe de l'URL** `https://reynesmanon11-maker.github.io/` → méthode **Fichier
+   HTML** : télécharger le fichier `google….html`, le déposer **à la racine du dépôt** (pas dans
+   `carnet/`), attendre la publication, puis **Valider**. Ne jamais supprimer ce fichier.
+2. **Google Auth Platform → Branding** : nom « Carnet de bord » ; logo `captures/logo-120.png` ;
+   e-mail d'assistance ; page d'accueil `https://reynesmanon11-maker.github.io/carnet/` ;
+   confidentialité `https://reynesmanon11-maker.github.io/carnet/confidentialite.html` ; domaine
+   autorisé `reynesmanon11-maker.github.io` ; e-mail du développeur.
+3. **Accès aux données** : vérifier les autorisations (celles de `brancher-google.html`), et
+   écrire pour chaque autorisation sensible pourquoi elle sert :
+   - `calendar.calendarlist.readonly` : « Lister les agendas de l'utilisateur pour trouver celui
+     que Pronote (logiciel de vie scolaire) y a abonné, et ceux qu'il choisit d'afficher. »
+   - `calendar.events` : « Lire l'emploi du temps exporté par Pronote et les rendez-vous
+     personnels choisis, pour les afficher à côté des cours ; créer, modifier ou supprimer un
+     rendez-vous personnel uniquement quand l'utilisateur le fait lui-même dans l'application. »
+   - `calendar.app.created` : « Créer les agendas propres à l'application (un par niveau de
+     classe) et y écrire les cours avec ce qui est prévu. »
+   - `drive.appdata` : « Garder une copie des données de l'utilisateur dans le dossier caché de
+     l'application, pour les retrouver sur ses autres appareils. »
+4. **La vidéo** (YouTube, « non répertoriée », 2 à 3 minutes, en anglais ou sous-titrée) : la
+   page d'accueil du Carnet ; « Se connecter avec Google » ; l'écran d'accord de Google où se
+   lisent le nom de l'appli **et l'adresse avec l'identifiant client** (`client_id=…`) ; puis, pour
+   chaque autorisation, ce qu'elle fait dans l'appli : l'agenda Pronote trouvé, les cours écrits
+   dans « Carnet · 5e », un rendez-vous ajouté puis supprimé, la synchronisation sur un deuxième
+   appareil.
+5. **Audience → Publier l'application** (« En production »), puis **Vérification → Préparer la
+   vérification** : tout relire et **Envoyer**. Google répond par e-mail, souvent avec des
+   questions : répondre dans le même fil.
 
-Aucune autorisation « restreinte » n'est demandée (accès complet à Gmail ou à Drive) : pas
-d'audit de sécurité payant.
-
-## Relais iCal (facultatif)
-
-Sans compte Google, ou pour avoir un emploi du temps plus frais que les 8 à 24 h de Google,
-`relais/worker.js` va lire le lien iCal à la place du navigateur. Offre gratuite de Cloudflare
-Workers : **Workers → Créer → coller le fichier → Déployer**, remplacer les origines en tête du
-fichier par l'adresse de l'appli, puis mettre l'adresse du relais dans `config.js` →
-`relaisIcal`. Il ne relaie que des liens iCal Pronote et ne garde rien ; mais le lien iCal
-contient une clé : on ne confie le sien qu'à un relais qu'on a déployé soi-même.
-
-## Avant d'ouvrir l'appli à des collègues
-
-- [ ] Une adresse de contact dans `confidentialite.html` (le texte « à indiquer »).
-- [ ] `googleClientId` dans `config.js` (`urlPublique` et `responsable` y sont déjà).
-- [ ] Les collègues ajoutés comme **utilisateurs test**.
-- [ ] `VERSION` changée dans `sw.js`.
-- [ ] Un essai réel : une semaine de Pronote, sur un téléphone Android, un iPhone et un
-      ordinateur, avec un vrai compte Google.
-- [ ] `npm test` et `npm run test:navigateur` au vert.
+Tant que la vérification n'est pas acquise, l'appli en production reste limitée à 100 comptes et
+affiche l'avertissement : on peut donc la publier tout de suite, rien ne casse pour celles et
+ceux qui l'utilisent déjà.

@@ -112,6 +112,7 @@ export function rendreReglages() {
     </section>
 
     <section class="carte section-feuille"><h2>Ce que le Carnet fait de vos données</h2>
+      <p class="aide"><a href="confidentialite.html">Règles de confidentialité complètes</a></p>
       <ul class="petit">
         <li>Il lit l'<b>emploi du temps</b> exporté par Pronote — jamais votre mot de passe, ni notes, ni élèves.</li>
         <li>Vos classes, étapes et validations restent <b>sur cet appareil</b>${mode === 'google' ? html` et dans un <b>dossier caché de votre Google Drive</b>, que seule l'appli peut lire` : ''}. Aucun serveur du Carnet ne les reçoit.</li>
