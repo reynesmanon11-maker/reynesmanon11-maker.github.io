@@ -55,6 +55,7 @@ Seuls les textes d'un seul tenant, sans balise à l'intérieur, sont proposés.
 | `outils/` | autres outils interactifs autonomes |
 | `carnet/` | **Carnet de bord** : l'appli d'organisation de l'enseignante (voir plus bas) |
 | `TODO.md` | file d'idées, pilotée par les tâches automatiques |
+| `google39246ecb7544994e.html` | preuve de propriété du site pour Google (Search Console, vérification du Carnet) : **ne jamais le supprimer ni le modifier** |
 
 ## Ce site est réservé aux élèves
 
