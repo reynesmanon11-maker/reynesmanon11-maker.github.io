@@ -101,7 +101,9 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   proposée aux autres classes du même niveau (case « Prévoir aussi pour »), cochée d'office seulement pour
   celles qui en sont au même endroit (elles ont l'étape voisine), et placée au même endroit de leur file.
   Modifier une étape partagée ne vaut que pour la classe ouverte, sauf cases « Modifier aussi pour » cochées :
-  les autres gardent leur copie intacte (`separer` dans `carnet/js/vues/classes.js`).
+  les autres gardent leur copie intacte (`separer` dans `carnet/js/vues/classes.js`). Ce qu'une classe du
+  niveau fait après une étape commune est **proposé** aux autres (`suggestionsPour`, bandeau « Reprendre » /
+  « Non merci ») dans Progressions et dans la feuille du cours : jamais ajouté sans un geste de Manon.
   Le format (classe entière / demi-groupe) n'est plus demandé : l'emploi du temps le dit déjà. Couleurs
   par niveau (5e violet, 6e vert, 3e jaune) : `--n-*` dans `carnet/css/app.css` et `COULEURS_NIVEAUX`
   dans `carnet/js/agenda.js`, à garder identiques.

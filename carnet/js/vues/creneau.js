@@ -6,7 +6,7 @@ import { html, icone, ouvrirFeuille, fermerFeuille, redessinerFeuille, toast, co
 import { calc, ecrireDoc, supprimerDoc, modifierDoc, nomClasse } from '../etat.js';
 import { pointsArret, positionDe, EPS, seancesLisible } from '../moteur.js';
 import { dateLongue, dateCourte } from '../dates.js';
-import { horaires, segments, pastille, etiquetteEtat, textePronote } from './commun.js';
+import { horaires, segments, pastille, etiquetteEtat, textePronote, suggestionsPour, bandeauSuite } from './commun.js';
 
 let choix = null; // { cle, pos: { i, f }, prevu: { i, f }, note }
 
@@ -109,6 +109,12 @@ function contenu(cle) {
   const annonces = c.plan.annonces[cle] || [];
   const txt = textePronote(cr);
   const cl = c.v.classes[cr.code] || {};
+  // Ce qu'une autre classe fait après une étape qui se termine dans ce cours (ou qui est la
+  // dernière prévue, quand il reste du temps à préparer).
+  const finissent = new Set(((pc && pc.etat === 'prevu' && pc.segments) || []).filter((s) => !s.recul && s.a >= 1 - EPS).map((s) => s.eid));
+  const derniere = (((c.v.classes[cr.code] || {}).file || []).slice(-1)[0] || {}).eid;
+  const suites = suivie && !cr.annule && pc && pc.etat === 'prevu'
+    ? suggestionsPour(cr.code).filter((sug) => finissent.has(sug.apres) || (pc.libre > 0.01 && sug.apres === derniere)) : [];
   const aEtapes = !!pc && (pc.etat === 'prevu' || pc.etat === 'valide') && (pc.segments || []).some((s) => !s.recul && c.v.etapes[s.eid]);
   const aPrevoir = pc && pc.etat === 'prevu'
     ? pc.segments.filter((s) => s.de < EPS).map((s) => ({ s, e: c.v.etapes[s.eid] })).filter((x) => x.e && (x.e.afaire || x.e.photocopies > 0))
@@ -120,7 +126,7 @@ function contenu(cle) {
     ${cr.statut ? html`<p class="aide">Pronote : ${cr.statut}</p>` : ''}
     ${!suivie ? html`<div class="bandeau"><span>Cette classe n'est pas encore suivie dans le Carnet.</span><button class="btn mini plein" data-action="suivre-classe" data-code="${cr.code}">La suivre</button></div>` : html`
     ${choix && choix.cle === cle && !cr.annule && commence ? html`<section class="section-feuille"><h3>Où vous êtes-vous arrêtés ?</h3>${choixArret(cr)}</section>` : ''}
-    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr, { modifiable: true })}${aEtapes ? html`<p class="aide">Touchez une étape pour la modifier.</p>` : ''}</section>
+    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr, { modifiable: true })}${aEtapes ? html`<p class="aide">Touchez une étape pour la modifier.</p>` : ''}${suites.map((sug) => bandeauSuite(cr.code, sug))}</section>
     ${annonces.length ? html`<section class="section-feuille"><h3>À annoncer</h3>${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} ${a.titre}, ${dateLongue(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}</section>` : ''}
     ${aPrevoir.length ? html`<section class="section-feuille"><h3>À préparer</h3>${aPrevoir.map(({ s, e }) => {
       const id = `prep_${cle}_${s.u}`, fait = !!(c.v.coches[id] && c.v.coches[id].fait);

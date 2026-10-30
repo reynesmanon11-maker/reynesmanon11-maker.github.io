@@ -165,3 +165,39 @@ export function ligneEvenement(e, genre) {
   const h = e.debut ? `${heureLisible(heureDe(e.debut, fuseau))}–${heureLisible(heureDe(e.fin, fuseau))}` : 'journée';
   return html`<li class="evt ${genre}"><span class="heure">${h}</span><span>${e.titre}${genre === 'perso' && e.agenda ? html` <span class="aide">· ${e.agenda}</span>` : ''}</span></li>`;
 }
+
+/**
+ * Ce qu'une autre classe du niveau a prévu juste après une étape que celle-ci a aussi, et qui lui
+ * manque : « la 503 fait ensuite le contrôle ». Une proposition, jamais un ajout d'office.
+ * Renvoie [{ apres: eid, eids: [...], source: code }], sans ce que l'on a refusé (« Non merci »).
+ */
+export function suggestionsPour(code) {
+  const { v } = calc();
+  const cl = v.classes[code];
+  if (!cl) return [];
+  const niveau = niveauClasse(code, v);
+  const file = (cl.file || []).filter((it) => v.etapes[it.eid]);
+  const ici = new Set(file.map((it) => it.eid)), refusees = new Set(cl.refusees || []);
+  const res = [], vues = new Set();
+  const soeurs = Object.keys(v.classes).filter((k) => k !== code && !v.classes[k].masquee && niveauClasse(k, v) === niveau)
+    .sort((a, b) => nomClasse(a, v).localeCompare(nomClasse(b, v), 'fr', { numeric: true }));
+  for (const k of soeurs) {
+    const fk = (v.classes[k].file || []).filter((it) => v.etapes[it.eid]);
+    fk.forEach((it, j) => {
+      if (!ici.has(it.eid) || vues.has(it.eid)) return;
+      const suite = [];
+      for (let m = j + 1; m < fk.length && !ici.has(fk[m].eid); m++) if (!refusees.has(fk[m].eid) && !suite.includes(fk[m].eid)) suite.push(fk[m].eid);
+      if (suite.length) { vues.add(it.eid); res.push({ apres: it.eid, eids: suite.slice(0, 4), source: k }); }
+    });
+  }
+  return res;
+}
+
+/** Le bandeau qui propose de reprendre la suite d'une autre classe. */
+export function bandeauSuite(code, sug) {
+  const { v } = calc();
+  const titres = sug.eids.map((id) => (v.etapes[id] || {}).titre).filter(Boolean);
+  return html`<div class="bandeau info suite"><span>La <b>${nomClasse(sug.source, v)}</b> fait ensuite, après « ${(v.etapes[sug.apres] || {}).titre} » : <b>${titres.join(' · ')}</b>.</span>
+    <span class="outils"><button class="btn mini plein" data-action="suite-reprendre" data-code="${code}" data-apres="${sug.apres}" data-eids="${sug.eids.join(',')}">${icone('dupliquer')} Reprendre pour la ${nomClasse(code, v)}</button>
+    <button class="btn mini discret" data-action="suite-refuser" data-code="${code}" data-eids="${sug.eids.join(',')}">Non merci</button></span></div>`;
+}

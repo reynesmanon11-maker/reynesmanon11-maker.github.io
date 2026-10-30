@@ -351,6 +351,31 @@ await etape('rien ne se perd : fermer enregistre, un redessin garde la saisie, d
   await ctx.close();
 });
 
+await etape('la suite d’une autre classe : proposée, reprise d’un geste, ou refusée', async () => {
+  const { ctx, p } = await contexte();
+  await demo(p);
+  await p.goto(URL + '#/classes');
+  // Un contrôle prévu pour la 503 seule, juste après une étape que la 501 a aussi.
+  await p.locator('#classe-5G3').getByRole('button', { name: /Nouvelle étape/ }).click();
+  await p.fill('dialog input[name="titre"]', 'Contrôle de fin de chapitre');
+  for (const c of await p.$$('dialog input[name="aussi"]')) await c.uncheck();
+  await p.getByRole('button', { name: /Enregistrer/ }).click();
+  const bandeau = p.locator('#classe-5G1 .bandeau.suite', { hasText: 'Contrôle de fin de chapitre' });
+  await bandeau.waitFor();
+  assert.match(await bandeau.textContent(), /503/);
+  await bandeau.getByRole('button', { name: /Reprendre pour la 501/ }).click();
+  await p.waitForSelector('#classe-5G1 .etape >> text=Contrôle de fin de chapitre');
+  assert.equal(await p.locator('#classe-5G1 .bandeau.suite').count(), 0);
+  // Une seconde, refusée : elle ne revient plus.
+  await p.locator('#classe-5G3').getByRole('button', { name: /Nouvelle étape/ }).click();
+  await p.fill('dialog input[name="titre"]', 'Sortie au parc');
+  for (const c of await p.$$('dialog input[name="aussi"]')) await c.uncheck();
+  await p.getByRole('button', { name: /Enregistrer/ }).click();
+  await p.locator('#classe-5G1 .bandeau.suite', { hasText: 'Sortie au parc' }).getByRole('button', { name: 'Non merci' }).click();
+  await p.waitForSelector('#classe-5G1 .bandeau.suite', { state: 'detached' });
+  await ctx.close();
+});
+
 await etape('téléphone (390 px) : aucune page ne déborde', async () => {
   const { ctx, p } = await contexte({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await demo(p);

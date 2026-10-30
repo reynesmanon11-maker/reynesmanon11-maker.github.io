@@ -8,7 +8,7 @@ import { niveauDe } from '../pronote.js';
 import { seancesLisible, jalonsDe, EPS, arretDe, calendrierEtapes, prochainesEvaluations } from '../moteur.js';
 import { dateCourte, jourMois, lundiDe, ecartJours } from '../dates.js';
 import { nouvelId } from '../donnees.js';
-import { pastille, styleNiveau } from './commun.js';
+import { pastille, styleNiveau, suggestionsPour, bandeauSuite } from './commun.js';
 import { ouvrirImportProgression } from './programmation.js';
 
 export const MODELES_JALONS = {
@@ -54,6 +54,7 @@ function carteClasse(code, cal) {
       </span>
     </div>
     ${pc && pc.prochains[0] ? html`<p class="aide">Prochain cours : <b>${dateCourte(pc.prochains[0].jour)}</b>${pc.premierLibre ? (pc.couvertJusqua ? html` · préparée jusqu'au ${dateCourte(pc.couvertJusqua)}` : html` · <b class="retard">rien de prévu</b>`) : ' · tout est prévu'}</p>` : ''}
+    ${suggestionsPour(code).map((sug) => bandeauSuite(code, sug))}
     <ol class="file">${file.length ? file.map((it, i) => {
       const e = c.v.etapes[it.eid];
       const J = jalonsDe(e);
@@ -363,9 +364,10 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
   if (!enFermant) fermerFeuille();
   const et = aussi.length ? ` et pour ${aussi.map((k) => nomClasse(k)).join(', ')}` : '';
   const pre = enFermant ? 'Enregistré en fermant : ' : '';
-  if (nouvelle && jour) { toast(`${pre}étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`); return; }
+  const maj = (t) => t.charAt(0).toUpperCase() + t.slice(1);
+  if (nouvelle && jour) { toast(maj(`${pre}étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`)); return; }
   const seule = separer ? ` pour la ${[code, ...pour].map((k) => nomClasse(k)).join(', ')} seulement` : '';
-  toast(pre + (nouvelle ? `étape ajoutée${et}.` : aussi.length ? `étape enregistrée${seule}, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : `étape enregistrée${seule}.`));
+  toast(maj(pre + (nouvelle ? `étape ajoutée${et}.` : aussi.length ? `étape enregistrée${seule}, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : `étape enregistrée${seule}.`)));
 }
 // Retirer une étape ne touche que la classe ouverte : les autres classes du niveau la gardent.
 actions['etape-supprimer'] = (el) => {
@@ -388,6 +390,21 @@ actions['etape-retirer'] = (el) => {
   if (el.dataset.confirme !== '1') { el.dataset.confirme = '1'; el.innerHTML = 'Retirer ?'; setTimeout(() => { if (el.isConnected) { el.dataset.confirme = ''; el.innerHTML = String(icone('croix')); } }, 3000); return; }
   retirerEtape(el.dataset.code, el.dataset.u);
 };
+// Reprendre la suite d'une autre classe : les étapes se placent juste après l'étape commune.
+actions['suite-reprendre'] = (el) => {
+  const { code, apres } = el.dataset, eids = el.dataset.eids.split(',').filter(Boolean);
+  const file = (calc().v.classes[code] || {}).file || [];
+  const k = file.findIndex((it) => it.eid === apres);
+  const avantU = k >= 0 && k + 1 < file.length ? file[k + 1].u : null;
+  for (const eid of eids) insererDans(code, eid, avantU);
+  toast(`${eids.length > 1 ? `${eids.length} étapes reprises` : 'Étape reprise'} pour la ${nomClasse(code)} : chaque classe garde ensuite sa version.`);
+};
+actions['suite-refuser'] = (el) => {
+  const { code } = el.dataset, eids = el.dataset.eids.split(',').filter(Boolean);
+  modifierDoc(`classes/${code}`, (cl) => { cl.refusees = [...new Set([...(cl.refusees || []), ...eids])]; });
+  toast(`La ${nomClasse(code)} ne vous le proposera plus.`);
+};
+
 /** Retire l'étape de la file d'une classe seulement ; « Annuler » la remet à sa place. Le texte de l'étape n'est jamais effacé. */
 function retirerEtape(code, u) {
   const avant = structuredClone((calc().v.classes[code] || {}).file || []);
