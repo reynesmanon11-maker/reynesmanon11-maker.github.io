@@ -272,7 +272,7 @@ await etape('prévoir une étape depuis un cours de l’emploi du temps : elle t
   await p.goto(URL + '#/semaine');
   const cle = await p.evaluate(async () => (await import('./js/etat.js')).calc().plan.parClasse['6G1'].prochains[0].cle);
   await p.locator(`.bloc[data-cle="${cle}"]`).first().click();
-  await p.getByRole('button', { name: /Prévoir une étape dans ce cours/ }).click();
+  await p.getByRole('button', { name: /(Prévoir|Ajouter) une (autre )?étape dans ce cours/ }).click();
   await p.fill('dialog input[name="titre"]', 'TP lampe – ensoleillement et forme de la Terre');
   await p.getByRole('button', { name: /Enregistrer/ }).click();
   await p.waitForFunction((k) => {
@@ -281,6 +281,14 @@ await etape('prévoir une étape depuis un cours de l’emploi du temps : elle t
       return s && /TP lampe/.test(c.v.etapes[s.eid].titre) && s.de === 0;
     });
   }, cle);
+  // On la retrouve dans le cours, et la toucher l'ouvre remplie : pas une étape vide.
+  await p.locator(`.bloc[data-cle="${cle}"]`).first().click();
+  await p.locator('dialog .segment-modifier', { hasText: 'TP lampe' }).click();
+  await p.waitForSelector('dialog input[name="titre"]');
+  assert.match(await p.inputValue('dialog input[name="titre"]'), /TP lampe/);
+  await p.fill('dialog input[name="titre"]', 'TP lampe – ensoleillement (modifié)');
+  await p.getByRole('button', { name: /Enregistrer/ }).click();
+  await p.waitForFunction(() => import('./js/etat.js').then(({ calc }) => Object.values(calc().v.etapes).some((e) => /modifié/.test(e.titre))));
   await ctx.close();
 });
 

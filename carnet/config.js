@@ -18,5 +18,5 @@ export const CONFIG = {
   connexion: 'auto',
   // Page de présentation : ouvre directement la démo au lieu de la mise en route.
   apercu: false,
-  version: '0.6.1',
+  version: '0.6.2',
 };

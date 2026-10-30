@@ -23,7 +23,7 @@ export function horaires(cr) {
 }
 
 /** Ce qui est prévu, ou ce qui a été fait, dans un créneau. */
-export function segments(cr, { court = false } = {}) {
+export function segments(cr, { court = false, modifiable = false } = {}) {
   const { v, plan } = calc();
   const pc = plan.parCreneau[cr.cle] || null;
   if (!pc) return html`<p class="vide petit">Classe non suivie</p>`;
@@ -38,8 +38,12 @@ export function segments(cr, { court = false } = {}) {
     if (pc.etat === 'valide') ou = j.fin ? (r.debut ? '' : `depuis ${r.texte}`) : `jusqu'à ${j.texte}`;
     else if (!r.debut) ou = `reprendre à ${r.texte}${j.fin ? '' : ` → ${j.texte}`}`;
     else if (!j.fin) ou = `jusqu'à ${j.texte}`;
+    // Dans la feuille d'un cours, l'étape se touche pour la modifier (intitulé, texte du cahier de textes…).
+    const titre = modifiable && v.etapes[s.eid]
+      ? html`<button class="segment-modifier" data-action="etape-editer" data-code="${cr.code}" data-u="${s.u}" title="Modifier cette étape">${e.eval ? '✎ ' : ''}${e.titre} ${icone('crayon')}</button>`
+      : `${e.eval ? '✎ ' : ''}${e.titre}`;
     lignes.push(html`<div class="segment${e.eval ? ' eval' : ''}">
-      <span class="quoi">${e.eval ? '✎ ' : ''}${e.titre}${ou && !court ? html` <span class="ou">· ${ou}</span>` : ''}</span>
+      <span class="quoi">${titre}${ou && !court ? html` <span class="ou">· ${ou}</span>` : ''}</span>
       <span class="part">${pc.etat === 'valide' ? 'fait' : seancesLisible(s.h)}</span></div>`);
     if (court && ou) lignes.push(html`<div class="segment"><span class="ou">${ou}</span></div>`);
   }

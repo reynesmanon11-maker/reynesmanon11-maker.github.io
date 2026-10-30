@@ -281,11 +281,20 @@ envois['etape-enregistrer'] = (f) => {
   const eid = edition.eid || nouvelId(`e${d.niveau}-`);
   ecrireDoc(`etapes/${eid}`, d);
   if (nouvelle) {
+    const u = nouvelId('u');
     modifierDoc(`classes/${code}`, (cl) => {
       const f = [...(cl.file || [])], k = avantU ? f.findIndex((it) => it.u === avantU) : -1;
-      f.splice(k >= 0 ? k : f.length, 0, { u: nouvelId('u'), eid });
+      f.splice(k >= 0 ? k : f.length, 0, { u, eid });
       cl.file = f;
+      // « Arrêtés au tout début de l'étape X » voulait dire « tout ce qui précède X est fait » :
+      // l'arrêt passe au début de la nouvelle étape, sinon elle serait comptée comme déjà faite.
+      if (avantU && cl.depart && cl.depart.u === avantU && !(cl.depart.f > EPS)) cl.depart = { ...cl.depart, u };
     });
+    if (avantU) {
+      for (const [cle, j] of Object.entries(calc().v.journal || {})) {
+        if (j && j.code === code && j.arret && j.arret.u === avantU && !(j.arret.f > EPS)) modifierDoc(`journal/${cle}`, (x) => { x.arret = { ...x.arret, u }; });
+      }
+    }
   }
   fermerFeuille();
   if (nouvelle && jour) { toast(`Étape prévue pour le cours du ${dateCourte(jour)} ; la suite glisse d'un cran.`); return; }

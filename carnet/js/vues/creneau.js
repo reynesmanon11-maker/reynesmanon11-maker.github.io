@@ -109,6 +109,7 @@ function contenu(cle) {
   const annonces = c.plan.annonces[cle] || [];
   const txt = textePronote(cr);
   const cl = c.v.classes[cr.code] || {};
+  const aEtapes = !!pc && (pc.etat === 'prevu' || pc.etat === 'valide') && (pc.segments || []).some((s) => !s.recul && c.v.etapes[s.eid]);
   const aPrevoir = pc && pc.etat === 'prevu'
     ? pc.segments.filter((s) => s.de < EPS).map((s) => ({ s, e: c.v.etapes[s.eid] })).filter((x) => x.e && (x.e.afaire || x.e.photocopies > 0))
     : [];
@@ -119,7 +120,7 @@ function contenu(cle) {
     ${cr.statut ? html`<p class="aide">Pronote : ${cr.statut}</p>` : ''}
     ${!suivie ? html`<div class="bandeau"><span>Cette classe n'est pas encore suivie dans le Carnet.</span><button class="btn mini plein" data-action="suivre-classe" data-code="${cr.code}">La suivre</button></div>` : html`
     ${choix && choix.cle === cle && !cr.annule && commence ? html`<section class="section-feuille"><h3>Où vous êtes-vous arrêtés ?</h3>${choixArret(cr)}</section>` : ''}
-    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr)}${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}</section>
+    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr, { modifiable: true })}${aEtapes ? html`<p class="aide">Touchez une étape pour la modifier.</p>` : ''}${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}</section>
     ${annonces.length ? html`<section class="section-feuille"><h3>À annoncer</h3>${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} ${a.titre}, ${dateLongue(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}</section>` : ''}
     ${aPrevoir.length ? html`<section class="section-feuille"><h3>À préparer</h3>${aPrevoir.map(({ s, e }) => {
       const id = `prep_${cle}_${s.u}`, fait = !!(c.v.coches[id] && c.v.coches[id].fait);
@@ -128,7 +129,7 @@ function contenu(cle) {
     })}</section>` : ''}
     ${txt ? html`<section class="section-feuille"><h3>Cahier de textes</h3><pre class="pronote-texte" id="texte-pronote">${txt}</pre><div><button class="btn mini" data-action="copier-pronote">${icone('copier')} Copier pour Pronote</button></div></section>` : ''}
     ${!cr.annule && commence && !(choix && choix.cle === cle) ? html`<div><button class="btn plein" data-action="valider" data-cle="${cle}">${icone('valider')} ${pc && pc.etat === 'valide' ? 'Modifier le point d’arrêt' : 'Où en est-on ?'}</button></div>` : ''}
-    ${!cr.annule && !(choix && choix.cle === cle) && !(pc && pc.etat === 'valide') ? html`<div><button class="btn${commence ? '' : ' plein'}" data-action="etape-ici" data-cle="${cle}">${icone('plus')} Prévoir une étape dans ce cours</button></div>` : ''}
+    ${!cr.annule && !(choix && choix.cle === cle) && !(pc && pc.etat === 'valide') ? html`<div><button class="btn${commence || aEtapes ? '' : ' plein'}" data-action="etape-ici" data-cle="${cle}">${icone('plus')} ${aEtapes ? 'Ajouter une autre étape dans ce cours' : 'Prévoir une étape dans ce cours'}</button></div>` : ''}
     ${!commence && !cr.annule ? html`<p class="aide">Ce que vous prévoyez ici se place dans la progression de la classe : si un cours déborde, la suite glisse toute seule. Le point d'arrêt se note une fois le cours commencé.</p>` : ''}
   `}`;
   const pied = choix && choix.cle === cle ? html`
