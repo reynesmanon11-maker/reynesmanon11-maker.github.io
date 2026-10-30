@@ -6,7 +6,7 @@ import { html, icone, ouvrirFeuille, fermerFeuille, redessinerFeuille, toast, co
 import { calc, ecrireDoc, supprimerDoc, modifierDoc, nomClasse } from '../etat.js';
 import { pointsArret, positionDe, EPS, seancesLisible } from '../moteur.js';
 import { dateLongue, dateCourte } from '../dates.js';
-import { horaires, segments, pastille, etiquetteEtat, avertissementsFormat, textePronote } from './commun.js';
+import { horaires, segments, pastille, etiquetteEtat, textePronote } from './commun.js';
 
 let choix = null; // { cle, pos: { i, f }, prevu: { i, f }, note }
 
@@ -120,7 +120,7 @@ function contenu(cle) {
     ${cr.statut ? html`<p class="aide">Pronote : ${cr.statut}</p>` : ''}
     ${!suivie ? html`<div class="bandeau"><span>Cette classe n'est pas encore suivie dans le Carnet.</span><button class="btn mini plein" data-action="suivre-classe" data-code="${cr.code}">La suivre</button></div>` : html`
     ${choix && choix.cle === cle && !cr.annule && commence ? html`<section class="section-feuille"><h3>Où vous êtes-vous arrêtés ?</h3>${choixArret(cr)}</section>` : ''}
-    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr, { modifiable: true })}${aEtapes ? html`<p class="aide">Touchez une étape pour la modifier.</p>` : ''}${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}</section>
+    <section class="section-feuille"><h3>${pc && pc.etat === 'valide' ? 'Fait' : 'Prévu'}</h3>${segments(cr, { modifiable: true })}${aEtapes ? html`<p class="aide">Touchez une étape pour la modifier.</p>` : ''}</section>
     ${annonces.length ? html`<section class="section-feuille"><h3>À annoncer</h3>${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} ${a.titre}, ${dateLongue(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}</section>` : ''}
     ${aPrevoir.length ? html`<section class="section-feuille"><h3>À préparer</h3>${aPrevoir.map(({ s, e }) => {
       const id = `prep_${cle}_${s.u}`, fait = !!(c.v.coches[id] && c.v.coches[id].fait);

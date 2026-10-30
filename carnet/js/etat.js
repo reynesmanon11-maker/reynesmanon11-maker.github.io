@@ -165,7 +165,8 @@ export const niveauClasse = (code, v = calc().v) => (v.classes[code] && v.classe
 
 /** Variable CSS de couleur d'un niveau : choisie dans les réglages, sinon celle du thème. */
 export function couleurNiveau(niveau, v = calc().v) {
-  const perso = v.reglages.couleurs && v.reglages.couleurs[niveau];
+  // La couleur choisie pour Google Agenda (mise en route) vaut aussi dans le Carnet : une seule par niveau.
+  const perso = (v.reglages.couleurs && v.reglages.couleurs[niveau]) || (v.reglages.ecriture && v.reglages.ecriture.couleurs && v.reglages.ecriture.couleurs[niveau]);
   return perso || `var(--n-${niveau || 'Autre'})`;
 }
 

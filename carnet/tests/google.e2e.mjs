@@ -97,7 +97,7 @@ await etape('connexion et mise en route : l’agenda Pronote est trouvé tout se
 
 await etape('Google Agenda : un agenda coloré par niveau, chaque cours écrit une fois', async () => {
   const noms = agendasCarnet().map(([, a]) => [a.summary, a.backgroundColor]).sort();
-  assert.deepEqual(noms, [['Carnet · 3e', '#2f7150'], ['Carnet · 5e', '#7aa32f'], ['Carnet · 6e', '#4fae7a'], ['Carnet · Établissement', '#8a8f87']]);
+  assert.deepEqual(noms, [['Carnet · 3e', '#e8b400'], ['Carnet · 5e', '#8e24aa'], ['Carnet · 6e', '#7cb342'], ['Carnet · Établissement', '#8a8f87']]);
   const cours = evenementsCarnet().filter((e) => e.extendedProperties.private.cle.match(/^[0-9A-Z]+_\d{8}_\d{4}/));
   assert.equal(cours.length, ATTENDUS, `${cours.length} cours écrits, ${ATTENDUS} attendus`);
   const cles = cours.map((e) => e.extendedProperties.private.cle);
@@ -141,6 +141,8 @@ await etape('une étape ajoutée à la 501 : seuls ses cours concernés sont ré
   await p.locator('#classe-5G1').getByRole('button', { name: /Nouvelle étape/ }).click();
   await p.fill('dialog input[name="titre"]', 'Activité 6 – Les besoins des végétaux');
   await p.selectOption('dialog select[name="duree"]', '1.5');
+  // Pour la 501 seule : on décoche les autres 5e, proposées d'office.
+  for (const c of await p.$$('dialog input[name="aussi"]')) await c.uncheck();
   await p.getByRole('button', { name: /Enregistrer/ }).click();
   await p.waitForFunction(() => document.getElementById('pastille-synchro').dataset.etat === 'cours', null, { timeout: 10000 });
   await synchroFinie(p);

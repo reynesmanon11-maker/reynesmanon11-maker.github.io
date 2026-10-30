@@ -32,7 +32,6 @@ function ecartCible(e, jour) {
     ? html`<span class="ecart retard" title="Semaine visée : ${dateCourte(lundiDe(e.cible))}">+${n} sem.</span>`
     : html`<span class="ecart avance" title="Semaine visée : ${dateCourte(lundiDe(e.cible))}">${n} sem.</span>`;
 }
-const FORMATS = { indiff: 'Indifférent', entiere: 'Classe entière', demi: 'Demi-groupe' };
 
 let edition = null; // { code, u, eid, donnees, nouvelle }
 
@@ -71,7 +70,7 @@ function carteClasse(code, cal) {
           <button data-action="etape-editer" data-code="${code}" data-u="${it.u}" aria-label="Modifier « ${e.titre} »">${icone('crayon')}</button>
           <button data-action="etape-retirer" data-code="${code}" data-u="${it.u}" aria-label="Retirer « ${e.titre} » de la file">${icone('croix')}</button>
         </span>
-        <span class="meta">${d.debut && etatEtape !== 'faite' ? html`<b>${etatEtape === 'encours' ? 'en cours' : dateCourte(d.debut)}</b> ${ecartCible(e, d.debut)} · ` : ''}${seancesLisible(Number(e.duree) || 1)} · ${FORMATS[e.format] || FORMATS.indiff}${e.photocopies ? ` · ${e.photocopies} p. à photocopier` : ''}${e.afaire ? ` · ${e.afaire}` : ''}${e.devoirs ? ` · travail : ${e.devoirs}` : ''}
+        <span class="meta">${d.debut && etatEtape !== 'faite' ? html`<b>${etatEtape === 'encours' ? 'en cours' : dateCourte(d.debut)}</b> ${ecartCible(e, d.debut)} · ` : ''}${seancesLisible(Number(e.duree) || 1)}${e.photocopies ? ` · ${e.photocopies} p. à photocopier` : ''}${e.afaire ? ` · ${e.afaire}` : ''}${e.devoirs ? ` · travail : ${e.devoirs}` : ''}
           ${J.length ? html`<span class="jalons-apercu">${J.map((j, k) => html`<span class="${(k + 1) / J.length <= fait + EPS ? 'fait' : ''}">${j}</span>`)}</span>` : ''}
           ${i === pos.i && pos.f > EPS && !J.length ? html`<span>fait à ${Math.round(pos.f * 100)} %</span>` : ''}</span>
       </li>`;
@@ -175,6 +174,31 @@ function rendreCalendrier(codes, cal) {
 }
 
 // ---------- Éditeur d'étape ----------
+/** Les autres classes suivies du même niveau qui n'ont pas encore cette étape. */
+function classesSoeurs(code, eid) {
+  const v = calc().v, niveau = niveauClasse(code);
+  return Object.keys(v.classes)
+    .filter((k) => k !== code && !v.classes[k].masquee && niveauClasse(k) === niveau && !(eid && (v.classes[k].file || []).some((it) => it.eid === eid)))
+    .sort((a, b) => nomClasse(a).localeCompare(nomClasse(b), 'fr', { numeric: true }));
+}
+
+/** Glisse l'étape dans la file d'une classe, juste avant `avantU` (à la fin s'il est nul). */
+function insererDans(code, eid, avantU) {
+  const u = nouvelId('u');
+  modifierDoc(`classes/${code}`, (cl) => {
+    const f = [...(cl.file || [])], k = avantU ? f.findIndex((it) => it.u === avantU) : -1;
+    f.splice(k >= 0 ? k : f.length, 0, { u, eid });
+    cl.file = f;
+    // « Arrêtés au tout début de l'étape X » voulait dire « tout ce qui précède X est fait » :
+    // l'arrêt passe au début de la nouvelle étape, sinon elle serait comptée comme déjà faite.
+    if (avantU && cl.depart && cl.depart.u === avantU && !(cl.depart.f > EPS)) cl.depart = { ...cl.depart, u };
+  });
+  if (!avantU) return;
+  for (const [cle, j] of Object.entries(calc().v.journal || {})) {
+    if (j && j.code === code && j.arret && j.arret.u === avantU && !(j.arret.f > EPS)) modifierDoc(`journal/${cle}`, (x) => { x.arret = { ...x.arret, u }; });
+  }
+}
+
 function feuilleEtape() {
   const e = edition.donnees;
   const modele = Object.entries(MODELES_JALONS).find(([, m]) => m.jalons.join('|') === (e.jalons || []).join('|'));
@@ -182,6 +206,8 @@ function feuilleEtape() {
   const partage = Object.values(v.classes).filter((cl) => (cl.file || []).some((it) => it.eid === edition.eid)).length;
   const niveau = niveauClasse(edition.code);
   const chapitres = [...new Set(Object.values(v.etapes).filter((x) => x.niveau === niveau && x.chapitre).map((x) => x.chapitre))];
+  const soeurs = classesSoeurs(edition.code, edition.eid);
+  const cochees = edition.aussi || (edition.nouvelle ? soeurs : []);
   return {
     titre: edition.nouvelle ? `Nouvelle étape · ${nomClasse(edition.code)}` : 'Modifier l’étape',
     corps: html`<form class="section-feuille" data-envoi="etape-enregistrer" id="form-etape">
@@ -190,11 +216,12 @@ function feuilleEtape() {
         <datalist id="chapitres-niveau">${chapitres.map((x) => html`<option value="${x}"></option>`)}</datalist></label>
       <div class="grille-champs">
         <label class="champ"><span>Durée</span><select name="duree">${dureesAvec(Number(e.duree) || 1).map((d) => html`<option value="${d}"${Math.abs(d - (Number(e.duree) || 1)) < EPS ? ' selected' : ''}>${seancesLisible(d)}</option>`)}</select></label>
-        <label class="champ"><span>Format</span><select name="format">${Object.entries(FORMATS).map(([k, v]) => html`<option value="${k}"${(e.format || 'indiff') === k ? ' selected' : ''}>${v}</option>`)}</select></label>
         <label class="champ"><span>Photocopies (pages par élève)</span><input type="number" name="photocopies" min="0" max="20" value="${Number(e.photocopies) || 0}"></label>
       </div>
+      ${soeurs.length ? html`<fieldset class="champ aussi"><legend>${edition.nouvelle ? 'Prévoir aussi pour' : 'Ajouter aussi à'}</legend>
+        <div class="outils">${soeurs.map((k) => html`<label class="coche"><input type="checkbox" name="aussi" value="${k}"${cochees.includes(k) ? ' checked' : ''}><span>${nomClasse(k)}</span></label>`)}</div>
+        <p class="aide">Elle se place au même endroit de leur progression : elles y arriveront à leur rythme.</p></fieldset>` : ''}
       <label class="coche"><input type="checkbox" name="eval"${e.eval ? ' checked' : ''}><span>C'est une évaluation — le Carnet rappelle de l'annoncer, et ne la coupe pas sur deux cours</span></label>
-      <label class="coche"><input type="checkbox" name="insecable"${e.insecable ? ' checked' : ''}><span>Ne pas couper sur deux cours (un TP, une sortie…)</span></label>
       <label class="champ"><span>Jalons — là où l'on peut s'arrêter en cours d'étape</span>
         <select data-change="etape-modele">${Object.entries(MODELES_JALONS).map(([k, m]) => html`<option value="${k}"${modele && modele[0] === k ? ' selected' : ''}>${m.nom}</option>`)}${!modele ? html`<option value="" selected>Jalons personnalisés</option>` : ''}</select></label>
       <label class="champ"><span>Un jalon par ligne (modifiable)</span><textarea name="jalons" rows="5">${(e.jalons || []).join('\n')}</textarea></label>
@@ -262,9 +289,7 @@ envois['etape-enregistrer'] = (f) => {
     ...edition.donnees,
     titre: f.titre.value.trim(),
     duree: Number(f.duree.value) || 1,
-    format: f.format.value,
     eval: f.eval.checked,
-    insecable: f.insecable.checked,
     photocopies: Math.max(0, Math.round(Number(f.photocopies.value) || 0)),
     jalons: f.jalons.value.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     afaire: f.afaire.value.trim(),
@@ -280,25 +305,30 @@ envois['etape-enregistrer'] = (f) => {
   const { nouvelle, code, avantU, jour } = edition;
   const eid = edition.eid || nouvelId(`e${d.niveau}-`);
   ecrireDoc(`etapes/${eid}`, d);
+  const aussi = [...f.querySelectorAll('[name="aussi"]:checked')].map((x) => x.value);
+  // Repères pris dans la classe d'origine (avant l'insertion) : l'étape qui suit, et celle qui précède.
+  const v0 = calc().v, f0 = (v0.classes[code] && v0.classes[code].file) || [];
+  let reperes;
   if (nouvelle) {
-    const u = nouvelId('u');
-    modifierDoc(`classes/${code}`, (cl) => {
-      const f = [...(cl.file || [])], k = avantU ? f.findIndex((it) => it.u === avantU) : -1;
-      f.splice(k >= 0 ? k : f.length, 0, { u, eid });
-      cl.file = f;
-      // « Arrêtés au tout début de l'étape X » voulait dire « tout ce qui précède X est fait » :
-      // l'arrêt passe au début de la nouvelle étape, sinon elle serait comptée comme déjà faite.
-      if (avantU && cl.depart && cl.depart.u === avantU && !(cl.depart.f > EPS)) cl.depart = { ...cl.depart, u };
-    });
-    if (avantU) {
-      for (const [cle, j] of Object.entries(calc().v.journal || {})) {
-        if (j && j.code === code && j.arret && j.arret.u === avantU && !(j.arret.f > EPS)) modifierDoc(`journal/${cle}`, (x) => { x.arret = { ...x.arret, u }; });
-      }
-    }
+    const k = avantU ? f0.findIndex((it) => it.u === avantU) : -1;
+    reperes = k >= 0 ? { apres: f0[k].eid, avant: k > 0 ? f0[k - 1].eid : null } : { apres: null, avant: f0.length ? f0[f0.length - 1].eid : null };
+    insererDans(code, eid, avantU);
+  } else {
+    const k = f0.findIndex((it) => it.u === edition.u);
+    reperes = { apres: k >= 0 && k + 1 < f0.length ? f0[k + 1].eid : null, avant: k > 0 ? f0[k - 1].eid : null };
+  }
+  // Les autres classes du niveau : au même endroit de leur file, repéré par les étapes voisines.
+  for (const autre of aussi) {
+    const fa = (calc().v.classes[autre] || {}).file || [];
+    if (fa.some((it) => it.eid === eid)) continue;
+    const ka = reperes.apres ? fa.findIndex((it) => it.eid === reperes.apres) : -1;
+    const kb = ka < 0 && reperes.avant ? fa.findIndex((it) => it.eid === reperes.avant) : -1;
+    insererDans(autre, eid, ka >= 0 ? fa[ka].u : kb >= 0 && kb + 1 < fa.length ? fa[kb + 1].u : null);
   }
   fermerFeuille();
-  if (nouvelle && jour) { toast(`Étape prévue pour le cours du ${dateCourte(jour)} ; la suite glisse d'un cran.`); return; }
-  toast(nouvelle ? 'Étape ajoutée à la fin de la file.' : 'Étape enregistrée.');
+  const et = aussi.length ? ` et pour ${aussi.map((k) => nomClasse(k)).join(', ')}` : '';
+  if (nouvelle && jour) { toast(`Étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`); return; }
+  toast(nouvelle ? `Étape ajoutée${et}.` : aussi.length ? `Étape enregistrée, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : 'Étape enregistrée.');
 };
 actions['etape-supprimer'] = (el) => {
   if (!edition) return;

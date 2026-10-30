@@ -15,7 +15,6 @@ import { dateCourte } from '../dates.js';
 import { nouvelId } from '../donnees.js';
 
 const NIVEAUX = ['6e', '5e', '4e', '3e', '2nde', '1re', 'Tle', 'Autre'];
-const FORMATS = { demi: 'demi-groupe', entiere: 'classe entière' };
 const APERCU_MAX = 80;
 
 let imp = null; // { nom, feuilles: [{ nom, lignes, entete, colonnes, niveau, cibles, mode, faite }], k, lecture, erreur, collage, voirColonnes, surFin }
@@ -108,7 +107,7 @@ function apercu(etapes, chapitres) {
   for (const e of etapes.slice(0, APERCU_MAX)) {
     if (e.chapitre && e.chapitre !== ch) { ch = e.chapitre; lignes.push(html`<li class="chapitre">${ch}</li>`); }
     lignes.push(html`<li class="${e.eval ? 'eval' : ''}"><span class="titre">${e.eval ? '✎ ' : ''}${e.titre}</span>
-      <span class="meta">${seancesLisible(e.duree)}${FORMATS[e.format] ? ` · ${FORMATS[e.format]}` : ''}${e.jalons.length ? ` · ${e.jalons.length} jalons` : ''}${e.cible ? ` · semaine du ${dateCourte(e.cible)}` : ''}${e.devoirs ? ' · travail à faire' : ''}${e.afaire ? ' · matériel' : ''}</span></li>`);
+      <span class="meta">${seancesLisible(e.duree)}${e.jalons.length ? ` · ${e.jalons.length} jalons` : ''}${e.cible ? ` · semaine du ${dateCourte(e.cible)}` : ''}${e.devoirs ? ' · travail à faire' : ''}${e.afaire ? ' · matériel' : ''}</span></li>`);
   }
   const total = etapes.reduce((s, e) => s + e.duree, 0);
   return html`<p class="aide resume-import"><b>${etapes.length} étape${etapes.length > 1 ? 's' : ''}</b>${chapitres.length ? ` en ${chapitres.length} chapitre${chapitres.length > 1 ? 's' : ''}` : ''} · ${seancesLisible(total)} en tout · ${etapes.filter((e) => e.eval).length} évaluation(s)</p>

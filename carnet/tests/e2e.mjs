@@ -207,9 +207,8 @@ await etape('classes : nouvelle étape avec jalons, remontée dans la file', asy
   await rendu(p);
   const t2 = await titres();
   assert.equal(t2[t2.length - 2], 'Activité 8 – Germination des graines');
-  // L'étape est partagée par le niveau : la 503 peut la reprendre.
-  const options = await p.$$eval('#classe-5G3 select[data-change="etape-reprendre"] option', (o) => o.map((x) => x.textContent));
-  assert.ok(options.some((x) => /Germination/.test(x)));
+  // Même niveau : la 503 l'a reçue aussi (case « Prévoir aussi pour » cochée d'office).
+  await p.waitForSelector('#classe-5G3 .etape >> text=Germination');
   await ctx.close();
 });
 
@@ -281,6 +280,15 @@ await etape('prévoir une étape depuis un cours de l’emploi du temps : elle t
       return s && /TP lampe/.test(c.v.etapes[s.eid].titre) && s.de === 0;
     });
   }, cle);
+  // Même niveau, même progression : la 602 l'a aussi, au même endroit de sa file.
+  const autre = await p.evaluate(() => import('./js/etat.js').then(({ calc }) => {
+    const v = calc().v, titres = (code) => v.classes[code].file.map((it) => v.etapes[it.eid].titre);
+    const a = titres('6G1'), b = titres('6G2'), k = a.findIndex((t) => /TP lampe/.test(t));
+    return { avant: a[k + 1], dans602: b[b.findIndex((t) => /TP lampe/.test(t)) + 1], present: b.some((t) => /TP lampe/.test(t)), cinq: titres('5G1').some((t) => /TP lampe/.test(t)) };
+  }));
+  assert.ok(autre.present, 'la 602 a reçu l’étape');
+  assert.equal(autre.dans602, autre.avant, 'au même endroit de la progression');
+  assert.ok(!autre.cinq, 'pas les 5e');
   // On la retrouve dans le cours, et la toucher l'ouvre remplie : pas une étape vide.
   await p.locator(`.bloc[data-cle="${cle}"]`).first().click();
   await p.locator('dialog .segment-modifier', { hasText: 'TP lampe' }).click();

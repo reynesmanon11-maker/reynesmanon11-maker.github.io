@@ -18,7 +18,7 @@ import { ouvrirImportProgression } from './programmation.js';
 let etape = 'accueil';
 let voie = null; // 'google' | 'local'
 let attente = false; // false, 'fenetre' (Google est ouvert) ou 'lecture' (le Carnet lit les agendas)
-const NUANCIER = ['#4fae7a', '#7aa32f', '#3faea6', '#2f7150', '#4f93d4', '#8f76cf', '#d56a97', '#a8660f', '#b15f2c', '#8a8f87'];
+const NUANCIER = ['#7cb342', '#8e24aa', '#e8b400', '#4fae7a', '#3faea6', '#2f7150', '#4f93d4', '#8f76cf', '#d56a97', '#a8660f', '#b15f2c', '#8a8f87'];
 
 const PARCOURS = {
   google: ['Connexion', 'Agenda Pronote', 'Classes', 'Google Agenda', 'Vie perso', 'Progression'],

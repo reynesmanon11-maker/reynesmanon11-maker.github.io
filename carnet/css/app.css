@@ -12,7 +12,7 @@
   --accent: #2f7150; --accent-fond: #e9f1ea; --accent-texte: #ffffff;
   --alerte: #96590c; --alerte-fond: #f8f1e5; --rouge: #9d3b2c; --rouge-fond: #f7e9e6;
   --etab: #7c827a; --perso: #55606e;
-  --n-6e: #4fae7a; --n-5e: #7aa32f; --n-4e: #3faea6; --n-3e: #2f7150;
+  --n-6e: #7cb342; --n-5e: #8e24aa; --n-4e: #3faea6; --n-3e: #e8b400;
   --n-2nde: #4f93d4; --n-1re: #8f76cf; --n-Tle: #d56a97; --n-Autre: #8a8f87;
   --rayon: 16px; --rayon-s: 10px;
   --ombre: 0 1px 2px rgba(35, 32, 28, .05), 0 6px 20px rgba(35, 32, 28, .05);
@@ -182,6 +182,9 @@ main { max-width: 1280px; margin: 0 auto; padding: 18px 16px 40px; display: flex
 .lien { background: none; border: 0; padding: 0; color: var(--accent); text-decoration: underline; cursor: pointer; }
 .champ { display: flex; flex-direction: column; gap: 4px; font-size: .86rem; color: var(--doux); min-width: 0; }
 .champ > span { font-weight: 550; }
+.champ.aussi { border: 0; padding: 0; margin: 0; }
+.champ.aussi legend { font-weight: 550; padding: 0; margin-bottom: 4px; }
+.champ.aussi .outils { gap: 6px 16px; }
 input[type="text"], input[type="url"], input[type="number"], input[type="date"], input[type="time"], input[type="search"], select, textarea {
   border: 1px solid var(--trait-fort); background: var(--carte); border-radius: 10px; padding: 8px 10px; color: var(--encre); width: 100%; max-width: 100%;
 }

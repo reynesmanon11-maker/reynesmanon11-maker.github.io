@@ -7,7 +7,7 @@ import { ajouteJours, heureDe, heureLisible, dateLongue } from './dates.js';
 import { reprise, jusqua, seancesLisible, EPS } from './moteur.js';
 
 export const COULEURS_NIVEAUX = {
-  '6e': '#4fae7a', '5e': '#7aa32f', '4e': '#3faea6', '3e': '#2f7150',
+  '6e': '#7cb342', '5e': '#8e24aa', '4e': '#3faea6', '3e': '#e8b400',
   '2nde': '#4f93d4', '1re': '#8f76cf', Tle: '#d56a97', Autre: '#8a8f87',
 };
 export const COULEUR_ETABLISSEMENT = '#8a8f87';
@@ -65,13 +65,6 @@ export function texteCours(cr, partie, { plan, v, fuseau, urlAppli }) {
   const debuts = (pc.segments || []).filter((s) => !s.recul && s.de < EPS && pc.etat === 'prevu').map((s) => v.etapes[s.eid]).filter((e) => e && (e.afaire || e.photocopies > 0));
   if (debuts.length) d.push('', `À prévoir : ${debuts.map((e) => [e.photocopies > 0 ? `photocopies (${cl.effectif ? `${cl.effectif} × ${e.photocopies}` : `${e.photocopies} p./élève`})` : '', e.afaire].filter(Boolean).join(', ')).join(' · ')}`);
   for (const a of annonces) d.push('', `${a.tard ? 'PRÉVENIR DÈS MAINTENANT' : 'ANNONCER'} : ${a.titre}, ${dateLongue(a.jourEval)}`);
-  if (pc.etat === 'prevu') {
-    for (const s of pc.segments || []) {
-      const e = v.etapes[s.eid];
-      if (e && e.format === 'demi' && !cr.demi) d.push('', `Attention : « ${e.titre} » est prévue en demi-groupe, ce cours est en classe entière.`);
-      if (e && e.format === 'entiere' && cr.demi) d.push('', `Attention : « ${e.titre} » est prévue en classe entière, ce cours est en demi-groupes.`);
-    }
-  }
   if (pc.note) d.push('', `Note : ${pc.note}`);
   if (urlAppli) d.push('', `Où en est-on ? ${urlAppli}#valider=${cr.cle}`);
   d.push('— Carnet de bord');

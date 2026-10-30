@@ -41,7 +41,7 @@ test('différent : mêmes instants écrits autrement, espaces de description', (
 
 test('agendas voulus : par niveau avec couleurs choisies, ou un seul', () => {
   assert.deepEqual(agendasVoulus({ parNiveau: true, couleurs: { '5e': '#123456' } }, ['5e', '6e']).map((a) => [a.nom, a.couleur]),
-    [['Carnet · 5e', '#123456'], ['Carnet · 6e', '#4fae7a'], ['Carnet · Établissement', '#8a8f87']]);
+    [['Carnet · 5e', '#123456'], ['Carnet · 6e', '#7cb342'], ['Carnet · Établissement', '#8a8f87']]);
   assert.deepEqual(agendasVoulus({ parNiveau: false }, ['5e']).map((a) => a.nom), ['Carnet de bord']);
 });
 

@@ -97,6 +97,11 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   semaines, chapitres et évaluations. Une heure de cours = une séance (« 1h30 » = 1,5). Les
   fichiers de `carnet/tests/tableurs/` sont de vrais fichiers d'Excel et de LibreOffice : ne pas
   les réécrire à la main.
+- **Une progression par niveau** : une étape prévue pour une classe est proposée d'office aux autres classes
+  du même niveau (case « Prévoir aussi pour »), au même endroit de leur file, repéré par les étapes voisines.
+  Le format (classe entière / demi-groupe) n'est plus demandé : l'emploi du temps le dit déjà. Couleurs
+  par niveau (5e violet, 6e vert, 3e jaune) : `--n-*` dans `carnet/css/app.css` et `COULEURS_NIVEAUX`
+  dans `carnet/js/agenda.js`, à garder identiques.
 - **Agendas Google : renommer avant de créer.** Google limite les créations d'agendas, pas les
   renommages : un agenda du Carnet inutile (doublon vide, niveau disparu) est renommé pour devenir
   celui qui manque ; les restes se suppriment d'un bouton dans Mes données.

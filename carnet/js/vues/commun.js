@@ -54,21 +54,6 @@ export function segments(cr, { court = false, modifiable = false } = {}) {
   return html`<div class="cours-plan">${lignes}</div>`;
 }
 
-/** Une étape prévue en demi-groupe qui tombe sur un cours en classe entière (ou l'inverse). */
-export function avertissementsFormat(cr) {
-  const { plan, v } = calc();
-  const pc = plan.parCreneau[cr.cle];
-  if (!pc || pc.etat !== 'prevu') return [];
-  const res = [];
-  for (const s of pc.segments) {
-    const e = v.etapes[s.eid];
-    if (!e) continue;
-    if (e.format === 'demi' && !cr.demi) res.push(`« ${e.titre} » est prévue en demi-groupe, mais ce cours est en classe entière.`);
-    if (e.format === 'entiere' && cr.demi) res.push(`« ${e.titre} » est prévue en classe entière, mais ce cours est en demi-groupes.`);
-  }
-  return res;
-}
-
 /** Étiquette d'état d'un créneau. */
 export function etiquetteEtat(cr) {
   const { plan, maintenant } = calc();
@@ -145,7 +130,6 @@ export function carteCours(cr, { date = false } = {}) {
       ${etiquetteEtat(cr)}
     </div>
     ${segments(cr)}
-    ${avertissementsFormat(cr).map((t) => html`<p class="avert">${icone('alerte')} ${t}</p>`)}
     ${annonces.map((a) => html`<div class="annonce${a.tard ? ' tard' : ''}"><span>${icone('annonce')} <b>${a.tard ? 'Prévenir dès maintenant' : 'Annoncer'}</b> : ${a.titre}, ${dateCourte(a.jourEval)}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
     ${alertes.map((a) => html`<div class="annonce tard"><span>${icone('alerte')} ${a.occasion ? html`Annonce de l'évaluation non cochée (à faire le ${dateCourte(a.occasion)}) : a-t-elle été faite ?` : "Évaluation sans cours avant pour l'annoncer."}</span><button class="btn mini" data-action="annonce-faite" data-code="${a.code}" data-u="${a.u}">C'est fait</button></div>`)}
     ${aPrevoir.length ? html`<div class="a-prevoir"><b>À prévoir</b>${aPrevoir.map((x) => html`<label class="coche${x.fait ? ' faite' : ''}"><input type="checkbox" data-change="coche" data-id="${x.id}"${x.fait ? ' checked' : ''}><span>${x.quoi}</span></label>`)}</div>` : ''}
