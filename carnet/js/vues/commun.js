@@ -46,9 +46,17 @@ export function segments(cr, { court = false, modifiable = false } = {}) {
       <span class="quoi">${titre}${ou && !court ? html` <span class="ou">· ${ou}</span>` : ''}</span>
       <span class="part">${pc.etat === 'valide' ? 'fait' : seancesLisible(s.h)}</span></div>`);
     if (court && ou) lignes.push(html`<div class="segment"><span class="ou">${ou}</span></div>`);
-    // Dans la feuille du cours : le déroulé écrit dans l'étape, en entier.
+    // Dans la feuille du cours : le déroulé de l'étape, avec ce qui tombe dans CETTE séance en gras ;
+    // ce qui a été fait avant est barré, ce qui viendra au cours suivant est grisé.
     const J = modifiable ? jalonsDe(e) : [];
-    if (J.length) lignes.push(html`<ul class="deroule">${J.map((j) => html`<li>${j}</li>`)}</ul>`);
+    if (J.length) {
+      // Comme « jusqu'à » : un moment compte pour ce cours s'il y tient en entier ; celui qui
+      // commence à peine est « si le temps le permet ».
+      const n = J.length, k0 = Math.floor(s.de * n + EPS), k1 = s.a >= 1 - EPS ? n : Math.floor(s.a * n + EPS), k2 = Math.ceil(s.a * n - EPS);
+      const etat = (k) => (k < k0 ? 'fait' : k < k1 ? 'ici' : k < k2 ? 'peut-etre' : 'ensuite');
+      const suffixe = { fait: ' (déjà fait)', ici: '', 'peut-etre': ' (si le temps le permet)', ensuite: ' (cours suivant)' };
+      lignes.push(html`<ul class="deroule">${J.map((j, k) => html`<li class="${etat(k)}">${j}${suffixe[etat(k)]}</li>`)}</ul>`);
+    }
   }
   if (pc.etat === 'valide' && !pc.segments.length) lignes.push(html`<div class="segment libre"><span class="quoi">Rien d'avancé dans la file</span></div>`);
   if (pc.etat === 'prevu' && pc.libre > 0.01) {
