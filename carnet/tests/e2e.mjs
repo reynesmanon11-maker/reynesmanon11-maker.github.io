@@ -189,7 +189,7 @@ await etape('tâches : ajout rapide puis cochée', async () => {
   await ctx.close();
 });
 
-await etape('classes : nouvelle étape avec jalons, remontée dans la file', async () => {
+await etape('classes : nouvelle étape, remontée dans la file', async () => {
   const { ctx, p } = await contexte();
   await demo(p);
   await p.goto(URL + '#/classes');
@@ -297,6 +297,48 @@ await etape('prévoir une étape depuis un cours de l’emploi du temps : elle t
   await p.fill('dialog input[name="titre"]', 'TP lampe – ensoleillement (modifié)');
   await p.getByRole('button', { name: /Enregistrer/ }).click();
   await p.waitForFunction(() => import('./js/etat.js').then(({ calc }) => Object.values(calc().v.etapes).some((e) => /modifié/.test(e.titre))));
+  await ctx.close();
+});
+
+await etape('rien ne se perd : fermer enregistre, un redessin garde la saisie, deux fenêtres ne s’écrasent pas', async () => {
+  const { ctx, p } = await contexte();
+  // Une horloge qui avance (et non figée) : deux écritures n'ont pas la même heure, comme en vrai.
+  await p.clock.install({ time: new Date('2026-11-05T10:50:00+01:00') });
+  await demo(p);
+  await p.goto(URL + '#/classes');
+  // 1. On tape, la synchronisation redessine pendant ce temps, puis on ferme par la croix.
+  await p.locator('#classe-6G1').getByRole('button', { name: /Nouvelle étape/ }).click();
+  await p.fill('dialog input[name="titre"]', 'Faire l’appel');
+  await p.fill('dialog input[name="afaire"]', 'Liste de la classe');
+  await p.locator('dialog .feuille-tete h2').click(); // le curseur quitte les cases
+  await p.evaluate(() => import('./js/etat.js').then(({ changer }) => changer()));
+  await rendu(p);
+  assert.equal(await p.inputValue('dialog input[name="afaire"]'), 'Liste de la classe');
+  await p.locator('dialog .feuille-tete [data-action="fermer-feuille"]').click();
+  await p.waitForSelector('#classe-6G1 .etape >> text=Faire l’appel');
+  await p.waitForSelector('#classe-6G2 .etape >> text=Faire l’appel');
+  // 2. Une seconde fenêtre restée ouverte, avec ses vieilles données, écrit à son tour.
+  const p2 = await ctx.newPage();
+  await p2.clock.install({ time: new Date('2026-11-05T10:51:00+01:00') });
+  await p2.goto(URL + '#/classes');
+  await p2.waitForSelector('#classe-6G1');
+  await p.locator('#classe-6G1').getByRole('button', { name: /Nouvelle étape/ }).click();
+  await p.fill('dialog input[name="titre"]', 'Ranger la salle');
+  await p.getByRole('button', { name: /Enregistrer/ }).click();
+  await p2.evaluate(() => import('./js/etat.js').then(({ ecrireDoc }) => ecrireDoc('notes/essai', { texte: 'fenêtre 2' })));
+  await p2.waitForTimeout(300);
+  const compte = (pg) => pg.evaluate(() => import('./js/etat.js').then(({ etat }) => Object.values(etat.docs).filter((d) => /Ranger/.test(d.titre || '')).length + ' ' + JSON.stringify(etat.docs['classes/6G1'].file.length)));
+  console.log('DBG p', await compte(p), 'p2', await compte(p2), await p.evaluate(() => import('./js/stockage.js').then(({ lire }) => lire('docs')).then((d) => Object.values(d).filter((x) => /Ranger/.test(x.titre || '')).length + ' ' + d['classes/6G1'].file.length)));
+  await p.reload(); await p.waitForSelector('#classe-6G1');
+  const titres = await p.$$eval('#classe-6G1 .etape > span:first-child', (x) => x.map((e) => e.textContent));
+  assert.ok(titres.some((t) => /Ranger la salle/.test(t)), 'l’écriture de la fenêtre 2 n’a rien effacé');
+  assert.ok(await p.evaluate(() => import('./js/etat.js').then(({ etat }) => !!etat.docs['notes/essai'])));
+  // 3. Retirer l'étape d'une classe ne la retire pas des autres.
+  await p.locator('#classe-6G1 .etape', { hasText: 'Faire l’appel' }).locator('[data-action="etape-editer"]').click();
+  await p.getByRole('button', { name: /Retirer de la 601/ }).click();
+  await p.getByRole('button', { name: /Toucher encore/ }).click();
+  await p.waitForSelector('#classe-6G1 .etape >> text=Faire l’appel', { state: 'detached' });
+  assert.equal(await p.locator('#classe-6G2 .etape', { hasText: 'Faire l’appel' }).count(), 1);
   await ctx.close();
 });
 

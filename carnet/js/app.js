@@ -2,7 +2,7 @@
 // en cours de saisie n'est jamais écrasé (le rendu attend qu'on le quitte).
 import { actions, brancher } from './actions.js';
 import { html, icone, toast, fermerFeuille, redessinerFeuille, feuilleOuverte } from './ui.js';
-import { etat, calc, charger, abonner, changer, reglerLocal, surModification, definirSynchro } from './etat.js';
+import { etat, calc, charger, abonner, changer, reglerLocal, surModification, definirSynchro, relireDocs } from './etat.js';
 import { stockageDurable } from './stockage.js';
 import * as G from './google.js';
 import { synchroniser, messageErreur } from './synchro.js';
@@ -217,7 +217,7 @@ async function demarrer() {
   setInterval(() => { if (document.visibilityState === 'visible') changer(); }, 60 * 1000);
   // Synchronisation régulière tant que l'appli est ouverte et connectée.
   setInterval(() => { if (etat.local.mode === 'google' && G.connecte() && document.visibilityState === 'visible') synchroniser(); }, 15 * 60 * 1000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') changer(); });
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { relireDocs(); changer(); } });
   window.addEventListener('online', () => { if (etat.local.mode === 'google' && G.connecte()) synchroniser(); });
   if (etat.local.mode === 'local' && etat.local.ics && etat.local.ics.url) synchroniser();
   if (retourGoogle) apresRetourGoogle(retourGoogle);

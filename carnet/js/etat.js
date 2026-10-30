@@ -2,7 +2,7 @@
 //   docs   : les données de l'enseignant (synchronisées entre appareils)
 //   local  : les préférences de CET appareil (thème, disposition du tableau de bord, mode)
 //   brut   : les derniers événements lus (Pronote, agendas perso), gardés pour le hors-ligne
-import { lire, ecrire as ecrireStockage } from './stockage.js';
+import { lire, ecrire as ecrireStockage, fusionnerEcrire } from './stockage.js';
 import { vue, fusionner, purger, fusionImport } from './donnees.js';
 import { interpreter, deduireNoms, niveauDe } from './pronote.js';
 import { construireCreneaux, planifier, coupures, dureeSeanceProbable, persoUtiles } from './moteur.js';
@@ -55,13 +55,35 @@ function sauver() {
   sauvegardePrevue = true;
   queueMicrotask(() => {
     sauvegardePrevue = false;
-    ecrireStockage('docs', etat.docs);
+    ecrireDocs();
     ecrireStockage('local', etat.local);
   });
 }
 if (typeof addEventListener === 'function') {
-  addEventListener('pagehide', () => { ecrireStockage('docs', etat.docs); ecrireStockage('local', etat.local); });
+  addEventListener('pagehide', () => { ecrireDocs(); ecrireStockage('local', etat.local); });
 }
+
+// Deux fenêtres du Carnet sur le même appareil partagent la même mémoire : chacune écrit en
+// fusionnant document par document (le plus récent gagne), et prévient l'autre, qui relit.
+const canal = typeof BroadcastChannel === 'function' ? new BroadcastChannel('carnet-de-bord') : null;
+let ecraserProchain = false;
+async function ecrireDocs() {
+  const ecraser = ecraserProchain; ecraserProchain = false;
+  if (ecraser) { await ecrireStockage('docs', etat.docs); if (canal) canal.postMessage('docs'); return; }
+  const ecrit = await fusionnerEcrire('docs', etat.docs, (stocke, ici) => purger(fusionner(ici, stocke || {})));
+  adopter(ecrit);
+  if (canal) canal.postMessage('docs');
+}
+/** Reprend ce qu'une autre fenêtre a écrit de plus récent. */
+function adopter(stocke) {
+  if (!stocke || typeof stocke !== 'object') return;
+  const fus = purger(fusionner(etat.docs, stocke));
+  if (Object.keys(fus).some((k) => fus[k] !== etat.docs[k])) { etat.docs = fus; changer(); }
+}
+export async function relireDocs() {
+  if (etat.pret) adopter(await lire('docs'));
+}
+if (canal) canal.onmessage = (e) => { if (e.data === 'docs') relireDocs(); };
 
 export async function charger() {
   const [docs, local, brut] = await Promise.all([lire('docs'), lire('local'), lire('brut')]);
@@ -112,6 +134,7 @@ export function importerDocs(importes) {
 
 export function remplacerDocs(docs) {
   etat.docs = docs;
+  ecraserProchain = true;
   etat.sale = true;
   sauver(); changer();
 }

@@ -51,6 +51,25 @@ export async function ecrire(cle, valeur) {
   });
 }
 
+/**
+ * Lit, fusionne et réécrit dans une seule transaction : deux fenêtres du Carnet ouvertes en même
+ * temps (l'appli installée et un onglet) ne s'écrasent plus l'une l'autre. Rend la valeur écrite.
+ */
+export async function fusionnerEcrire(cle, valeur, fusion) {
+  const db = await ouvrir();
+  if (!db) { const v = fusion(memoire().get(cle), valeur); memoire().set(cle, v); return v; }
+  return new Promise((ok) => {
+    try {
+      const t = db.transaction(MAGASIN, 'readwrite'), magasin = t.objectStore(MAGASIN);
+      let ecrit = valeur;
+      const r = magasin.get(cle);
+      r.onsuccess = () => { ecrit = fusion(r.result, valeur); magasin.put(ecrit, cle); };
+      t.oncomplete = () => ok(ecrit);
+      t.onerror = () => { memoire().set(cle, valeur); ok(valeur); };
+    } catch { memoire().set(cle, valeur); ok(valeur); }
+  });
+}
+
 export async function effacerTout() {
   enMemoire = new Map();
   const db = await ouvrir();

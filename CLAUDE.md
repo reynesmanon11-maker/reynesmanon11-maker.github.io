@@ -102,6 +102,11 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   Le format (classe entière / demi-groupe) n'est plus demandé : l'emploi du temps le dit déjà. Couleurs
   par niveau (5e violet, 6e vert, 3e jaune) : `--n-*` dans `carnet/css/app.css` et `COULEURS_NIVEAUX`
   dans `carnet/js/agenda.js`, à garder identiques.
+- **Rien de ce que Manon écrit ne se perd** : fermer la feuille d'une étape l'enregistre (pas de bouton
+  « Annuler »), un redessin de feuille garde les champs touchés (`touches` dans `carnet/js/ui.js`), deux
+  fenêtres du Carnet fusionnent leurs écritures (`fusionnerEcrire`, `BroadcastChannel`), et « Retirer »
+  n'enlève une étape que de la classe ouverte, avec « Annuler ». Jamais de suppression en cascade.
+  Les jalons ne se saisissent plus (ceux qui existent restent lus).
 - **Agendas Google : renommer avant de créer.** Google limite les créations d'agendas, pas les
   renommages : un agenda du Carnet inutile (doublon vide, niveau disparu) est renommé pour devenir
   celui qui manque ; les restes se suppriment d'un bouton dans Mes données.

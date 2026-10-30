@@ -201,7 +201,6 @@ function insererDans(code, eid, avantU) {
 
 function feuilleEtape() {
   const e = edition.donnees;
-  const modele = Object.entries(MODELES_JALONS).find(([, m]) => m.jalons.join('|') === (e.jalons || []).join('|'));
   const v = calc().v;
   const partage = Object.values(v.classes).filter((cl) => (cl.file || []).some((it) => it.eid === edition.eid)).length;
   const niveau = niveauClasse(edition.code);
@@ -222,9 +221,6 @@ function feuilleEtape() {
         <div class="outils">${soeurs.map((k) => html`<label class="coche"><input type="checkbox" name="aussi" value="${k}"${cochees.includes(k) ? ' checked' : ''}><span>${nomClasse(k)}</span></label>`)}</div>
         <p class="aide">Elle se place au même endroit de leur progression : elles y arriveront à leur rythme.</p></fieldset>` : ''}
       <label class="coche"><input type="checkbox" name="eval"${e.eval ? ' checked' : ''}><span>C'est une évaluation — le Carnet rappelle de l'annoncer, et ne la coupe pas sur deux cours</span></label>
-      <label class="champ"><span>Jalons — là où l'on peut s'arrêter en cours d'étape</span>
-        <select data-change="etape-modele">${Object.entries(MODELES_JALONS).map(([k, m]) => html`<option value="${k}"${modele && modele[0] === k ? ' selected' : ''}>${m.nom}</option>`)}${!modele ? html`<option value="" selected>Jalons personnalisés</option>` : ''}</select></label>
-      <label class="champ"><span>Un jalon par ligne (modifiable)</span><textarea name="jalons" rows="5">${(e.jalons || []).join('\n')}</textarea></label>
       <label class="champ"><span>Matériel à prévoir</span><input type="text" name="afaire" value="${e.afaire || ''}" placeholder="Microscopes, lames, épiderme d'oignon"></label>
       <label class="champ"><span>Texte pour le cahier de textes Pronote</span><textarea name="pronote" placeholder="Écrit une fois, repris pour toutes les classes du niveau">${e.pronote || ''}</textarea></label>
       <div class="grille-champs">
@@ -233,8 +229,8 @@ function feuilleEtape() {
       </div>
       ${!edition.nouvelle && partage > 1 ? html`<p class="aide">Cette étape est dans la file de ${partage} classes : la modifier la modifie pour toutes.</p>` : ''}
     </form>`,
-    pied: html`${!edition.nouvelle ? html`<button class="btn danger" data-action="etape-supprimer">Supprimer l'étape</button>` : ''}
-      <button class="btn" data-action="fermer-feuille">Annuler</button>
+    // Pas de bouton « Annuler » : fermer la feuille enregistre ce qui a été tapé.
+    pied: html`${!edition.nouvelle ? html`<button class="btn danger" data-action="etape-supprimer">Retirer de la ${nomClasse(edition.code)}</button>` : ''}
       <button class="btn plein" type="submit" form="form-etape">${icone('valider')} Enregistrer</button>`,
   };
 }
@@ -244,8 +240,8 @@ actions['etape-nouvelle'] = (el) => {
   // La nouvelle étape reprend le chapitre de la dernière de la file : on écrit souvent à la suite.
   const c = calc(), file = (c.v.classes[code].file || []).filter((it) => c.v.etapes[it.eid]);
   const dernier = file.length ? c.v.etapes[file[file.length - 1].eid].chapitre || '' : '';
-  edition = { code, u: null, eid: null, nouvelle: true, donnees: { titre: '', chapitre: dernier, duree: 1, format: 'indiff', eval: false, jalons: MODELES_JALONS.demarche.jalons, photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' } };
-  ouvrirFeuille(feuilleEtape, { surFermeture: () => { edition = null; } });
+  edition = { code, u: null, eid: null, nouvelle: true, donnees: { titre: '', chapitre: dernier, duree: 1, format: 'indiff', eval: false, jalons: [], photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' } };
+  ouvrirFeuille(feuilleEtape, { surFermeture: fermetureEtape });
 };
 // Depuis un cours de l'emploi du temps : l'étape se glisse dans la file à l'endroit où ce cours
 // commence, et tombe donc sur lui (les étapes d'après glissent d'un cran).
@@ -265,9 +261,9 @@ export function nouvelleEtapeAuCours(cle) {
   const precedente = avantU ? file[file.findIndex((it) => it.u === avantU) - 1] : file[file.length - 1];
   edition = {
     code: cr.code, u: null, eid: null, nouvelle: true, avantU, jour: cr.jour,
-    donnees: { titre: '', chapitre: (precedente && (c.v.etapes[precedente.eid] || {}).chapitre) || '', duree: 1, format: 'indiff', eval: false, jalons: MODELES_JALONS.demarche.jalons, photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' },
+    donnees: { titre: '', chapitre: (precedente && (c.v.etapes[precedente.eid] || {}).chapitre) || '', duree: 1, format: 'indiff', eval: false, jalons: [], photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' },
   };
-  ouvrirFeuille(feuilleEtape, { surFermeture: () => { edition = null; } });
+  ouvrirFeuille(feuilleEtape, { surFermeture: fermetureEtape });
 }
 actions['etape-ici'] = (el) => nouvelleEtapeAuCours(el.dataset.cle);
 actions['etape-editer'] = (el) => {
@@ -276,22 +272,23 @@ actions['etape-editer'] = (el) => {
   const it = (c.v.classes[code].file || []).find((x) => x.u === u);
   if (!it) return;
   edition = { code, u, eid: it.eid, nouvelle: false, donnees: structuredClone(c.v.etapes[it.eid]) };
-  ouvrirFeuille(feuilleEtape, { surFermeture: () => { edition = null; } });
+  ouvrirFeuille(feuilleEtape, { surFermeture: fermetureEtape });
 };
-changements['etape-modele'] = (el) => {
-  const m = MODELES_JALONS[el.value];
-  const zone = document.querySelector('#form-etape [name="jalons"]');
-  if (m && zone) zone.value = m.jalons.join('\n');
-};
-envois['etape-enregistrer'] = (f) => {
-  if (!edition) return;
+// Fermer la feuille (croix, Échap, clic à côté) enregistre ce qui a été tapé : rien ne se perd.
+function fermetureEtape(f) {
+  if (edition && !edition.fait && f) enregistrerEtape(f, { enFermant: true });
+  edition = null;
+}
+const CHAMPS_ETAPE = ['titre', 'duree', 'eval', 'photocopies', 'afaire', 'pronote', 'chapitre', 'devoirs', 'cible'];
+envois['etape-enregistrer'] = (f) => enregistrerEtape(f);
+function enregistrerEtape(f, { enFermant = false } = {}) {
+  if (!edition || edition.fait) return;
   const d = {
     ...edition.donnees,
     titre: f.titre.value.trim(),
     duree: Number(f.duree.value) || 1,
     eval: f.eval.checked,
     photocopies: Math.max(0, Math.round(Number(f.photocopies.value) || 0)),
-    jalons: f.jalons.value.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 12),
     afaire: f.afaire.value.trim(),
     pronote: f.pronote.value.trim(),
     chapitre: f.chapitre.value.trim(),
@@ -301,11 +298,22 @@ envois['etape-enregistrer'] = (f) => {
     niveau: niveauClasse(edition.code),
   };
   delete d._m;
-  if (!d.titre) { toast('Donnez un intitulé à l’étape.'); return; }
-  const { nouvelle, code, avantU, jour } = edition;
-  const eid = edition.eid || nouvelId(`e${d.niveau}-`);
-  ecrireDoc(`etapes/${eid}`, d);
   const aussi = [...f.querySelectorAll('[name="aussi"]:checked')].map((x) => x.value);
+  if (enFermant) {
+    // Rien de tapé (ou rien de changé) : rien à enregistrer.
+    const vide = !['titre', 'afaire', 'pronote', 'devoirs'].some((k) => d[k]);
+    const change = CHAMPS_ETAPE.some((k) => String(d[k] ?? '') !== String(edition.donnees[k] ?? '')) || (!edition.nouvelle && aussi.length);
+    if (edition.nouvelle ? vide : !change) return;
+  }
+  if (!d.titre) {
+    if (!enFermant) { toast('Donnez un intitulé à l’étape.'); return; }
+    d.titre = d.pronote.split('\n')[0].slice(0, 80) || d.afaire.slice(0, 80) || 'Étape sans titre';
+  }
+  // Marquée faite (et non effacée) : la feuille peut encore se redessiner avant de se fermer.
+  const ed = edition; ed.fait = true;
+  const { nouvelle, code, avantU, jour } = ed;
+  const eid = ed.eid || nouvelId(`e${d.niveau}-`);
+  ecrireDoc(`etapes/${eid}`, d);
   // Repères pris dans la classe d'origine (avant l'insertion) : l'étape qui suit, et celle qui précède.
   const v0 = calc().v, f0 = (v0.classes[code] && v0.classes[code].file) || [];
   let reperes;
@@ -314,7 +322,7 @@ envois['etape-enregistrer'] = (f) => {
     reperes = k >= 0 ? { apres: f0[k].eid, avant: k > 0 ? f0[k - 1].eid : null } : { apres: null, avant: f0.length ? f0[f0.length - 1].eid : null };
     insererDans(code, eid, avantU);
   } else {
-    const k = f0.findIndex((it) => it.u === edition.u);
+    const k = f0.findIndex((it) => it.u === ed.u);
     reperes = { apres: k >= 0 && k + 1 < f0.length ? f0[k + 1].eid : null, avant: k > 0 ? f0[k - 1].eid : null };
   }
   // Les autres classes du niveau : au même endroit de leur file, repéré par les étapes voisines.
@@ -325,21 +333,20 @@ envois['etape-enregistrer'] = (f) => {
     const kb = ka < 0 && reperes.avant ? fa.findIndex((it) => it.eid === reperes.avant) : -1;
     insererDans(autre, eid, ka >= 0 ? fa[ka].u : kb >= 0 && kb + 1 < fa.length ? fa[kb + 1].u : null);
   }
-  fermerFeuille();
+  if (!enFermant) fermerFeuille();
   const et = aussi.length ? ` et pour ${aussi.map((k) => nomClasse(k)).join(', ')}` : '';
-  if (nouvelle && jour) { toast(`Étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`); return; }
-  toast(nouvelle ? `Étape ajoutée${et}.` : aussi.length ? `Étape enregistrée, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : 'Étape enregistrée.');
-};
+  const pre = enFermant ? 'Enregistré en fermant : ' : '';
+  if (nouvelle && jour) { toast(`${pre}étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`); return; }
+  toast(pre + (nouvelle ? `étape ajoutée${et}.` : aussi.length ? `étape enregistrée, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : 'étape enregistrée.'));
+}
+// Retirer une étape ne touche que la classe ouverte : les autres classes du niveau la gardent.
 actions['etape-supprimer'] = (el) => {
   if (!edition) return;
-  if (el.dataset.confirme !== '1') { el.dataset.confirme = '1'; el.textContent = 'Supprimer partout ?'; return; }
-  const eid = edition.eid;
-  for (const [code, cl] of Object.entries(calc().v.classes)) {
-    if ((cl.file || []).some((it) => it.eid === eid)) modifierDoc(`classes/${code}`, (x) => { x.file = x.file.filter((it) => it.eid !== eid); });
-  }
-  supprimerDoc(`etapes/${eid}`);
+  if (el.dataset.confirme !== '1') { el.dataset.confirme = '1'; el.textContent = `Retirer de la ${nomClasse(edition.code)} ? Toucher encore`; return; }
+  const { code, u } = edition;
+  edition.fait = true; // pas d'enregistrement en fermant : on retire
   fermerFeuille();
-  toast('Étape supprimée de toutes les files.');
+  retirerEtape(code, u);
 };
 
 const deplacerEtape = (code, i, sens) => modifierDoc(`classes/${code}`, (cl) => {
@@ -351,10 +358,14 @@ actions['etape-monter'] = (el) => deplacerEtape(el.dataset.code, Number(el.datas
 actions['etape-descendre'] = (el) => deplacerEtape(el.dataset.code, Number(el.dataset.i), 1);
 actions['etape-retirer'] = (el) => {
   if (el.dataset.confirme !== '1') { el.dataset.confirme = '1'; el.innerHTML = 'Retirer ?'; setTimeout(() => { if (el.isConnected) { el.dataset.confirme = ''; el.innerHTML = String(icone('croix')); } }, 3000); return; }
-  const { code, u } = el.dataset;
-  modifierDoc(`classes/${code}`, (cl) => { cl.file = cl.file.filter((it) => it.u !== u); });
-  toast('Étape retirée de la file (elle reste disponible pour le niveau).');
+  retirerEtape(el.dataset.code, el.dataset.u);
 };
+/** Retire l'étape de la file d'une classe seulement ; « Annuler » la remet à sa place. Le texte de l'étape n'est jamais effacé. */
+function retirerEtape(code, u) {
+  const avant = structuredClone((calc().v.classes[code] || {}).file || []);
+  modifierDoc(`classes/${code}`, (cl) => { cl.file = (cl.file || []).filter((it) => it.u !== u); });
+  toast(`Étape retirée de la ${nomClasse(code)} (les autres classes la gardent).`, { action: { libelle: 'Annuler', faire: () => modifierDoc(`classes/${code}`, (cl) => { cl.file = avant; }) } });
+}
 changements['etape-reprendre'] = (el) => {
   if (!el.value) return;
   const eid = el.value, code = el.dataset.code;

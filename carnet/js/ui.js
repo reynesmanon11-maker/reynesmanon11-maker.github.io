@@ -68,15 +68,27 @@ export function ouvrirFeuille(contenu, { classe = '', surFermeture } = {}) {
     feuille.addEventListener('close', () => {
       const f = feuille._surFermeture;
       rendreFeuille = null;
+      touches.clear();
+      // Le formulaire est encore là : de quoi enregistrer ce qui a été tapé avant de fermer.
+      if (f) f(feuille.querySelector('form'));
       feuille.innerHTML = '';
-      if (f) f();
     });
+    // Ce que l'on tape est noté : un redessin (synchronisation, autre fenêtre) ne l'efface pas.
+    const noter = (e) => {
+      const el = e.target, k = cleChamp(el);
+      if (!k) return;
+      if (el.type === 'radio' && el.form) for (const r of el.form.querySelectorAll(`input[type=radio][name="${el.name}"]`)) touches.set(cleChamp(r), r === el && el.checked);
+      else touches.set(k, valeurChamp(el));
+    };
+    feuille.addEventListener('input', noter);
+    feuille.addEventListener('change', noter);
     feuille.addEventListener('click', (e) => { if (e.target === feuille) feuille.close(); });
     document.body.appendChild(feuille);
   }
   feuille.className = `feuille ${classe}`;
   feuille._surFermeture = surFermeture;
   rendreFeuille = contenu;
+  touches.clear();
   redessinerFeuille(true);
   if (!feuille.open) {
     if (typeof feuille.showModal === 'function') feuille.showModal();
@@ -100,7 +112,20 @@ export function redessinerFeuille(force = false) {
   </div>`);
   const c = feuille.querySelector('.feuille-corps');
   if (c) c.scrollTop = defilement;
+  for (const el of feuille.querySelectorAll('input[name], textarea[name], select[name]')) {
+    const k = cleChamp(el);
+    if (!touches.has(k)) continue;
+    if (el.type === 'checkbox' || el.type === 'radio') el.checked = touches.get(k); else el.value = touches.get(k);
+  }
 }
+
+// Les champs touchés depuis l'ouverture de la feuille : formulaire, nom (et valeur, pour une case).
+const touches = new Map();
+function cleChamp(el) {
+  if (!el || !el.name || !/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return '';
+  return `${(el.form && el.form.id) || ''}|${el.name}|${el.type === 'checkbox' || el.type === 'radio' ? el.value : ''}`;
+}
+const valeurChamp = (el) => (el.type === 'checkbox' || el.type === 'radio' ? el.checked : el.value);
 
 export function fermerFeuille() { if (feuille && feuille.open) feuille.close(); }
 export const feuilleOuverte = () => !!(feuille && feuille.open);
