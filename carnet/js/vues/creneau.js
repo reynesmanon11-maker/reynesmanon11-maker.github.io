@@ -128,7 +128,8 @@ function contenu(cle) {
     })}</section>` : ''}
     ${txt ? html`<section class="section-feuille"><h3>Cahier de textes</h3><pre class="pronote-texte" id="texte-pronote">${txt}</pre><div><button class="btn mini" data-action="copier-pronote">${icone('copier')} Copier pour Pronote</button></div></section>` : ''}
     ${!cr.annule && commence && !(choix && choix.cle === cle) ? html`<div><button class="btn plein" data-action="valider" data-cle="${cle}">${icone('valider')} ${pc && pc.etat === 'valide' ? 'Modifier le point d’arrêt' : 'Où en est-on ?'}</button></div>` : ''}
-    ${!commence && !cr.annule ? html`<p class="aide">Le point d'arrêt se note une fois le cours commencé.</p>` : ''}
+    ${!cr.annule && !(choix && choix.cle === cle) && !(pc && pc.etat === 'valide') ? html`<div><button class="btn${commence ? '' : ' plein'}" data-action="etape-ici" data-cle="${cle}">${icone('plus')} Prévoir une étape dans ce cours</button></div>` : ''}
+    ${!commence && !cr.annule ? html`<p class="aide">Ce que vous prévoyez ici se place dans la progression de la classe : si un cours déborde, la suite glisse toute seule. Le point d'arrêt se note une fois le cours commencé.</p>` : ''}
   `}`;
   const pied = choix && choix.cle === cle ? html`
     ${c.v.journal[cle] ? html`<button class="btn danger" data-action="arret-effacer">Effacer</button>` : ''}

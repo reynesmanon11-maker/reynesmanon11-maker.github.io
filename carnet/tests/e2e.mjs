@@ -266,6 +266,24 @@ await etape('rendez-vous perso : ajouté, modifié, supprimé depuis le Carnet',
   await ctx.close();
 });
 
+await etape('prévoir une étape depuis un cours de l’emploi du temps : elle tombe sur ce cours', async () => {
+  const { ctx, p } = await contexte();
+  await demo(p);
+  await p.goto(URL + '#/semaine');
+  const cle = await p.evaluate(async () => (await import('./js/etat.js')).calc().plan.parClasse['6G1'].prochains[0].cle);
+  await p.locator(`.bloc[data-cle="${cle}"]`).first().click();
+  await p.getByRole('button', { name: /Prévoir une étape dans ce cours/ }).click();
+  await p.fill('dialog input[name="titre"]', 'TP lampe – ensoleillement et forme de la Terre');
+  await p.getByRole('button', { name: /Enregistrer/ }).click();
+  await p.waitForFunction((k) => {
+    return import('./js/etat.js').then(({ calc }) => {
+      const c = calc(), s = (c.plan.parCreneau[k].segments || [])[0];
+      return s && /TP lampe/.test(c.v.etapes[s.eid].titre) && s.de === 0;
+    });
+  }, cle);
+  await ctx.close();
+});
+
 await etape('téléphone (390 px) : aucune page ne déborde', async () => {
   const { ctx, p } = await contexte({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await demo(p);

@@ -220,6 +220,29 @@ actions['etape-nouvelle'] = (el) => {
   edition = { code, u: null, eid: null, nouvelle: true, donnees: { titre: '', chapitre: dernier, duree: 1, format: 'indiff', eval: false, jalons: MODELES_JALONS.demarche.jalons, photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' } };
   ouvrirFeuille(feuilleEtape, { surFermeture: () => { edition = null; } });
 };
+// Depuis un cours de l'emploi du temps : l'étape se glisse dans la file à l'endroit où ce cours
+// commence, et tombe donc sur lui (les étapes d'après glissent d'un cran).
+export function nouvelleEtapeAuCours(cle) {
+  const c = calc();
+  const cr = c.tousCreneaux.find((x) => x.cle === cle);
+  if (!cr || !c.v.classes[cr.code]) return;
+  const segs = ((c.plan.parCreneau[cle] || {}).segments || []).filter((s) => !s.recul);
+  const file = c.v.classes[cr.code].file || [];
+  let avantU = null;
+  if (segs.length) {
+    const k = file.findIndex((it) => it.u === segs[0].u);
+    // Une étape commencée dans un cours précédent se finit d'abord : on se place juste après.
+    const j = segs[0].de < EPS ? k : k + 1;
+    avantU = j >= 0 && j < file.length ? file[j].u : null;
+  }
+  const precedente = avantU ? file[file.findIndex((it) => it.u === avantU) - 1] : file[file.length - 1];
+  edition = {
+    code: cr.code, u: null, eid: null, nouvelle: true, avantU, jour: cr.jour,
+    donnees: { titre: '', chapitre: (precedente && (c.v.etapes[precedente.eid] || {}).chapitre) || '', duree: 1, format: 'indiff', eval: false, jalons: MODELES_JALONS.demarche.jalons, photocopies: 0, afaire: '', pronote: '', devoirs: '', cible: '' },
+  };
+  ouvrirFeuille(feuilleEtape, { surFermeture: () => { edition = null; } });
+}
+actions['etape-ici'] = (el) => nouvelleEtapeAuCours(el.dataset.cle);
 actions['etape-editer'] = (el) => {
   const { code, u } = el.dataset;
   const c = calc();
@@ -254,11 +277,18 @@ envois['etape-enregistrer'] = (f) => {
   };
   delete d._m;
   if (!d.titre) { toast('Donnez un intitulé à l’étape.'); return; }
-  const { nouvelle, code } = edition;
+  const { nouvelle, code, avantU, jour } = edition;
   const eid = edition.eid || nouvelId(`e${d.niveau}-`);
   ecrireDoc(`etapes/${eid}`, d);
-  if (nouvelle) modifierDoc(`classes/${code}`, (cl) => { cl.file = [...(cl.file || []), { u: nouvelId('u'), eid }]; });
+  if (nouvelle) {
+    modifierDoc(`classes/${code}`, (cl) => {
+      const f = [...(cl.file || [])], k = avantU ? f.findIndex((it) => it.u === avantU) : -1;
+      f.splice(k >= 0 ? k : f.length, 0, { u: nouvelId('u'), eid });
+      cl.file = f;
+    });
+  }
   fermerFeuille();
+  if (nouvelle && jour) { toast(`Étape prévue pour le cours du ${dateCourte(jour)} ; la suite glisse d'un cran.`); return; }
   toast(nouvelle ? 'Étape ajoutée à la fin de la file.' : 'Étape enregistrée.');
 };
 actions['etape-supprimer'] = (el) => {
