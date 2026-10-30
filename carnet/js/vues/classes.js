@@ -221,6 +221,8 @@ function feuilleEtape() {
         <div class="outils">${soeurs.map((k) => html`<label class="coche"><input type="checkbox" name="aussi" value="${k}"${cochees.includes(k) ? ' checked' : ''}><span>${nomClasse(k)}</span></label>`)}</div>
         <p class="aide">Elle se place au même endroit de leur progression : elles y arriveront à leur rythme.</p></fieldset>` : ''}
       <label class="coche"><input type="checkbox" name="eval"${e.eval ? ' checked' : ''}><span>C'est une évaluation — le Carnet rappelle de l'annoncer, et ne la coupe pas sur deux cours</span></label>
+      <label class="champ"><span>Déroulé de la séance — une ligne par moment</span><textarea name="jalons" rows="5" placeholder="Faire l'appel&#10;Correction des exercices&#10;Activité : lecture du document&#10;Bilan">${(e.jalons || []).join('\n')}</textarea>
+        <span class="aide">« Où en est-on ? » propose ces moments pour dire où la classe s'est arrêtée.</span></label>
       <label class="champ"><span>Matériel à prévoir</span><input type="text" name="afaire" value="${e.afaire || ''}" placeholder="Microscopes, lames, épiderme d'oignon"></label>
       <label class="champ"><span>Texte pour le cahier de textes Pronote</span><textarea name="pronote" placeholder="Écrit une fois, repris pour toutes les classes du niveau">${e.pronote || ''}</textarea></label>
       <div class="grille-champs">
@@ -279,7 +281,7 @@ function fermetureEtape(f) {
   if (edition && !edition.fait && f) enregistrerEtape(f, { enFermant: true });
   edition = null;
 }
-const CHAMPS_ETAPE = ['titre', 'duree', 'eval', 'photocopies', 'afaire', 'pronote', 'chapitre', 'devoirs', 'cible'];
+const CHAMPS_ETAPE = ['titre', 'duree', 'eval', 'photocopies', 'jalons', 'afaire', 'pronote', 'chapitre', 'devoirs', 'cible'];
 envois['etape-enregistrer'] = (f) => enregistrerEtape(f);
 function enregistrerEtape(f, { enFermant = false } = {}) {
   if (!edition || edition.fait) return;
@@ -289,6 +291,7 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
     duree: Number(f.duree.value) || 1,
     eval: f.eval.checked,
     photocopies: Math.max(0, Math.round(Number(f.photocopies.value) || 0)),
+    jalons: f.jalons.value.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 20),
     afaire: f.afaire.value.trim(),
     pronote: f.pronote.value.trim(),
     chapitre: f.chapitre.value.trim(),
@@ -301,13 +304,13 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
   const aussi = [...f.querySelectorAll('[name="aussi"]:checked')].map((x) => x.value);
   if (enFermant) {
     // Rien de tapé (ou rien de changé) : rien à enregistrer.
-    const vide = !['titre', 'afaire', 'pronote', 'devoirs'].some((k) => d[k]);
+    const vide = !['titre', 'afaire', 'pronote', 'devoirs'].some((k) => d[k]) && !d.jalons.length;
     const change = CHAMPS_ETAPE.some((k) => String(d[k] ?? '') !== String(edition.donnees[k] ?? '')) || (!edition.nouvelle && aussi.length);
     if (edition.nouvelle ? vide : !change) return;
   }
   if (!d.titre) {
     if (!enFermant) { toast('Donnez un intitulé à l’étape.'); return; }
-    d.titre = d.pronote.split('\n')[0].slice(0, 80) || d.afaire.slice(0, 80) || 'Étape sans titre';
+    d.titre = d.pronote.split('\n')[0].slice(0, 80) || d.jalons[0] || d.afaire.slice(0, 80) || 'Étape sans titre';
   }
   // Marquée faite (et non effacée) : la feuille peut encore se redessiner avant de se fermer.
   const ed = edition; ed.fait = true;

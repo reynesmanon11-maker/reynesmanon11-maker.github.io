@@ -310,6 +310,7 @@ await etape('rien ne se perd : fermer enregistre, un redessin garde la saisie, d
   await p.locator('#classe-6G1').getByRole('button', { name: /Nouvelle étape/ }).click();
   await p.fill('dialog input[name="titre"]', 'Faire l’appel');
   await p.fill('dialog input[name="afaire"]', 'Liste de la classe');
+  await p.fill('dialog textarea[name="jalons"]', 'Appel\nRappel du cours\nActivité');
   await p.locator('dialog .feuille-tete h2').click(); // le curseur quitte les cases
   await p.evaluate(() => import('./js/etat.js').then(({ changer }) => changer()));
   await rendu(p);
@@ -317,6 +318,7 @@ await etape('rien ne se perd : fermer enregistre, un redessin garde la saisie, d
   await p.locator('dialog .feuille-tete [data-action="fermer-feuille"]').click();
   await p.waitForSelector('#classe-6G1 .etape >> text=Faire l’appel');
   await p.waitForSelector('#classe-6G2 .etape >> text=Faire l’appel');
+  assert.ok(await p.evaluate(() => import('./js/etat.js').then(({ calc }) => Object.values(calc().v.etapes).some((e) => /appel/.test(e.titre) && e.jalons.join('|') === 'Appel|Rappel du cours|Activité'))), 'le déroulé est gardé');
   // 2. Une seconde fenêtre restée ouverte, avec ses vieilles données, écrit à son tour.
   const p2 = await ctx.newPage();
   await p2.clock.install({ time: new Date('2026-11-05T10:51:00+01:00') });

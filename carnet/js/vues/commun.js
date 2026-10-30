@@ -4,7 +4,7 @@ import { html, icone, toast, copier } from '../ui.js';
 import { actions } from '../actions.js';
 import { calc, nomClasse, niveauClasse, couleurNiveau } from '../etat.js';
 import { heureDe, heureLisible, dateCourte } from '../dates.js';
-import { reprise, jusqua, seancesLisible, EPS } from '../moteur.js';
+import { reprise, jusqua, seancesLisible, jalonsDe, EPS } from '../moteur.js';
 
 export function pastille(code, extra = '') {
   const { v } = calc();
@@ -46,6 +46,9 @@ export function segments(cr, { court = false, modifiable = false } = {}) {
       <span class="quoi">${titre}${ou && !court ? html` <span class="ou">· ${ou}</span>` : ''}</span>
       <span class="part">${pc.etat === 'valide' ? 'fait' : seancesLisible(s.h)}</span></div>`);
     if (court && ou) lignes.push(html`<div class="segment"><span class="ou">${ou}</span></div>`);
+    // Dans la feuille du cours : le déroulé écrit dans l'étape, en entier.
+    const J = modifiable ? jalonsDe(e) : [];
+    if (J.length) lignes.push(html`<ul class="deroule">${J.map((j) => html`<li>${j}</li>`)}</ul>`);
   }
   if (pc.etat === 'valide' && !pc.segments.length) lignes.push(html`<div class="segment libre"><span class="quoi">Rien d'avancé dans la file</span></div>`);
   if (pc.etat === 'prevu' && pc.libre > 0.01) {

@@ -106,7 +106,8 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   « Annuler »), un redessin de feuille garde les champs touchés (`touches` dans `carnet/js/ui.js`), deux
   fenêtres du Carnet fusionnent leurs écritures (`fusionnerEcrire`, `BroadcastChannel`), et « Retirer »
   n'enlève une étape que de la classe ouverte, avec « Annuler ». Jamais de suppression en cascade.
-  Les jalons ne se saisissent plus (ceux qui existent restent lus).
+  Les jalons se saisissent comme « Déroulé de la séance » (une ligne par moment), sans modèle à choisir :
+  ne jamais retirer un champ où elle a pu écrire sans montrer ailleurs ce qu'il contient.
 - **Agendas Google : renommer avant de créer.** Google limite les créations d'agendas, pas les
   renommages : un agenda du Carnet inutile (doublon vide, niveau disparu) est renommé pour devenir
   celui qui manque ; les restes se suppriment d'un bouton dans Mes données.
