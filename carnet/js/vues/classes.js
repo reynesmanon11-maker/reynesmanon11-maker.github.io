@@ -199,14 +199,36 @@ function insererDans(code, eid, avantU) {
   }
 }
 
+/** Les classes (autres que `code`) dont la file contient cette étape. */
+function classesAvec(eid, code) {
+  const v = calc().v;
+  return Object.keys(v.classes).filter((k) => k !== code && !v.classes[k].masquee && (v.classes[k].file || []).some((it) => it.eid === eid))
+    .sort((a, b) => nomClasse(a).localeCompare(nomClasse(b), 'fr', { numeric: true }));
+}
+
+/** Les étapes voisines, dans la classe d'origine, de l'endroit où se place (ou se trouve) l'étape. */
+function reperesDe(ed) {
+  const f0 = (calc().v.classes[ed.code] || {}).file || [];
+  if (ed.nouvelle) {
+    const k = ed.avantU ? f0.findIndex((it) => it.u === ed.avantU) : -1;
+    return k >= 0 ? { apres: f0[k].eid, avant: k > 0 ? f0[k - 1].eid : null } : { apres: null, avant: f0.length ? f0[f0.length - 1].eid : null };
+  }
+  const k = f0.findIndex((it) => it.u === ed.u);
+  return { apres: k >= 0 && k + 1 < f0.length ? f0[k + 1].eid : null, avant: k > 0 ? f0[k - 1].eid : null };
+}
+
 function feuilleEtape() {
   const e = edition.donnees;
   const v = calc().v;
-  const partage = Object.values(v.classes).filter((cl) => (cl.file || []).some((it) => it.eid === edition.eid)).length;
+  const partageuses = edition.nouvelle ? [] : classesAvec(edition.eid, edition.code);
   const niveau = niveauClasse(edition.code);
   const chapitres = [...new Set(Object.values(v.etapes).filter((x) => x.niveau === niveau && x.chapitre).map((x) => x.chapitre))];
   const soeurs = classesSoeurs(edition.code, edition.eid);
-  const cochees = edition.aussi || (edition.nouvelle ? soeurs : []);
+  // Cochées d'office : seulement les classes qui en sont au même endroit de la progression
+  // (elles ont l'étape voisine). Une classe qui démarre, ou qui suit autre chose, reste décochée.
+  const rep = reperesDe(edition);
+  const memeEndroit = (k) => { const fk = (v.classes[k].file || []); return [rep.avant, rep.apres].some((x) => x && fk.some((it) => it.eid === x)); };
+  const cochees = edition.aussi || (edition.nouvelle ? soeurs.filter(memeEndroit) : []);
   return {
     titre: edition.nouvelle ? `Nouvelle étape · ${nomClasse(edition.code)}` : 'Modifier l’étape',
     corps: html`<form class="section-feuille" data-envoi="etape-enregistrer" id="form-etape">
@@ -229,7 +251,9 @@ function feuilleEtape() {
         <label class="champ"><span>Travail à faire (donné à la fin de l'étape)</span><input type="text" name="devoirs" value="${e.devoirs || ''}" placeholder="Apprendre le bilan"></label>
         <label class="champ"><span>Semaine visée (facultatif)</span><input type="date" name="cible" value="${e.cible || ''}"></label>
       </div>
-      ${!edition.nouvelle && partage > 1 ? html`<p class="aide">Cette étape est dans la file de ${partage} classes : la modifier la modifie pour toutes.</p>` : ''}
+      ${partageuses.length ? html`<fieldset class="champ aussi"><legend>Modifier aussi pour</legend>
+        <div class="outils">${partageuses.map((k) => html`<label class="coche"><input type="checkbox" name="pour" value="${k}"><span>${nomClasse(k)}</span></label>`)}</div>
+        <p class="aide">Décochée, une classe garde sa version telle quelle : vos changements ne valent que pour la ${nomClasse(edition.code)}.</p></fieldset>` : ''}
     </form>`,
     // Pas de bouton « Annuler » : fermer la feuille enregistre ce qui a été tapé.
     pied: html`${!edition.nouvelle ? html`<button class="btn danger" data-action="etape-supprimer">Retirer de la ${nomClasse(edition.code)}</button>` : ''}
@@ -302,11 +326,12 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
   };
   delete d._m;
   const aussi = [...f.querySelectorAll('[name="aussi"]:checked')].map((x) => x.value);
+  const pour = [...f.querySelectorAll('[name="pour"]:checked')].map((x) => x.value);
+  const modifiee = CHAMPS_ETAPE.some((k) => String(d[k] ?? '') !== String(edition.donnees[k] ?? ''));
   if (enFermant) {
     // Rien de tapé (ou rien de changé) : rien à enregistrer.
     const vide = !['titre', 'afaire', 'pronote', 'devoirs'].some((k) => d[k]) && !d.jalons.length;
-    const change = CHAMPS_ETAPE.some((k) => String(d[k] ?? '') !== String(edition.donnees[k] ?? '')) || (!edition.nouvelle && aussi.length);
-    if (edition.nouvelle ? vide : !change) return;
+    if (edition.nouvelle ? vide : !(modifiee || aussi.length)) return;
   }
   if (!d.titre) {
     if (!enFermant) { toast('Donnez un intitulé à l’étape.'); return; }
@@ -315,19 +340,18 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
   // Marquée faite (et non effacée) : la feuille peut encore se redessiner avant de se fermer.
   const ed = edition; ed.fait = true;
   const { nouvelle, code, avantU, jour } = ed;
-  const eid = ed.eid || nouvelId(`e${d.niveau}-`);
-  ecrireDoc(`etapes/${eid}`, d);
-  // Repères pris dans la classe d'origine (avant l'insertion) : l'étape qui suit, et celle qui précède.
-  const v0 = calc().v, f0 = (v0.classes[code] && v0.classes[code].file) || [];
-  let reperes;
-  if (nouvelle) {
-    const k = avantU ? f0.findIndex((it) => it.u === avantU) : -1;
-    reperes = k >= 0 ? { apres: f0[k].eid, avant: k > 0 ? f0[k - 1].eid : null } : { apres: null, avant: f0.length ? f0[f0.length - 1].eid : null };
-    insererDans(code, eid, avantU);
-  } else {
-    const k = f0.findIndex((it) => it.u === ed.u);
-    reperes = { apres: k >= 0 && k + 1 < f0.length ? f0[k + 1].eid : null, avant: k > 0 ? f0[k - 1].eid : null };
-  }
+  const reperes = reperesDe(ed);
+  let eid = ed.eid || nouvelId(`e${d.niveau}-`);
+  // Une étape partagée qu'on modifie pour cette classe seulement (ou quelques-unes) : elles
+  // reçoivent leur propre copie, les autres gardent la leur, intacte.
+  const separer = !nouvelle && modifiee && classesAvec(eid, code).some((k) => !pour.includes(k));
+  if (separer) {
+    const neuf = nouvelId(`e${d.niveau}-`);
+    ecrireDoc(`etapes/${neuf}`, d);
+    for (const k of [code, ...pour]) modifierDoc(`classes/${k}`, (cl) => { cl.file = (cl.file || []).map((it) => (it.eid === eid ? { ...it, eid: neuf } : it)); });
+    eid = neuf;
+  } else if (nouvelle || modifiee) ecrireDoc(`etapes/${eid}`, d);
+  if (nouvelle) insererDans(code, eid, avantU);
   // Les autres classes du niveau : au même endroit de leur file, repéré par les étapes voisines.
   for (const autre of aussi) {
     const fa = (calc().v.classes[autre] || {}).file || [];
@@ -340,7 +364,8 @@ function enregistrerEtape(f, { enFermant = false } = {}) {
   const et = aussi.length ? ` et pour ${aussi.map((k) => nomClasse(k)).join(', ')}` : '';
   const pre = enFermant ? 'Enregistré en fermant : ' : '';
   if (nouvelle && jour) { toast(`${pre}étape prévue pour le cours du ${dateCourte(jour)}${et} ; la suite glisse d'un cran.`); return; }
-  toast(pre + (nouvelle ? `étape ajoutée${et}.` : aussi.length ? `étape enregistrée, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : 'étape enregistrée.'));
+  const seule = separer ? ` pour la ${[code, ...pour].map((k) => nomClasse(k)).join(', ')} seulement` : '';
+  toast(pre + (nouvelle ? `étape ajoutée${et}.` : aussi.length ? `étape enregistrée${seule}, ajoutée aussi pour ${aussi.map((k) => nomClasse(k)).join(', ')}.` : `étape enregistrée${seule}.`));
 }
 // Retirer une étape ne touche que la classe ouverte : les autres classes du niveau la gardent.
 actions['etape-supprimer'] = (el) => {

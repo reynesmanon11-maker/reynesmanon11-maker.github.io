@@ -297,6 +297,13 @@ await etape('prévoir une étape depuis un cours de l’emploi du temps : elle t
   await p.fill('dialog input[name="titre"]', 'TP lampe – ensoleillement (modifié)');
   await p.getByRole('button', { name: /Enregistrer/ }).click();
   await p.waitForFunction(() => import('./js/etat.js').then(({ calc }) => Object.values(calc().v.etapes).some((e) => /modifié/.test(e.titre))));
+  // Modifiée depuis la 601 seulement : la 602 garde sa version, intacte.
+  const versions = await p.evaluate(() => import('./js/etat.js').then(({ calc }) => {
+    const v = calc().v, t = (code) => v.classes[code].file.map((it) => v.etapes[it.eid].titre).find((x) => /TP lampe/.test(x));
+    return [t('6G1'), t('6G2')];
+  }));
+  assert.match(versions[0], /modifié/);
+  assert.equal(versions[1], 'TP lampe – ensoleillement et forme de la Terre');
   await ctx.close();
 });
 

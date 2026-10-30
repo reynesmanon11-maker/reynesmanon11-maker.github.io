@@ -97,8 +97,11 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   semaines, chapitres et évaluations. Une heure de cours = une séance (« 1h30 » = 1,5). Les
   fichiers de `carnet/tests/tableurs/` sont de vrais fichiers d'Excel et de LibreOffice : ne pas
   les réécrire à la main.
-- **Une progression par niveau** : une étape prévue pour une classe est proposée d'office aux autres classes
-  du même niveau (case « Prévoir aussi pour »), au même endroit de leur file, repéré par les étapes voisines.
+- **Une progression par niveau, mais chaque classe garde sa version** : une étape prévue pour une classe est
+  proposée aux autres classes du même niveau (case « Prévoir aussi pour »), cochée d'office seulement pour
+  celles qui en sont au même endroit (elles ont l'étape voisine), et placée au même endroit de leur file.
+  Modifier une étape partagée ne vaut que pour la classe ouverte, sauf cases « Modifier aussi pour » cochées :
+  les autres gardent leur copie intacte (`separer` dans `carnet/js/vues/classes.js`).
   Le format (classe entière / demi-groupe) n'est plus demandé : l'emploi du temps le dit déjà. Couleurs
   par niveau (5e violet, 6e vert, 3e jaune) : `--n-*` dans `carnet/css/app.css` et `COULEURS_NIVEAUX`
   dans `carnet/js/agenda.js`, à garder identiques.
