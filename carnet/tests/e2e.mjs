@@ -376,6 +376,21 @@ await etape('la suite d’une autre classe : proposée, reprise d’un geste, ou
   await ctx.close();
 });
 
+await etape('le fichier unique (carnet-complet.html) : en ligne comme ouvert depuis l’ordinateur', async () => {
+  for (const adresse of [URL + 'carnet-complet.html', 'file://' + new globalThis.URL('../carnet-complet.html', import.meta.url).pathname]) {
+    const { ctx, p } = await contexte();
+    await p.goto(adresse, { waitUntil: 'load' });
+    await p.getByRole('button', { name: /Essayer avec un exemple/ }).click();
+    await p.waitForSelector('.module');
+    await p.goto(adresse + '#/semaine');
+    await p.waitForSelector('.bloc');
+    await p.goto(adresse + '#/classes');
+    await p.waitForSelector('#classe-5G1 .etape');
+    assert.equal(await p.evaluate(() => getComputedStyle(document.body).fontFamily.includes('Onest')), true);
+    await ctx.close();
+  }
+});
+
 await etape('téléphone (390 px) : aucune page ne déborde', async () => {
   const { ctx, p } = await contexte({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
   await demo(p);

@@ -78,6 +78,9 @@ de « Gestion », sur le navigateur où le jeton est enregistré), et `gestion.h
   test:navigateur` (parcours dans Chromium, dont un faux Google).
 - À chaque publication qui change un fichier de `carnet/`, changer `VERSION` dans `carnet/sw.js` :
   sinon les appareils où le Carnet est installé gardent l'ancienne version.
+- **`carnet/carnet-complet.html`** est le Carnet en un seul fichier (à envoyer à une collègue, ou à donner
+  à Claude Code) : il se régénère avec `node assembler.mjs` depuis `carnet/`, après **toute** modification
+  du Carnet. Un test échoue tant qu'il est en retard. Ne jamais le modifier à la main.
 - `carnet/config.js` porte l'identifiant Google (pas secret), l'adresse publique et le nom de la
   responsable. Jamais de secret dans ce dépôt public ; les données des utilisateurs n'y passent
   jamais (elles restent sur leur appareil et dans leur propre Google Drive).

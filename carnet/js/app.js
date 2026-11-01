@@ -223,7 +223,8 @@ async function demarrer() {
   if (retourGoogle) apresRetourGoogle(retourGoogle);
   // Dans un cadre isolé (aperçu intégré), le simple accès au service worker peut lever une erreur.
   let sw = null;
-  try { if (location.protocol !== 'file:' && !CONFIG.apercu) sw = navigator.serviceWorker || null; } catch { /* pas de service worker */ }
+  // Le fichier unique (carnet-complet.html) n'a pas de service worker : il n'a rien à mettre en cache.
+  try { if (location.protocol !== 'file:' && !CONFIG.apercu && !globalThis.CARNET_UN_FICHIER) sw = navigator.serviceWorker || null; } catch { /* pas de service worker */ }
   if (sw) {
     // Une nouvelle version a pris la main : on recharge tout de suite, sauf si l'on est en train
     // d'écrire (une feuille ouverte, un champ actif) — alors on le propose.
