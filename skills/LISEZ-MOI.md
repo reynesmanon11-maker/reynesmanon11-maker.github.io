@@ -7,7 +7,8 @@ Ce dossier ne fait pas partie du site des élèves : il range des *skills* pour 
 
 Fait produire à Claude des présentations interactives « façon Genially » en un seul fichier HTML :
 pages cliquables, fenêtres « + info », infobulles, animations, quiz, cartes à retourner,
-glisser-déposer, et tout l'attirail de l'escape game (cadenas, digicode, minuteur).
+glisser-déposer, et tout l'attirail de l'escape game (cadenas, digicode, minuteur). Chaque fichier
+produit se retouche ensuite à la souris (`Ctrl + Alt + E`).
 
 - `SKILL.md` : la notice que lit Claude ; `references/` : le vocabulaire, les styles, la
   correspondance avec Genially ; `assets/` : le moteur ; `scripts/` : assemblage, contrôle, lecture
@@ -26,7 +27,12 @@ python3 skills/diaporama-interactif/scripts/assembler.py skills/diaporama-intera
 NODE_PATH=/opt/node22/lib/node_modules node skills/essais/parcours-vitrine.js skills/livrables/vitrine.html
 ```
 
-Le premier reconstruit la démonstration, le second vérifie que chaque brique réagit (29 essais).
+```bash
+NODE_PATH=/opt/node22/lib/node_modules node skills/essais/retouche-vitrine.js skills/livrables/vitrine.html /tmp/retouche
+```
+
+Le premier reconstruit la démonstration, le deuxième vérifie que chaque brique réagit (29 essais),
+le troisième que le mode retouche à la souris déplace, corrige, enregistre et rouvre (28 essais).
 Refaire ensuite le fichier `.skill` avec l'outil d'empaquetage du skill « skill-creator ».
 
 Le moteur est un travail original : il ne reprend ni le code, ni le logo, ni les illustrations de

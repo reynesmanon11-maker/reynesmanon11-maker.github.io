@@ -38,6 +38,7 @@
   var diapo, pages = [], fenetres = [], permanents = [];
   var courante = -1, pile = [], echelle = 1, fenetreOuverte = null;
   var rideau, infobulle, outils = {}, deverrouillees = {}, jeton = 0, audio = null;
+  var margeHaut = 0, retouche = window.DiapoRetouche || null; /* le mode retouche est facultatif */
 
   /* ---------- Petits outils ---------- */
   function $(s, r) { return (r || document).querySelector(s); }
@@ -92,9 +93,9 @@
 
   /* ---------- Mise à l'échelle ---------- */
   function ajuste() {
-    var w = window.innerWidth, h = window.innerHeight;
+    var w = window.innerWidth, h = window.innerHeight - margeHaut;
     echelle = Math.min(w / L, h / H);
-    var x = (w - L * echelle) / 2, y = (h - H * echelle) / 2;
+    var x = (w - L * echelle) / 2, y = margeHaut + (h - H * echelle) / 2;
     diapo.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + echelle + ')';
     if (outils.boite) {
       outils.boite.style.left = x + 'px'; outils.boite.style.top = y + 'px';
@@ -402,6 +403,7 @@
   function initCadenas() {
     $$('.cadenas', diapo).forEach(function (c) {
       var consigne = cree('div', 'consigne', c.innerHTML), essais = 0;
+      if (retouche) retouche.lie(consigne, c);
       c.innerHTML = ''; if (consigne.textContent.trim()) c.appendChild(consigne);
       var s = champReponse(c, 'reponse', c.getAttribute('data-invite') || 'Ta réponse');
       var retour = cree('p', 'retour'); retour.setAttribute('aria-live', 'polite'); c.appendChild(retour);
@@ -642,6 +644,7 @@
   function demarre() {
     diapo = $('.diapo');
     if (!diapo) return;
+    if (retouche) retouche.memorise(diapo); /* avant toute transformation : c'est la source */
     pages = $$(':scope > .page', diapo);
     fenetres = $$(':scope > .fenetre', diapo);
     permanents = $$(':scope > *', diapo).filter(function (e) { return !e.classList.contains('page') && !e.classList.contains('fenetre'); });
@@ -691,9 +694,13 @@
 
     window.Diapo = {
       aller: aller, ouvrir: ouvrir, fermer: fermer, controle: controle,
+      echelle: function () { return echelle; },
+      ou: function () { return fenetreOuverte || pages[courante]; },
+      marge: function (n) { margeHaut = n || 0; ajuste(); },
       pages: pages.map(function (p) { return p.id; }),
       fenetres: fenetres.map(function (f) { return f.id; })
     };
+    if (retouche) retouche.pret(window.Diapo);
     if (/[?&]controle\b/.test(location.search)) {
       setTimeout(function () {
         var s = controle(true), r = cree('div', 'dp-rapport');

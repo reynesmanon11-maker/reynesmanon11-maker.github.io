@@ -18,6 +18,7 @@ page), l'**assembler** avec le moteur fourni, **regarder** le résultat et le co
 | Fichier | Rôle |
 |---|---|
 | `assets/moteur.css`, `assets/moteur.js` | le moteur : mise à l'échelle, navigation, animations, composants. Ne pas le réécrire dans la source : l'assembleur l'insère. |
+| `assets/retouche.js` | le mode retouche à la souris, embarqué dans chaque fichier produit |
 | `assets/gabarit.html` | squelette d'une source, à copier pour démarrer |
 | `scripts/assembler.py` | source → fichier unique ; incorpore les images, masque les réponses, vérifie les liens |
 | `scripts/capturer.js` | prend une image de chaque page et signale les défauts de mise en page (s'il y a un navigateur) |
@@ -109,6 +110,12 @@ l'adresse du fichier pour voir les défauts entourés en rouge.
 Remettre le fichier HTML assemblé (et garder la source pour les retouches). Dire comment s'en
 servir : l'ouvrir dans un navigateur, bouton plein écran en bas à droite, la main en haut à droite
 montre ce qui est cliquable ; pour les élèves, le déposer sur l'ENT ou le partager comme un fichier.
+
+**Toujours signaler le mode retouche**, c'est ce qui rend la personne autonome : `Ctrl + Alt + E`
+(ou `?retouche` au bout de l'adresse) ouvre une barre d'outils. Un clic sélectionne et déplace un
+bloc, les poignées le redimensionnent, un double-clic corrige un texte ; on change taille, couleur,
+image, fond de page, infobulle, on ajoute un texte ou une image, on annule avec `Ctrl + Z`. Le
+bouton « Télécharger » rend le fichier modifié : c'est lui, ensuite, la bonne version.
 Sur claude.ai, on peut aussi le publier en artefact pour obtenir un lien — en prévenant que les
 contenus intégrés (vidéos, cartes) et les images appelées par une adresse web ne s'affichent pas
 dans l'aperçu de claude.ai, seulement dans le fichier ouvert normalement.
@@ -118,6 +125,14 @@ dans l'aperçu de claude.ai, seulement dans le fichier ouvert normalement.
 « Mets le titre en plus gros », « ajoute une question », « change la couleur » : modifier la
 **source**, réassembler, recontrôler la page touchée. Ne pas repartir de zéro et ne pas toucher à
 ce qui n'a pas été demandé : la personne a déjà validé le reste.
+
+Si la personne revient avec un fichier qu'elle a retouché à la souris, **ce fichier devient la
+source** : repartir de l'ancienne effacerait son travail. L'assembleur l'accepte tel quel (il en
+retire le moteur et le remet à neuf) ; ses images y sont déjà incorporées et ses réponses déjà
+masquées. Modifier ce fichier-là, puis `python3 scripts/assembler.py fichier-retouche.html -o …`.
+
+Pour un escape game distribué aux élèves, proposer une seconde version assemblée avec
+`--sans-retouche` : le mode retouche permet de voir les éléments cachés, donc de sauter des étapes.
 
 ## Ce qui fait une bonne présentation interactive
 
@@ -168,4 +183,5 @@ un petit texte `class="credit"`.
   curieux et patient peut les retrouver. Suffisant pour un jeu de classe, pas pour une évaluation.
 - Rien n'est enregistré : pas de suivi des réponses des élèves, pas de tableau de bord. Si
   l'enseignante en a besoin, lui proposer d'intégrer un formulaire (voir `.integration`).
-- Le fichier n'est pas modifiable à la souris comme dans un éditeur : les retouches se demandent.
+- Le mode retouche déplace, redimensionne, corrige et remplace ce qui existe, et ajoute textes et
+  images. Il ne crée ni page, ni fenêtre, ni interaction (quiz, bouton, lien) : cela se demande.

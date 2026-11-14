@@ -6,7 +6,7 @@ Sommaire : [Structure](#structure) · [Placer un bloc](#placer-un-bloc) · [Text
 [Quiz](#quiz) · [Cadenas](#cadenas) · [Digicode](#digicode) · [Page protégée](#page-protégée) ·
 [Cartes à retourner](#cartes-à-retourner) · [Glisser-déposer](#glisser-déposer) · [Minuteur](#minuteur) ·
 [Points et zones](#points-et-zones) · [Contenu intégré](#contenu-intégré) · [Icônes](#icônes) ·
-[Mise en page souple](#mise-en-page-souple) · [Pièges connus](#pièges-connus)
+[Mise en page souple](#mise-en-page-souple) · [Mode retouche](#mode-retouche) · [Pièges connus](#pièges-connus)
 
 `exemples/vitrine.html` montre chacune de ces briques en situation.
 
@@ -87,13 +87,14 @@ Listes : `<ul class="liste-fleches">` (puces carrées à flèche), `liste-coches
 | `bandeau` | bloc noir à texte blanc |
 | `bulle` | bulle de bande dessinée ; `data-queue="bas-gauche"` (ou `bas-droite`, `haut-gauche`, `haut-droite`) ; `bulle ronde`, `bulle carree` |
 | `plaque` | étiquette pastel cliquable ; couleur par `data-teinte="#d4baf7"` |
+| `postit` | pense-bête jaune collé sur la page ; `data-etiquette="Généralités"` écrit sur le ruban adhésif, `data-rot="-6"` l'incline, `data-teinte` change sa couleur |
 | `eclat` | étoile éclatée (« Énigme ! ») ; donner largeur **et** hauteur ; `data-teinte`, `data-pointes="14"` |
 | `tuile` | grande case de sommaire (émoji `<span class="emoji">`, titre, `<small>`) |
 | `pastille` | rond numéroté |
 | `etiquette` | petite mention en pastille (« Document 1 ») |
 | `bouton` | bouton pilule ; variantes `sombre`, `clair`, `contour`, `petit`, `gros`, `rond` (icône seule), `carre` |
 
-Images : `arrondi`, `rond`, `polaroid`, `ombre`. Toujours un `alt`.
+Images : `arrondi`, `rond`, `polaroid`, `ombre` ; `entier` montre l'image entière dans sa boîte au lieu de la recadrer (objet détouré, schéma). Toujours un `alt`.
 
 ## Rendre cliquable
 
@@ -304,6 +305,25 @@ un émoji.
 À l'intérieur d'un bloc placé : `colonnes` (côte à côte, largeurs égales), `rangee` (en ligne, avec
 retour), `pile` (l'un sous l'autre), `milieu` (centré dans les deux sens). Une grille :
 `style="display:grid;grid-template-columns:repeat(3,1fr);gap:22px"`.
+
+## Mode retouche
+
+Chaque fichier assemblé embarque un éditeur à la souris, fermé par défaut : `Ctrl + Alt + E`, ou
+`?retouche` au bout de l'adresse. Il n'y a rien à écrire dans la source pour l'obtenir.
+
+- Clic : sélectionner ; glisser : déplacer (aimantation au centre, aux marges et aux blocs voisins,
+  `Alt` pour la désactiver) ; flèches : pousser de 1, de 10 avec `Maj` ; poignées : redimensionner.
+- Double-clic : corriger un texte d'un seul tenant (gras et italique conservés). `Échap` valide.
+- Barre : pages et fenêtres, « ＋ Texte », « ＋ Image », « Changer l'image », « Fond », taille,
+  alignement, couleur du texte, « Suivre » (fait ce que ferait le clic : ouvre la fenêtre, change de
+  page, retourne la carte), « Cachés » (montre ce qu'une réussite révèle), texte de l'infobulle,
+  couleur d'accent, « Supprimer », « Annuler », « Télécharger ».
+- Le fichier téléchargé est la source d'origine avec les retouches, sans trace de l'éditeur : il se
+  rouvre, se retouche encore, et se redonne à l'assembleur.
+
+Pour que la retouche reste agréable, écrire une source simple : des blocs placés par `data-pos`
+(ce sont eux qui se déplacent) et, dedans, des textes d'un seul tenant (ce sont eux qui se
+corrigent). Un texte fabriqué par le moteur (clavier du digicode, bouton « Valider ») ne se retouche pas.
 
 ## Pièges connus
 

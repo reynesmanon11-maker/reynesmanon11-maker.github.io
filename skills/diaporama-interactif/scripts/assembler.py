@@ -8,7 +8,8 @@ Ce que fait le script :
   2. incorpore les images locales (src, data-fond, url(...)) pour que le fichier se suffise ;
   3. remplace les réponses en clair (data-code, data-reponse, data-verrou) par une empreinte,
      afin qu'un élève qui ouvre le code source ne les lise pas d'un coup d'œil ;
-  4. vérifie la cohérence : identifiants uniques, cibles existantes, images trouvées.
+  4. vérifie la cohérence : identifiants uniques, cibles existantes, images trouvées ;
+  5. embarque le mode retouche à la souris (?retouche ou Ctrl + Alt + E), sauf avec --sans-retouche.
 
 N'utilise que la bibliothèque standard. Si Pillow est installé, les grandes photos sont
 réduites (1600 px de large au plus) pour garder un fichier léger.
@@ -117,11 +118,14 @@ def en_donnees(chemin, base, alertes, erreurs):
     return 'data:%s;base64,%s' % (mime, base64.b64encode(octets).decode('ascii'))
 
 
-def assemble(source, sortie):
+def assemble(source, sortie, retouche=True):
     base = os.path.dirname(os.path.abspath(source))
     with open(source, encoding='utf-8') as f:
         html = f.read()
     erreurs, alertes = [], []
+    # Un fichier déjà assemblé (par exemple retouché à la souris puis téléchargé) peut resservir de source :
+    # on retire le moteur qu'il contient, il sera remis à neuf.
+    html = re.sub(r'<!-- MOTEUR:debut -->.*?<!-- MOTEUR:fin -->', '<!-- MOTEUR -->', html, flags=re.S)
 
     # ---- relevé et vérifications ----
     r = Releve()
@@ -189,6 +193,9 @@ def assemble(source, sortie):
         css = f.read()
     with open(os.path.join(ASSETS, 'moteur.js'), encoding='utf-8') as f:
         js = f.read()
+    if retouche:  # le mode retouche se charge avant le moteur, qui le découvre au démarrage
+        with open(os.path.join(ASSETS, 'retouche.js'), encoding='utf-8') as f:
+            js = f.read() + '\n' + js
     familles = []
     for t in sorted(r.themes or {'atelier'}):
         for fam in POLICES.get(t, []):
@@ -203,8 +210,9 @@ def assemble(source, sortie):
              '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>\n'
              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?%s&display=swap">\n'
              % '&'.join('family=' + f for f in familles))
-    bloc = ('<meta name="viewport" content="width=device-width, initial-scale=1">\n' + liens +
-            '<style>\n' + css + '\n</style>\n<script>\n' + js.replace('</script', '<\\/script') + '\n</script>')
+    bloc = ('<!-- MOTEUR:debut -->\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + liens +
+            '<style>\n' + css + '\n</style>\n<script>\n' + js.replace('</script', '<\\/script') +
+            '\n</script>\n<!-- MOTEUR:fin -->')
     if '<!-- MOTEUR -->' in html:
         html = html.replace('<!-- MOTEUR -->', bloc, 1)
     elif re.search(r'</head>', html, flags=re.I):
@@ -232,5 +240,8 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description='Assemble un diaporama interactif en un seul fichier HTML.')
     p.add_argument('source', help='le fichier source (.html)')
     p.add_argument('-o', '--sortie', help='le fichier produit (défaut : <source>-final.html)')
+    p.add_argument('--sans-retouche', action='store_true',
+                   help='ne pas embarquer le mode retouche (version à donner aux élèves pour un escape game)')
     a = p.parse_args()
-    sys.exit(assemble(a.source, a.sortie or re.sub(r'\.html?$', '', a.source) + '-final.html'))
+    sys.exit(assemble(a.source, a.sortie or re.sub(r'\.html?$', '', a.source) + '-final.html',
+                      retouche=not a.sans_retouche))
