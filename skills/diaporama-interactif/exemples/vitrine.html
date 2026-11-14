@@ -1,0 +1,325 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>La vitrine — diaporama interactif</title>
+<!-- MOTEUR -->
+<style>
+  /* Styles propres à cette présentation (le moteur fournit tout le reste) */
+  .astuce { font-size: 15px; color: var(--encre-douce); }
+  .astuce b { color: var(--accent); }
+  .grille { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  .tuile small { font-weight: 400; font-size: 14px; color: var(--encre-douce); }
+  .titre-bd { font-size: 62px; color: #fff; letter-spacing: .03em; }
+</style>
+</head>
+<body>
+
+<!-- Dessins réutilisés sur plusieurs pages -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="cellule" viewBox="0 0 420 300">
+    <rect x="10" y="10" width="400" height="280" rx="46" fill="#7cb342" stroke="#33691e" stroke-width="6"/>
+    <rect x="26" y="26" width="368" height="248" rx="34" fill="#e6f2d5" stroke="#9ccc65" stroke-width="3"/>
+    <ellipse cx="240" cy="158" rx="122" ry="78" fill="#b3e5fc" stroke="#4fc3f7" stroke-width="3"/>
+    <circle cx="96" cy="104" r="38" fill="#ce93d8" stroke="#8e24aa" stroke-width="4"/>
+    <circle cx="104" cy="98" r="12" fill="#8e24aa"/>
+    <g fill="#2e7d32" stroke="#1b5e20" stroke-width="2">
+      <ellipse cx="92" cy="218" rx="27" ry="14" transform="rotate(-20 92 218)"/>
+      <ellipse cx="332" cy="58" rx="27" ry="14" transform="rotate(15 332 58)"/>
+      <ellipse cx="186" cy="54" rx="25" ry="13"/>
+      <ellipse cx="348" cy="238" rx="27" ry="14" transform="rotate(-25 348 238)"/>
+      <ellipse cx="206" cy="254" rx="25" ry="12"/>
+    </g>
+    <g fill="#ffb74d" stroke="#e65100" stroke-width="2">
+      <ellipse cx="58" cy="166" rx="15" ry="8" transform="rotate(30 58 166)"/>
+      <ellipse cx="376" cy="150" rx="15" ry="8" transform="rotate(-60 376 150)"/>
+    </g>
+  </symbol>
+</svg>
+
+<main class="diapo" data-theme="atelier" data-nav="libre" data-transition="fondu" data-sons>
+
+  <!-- Barre de menu : présente sur toutes les pages de démonstration -->
+  <nav class="barre" data-sur="fenetres image cartes quiz glisser">
+    <button data-aller="#sommaire" aria-label="Sommaire"><i data-ico="maison"></i></button>
+    <button data-aller="#fenetres">Fenêtres</button>
+    <button data-aller="#image">Image interactive</button>
+    <button data-aller="#cartes">Cartes</button>
+    <button data-aller="#quiz">Quiz</button>
+    <button data-aller="#glisser">Glisser-déposer</button>
+    <button data-aller="#mission">Escape game</button>
+  </nav>
+
+  <!-- ===== 1. Accueil ===== -->
+  <section class="page" id="accueil" data-decor="bas-gauche">
+    <p class="fin droite" data-pos="80,92,570" style="font-size:44px" data-anim="fondu-bas">Présentation interactive</p>
+    <h1 class="droite majuscules" data-pos="80,150,570" style="font-size:46px" data-anim="fondu-bas" data-delai="0.15">La vitrine</h1>
+    <h1 class="droite" data-pos="80,268,570" style="font-size:44px" data-anim="fondu-bas" data-delai="0.3">Il suffit de le demander&nbsp;!</h1>
+    <p class="droite" data-pos="80,360,570" data-anim="fondu-bas" data-delai="0.45">Des exemples en SVT, à cliquer partout</p>
+    <button class="bouton gros" data-pos="462,470" data-aller="suivante" data-anim="pop" data-delai="0.9" data-effet="battement">Start</button>
+    <div data-pos="700,130,430,410" data-anim="zoom" data-delai="0.3">
+      <svg viewBox="0 0 430 410" class="dessin" data-effet="flotte">
+        <defs><linearGradient id="socle" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#30dfe6"/><stop offset="1" stop-color="#f74395"/></linearGradient></defs>
+        <ellipse cx="215" cy="318" rx="205" ry="78" fill="url(#socle)"/>
+        <ellipse cx="215" cy="330" rx="150" ry="34" fill="#000" opacity=".12"/>
+        <use href="#cellule" x="35" y="40" width="360" height="257"/>
+        <circle cx="52" cy="70" r="7" fill="#6084ee"/><circle cx="392" cy="120" r="5" fill="#f74395"/><circle cx="370" cy="36" r="9" fill="#30dfe6"/>
+      </svg>
+    </div>
+    <p class="petit" data-pos="1020,628,150">Novembre 2026</p>
+  </section>
+
+  <!-- ===== 2. Sommaire ===== -->
+  <section class="page" id="sommaire" data-decor="haut-droite petit">
+    <h2 data-pos="90,60,800" data-anim="fondu-gauche">Que veux-tu voir&nbsp;?</h2>
+    <p class="doux" data-pos="90,112,800" data-anim="fondu-gauche" data-delai="0.15">Chaque tuile mène à une brique que Claude sait construire.</p>
+    <div class="grille" data-pos="90,180,1020,400" data-cascade="0.12" data-cascade-anim="zoom" data-delai="0.3">
+      <button class="tuile" data-aller="#fenetres" data-survol="flotte"><span class="emoji">💬</span>Fenêtres et infobulles<small>le bouton « + info »</small></button>
+      <button class="tuile" data-aller="#image" data-survol="flotte"><span class="emoji">🔍</span>Image interactive<small>des points à explorer</small></button>
+      <button class="tuile" data-aller="#cartes" data-survol="flotte"><span class="emoji">🃏</span>Cartes à retourner<small>question au recto, réponse au verso</small></button>
+      <button class="tuile" data-aller="#quiz" data-survol="flotte"><span class="emoji">✅</span>Quiz<small>correction immédiate</small></button>
+      <button class="tuile" data-aller="#glisser" data-survol="flotte"><span class="emoji">🌋</span>Glisser-déposer<small>légender un schéma</small></button>
+      <button class="tuile" data-aller="#mission" data-survol="flotte"><span class="emoji">🔐</span>Escape game<small>énigme, cadenas, digicode</small></button>
+    </div>
+    <button class="bouton contour petit" data-pos="90,610" data-aller="#accueil"><i data-ico="fleche-gauche"></i> Accueil</button>
+  </section>
+
+  <!-- ===== 3. Fenêtres et infobulles ===== -->
+  <section class="page" id="fenetres" data-decor="bas-droite petit">
+    <div class="cadre epais" data-pos="60,100,1080,480" data-anim="fondu" style="padding:40px 50px;font-size:23px">
+      <div class="colonnes" style="gap:70px">
+        <div data-cascade="0.2" data-delai="0.3">
+          <h2 style="font-style:italic;margin-bottom:30px">Infobulles</h2>
+          <p>🌿 La <span class="mot" data-info="Fabrication de matière organique à partir d’eau, de CO₂ et de lumière.">photosynthèse</span> a lieu dans les feuilles.</p>
+          <p>💧 L’eau monte des racines par la <span class="mot" data-info="Liquide riche en eau et en sels minéraux, qui circule dans les vaisseaux du bois.">sève brute</span>.</p>
+          <p>☀️ Sans lumière, pas de production de <span class="mot" data-info="Un sucre : la première matière organique fabriquée par la plante.">glucose</span>.</p>
+          <p class="astuce">Survole (ou touche) les mots soulignés.</p>
+        </div>
+        <div data-cascade="0.2" data-delai="0.6">
+          <h2 style="font-style:italic;margin-bottom:30px">Fenêtres</h2>
+          <p>🧪 Une expérience historique a montré d’où vient la matière de la plante.</p>
+          <p><button class="bouton" data-ouvrir="f-experience">+ info</button></p>
+          <p>🤔 Reste à savoir ce qui se passe à l’obscurité…</p>
+          <p><button class="bouton sombre" data-ouvrir="f-probleme"><i data-ico="oeil"></i> Problématique</button></p>
+        </div>
+      </div>
+    </div>
+    <p class="astuce" data-pos="60,612,1000">💡 À demander&nbsp;: <b>« ajoute une infobulle sur le mot photosynthèse »</b> ou <b>« un bouton + info qui ouvre une fenêtre »</b>.</p>
+  </section>
+
+  <!-- ===== 4. Image interactive ===== -->
+  <section class="page" id="image">
+    <h2 data-pos="60,92,700" data-anim="fondu-gauche">La cellule végétale</h2>
+    <div data-pos="60,160,588,420" data-anim="zoom" data-vitesse="2">
+      <svg viewBox="0 0 420 300" class="dessin" style="width:100%;height:100%"><use href="#cellule"/></svg>
+      <button class="point" data-pos="10,180" data-info="Paroi : une enveloppe rigide qui donne sa forme à la cellule.">1</button>
+      <button class="point" data-pos="118,128" data-ouvrir="f-noyau">2</button>
+      <button class="point" data-pos="330,205" data-info="Vacuole : une grande réserve d’eau.">3</button>
+      <button class="point" data-pos="452,62" data-ouvrir="f-chloro">4</button>
+      <button class="point" data-pos="512,190" data-info="Mitochondrie : elle libère l’énergie utilisable par la cellule (respiration).">5</button>
+    </div>
+    <div class="cadre ombre" data-pos="700,160,440,330" data-anim="fondu-droite" data-delai="0.4">
+      <h3 style="margin-bottom:14px">Explore le schéma</h3>
+      <ul class="liste-fleches">
+        <li>Les points <b>1, 3 et 5</b> affichent une infobulle.</li>
+        <li>Les points <b>2 et 4</b> ouvrent une fenêtre, avec plus de détails.</li>
+        <li>La main, en haut à droite, montre tout ce qui est cliquable.</li>
+      </ul>
+    </div>
+    <p class="astuce" data-pos="60,612,1000">💡 À demander&nbsp;: <b>« place des points cliquables sur mon schéma »</b> — avec ta propre image, c’est pareil.</p>
+  </section>
+
+  <!-- ===== 5. Cartes ===== -->
+  <section class="page" id="cartes" data-decor="bas-gauche petit">
+    <h2 data-pos="60,92,900" data-anim="fondu-gauche">À quoi ça sert&nbsp;? Retourne les cartes</h2>
+    <div class="carte" data-pos="85,170,230,330" data-teinte="#f74395" data-anim="bascule" data-delai="0.1">
+      <div class="recto"><span class="emoji">🧬</span>Le noyau</div>
+      <div class="verso"><b>Il contient l’information génétique</b>(l’ADN, porté par les chromosomes).</div>
+    </div>
+    <div class="carte" data-pos="350,170,230,330" data-teinte="#2e9e5b" data-anim="bascule" data-delai="0.3">
+      <div class="recto"><span class="emoji">🌿</span>Le chloroplaste</div>
+      <div class="verso"><b>Il réalise la photosynthèse</b>grâce à la chlorophylle, qui capte la lumière.</div>
+    </div>
+    <div class="carte" data-pos="615,170,230,330" data-teinte="#6084ee" data-anim="bascule" data-delai="0.5">
+      <div class="recto"><span class="emoji">💧</span>La vacuole</div>
+      <div class="verso"><b>Elle stocke l’eau</b>et maintient la cellule bien gonflée.</div>
+    </div>
+    <div class="carte" data-pos="880,170,230,330" data-teinte="#ff8f5c" data-anim="bascule" data-delai="0.7">
+      <div class="recto"><span class="emoji">⚡</span>La mitochondrie</div>
+      <div class="verso"><b>Elle libère de l’énergie</b>à partir du glucose et du dioxygène : c’est la respiration.</div>
+    </div>
+    <p class="astuce" data-pos="320,612,820">💡 À demander&nbsp;: <b>« quatre cartes à retourner, le nom au recto, le rôle au verso »</b>.</p>
+  </section>
+
+  <!-- ===== 6. Quiz ===== -->
+  <section class="page" id="quiz">
+    <div class="cadre ombre quiz" data-pos="60,92,520,490" data-anim="fondu-bas" data-melange
+         data-bravo="Exact : c’est là que se trouve la chlorophylle." data-reussite="#q-suite">
+      <span class="etiquette">Une seule réponse</span>
+      <p class="question" style="margin-top:10px">Dans quel organite se déroule la photosynthèse&nbsp;?</p>
+      <button class="choix" data-juste>Le chloroplaste</button>
+      <button class="choix">Le noyau</button>
+      <button class="choix">La mitochondrie</button>
+      <p class="explication">La mitochondrie fait l’inverse : elle consomme le glucose pour libérer de l’énergie.</p>
+    </div>
+    <div class="cadre ombre quiz" data-pos="620,92,520,490" data-anim="fondu-bas" data-delai="0.2" data-multiple
+         data-rate="Regarde bien : la plante ne « mange » pas la terre.">
+      <span class="etiquette">Plusieurs réponses</span>
+      <p class="question" style="margin-top:10px">Que prélève une plante verte dans son milieu&nbsp;?</p>
+      <button class="choix" data-juste>De l’eau et des sels minéraux</button>
+      <button class="choix" data-juste>Du dioxyde de carbone</button>
+      <button class="choix">De la terre</button>
+      <button class="choix">Du glucose</button>
+    </div>
+    <button class="bouton cache" id="q-suite" data-pos="990,596" data-aller="#glisser" data-anim="pop">Suite <i data-ico="fleche-droite"></i></button>
+    <p class="astuce" data-pos="60,612,800">💡 À demander&nbsp;: <b>« un quiz de trois questions sur ce chapitre, avec l’explication après la bonne réponse »</b>.</p>
+  </section>
+
+  <!-- ===== 7. Glisser-déposer ===== -->
+  <section class="page" id="glisser">
+    <h2 data-pos="60,90,800" data-anim="fondu-gauche">Légende le volcan</h2>
+    <div class="glisser" data-pos="60,146,1080,460" data-melange data-reussite="#g-suite">
+      <svg class="dessin" data-pos="150,10,560,420" viewBox="0 0 560 420" data-anim="fondu">
+        <g fill="#b0bec5"><circle cx="280" cy="62" r="36"/><circle cx="246" cy="44" r="26"/><circle cx="318" cy="40" r="30"/><circle cx="290" cy="20" r="20"/></g>
+        <rect x="0" y="330" width="560" height="90" fill="#d7c29a"/>
+        <ellipse cx="280" cy="384" rx="112" ry="28" fill="#ff7043" stroke="#bf360c" stroke-width="3"/>
+        <path d="M86 330L240 110h80l154 220z" fill="#8d6e63" stroke="#4e342e" stroke-width="3"/>
+        <path d="M268 372l4-262h16l4 262z" fill="#ff7043"/>
+        <ellipse cx="280" cy="110" rx="40" ry="10" fill="#4e342e"/>
+        <path d="M300 113c40 38 60 98 120 187l20 30h-42c-30-70-68-150-104-208z" fill="#ff5722"/>
+        <g stroke="#121212" stroke-width="2" stroke-dasharray="5 4" fill="none">
+          <path d="M-10 60L262 108"/><path d="M-10 215L272 240"/><path d="M572 150L372 222"/><path d="M572 370L372 386"/>
+        </g>
+      </svg>
+      <div class="depot" data-pos="0,36,150,48" data-attend="cratere"></div>
+      <div class="depot" data-pos="0,192,150,48" data-attend="cheminee"></div>
+      <div class="depot" data-pos="712,126,150,48" data-attend="coulee"></div>
+      <div class="depot" data-pos="712,346,150,48" data-attend="chambre"></div>
+      <div class="reserve" data-pos="890,20,190">
+        <span class="jeton" data-va="cratere">Cratère</span>
+        <span class="jeton" data-va="cheminee" data-teinte="#6084ee">Cheminée</span>
+        <span class="jeton" data-va="coulee" data-teinte="#ff8f5c">Coulée de lave</span>
+        <span class="jeton" data-va="chambre" data-teinte="#2e9e5b">Chambre magmatique</span>
+      </div>
+      <button class="bouton verifier" data-pos="890,250">Vérifier</button>
+      <p class="retour" data-pos="890,310,190"></p>
+    </div>
+    <button class="bouton sombre cache" id="g-suite" data-pos="930,560" data-aller="#mission" data-anim="pop">Escape game <i data-ico="fleche-droite"></i></button>
+    <p class="astuce" data-pos="60,612,800">💡 À demander&nbsp;: <b>« des étiquettes à glisser sur les légendes de ce schéma »</b>.</p>
+  </section>
+
+  <!-- ===== 8. Escape game : la mission ===== -->
+  <section class="page" id="mission" data-theme="aventure" data-fond="foret" data-transition="zoom">
+    <h1 class="titre-bd" data-pos="60,34,900" data-anim="rebond">Mission : l’île aux renards</h1>
+    <div class="minuteur" data-pos="970,44" data-duree="10:00" data-auto></div>
+    <div class="bulle" data-pos="70,150,520" style="font-size:23px" data-queue="bas-gauche" data-anim="zoom" data-delai="0.5">
+      Bonjour, explorateur&nbsp;! Sur notre île, les renards gris disparaissent. Lis les deux documents, puis ouvre l’énigme&nbsp;: sa réponse te mènera au coffre.
+    </div>
+    <div data-pos="90,400,220,220" style="font-size:170px;line-height:1" data-anim="fondu-gauche" data-delai="0.3" data-effet="flotte">🦊</div>
+    <button class="plaque" data-pos="680,170,440" data-teinte="#e3db7a" data-ouvrir="f-doc1" data-survol="vibre" data-anim="fondu-droite" data-delai="0.7">Document 1 — Qui mange qui&nbsp;?</button>
+    <button class="plaque" data-pos="680,250,440" data-teinte="#d4baf7" data-ouvrir="f-doc2" data-survol="vibre" data-anim="fondu-droite" data-delai="0.85">Document 2 — Les comptages</button>
+    <button class="eclat" data-pos="760,340,290,250" data-teinte="#d8f0c1" data-ouvrir="f-enigme" data-survol="grossit" data-anim="pop" data-delai="1.2">Énigme</button>
+    <button class="bouton clair petit" data-pos="60,620" data-aller="#sommaire"><i data-ico="maison"></i> Sommaire</button>
+  </section>
+
+  <!-- ===== 9. Escape game : le coffre ===== -->
+  <section class="page" id="coffre" data-theme="aventure" data-fond="metal" data-transition="glisse">
+    <h1 class="titre-bd" data-pos="60,34,1080" data-anim="fondu-haut">Le coffre</h1>
+    <svg class="dessin" data-pos="110,130,430,470" viewBox="0 0 430 470" data-anim="fondu-gauche">
+      <rect x="20" y="20" width="390" height="410" rx="18" fill="#78838c" stroke="#2b3136" stroke-width="8"/>
+      <rect x="54" y="54" width="322" height="342" rx="10" fill="#8b98a2" stroke="#4a545c" stroke-width="5"/>
+      <circle cx="215" cy="170" r="52" fill="#cfd8dc" stroke="#37474f" stroke-width="6"/>
+      <circle cx="215" cy="170" r="12" fill="#37474f"/>
+      <g stroke="#37474f" stroke-width="4"><path d="M215 118v14M215 208v14M163 170h14M253 170h14"/></g>
+      <g stroke="#eceff1" stroke-width="14" stroke-linecap="round"><path d="M215 300v70M215 300l-50-34M215 300l50-34"/></g>
+      <circle cx="215" cy="300" r="16" fill="#eceff1" stroke="#37474f" stroke-width="4"/>
+      <rect x="376" y="110" width="26" height="46" rx="5" fill="#4a545c"/><rect x="376" y="300" width="26" height="46" rx="5" fill="#4a545c"/>
+      <rect x="50" y="430" width="60" height="26" fill="#2b3136"/><rect x="320" y="430" width="60" height="26" fill="#2b3136"/>
+    </svg>
+    <div class="panneau" data-pos="610,140,470" data-anim="fondu-droite" data-delai="0.3">
+      Le code est <b>l’année où les renards étaient les plus nombreux</b>. Tu peux aussi taper les chiffres au clavier.
+    </div>
+    <div class="digicode" data-pos="720,280" data-code="1994" data-reussite="#tresor" data-anim="zoom" data-delai="0.6"></div>
+    <button class="bouton clair petit" data-pos="60,620" data-aller="#mission"><i data-ico="fleche-gauche"></i> Revoir la mission</button>
+  </section>
+
+  <!-- ===== 10. Escape game : réussite ===== -->
+  <section class="page" id="tresor" data-theme="aventure" data-fond="nuit" data-transition="zoom">
+    <div data-pos="140,70,160,160" data-superpose style="font-size:110px;line-height:1" data-effet="flotte" data-anim="pop" data-delai="0.4">🏆</div>
+    <div data-pos="930,90,120,120" data-superpose style="font-size:80px;line-height:1" data-effet="balance" data-anim="pop" data-delai="0.7">🌟</div>
+    <h1 class="titre-bd centre" data-pos="100,190,1000" style="font-size:110px" data-anim="rebond">Bravo&nbsp;!</h1>
+    <p class="blanc centre grand ombre-texte" data-pos="200,340,800" data-anim="fondu-bas" data-delai="0.8">
+      En 1994, il y avait 1&nbsp;500 renards. Les aigles royaux, arrivés sur l’île pour chasser les porcelets, se sont mis à chasser aussi les renards&nbsp;: une espèce introduite a bouleversé tout l’écosystème.
+    </p>
+    <button class="bouton gros" data-pos="490,520" data-aller="#fin" data-anim="pop" data-delai="1.3">Terminer</button>
+  </section>
+
+  <!-- ===== 11. Fin ===== -->
+  <section class="page" id="fin" data-decor="bas-gauche haut-droite">
+    <h1 class="accent" data-pos="330,220,640" style="font-size:72px" data-anim="flou" data-vitesse="3">MERCI&nbsp;!</h1>
+    <p class="grand" data-pos="330,320,640" data-anim="fondu-bas" data-delai="0.5">Tout ce que tu viens de voir a été obtenu en le demandant, avec des phrases de tous les jours.</p>
+    <div class="rangee" data-pos="330,430,640" data-anim="fondu-bas" data-delai="0.8">
+      <button class="bouton" data-aller="#sommaire"><i data-ico="recommencer"></i> Revoir</button>
+      <button class="bouton contour" data-aller="#accueil">Accueil</button>
+    </div>
+  </section>
+
+  <!-- ===== Fenêtres ===== -->
+  <section class="fenetre" id="f-experience">
+    <span class="etiquette">Expérience de Van Helmont, vers 1640</span>
+    <h3 style="margin:10px 0 14px">Un saule dans un pot</h3>
+    <p>Van Helmont plante un jeune saule de 2&nbsp;kg dans 90&nbsp;kg de terre sèche, et ne l’arrose qu’à l’eau de pluie.</p>
+    <p>Cinq ans plus tard, l’arbre pèse <b>77&nbsp;kg</b>… et la terre n’a perdu que <b>57&nbsp;g</b>.</p>
+    <p class="doux">La matière de l’arbre ne vient donc pas de la terre.</p>
+  </section>
+
+  <section class="fenetre" id="f-probleme" data-taille="petite">
+    <div class="milieu">
+      <h3 style="margin-bottom:14px">Comment une plante fabrique-t-elle sa matière&nbsp;?</h3>
+      <p style="font-style:italic">« Avec de l’air, de l’eau… et du soleil&nbsp;? »</p>
+      <div style="font-size:80px;line-height:1.1" data-anim="pop" data-delai="0.3">🌱</div>
+    </div>
+  </section>
+
+  <section class="fenetre" id="f-noyau" data-taille="petite">
+    <h3 style="margin-bottom:12px">🟣 Le noyau</h3>
+    <p>Il renferme les <b>chromosomes</b>, supports de l’information génétique.</p>
+    <p class="doux petit">Toutes les cellules d’un même individu portent la même information.</p>
+  </section>
+
+  <section class="fenetre" id="f-chloro" data-taille="petite">
+    <h3 style="margin-bottom:12px">🟢 Le chloroplaste</h3>
+    <p>Il contient la <b>chlorophylle</b>, le pigment vert qui capte l’énergie lumineuse.</p>
+    <p class="doux petit">C’est ici que se fabrique le glucose.</p>
+  </section>
+
+  <section class="fenetre" id="f-doc1" data-theme="aventure">
+    <h2 style="margin-bottom:16px">Document 1 — Qui mange qui&nbsp;?</h2>
+    <p class="centre" style="font-size:44px;line-height:1.4">🌿 → 🐭 → 🦊 → 🦅</p>
+    <p>Sur l’île, le renard gris se nourrit de petits rongeurs. Depuis l’arrivée des porcelets sauvages, des <b>aigles royaux</b> se sont installés&nbsp;: ils chassent les porcelets… et les renards.</p>
+  </section>
+
+  <section class="fenetre" id="f-doc2" data-theme="aventure">
+    <h2 style="margin-bottom:16px">Document 2 — Les comptages</h2>
+    <svg viewBox="0 0 560 230" class="dessin" style="width:100%">
+      <g stroke="#111" stroke-width="2" fill="none"><path d="M60 20v170h480"/></g>
+      <g fill="#e83030"><rect x="100" y="30" width="70" height="160"/><rect x="230" y="110" width="70" height="80"/><rect x="360" y="170" width="70" height="20"/><rect x="480" y="188" width="50" height="2"/></g>
+      <g font-family="sans-serif" font-size="16" text-anchor="middle" fill="#111">
+        <text x="135" y="212">1994</text><text x="265" y="212">1996</text><text x="395" y="212">1998</text><text x="505" y="212">2000</text>
+        <text x="135" y="24">1 500</text><text x="265" y="104">750</text><text x="395" y="164">190</text><text x="505" y="180">15</text>
+      </g>
+    </svg>
+    <p class="petit centre">Nombre de renards gris comptés sur l’île.</p>
+  </section>
+
+  <section class="fenetre" id="f-enigme" data-theme="aventure" data-taille="petite">
+    <h2 style="margin-bottom:14px">Énigme</h2>
+    <div class="cadenas" data-reponse="15|quinze" data-indice="regarde la dernière barre du document 2" data-reussite="#vers-coffre" data-bravo="Bien vu ! Le coffre t’attend.">
+      Combien de renards restait-il en 2000&nbsp;?
+    </div>
+    <p style="margin-top:14px"><button class="bouton cache" id="vers-coffre" data-aller="#coffre" data-anim="pop">Vers le coffre <i data-ico="fleche-droite"></i></button></p>
+  </section>
+
+</main>
+</body>
+</html>
