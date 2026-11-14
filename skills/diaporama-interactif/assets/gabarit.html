@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>TITRE DE LA PRÉSENTATION</title>
+<!-- MOTEUR -->
+<style>
+  /* Styles propres à cette présentation, s'il en faut (le moteur fournit le reste) */
+</style>
+</head>
+<body>
+<!-- data-theme : atelier | aventure | nature | nuit        data-nav : fleches | libre
+     data-transition : fondu | glisse | zoom | monte | aucune   data-sons : petits sons de réussite et d'erreur -->
+<main class="diapo" data-theme="atelier" data-nav="libre" data-transition="fondu">
+
+  <section class="page" id="accueil" data-decor="bas-gauche">
+    <h1 data-pos="80,180,620" data-anim="fondu-bas">Titre</h1>
+    <p class="grand doux" data-pos="80,330,620" data-anim="fondu-bas" data-delai="0.2">Sous-titre, classe, auteur</p>
+    <button class="bouton gros" data-pos="80,450" data-aller="suivante" data-anim="pop" data-delai="0.7">Commencer</button>
+  </section>
+
+  <section class="page" id="page-2">
+    <h2 data-pos="60,60,900" data-anim="fondu-gauche">Une idée par page</h2>
+    <div class="cadre" data-pos="60,140,620,380" data-anim="fondu-bas" data-delai="0.2">
+      <p>Le texte court reste ici ; le détail part dans une fenêtre.</p>
+      <p><button class="bouton petit" data-ouvrir="f-detail">+ info</button></p>
+    </div>
+    <button class="bouton rond" data-pos="1090,570" data-aller="suivante" aria-label="Suite"><i data-ico="fleche-droite"></i></button>
+  </section>
+
+  <section class="page" id="fin">
+    <h1 class="accent centre" data-pos="200,260,800" data-anim="flou">Merci !</h1>
+    <button class="bouton contour" data-pos="540,400" data-aller="debut">Revoir</button>
+  </section>
+
+  <section class="fenetre" id="f-detail">
+    <h3>Pour aller plus loin</h3>
+    <p>Le détail, une image, une vidéo…</p>
+  </section>
+
+</main>
+</body>
+</html>

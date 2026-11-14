@@ -276,7 +276,7 @@
     if ((v = el.getAttribute('data-basculer'))) elements(v).forEach(function (e) { e.classList.toggle('cache'); });
     if (el.hasAttribute('data-fermer')) fermer();
     if ((v = el.getAttribute('data-ouvrir'))) ouvrir(v);
-    if ((v = el.getAttribute('data-aller'))) aller(v);
+    if ((v = el.getAttribute('data-aller'))) declenche(v);
     if ((v = el.getAttribute('data-lien'))) window.open(v, '_blank', 'noopener');
   }
 

@@ -234,7 +234,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0e0e10; }
 .bouton.sombre { background: #121212; color: #fff; }
 .bouton.clair { background: #fff; color: #121212; }
 .bouton.contour { background: transparent; color: var(--encre); box-shadow: inset 0 0 0 2px currentColor; }
-.bouton.petit { padding: 5px 18px; font-size: 14px; }
+.bouton.petit { padding: 6px 20px; font-size: 15px; }
 .bouton.gros { padding: 14px 40px; font-size: 22px; }
 .bouton.rond { width: 46px; height: 46px; padding: 0; font-size: 21px; }
 .bouton.rond.petit { width: 32px; height: 32px; font-size: 15px; }
@@ -340,7 +340,7 @@ img.el, .photo { object-fit: cover; }
 }
 .fenetre.active { display: block; animation: dp-fenetre .35s cubic-bezier(.25, 1.25, .5, 1) both; }
 .fenetre[data-taille="petite"] { width: 440px; }
-.fenetre[data-taille="grande"] { width: 960px; min-height: 520px; }
+.fenetre[data-taille="grande"] { width: 960px; }
 .fenetre[data-taille="pleine"] { width: 1100px; height: 600px; }
 .fenetre > .corps { max-height: 560px; overflow: auto; }
 .fenetre .fermer {
