@@ -41,7 +41,7 @@ def releve(source, dossier):
         return json.load(f)
 
 
-def compose(plan, dossier, sortie):
+def compose(plan, dossier, sortie, reperes=True):
     try:
         from pptx import Presentation
         from pptx.dml.color import RGBColor
@@ -87,8 +87,28 @@ def compose(plan, dossier, sortie):
         except Exception:
             pass  # un lien manqué ne doit pas faire échouer l'export
 
+    def etiquette(formes, it, texte):
+        """Une petite étiquette orange posée sur un élément cliquable : Genially ne reprend ni les liens
+        ni les notes d'un PowerPoint, alors on écrit sur la diapositive elle-même ce qu'il faut rebrancher.
+        Une fois l'interactivité refaite dans Genially, on supprime l'étiquette."""
+        x = min(max(0, it['x'] - 6), 1200 - 190)
+        y = min(max(0, it['y'] - 18), 675 - 30)
+        boite = formes.add_textbox(Emu(round(x * EMU)), Emu(round(y * EMU)), Emu(190 * EMU), Emu(30 * EMU))
+        boite.fill.solid()
+        boite.fill.fore_color.rgb = RGBColor(0xE8, 0x71, 0x0A)
+        cadre = boite.text_frame
+        cadre.word_wrap = False
+        cadre.auto_size = MSO_AUTO_SIZE.SHAPE_TO_FIT_TEXT
+        cadre.margin_left = cadre.margin_right = Emu(6 * EMU)
+        cadre.margin_top = cadre.margin_bottom = Emu(2 * EMU)
+        run = cadre.paragraphs[0].add_run()
+        run.text = texte
+        run.font.size, run.font.bold, run.font.name = Pt(13), True, 'Arial'
+        run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+
     for d, diapo in zip(plan['diapos'], diapos):
         formes = diapo.shapes
+        a_etiqueter = []
         if d['fond']:
             formes.add_picture(os.path.join(dossier, d['fond']), 0, 0, prs.slide_width, prs.slide_height)
         else:  # une fenêtre : fond gris, comme une fenêtre posée sur une page assombrie
@@ -144,10 +164,15 @@ def compose(plan, dossier, sortie):
                 ligne = '%s → %s : page %d (%s).' % (nom, geste, n, cible['id'])
                 if ligne not in notes:
                     notes.append(ligne)
+                    a_etiqueter.append((it, '%s %d' % ('Fenêtre p.' if cible['genre'] == 'fenetre' else 'Aller p.', n)))
             elif a.get('lien'):
                 ligne = '%s → Ouvrir le lien : %s' % (nom, a['lien'])
                 if ligne not in notes:
                     notes.append(ligne)
+                    a_etiqueter.append((it, 'Lien web (voir note)'))
+        if reperes:   # posées en dernier : au-dessus de tout, faciles à sélectionner puis à supprimer
+            for it, texte in a_etiqueter:
+                etiquette(formes, it, '🔗 ' + texte)
         if d['genre'] == 'fenetre' and d['id'] in ouvreurs:   # la croix : revenir à la page
             croix = formes.add_textbox(Emu(1130 * EMU), Emu(16 * EMU), Emu(50 * EMU), Emu(44 * EMU))
             run = croix.text_frame.paragraphs[0].add_run()
@@ -166,8 +191,10 @@ if __name__ == '__main__':
     p = argparse.ArgumentParser(description='Exporte une présentation assemblée en PowerPoint (.pptx).')
     p.add_argument('source', help='le fichier HTML assemblé')
     p.add_argument('-o', '--sortie', help='le fichier .pptx à écrire')
+    p.add_argument('--sans-reperes', action='store_true',
+                   help='ne pas poser les étiquettes orange « Aller p. 2 » sur les éléments cliquables')
     a = p.parse_args()
     sortie = a.sortie or os.path.splitext(a.source)[0] + '.pptx'
     with tempfile.TemporaryDirectory(prefix='pptx_') as tmp:
-        n = compose(releve(a.source, tmp), tmp, sortie)
+        n = compose(releve(a.source, tmp), tmp, sortie, reperes=not a.sans_reperes)
     print('OK : %s — %d diapositive(s), %.0f Ko' % (sortie, n, os.path.getsize(sortie) / 1024))

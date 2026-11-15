@@ -121,10 +121,12 @@ zones de texte modifiables, avec leur police ; images, blocs colorés et dessins
 images déplaçables ; les clics qui changent de page ou ouvrent une fenêtre deviennent des liens
 entre diapositives, et chaque fenêtre reçoit une croix qui ramène à sa page.
 
-**Genially n'importe pas ces liens** (constaté en novembre 2026 : textes et images arrivent, les
-interactivités non). Les notes de chaque diapositive en tiennent donc la liste, bouton par bouton,
-dans les mots de Genially (« « Next » → Aller à la page : page 2 ») : la personne les rebranche en
-quelques clics avec le panneau « Interactivité ». Le dire en livrant le fichier. `essais/liens_pptx.py`
+**Genially n'importe pas ces liens**, ni par PowerPoint ni en passant par Canva (constaté en
+novembre 2026 : textes et images arrivent, les interactivités non). L'export pose donc sur chaque
+élément cliquable une petite étiquette orange (« 🔗 Aller p. 2 », « 🔗 Fenêtre p. 16 ») : dans
+Genially, on sélectionne l'élément, on lui donne cette interactivité, on supprime l'étiquette. Les
+notes de chaque diapositive gardent la même liste en toutes lettres pour PowerPoint et Google Slides.
+`--sans-reperes` retire les étiquettes. Le dire en livrant le fichier. `essais/liens_pptx.py`
 (dans le dépôt du skill) fabrique un PowerPoint d'essai pour vérifier si une autre écriture de lien
 passe un jour.
 
