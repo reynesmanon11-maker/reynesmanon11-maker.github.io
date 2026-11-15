@@ -314,12 +314,17 @@ Chaque fichier assemblé embarque un éditeur à la souris, fermé par défaut :
 - Clic : sélectionner ; glisser : déplacer (aimantation au centre, aux marges et aux blocs voisins,
   `Alt` pour la désactiver) ; flèches : pousser de 1, de 10 avec `Maj` ; poignées : redimensionner.
 - Double-clic : corriger un texte d'un seul tenant (gras et italique conservés). `Échap` valide.
+- Ouverture : le bouton « ✏️ Modifier » en bas à gauche (absent de la version élèves).
 - Barre : pages et fenêtres, « ＋ Texte », « ＋ Image », « Changer l'image », « Fond », taille,
   alignement, couleur du texte, « Suivre » (fait ce que ferait le clic : ouvre la fenêtre, change de
   page, retourne la carte), « Cachés » (montre ce qu'une réussite révèle), texte de l'infobulle,
-  couleur d'accent, « Supprimer », « Annuler », « Télécharger ».
-- Le fichier téléchargé est la source d'origine avec les retouches, sans trace de l'éditeur : il se
-  rouvre, se retouche encore, et se redonne à l'assembleur.
+  couleur d'accent, « Supprimer », « Annuler », « Enregistrer », « Version élèves », « Terminer ».
+- Un élément cliquable sélectionné montre un bouton orange (« ▶ Ouvrir la fenêtre », « ▶ Aller à
+  la page ») ; un double-clic sur une image cliquable fait de même. `data-crayon="non"` sur `.diapo`
+  retire le bouton « Modifier ».
+- « Enregistrer » écrit directement dans le fichier choisi la première fois (Chrome, Edge), sinon
+  télécharge le fichier modifié. Il contient la source d'origine retouchée, sans trace de l'éditeur :
+  il se rouvre, se retouche encore, et se redonne à l'assembleur.
 
 Pour que la retouche reste agréable, écrire une source simple : des blocs placés par `data-pos`
 (ce sont eux qui se déplacent) et, dedans, des textes d'un seul tenant (ce sont eux qui se

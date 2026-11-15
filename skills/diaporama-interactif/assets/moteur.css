@@ -505,6 +505,12 @@ img.entier { object-fit: contain; }
 .dp-retouche .message { max-width: 360px; color: #fdd663; }
 .dp-retouche [hidden] { display: none; }
 body.dp-en-retouche .dp-outils { display: none; }
+.dp-outils button.o-modif { left: 8px; bottom: 8px; width: auto; height: 36px; padding: 0 14px; border-radius: 18px; font: 600 13px/1 system-ui, sans-serif; white-space: nowrap; }
+.dp-sel .dp-suivre {
+  position: absolute; right: -2px; bottom: 100%; margin-bottom: 4px; height: 26px; padding: 0 12px; border: 0; border-radius: 5px; pointer-events: auto; cursor: pointer;
+  background: #e8710a; color: #fff; font: 600 13px/1 system-ui, sans-serif; white-space: nowrap;
+}
+.dp-sel .dp-suivre[hidden] { display: none; }
 
 /* ---------- Sans animation (captures, préférence système) ---------- */
 .diapo.sans-anim *, .diapo.sans-anim *::before, .diapo.sans-anim *::after { animation: none !important; transition: none !important; }

@@ -193,9 +193,11 @@ def assemble(source, sortie, retouche=True):
         css = f.read()
     with open(os.path.join(ASSETS, 'moteur.js'), encoding='utf-8') as f:
         js = f.read()
-    if retouche:  # le mode retouche se charge avant le moteur, qui le découvre au démarrage
+    js = '<script>\n' + js.replace('</script', '<\\/script') + '\n</script>'
+    if retouche:  # le mode retouche se charge avant le moteur, qui le découvre au démarrage ;
+        # il a sa propre balise pour que la « version élèves » puisse le retirer
         with open(os.path.join(ASSETS, 'retouche.js'), encoding='utf-8') as f:
-            js = f.read() + '\n' + js
+            js = '<script data-retouche>\n' + f.read().replace('</script', '<\\/script') + '\n</script>\n' + js
     familles = []
     for t in sorted(r.themes or {'atelier'}):
         for fam in POLICES.get(t, []):
@@ -211,8 +213,7 @@ def assemble(source, sortie, retouche=True):
              '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?%s&display=swap">\n'
              % '&'.join('family=' + f for f in familles))
     bloc = ('<!-- MOTEUR:debut -->\n<meta name="viewport" content="width=device-width, initial-scale=1">\n' + liens +
-            '<style>\n' + css + '\n</style>\n<script>\n' + js.replace('</script', '<\\/script') +
-            '\n</script>\n<!-- MOTEUR:fin -->')
+            '<style>\n' + css + '\n</style>\n' + js + '\n<!-- MOTEUR:fin -->')
     if '<!-- MOTEUR -->' in html:
         html = html.replace('<!-- MOTEUR -->', bloc, 1)
     elif re.search(r'</head>', html, flags=re.I):

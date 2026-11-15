@@ -1,6 +1,6 @@
 ---
 name: diaporama-interactif
-description: Crée des présentations interactives « façon Genially » en un seul fichier HTML — diaporama cliquable, image interactive, parcours, quiz, escape game pédagogique (énigmes, cadenas, digicode, minuteur) — avec fenêtres « + info », infobulles, animations d'entrée, cartes à retourner et glisser-déposer. Utilise ce skill dès que la personne parle de Genially, de présentation ou de diapo interactive, d'escape game ou de serious game numérique, d'image cliquable, de « page avec des boutons », de support de cours animé pour ses élèves, ou qu'elle dépose un export Genially (.zip contenant genially.html) à refaire ou à adapter — même si elle ne prononce pas le mot « diaporama ». Ne pas l'utiliser pour un PowerPoint (.pptx) ni pour un document à imprimer.
+description: Crée des présentations interactives « façon Genially » en un seul fichier HTML, avec leur version PowerPoint à importer dans Genially ou Canva pour finir à la main — diaporama cliquable, image interactive, parcours, quiz, escape game pédagogique (énigmes, cadenas, digicode, minuteur) — avec fenêtres « + info », infobulles, animations d'entrée, cartes à retourner et glisser-déposer. Utilise ce skill dès que la personne parle de Genially, de présentation ou de diapo interactive, d'escape game ou de serious game numérique, d'image cliquable, de « page avec des boutons », de support de cours animé pour ses élèves, ou qu'elle dépose un export Genially (.zip contenant genially.html) à refaire ou à adapter — même si elle ne prononce pas le mot « diaporama ». Ne pas l'utiliser pour un PowerPoint (.pptx) ni pour un document à imprimer.
 ---
 
 # Diaporama interactif
@@ -22,6 +22,7 @@ page), l'**assembler** avec le moteur fourni, **regarder** le résultat et le co
 | `assets/gabarit.html` | squelette d'une source, à copier pour démarrer |
 | `scripts/assembler.py` | source → fichier unique ; incorpore les images, masque les réponses, vérifie les liens |
 | `scripts/capturer.js` | prend une image de chaque page et signale les défauts de mise en page (s'il y a un navigateur) |
+| `scripts/exporter_pptx.py` | exporte la présentation assemblée en PowerPoint modifiable, à importer dans Genially, Canva ou Google Slides |
 | `scripts/lire_genially.py` | tire un plan lisible d'un export Genially, pour le refaire |
 | `references/briques.md` | **tout le vocabulaire** : attributs, composants, exemples. À lire avant d'écrire la première source. |
 | `references/styles.md` | les quatre thèmes, les fonds, les décors, comment créer une charte sur mesure |
@@ -105,22 +106,48 @@ environ 0,55 × taille de police par caractère, et 1,36 × taille par ligne), p
 personne que l'aperçu n'a pas pu être contrôlé et qu'elle peut ajouter `?controle` au bout de
 l'adresse du fichier pour voir les défauts entourés en rouge.
 
-### 6. Livrer et expliquer en deux phrases
+### 6. Exporter aussi en PowerPoint
 
-Remettre le fichier HTML assemblé (et garder la source pour les retouches). Dire comment s'en
+Beaucoup d'enseignants veulent finir à la main dans l'outil qu'ils connaissent. Genially n'importe
+pas de page web, mais importe un PowerPoint (« Créer un genially › Importer › PowerPoint (PPTX) ») ;
+Canva et Google Slides aussi. Produire donc, à côté du HTML, la version PowerPoint :
+
+```bash
+python3 scripts/exporter_pptx.py ma-presentation.html -o ma-presentation.pptx
+```
+
+Une diapositive par page et une par fenêtre (placées après les pages). Les textes y restent des
+zones de texte modifiables, avec leur police ; images, blocs colorés et dessins deviennent des
+images déplaçables ; les clics qui changent de page ou ouvrent une fenêtre deviennent des liens
+entre diapositives, et chaque fenêtre reçoit une croix qui ramène à sa page. Les notes de chaque
+diapositive rappellent les infobulles et les liens, pour les refaire dans Genially.
+
+Ce qui ne passe pas, à dire à la personne : les animations, les infobulles, et l'interactivité des
+quiz, cadenas, digicodes, cartes et glisser-déposer (figés en image). Dans Genially, une
+diapositive de fenêtre se rebranche en « fenêtre » avec l'interactivité du bouton qui l'ouvrait.
+L'import d'un PowerPoint dans Genially peut être réservé aux comptes payants : le signaler sans
+l'affirmer, le plus simple est d'essayer.
+
+L'export demande un navigateur (Playwright) ; sans navigateur, livrer le HTML seul et le dire.
+
+### 7. Livrer et expliquer en deux phrases
+
+Remettre le fichier HTML assemblé et sa version PowerPoint (et garder la source pour les retouches). Dire comment s'en
 servir : l'ouvrir dans un navigateur, bouton plein écran en bas à droite, la main en haut à droite
 montre ce qui est cliquable ; pour les élèves, le déposer sur l'ENT ou le partager comme un fichier.
 
-**Toujours signaler le mode retouche**, c'est ce qui rend la personne autonome : `Ctrl + Alt + E`
-(ou `?retouche` au bout de l'adresse) ouvre une barre d'outils. Un clic sélectionne et déplace un
+**Toujours signaler les deux façons de retoucher soi-même**, c'est ce qui rend la personne
+autonome : importer le PowerPoint dans l'outil qu'elle connaît, ou rester dans le HTML avec le
+bouton « ✏️ Modifier » en bas à gauche (ou `Ctrl + Alt + E`), qui ouvre une barre d'outils. Un clic sélectionne et déplace un
 bloc, les poignées le redimensionnent, un double-clic corrige un texte ; on change taille, couleur,
 image, fond de page, infobulle, on ajoute un texte ou une image, on annule avec `Ctrl + Z`. Le
-bouton « Télécharger » rend le fichier modifié : c'est lui, ensuite, la bonne version.
+bouton « Enregistrer » garde les modifications dans le fichier ; « Version élèves » en tire une
+copie sans le bouton « Modifier », à distribuer.
 Sur claude.ai, on peut aussi le publier en artefact pour obtenir un lien — en prévenant que les
 contenus intégrés (vidéos, cartes) et les images appelées par une adresse web ne s'affichent pas
 dans l'aperçu de claude.ai, seulement dans le fichier ouvert normalement.
 
-### 7. Retoucher à la demande
+### 8. Retoucher à la demande
 
 « Mets le titre en plus gros », « ajoute une question », « change la couleur » : modifier la
 **source**, réassembler, recontrôler la page touchée. Ne pas repartir de zéro et ne pas toucher à
@@ -131,8 +158,8 @@ source** : repartir de l'ancienne effacerait son travail. L'assembleur l'accepte
 retire le moteur et le remet à neuf) ; ses images y sont déjà incorporées et ses réponses déjà
 masquées. Modifier ce fichier-là, puis `python3 scripts/assembler.py fichier-retouche.html -o …`.
 
-Pour un escape game distribué aux élèves, proposer une seconde version assemblée avec
-`--sans-retouche` : le mode retouche permet de voir les éléments cachés, donc de sauter des étapes.
+Pour un escape game distribué aux élèves, donner la « Version élèves » (ou assembler avec
+`--sans-retouche`) : le mode retouche montre les éléments cachés, donc permet de sauter des étapes.
 
 ## Ce qui fait une bonne présentation interactive
 

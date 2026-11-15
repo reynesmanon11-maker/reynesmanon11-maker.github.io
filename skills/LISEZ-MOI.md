@@ -8,7 +8,8 @@ Ce dossier ne fait pas partie du site des élèves : il range des *skills* pour 
 Fait produire à Claude des présentations interactives « façon Genially » en un seul fichier HTML :
 pages cliquables, fenêtres « + info », infobulles, animations, quiz, cartes à retourner,
 glisser-déposer, et tout l'attirail de l'escape game (cadenas, digicode, minuteur). Chaque fichier
-produit se retouche ensuite à la souris (`Ctrl + Alt + E`).
+produit se retouche ensuite à la souris (bouton « ✏️ Modifier »), et s'exporte en PowerPoint
+modifiable pour être importé dans Genially (Créer un genially › Importer › PowerPoint).
 
 - `SKILL.md` : la notice que lit Claude ; `references/` : le vocabulaire, les styles, la
   correspondance avec Genially ; `assets/` : le moteur ; `scripts/` : assemblage, contrôle, lecture
@@ -16,6 +17,8 @@ produit se retouche ensuite à la souris (`Ctrl + Alt + E`).
 - `livrables/diaporama-interactif.skill` : le skill empaqueté, à envoyer à une collègue (elle
   l'ajoute dans Claude : Paramètres, puis Capacités, puis Skills).
 - `livrables/vitrine.html` : la démonstration assemblée, à ouvrir dans un navigateur.
+- `livrables/vitrine.pptx` : la même, exportée en PowerPoint (`scripts/exporter_pptx.py`), pour
+  vérifier l'import dans Genially, Canva ou Google Slides.
 
 Après toute modification du skill, depuis la racine du dépôt :
 

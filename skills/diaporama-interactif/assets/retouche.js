@@ -19,7 +19,7 @@
   var source = null, jumeaux = new WeakMap(), api = null, diapo = null;
   var actif = false, barre = null, cadre = null, mesure = null, champs = {};
   var sel = null, txt = null, txtAvant = '', cliquable = null, infoEl = null;
-  var annulations = [], modifie = false, laisse = false, fantomes = [];
+  var annulations = [], modifie = false, laisse = false, fantomes = [], fichier = null;
 
   /* ---------- Jumeaux ---------- */
   function apparie(vivant, copie) {
@@ -316,18 +316,48 @@
   }
 
   /* ---------- Enregistrer ---------- */
-  function telecharge() {
-    finTexte();
-    var html = '<!doctype html>\n' + source.outerHTML;
+  function nomFichier() {
     var nom = '';
     try { nom = decodeURIComponent(location.pathname.split('/').pop() || ''); } catch (e) { /* nom par défaut */ }
-    if (!/\.html?$/i.test(nom)) nom = 'presentation.html';
+    return /\.html?$/i.test(nom) ? nom : 'presentation.html';
+  }
+  function telecharge(html, nom) {
     var a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' })); a.download = nom;
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-    modifie = false; majBarre();
-    dit('Fichier téléchargé : c’est lui, désormais, la bonne version.');
+  }
+  /* Enregistrer : là où le navigateur le permet (Chrome, Edge), on écrit directement dans le fichier
+     choisi la première fois ; ailleurs, on télécharge le fichier modifié. */
+  function enregistre() {
+    finTexte();
+    var html = '<!doctype html>\n' + source.outerHTML;
+    function fait(message) { modifie = false; majBarre(); dit(message); }
+    function ecrit() {
+      return fichier.createWritable().then(function (w) { return w.write(html).then(function () { return w.close(); }); })
+        .then(function () { fait('Enregistré dans « ' + fichier.name + ' ».'); });
+    }
+    if (!window.showSaveFilePicker) { telecharge(html, nomFichier()); return fait('Fichier téléchargé : c’est lui, désormais, la bonne version.'); }
+    var etape = fichier ? Promise.resolve() : window.showSaveFilePicker({
+      suggestedName: nomFichier(), types: [{ description: 'Présentation interactive', accept: { 'text/html': ['.html'] } }]
+    }).then(function (f) { fichier = f; });
+    etape.then(ecrit).catch(function (e) {
+      if (e && e.name === 'AbortError') return;
+      fichier = null; telecharge(html, nomFichier()); fait('Fichier téléchargé : c’est lui, désormais, la bonne version.');
+    });
+  }
+  /* La copie à distribuer : la même présentation, sans l'éditeur ni le bouton « Modifier » */
+  function versionEleves() {
+    finTexte();
+    var copie = source.cloneNode(true);
+    Array.prototype.forEach.call(copie.querySelectorAll('script[data-retouche]'), function (s) { s.remove(); });
+    telecharge('<!doctype html>\n' + copie.outerHTML, nomFichier().replace(/\.html?$/i, '') + '-eleves.html');
+    dit('Version élèves téléchargée. Garde ton fichier de travail pour les prochaines retouches.');
+  }
+  function suitClic(cible) {
+    if (!cible) return;
+    finTexte(); laisse = true; try { cible.click(); } finally { laisse = false; }
+    choisit(null);
   }
 
   /* ---------- Barre d'outils ---------- */
@@ -346,7 +376,7 @@
       l.appendChild(c); g.appendChild(l); return c;
     }
     var g = groupe();
-    var titre = document.createElement('b'); titre.textContent = 'Retouche'; g.appendChild(titre);
+    var titre = document.createElement('b'); titre.textContent = 'Modification'; g.appendChild(titre);
     g = groupe();
     bouton(g, '◀', 'Page précédente', function () { finTexte(); api.aller('precedente'); });
     champs.pages = document.createElement('select'); champs.pages.title = 'Aller à une page ou ouvrir une fenêtre';
@@ -376,11 +406,6 @@
       if (fin) { note(photoCouleur); photoCouleur = null; }
     });
     g = groupe();
-    champs.suivre = bouton(g, '▶ Suivre', 'Faire ce que fait le clic : ouvrir la fenêtre, changer de page, retourner la carte', function () {
-      if (!cliquable) return;
-      finTexte(); laisse = true; try { cliquable.click(); } finally { laisse = false; }
-      choisit(null);
-    });
     champs.caches = bouton(g, 'Cachés', 'Montrer les éléments qui n’apparaissent qu’après une réussite', function () { fantome(!fantomes.length); });
     champs.info = document.createElement('input'); champs.info.type = 'text'; champs.info.placeholder = 'Texte de l’infobulle'; champs.info.title = 'Infobulle de l’élément sélectionné';
     champs.info.addEventListener('change', function () {
@@ -404,9 +429,10 @@
     champs.annuler = bouton(g, '↶ Annuler', 'Annuler la dernière retouche (Ctrl + Z)', annule);
     g = groupe(); g.classList.add('fin');
     champs.message = document.createElement('span'); champs.message.className = 'message'; g.appendChild(champs.message);
-    champs.enregistrer = bouton(g, 'Télécharger', 'Télécharger le fichier modifié', telecharge);
+    champs.enregistrer = bouton(g, 'Enregistrer', 'Enregistrer les modifications (Ctrl + S)', enregistre);
     champs.enregistrer.className = 'principal';
-    bouton(g, '✕', 'Quitter la retouche (Ctrl + Alt + E)', ferme);
+    bouton(g, 'Version élèves', 'Télécharger une copie sans le bouton « Modifier », à donner aux élèves', versionEleves);
+    bouton(g, 'Terminer', 'Quitter la modification et revoir la présentation', ferme);
     document.body.appendChild(barre);
 
     cadre = document.createElement('div'); cadre.className = 'dp-sel';
@@ -416,6 +442,10 @@
       p.addEventListener('pointerdown', function (e) { debutTaille(e, sens); });
       cadre.appendChild(p);
     });
+    champs.suivre = document.createElement('button'); champs.suivre.type = 'button'; champs.suivre.className = 'dp-suivre';
+    champs.suivre.addEventListener('pointerdown', function (e) { e.stopPropagation(); });
+    champs.suivre.addEventListener('click', function () { suitClic(cliquable); });
+    cadre.appendChild(champs.suivre);
     diapo.appendChild(cadre);
   }
   function hexa(c) {
@@ -426,7 +456,9 @@
     if (!barre) return;
     var el = cibleStyle();
     champs.image.hidden = !(sel && sel.tagName === 'IMG');
-    champs.suivre.disabled = !cliquable;
+    champs.suivre.hidden = !cliquable || !!txt;
+    if (cliquable) champs.suivre.textContent = cliquable.hasAttribute('data-ouvrir') ? '▶ Ouvrir la fenêtre'
+      : cliquable.hasAttribute('data-aller') ? '▶ Aller à la page' : cliquable.classList.contains('carte') ? '▶ Retourner la carte' : '▶ Activer';
     champs.supprimer.disabled = !el;
     champs.annuler.disabled = !annulations.length;
     champs.info.hidden = !infoEl; if (infoEl && document.activeElement !== champs.info) champs.info.value = infoEl.getAttribute('data-info');
@@ -448,6 +480,7 @@
     if (txt && txt.contains(e.target)) { e.stopPropagation(); return; }
     e.stopPropagation();
     finTexte();
+    if (e.target.closest('.rideau, .fenetre > .fermer')) { api.fermer(); choisit(null); return; }
     var b = bloc(e.target);
     choisit(b, e.target);
     if (b && e.button === 0) { e.preventDefault(); if (mobile(b)) debutDeplace(e, b); }
@@ -466,7 +499,8 @@
       /* le curseur là où l'on a double-cliqué */
       var r = document.caretRangeFromPoint ? document.caretRangeFromPoint(e.clientX, e.clientY) : null;
       if (r && t.contains(r.startContainer)) { var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
-    } else dit('Ce bloc contient plusieurs éléments : double-clique sur le texte lui-même.');
+    } else if (e.target.closest(CLIQUABLE)) suitClic(e.target.closest(CLIQUABLE));
+    else dit('Ce bloc contient plusieurs éléments : double-clique sur le texte lui-même.');
   }
   function surTouche(e) {
     if (e.ctrlKey && e.altKey && e.code === 'KeyE') { e.preventDefault(); e.stopPropagation(); if (actif) ferme(); else ouvre(); return; }
@@ -481,7 +515,7 @@
       return;
     }
     if (cmd && e.key.toLowerCase() === 'z') { e.preventDefault(); annule(); }
-    else if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); telecharge(); }
+    else if (cmd && e.key.toLowerCase() === 's') { e.preventDefault(); enregistre(); }
     else if (e.key === 'Delete' || e.key === 'Backspace') { if (sel) { e.preventDefault(); supprime(); } }
     else if (e.key === 'Escape') { if (sel) choisit(null); else api.fermer(); }
     else if (/^Arrow/.test(e.key) && sel) {
@@ -503,7 +537,7 @@
     diapo.classList.add('retouche', 'sans-anim');
     document.body.classList.add('dp-en-retouche'); /* les boutons du lecteur gêneraient les poignées */
     construitBarre(); majBarre();
-    dit('Clic : sélectionner et déplacer. Double-clic : corriger un texte.');
+    dit('Clic : sélectionner, glisser pour déplacer. Double-clic : écrire. Puis « Enregistrer ».');
   }
   function ferme() {
     if (!actif) return;
@@ -535,10 +569,18 @@
       window.addEventListener('beforeunload', surQuitte);
       window.addEventListener('resize', function () { if (actif) { majBarre(); trace(); } });
       document.addEventListener('diapo:page', function () { if (actif) { choisit(null); if (fantomes.length) fantome(true); } });
+      /* Le bouton « Modifier », visible dans le fichier de travail (absent de la version élèves) */
+      var outils = document.querySelector('.dp-outils');
+      if (outils && diapo.getAttribute('data-crayon') !== 'non') {
+        var crayon = document.createElement('button'); crayon.type = 'button'; crayon.className = 'o-modif';
+        crayon.textContent = '✏️ Modifier'; crayon.title = 'Modifier cette présentation à la souris';
+        crayon.addEventListener('click', ouvre); outils.appendChild(crayon);
+      }
       if (/[?&]retouche\b/.test(location.search)) ouvre();
     },
     ouvre: ouvre, ferme: ferme,
     /* Pour les essais : le HTML qui serait téléchargé */
-    html: function () { finTexte(); return '<!doctype html>\n' + source.outerHTML; }
+    html: function () { finTexte(); return '<!doctype html>\n' + source.outerHTML; },
+    enregistre: enregistre, versionEleves: versionEleves
   };
 })();
