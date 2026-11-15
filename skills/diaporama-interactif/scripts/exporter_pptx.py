@@ -19,6 +19,7 @@ Demande Node, Playwright et un navigateur (pour mesurer la mise en page), ainsi 
 import argparse
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -169,7 +170,7 @@ def compose(plan, dossier, sortie, reperes=True):
                 ligne = '%s → Ouvrir le lien : %s' % (nom, a['lien'])
                 if ligne not in notes:
                     notes.append(ligne)
-                    a_etiqueter.append((it, 'Lien web (voir note)'))
+                    a_etiqueter.append((it, 'Lien : ' + re.sub(r'^https?://(www\.)?', '', a['lien']).split('/')[0]))
         if reperes:   # posées en dernier : au-dessus de tout, faciles à sélectionner puis à supprimer
             for it, texte in a_etiqueter:
                 etiquette(formes, it, '🔗 ' + texte)
