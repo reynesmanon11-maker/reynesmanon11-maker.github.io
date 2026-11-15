@@ -129,13 +129,25 @@ def compose(plan, dossier, sortie):
                         f.name = r['police']
             lie(forme, d, it.get('action'))
             a = it.get('action') or {}
+            if it['type'] == 'image' and not it.get('nom') and any(
+                    t is not it and t.get('action') == a and (t['type'] == 'texte' or t.get('nom')) for t in d['items']):
+                continue  # le fond ou l'icône d'un bouton déjà nommé : une seule ligne par bouton
+            nom = ' '.join(r['t'] for p in it.get('paras', []) for r in p).strip()
+            if nom:
+                nom = '« %s »' % (nom[:50] + ('…' if len(nom) > 50 else ''))
+            else:
+                nom = 'L’image « %s »' % it['nom'] if it.get('nom') else 'L’image'
             if a.get('vers') and vers(d, a) is not None:
                 n = diapos.index(vers(d, a)) + 1
-                ligne = 'Un clic mène à la diapositive %d (%s).' % (n, plan['diapos'][n - 1]['id'])
+                cible = plan['diapos'][n - 1]
+                geste = 'Ouvrir une fenêtre' if cible['genre'] == 'fenetre' else 'Aller à la page'
+                ligne = '%s → %s : page %d (%s).' % (nom, geste, n, cible['id'])
                 if ligne not in notes:
                     notes.append(ligne)
-            elif a.get('lien') and ('Lien : ' + a['lien']) not in notes:
-                notes.append('Lien : ' + a['lien'])
+            elif a.get('lien'):
+                ligne = '%s → Ouvrir le lien : %s' % (nom, a['lien'])
+                if ligne not in notes:
+                    notes.append(ligne)
         if d['genre'] == 'fenetre' and d['id'] in ouvreurs:   # la croix : revenir à la page
             croix = formes.add_textbox(Emu(1130 * EMU), Emu(16 * EMU), Emu(50 * EMU), Emu(44 * EMU))
             run = croix.text_frame.paragraphs[0].add_run()
@@ -143,8 +155,8 @@ def compose(plan, dossier, sortie):
             run.font.size, run.font.bold = Pt(24), True
             run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
             croix.click_action.target_slide = diapos[numero[ouvreurs[d['id']]]]
-            notes.append('Fenêtre ouverte depuis la diapositive %d (%s).' % (numero[ouvreurs[d['id']]] + 1, ouvreurs[d['id']]))
-        entete = ('Page « %s »' if d['genre'] == 'page' else 'Fenêtre « %s »') % d['id']
+            notes.append('Fenêtre : dans Genially, la brancher avec « Ouvrir une fenêtre » sur le bouton de la page %d (%s).' % (numero[ouvreurs[d['id']]] + 1, ouvreurs[d['id']]))
+        entete = ('Page « %s » — interactivités à refaire :' if d['genre'] == 'page' else 'Fenêtre « %s » :') % d['id']
         diapo.notes_slide.notes_text_frame.text = '\n'.join([entete] + notes)
     prs.save(sortie)
     return len(diapos)

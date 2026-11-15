@@ -119,8 +119,14 @@ python3 scripts/exporter_pptx.py ma-presentation.html -o ma-presentation.pptx
 Une diapositive par page et une par fenêtre (placées après les pages). Les textes y restent des
 zones de texte modifiables, avec leur police ; images, blocs colorés et dessins deviennent des
 images déplaçables ; les clics qui changent de page ou ouvrent une fenêtre deviennent des liens
-entre diapositives, et chaque fenêtre reçoit une croix qui ramène à sa page. Les notes de chaque
-diapositive rappellent les infobulles et les liens, pour les refaire dans Genially.
+entre diapositives, et chaque fenêtre reçoit une croix qui ramène à sa page.
+
+**Genially n'importe pas ces liens** (constaté en novembre 2026 : textes et images arrivent, les
+interactivités non). Les notes de chaque diapositive en tiennent donc la liste, bouton par bouton,
+dans les mots de Genially (« « Next » → Aller à la page : page 2 ») : la personne les rebranche en
+quelques clics avec le panneau « Interactivité ». Le dire en livrant le fichier. `essais/liens_pptx.py`
+(dans le dépôt du skill) fabrique un PowerPoint d'essai pour vérifier si une autre écriture de lien
+passe un jour.
 
 Ce qui ne passe pas, à dire à la personne : les animations, les infobulles, et l'interactivité des
 quiz, cadenas, digicodes, cartes et glisser-déposer (figés en image). Dans Genially, une

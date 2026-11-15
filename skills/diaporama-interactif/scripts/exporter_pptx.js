@@ -34,6 +34,7 @@ const RELEVE = `(() => {
     if (parseFloat(cs.borderBottomWidth) > 0 && alpha(cs.borderBottomColor) > 0.02) return true;
     return ['::before', '::after'].some(p => { const s = getComputedStyle(el, p); return s.content !== 'none' && s.content !== 'normal' && s.display !== 'none'; });
   };
+  const nomDe = el => { const e = el.matches('[alt],[aria-label]') ? el : el.querySelector('[alt],[aria-label]'); return e ? (e.getAttribute('alt') || e.getAttribute('aria-label') || '').trim() : ''; };
   const aTexteDirect = el => Array.prototype.some.call(el.childNodes, x => x.nodeType === 3 && x.textContent.trim());
   const souligne = (el, racine) => { for (let e = el; e; e = e.parentElement) { if (getComputedStyle(e).textDecorationLine.includes('underline')) return true; if (e === racine) break; } return false; };
 
@@ -84,9 +85,9 @@ const RELEVE = `(() => {
     if (b.w < 1 || b.h < 1) return;
     if (el.hasAttribute('data-info')) notes.push('Infobulle sur « ' + (el.textContent.trim().slice(0, 40) || el.getAttribute('aria-label') || 'élément') + ' » : ' + el.getAttribute('data-info'));
     if (el.matches(ENTIER) || (!el.children.length && !el.textContent.trim() && aBoite(el, cs)) ) {
-      el.setAttribute('data-xp', ++n); items.push(Object.assign({ type: 'image', n, mode: 'tout', action: cible(el) }, b)); return;
+      el.setAttribute('data-xp', ++n); items.push(Object.assign({ type: 'image', n, mode: 'tout', action: cible(el), nom: nomDe(el) }, b)); return;
     }
-    if (aBoite(el, cs) && !el.classList.contains('page')) { el.setAttribute('data-xp', ++n); items.push(Object.assign({ type: 'image', n, mode: 'boite', action: cible(el) }, b)); }
+    if (aBoite(el, cs) && !el.classList.contains('page')) { el.setAttribute('data-xp', ++n); items.push(Object.assign({ type: 'image', n, mode: 'boite', action: cible(el), nom: nomDe(el) }, b)); }
     if (aTexteDirect(el)) { texte(el, cs); Array.prototype.forEach.call(el.querySelectorAll('svg'), parcours); return; }
     Array.prototype.forEach.call(el.children, parcours);
   }
