@@ -1,0 +1,15 @@
+{
+  "name": "cabinet-des-curiosites",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Promenade en 3D dans le cabinet d'un naturaliste : migration progressive vers Three.js (la version légère reste en ligne).",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "test:navigateur": "node tests/parcours.mjs",
+    "synchroniser": "node synchroniser.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}

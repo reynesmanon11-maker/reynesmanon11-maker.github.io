@@ -283,11 +283,32 @@ site : on y accède par son adresse.
 - Un seul fichier, **sans bibliothèque** : un petit moteur WebGL écrit pour lui
   (section 3 du script). Tous les objets sont modelés par le code (section 4) :
   aucune image, aucun modèle 3D téléchargé, rien à créditer.
-- Les textes sont dans `CURIOSITES`, en tête du script. **La bonne réponse est
-  toujours la première du tableau `choix`** : l'ordre est mélangé à l'affichage.
-  Un objet = une entrée de `CURIOSITES` + un modèle dans `MODELES` + une place
-  dans `PLACES`, sous le même `id`.
-- La progression de l'élève reste dans son navigateur (`localStorage`).
+- **Migration vers Three.js en cours, par étapes, dans `outils/cabinet/`**
+  (plan et état d'avancement dans `outils/cabinet/LISEZ-MOI.md`). Choix de
+  Manon : licences **CC0 et CC BY seulement** (crédit obligatoire), et
+  **`cabinet_curiosites.html` reste en ligne pour toujours** comme version
+  légère. Exception assumée à « un outil = un seul fichier » pour le nouveau
+  dossier, mais toujours sans CDN : Three.js r187 est copié dans
+  `outils/cabinet/vendor/three-r187/`, jamais retouché (empreintes vérifiées
+  par un test).
+- **Les textes se corrigent dans `outils/cabinet/js/donnees/curiosites.js`**,
+  pas dans la version légère. **La bonne réponse est toujours la première du
+  tableau `choix`** : l'ordre est mélangé à l'affichage. En ligne, la version
+  légère relit ce fichier au démarrage ; elle en garde une copie, entre deux
+  repères « COPIE AUTOMATIQUE », pour fonctionner par double-clic. Cette copie
+  se régénère avec `node synchroniser.mjs` (dans `outils/cabinet/`), et un test
+  échoue tant qu'elle est en retard. Avant de synchroniser, vérifier que Manon
+  n'a pas corrigé la copie directement : reporter sa correction dans
+  `curiosites.js`, sinon elle serait écrasée.
+- Un objet = une entrée de `curiosites.js` + un modèle dans `MODELES` + une
+  place dans `PLACES` (version légère), sous le même `id`.
+- **Tests avant toute publication qui touche au cabinet**, depuis
+  `outils/cabinet/` : `npm test`, puis `NODE_PATH=/opt/node22/lib/node_modules
+  CHROMIUM=/opt/pw-browsers/chromium npm run test:navigateur` (parcours élève
+  complet, téléphone, double-clic hors connexion).
+- La progression de l'élève reste dans son navigateur (`localStorage`, clé
+  `cabinet-curiosites-v1`) : la nouvelle version doit garder la même clé et le
+  même format.
 
 ## Outil de correction de copies (`correction_copies.html`) — pour Manon, pas pour les élèves
 
