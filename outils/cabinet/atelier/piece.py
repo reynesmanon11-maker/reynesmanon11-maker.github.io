@@ -213,16 +213,17 @@ def cadres_muraux():
 def murs():
     trous_sud = [(a, b, F_BAS, F_HAUT) for (a, b) in FENETRES]
     trou_est = [(PORTE[0], PORTE[1], 0.0, PORTE[2])]
-    # enduit intérieur (peint), du lambris jusqu'à la corniche
-    pan('enduit_n', 'z', Z0 - 0.01, 0.01, X0, X1, 0.0, H, [], 'mur', 'murs')
-    pan('enduit_s', 'z', Z1, 0.01, X0, X1, 0.0, H, trous_sud, 'mur', 'murs')
-    pan('enduit_o', 'x', X0 - 0.01, 0.01, Z0, Z1, 0.0, H, [(-0.68, 0.68, 0.0, 0.95)], 'mur', 'murs')
-    pan('enduit_e', 'x', X1, 0.01, Z0, Z1, 0.0, H, trou_est, 'mur', 'murs')
+    # enduit intérieur (peint) : un pan d'un seul tenant par mur, percé des baies (pas de couture de lumière)
+    from geo import pan_maille
+    pan_maille('enduit_n', 'z', Z0, +1, X0, X1, 0.0, H, [], 'mur', 'murs')
+    pan_maille('enduit_s', 'z', Z1, -1, X0, X1, 0.0, H, trous_sud, 'mur', 'murs')
+    pan_maille('enduit_o', 'x', X0, +1, Z0, Z1, 0.0, H, [(-0.68, 0.68, 0.0, 0.95)], 'mur', 'murs')
+    pan_maille('enduit_e', 'x', X1, -1, Z0, Z1, 0.0, H, trou_est, 'mur', 'murs')
     # parements extérieurs en brique (vus depuis la serre)
-    pan('facade_n', 'z', Z0 - EP, 0.02, X0 - EP, X1 + EP, 0, 4.4, [], 'brique', 'facade', densite=0.15)
-    pan('facade_s', 'z', Z1 + EP - 0.02, 0.02, X0 - EP, X1 + EP, 0, 4.4, trous_sud, 'brique', 'facade', densite=0.15)
-    pan('facade_o', 'x', X0 - EP, 0.02, Z0 - EP, Z1 + EP, 0, 4.4, [], 'brique', 'facade', densite=0.15)
-    pan('facade_e', 'x', X1 + EP - 0.02, 0.02, Z0 - EP, Z1 + EP, 0, 4.4, trou_est, 'brique', 'facade_est', densite=0.6)
+    pan_maille('facade_n', 'z', Z0 - EP, -1, X0 - EP, X1 + EP, 0, 4.4, [], 'brique', 'facade', densite=0.15)
+    pan_maille('facade_s', 'z', Z1 + EP, +1, X0 - EP, X1 + EP, 0, 4.4, trous_sud, 'brique', 'facade', densite=0.15)
+    pan_maille('facade_o', 'x', X0 - EP, -1, Z0 - EP, Z1 + EP, 0, 4.4, [], 'brique', 'facade', densite=0.15)
+    pan_maille('facade_e', 'x', X1 + EP, +1, Z0 - EP, Z1 + EP, 0, 4.4, trou_est, 'brique', 'facade_est', densite=0.6)
     # sol et plafond
     pave('sol', X0, -0.05, Z0, X1, 0, Z1, 'parquet', chanfrein=0, groupe='sol', densite=1.3)
     pave('plafond', X0, H, Z0, X1, H + 0.05, Z1, 'plafond', chanfrein=0, groupe='plafond', densite=0.55)
@@ -262,7 +263,11 @@ def corniche_plafond():
     pts = [(X0, H - 0.3, Z0), (X1, H - 0.3, Z0), (X1, H - 0.3, Z1), (X0, H - 0.3, Z1)]
     normales = [(0, 0, 1), (-1, 0, 0), (0, 0, -1), (1, 0, 0)]
     import geo
-    geo.orienter(balayer('corniche', pts, normales, (0, 1, 0), CORNICHE, 'plafond', ferme=True, groupe='plafond', densite=0.8), (0, 2.0, 0))
+    # la corniche : sa propre carte de lumière, une île d'un seul tenant par mur (ses bandes étroites ne se perdent plus)
+    for k in range(4):
+        a_, b_ = pts[k], pts[(k + 1) % 4]
+        geo.orienter(balayer(f'corniche{k}', [a_, b_], [normales[k], normales[k]], (0, 1, 0), CORNICHE, 'plafond', groupe='corniche',
+                             iles=True, uv_lumiere='uv0', bouts=False), (0, 2.0, 0))
     # rosace au centre, où pend le lustre
     profil = [(0.0, -0.075), (0.05, -0.075), (0.065, -0.068), (0.075, -0.05), (0.1, -0.042), (0.13, -0.05), (0.16, -0.062),
               (0.2, -0.058), (0.23, -0.04), (0.27, -0.034), (0.3, -0.042), (0.34, -0.036), (0.38, -0.022), (0.42, -0.012), (0.46, 0.0)]

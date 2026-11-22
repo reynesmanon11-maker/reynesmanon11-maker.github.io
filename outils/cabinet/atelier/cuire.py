@@ -11,7 +11,7 @@ SORTIE, TAILLE, ECH = args[0], int(args[1]), int(args[2])
 os.makedirs(SORTIE, exist_ok=True)
 sc = bpy.context.scene
 piece = bpy.data.collections['piece']
-ARCHI = {'murs', 'facade', 'facade_est', 'sol', 'plafond', 'lambris', 'menuiseries', 'ebrasements', 'chassis', 'marbre', 'foyer'}
+ARCHI = {'murs', 'facade', 'facade_est', 'sol', 'plafond', 'corniche', 'lambris', 'menuiseries', 'ebrasements', 'chassis', 'marbre', 'foyer'}
 
 
 def aire_monde(ob):
@@ -112,7 +112,13 @@ def ranger_par_objet(obs):
 def ranger_ensemble(obs):
     """Toutes les îles du groupe dans le même carré, à finesse égale (pour l'architecture)."""
     for o in obs:
-        projeter(o, 0.0)
+        if o.get('uv_lumiere') == 'uv0':
+            # moulure balayée : ses coordonnées de texture (en mètres, une île par mur) servent telles quelles
+            a = np.empty(len(o.data.loops) * 2, np.float32)
+            o.data.uv_layers[0].data.foreach_get('uv', a)
+            ecrire(o, a.reshape(-1, 2))
+        else:
+            projeter(o, 0.0)
         me = o.data
         bm = bmesh.new()
         bm.from_mesh(me)

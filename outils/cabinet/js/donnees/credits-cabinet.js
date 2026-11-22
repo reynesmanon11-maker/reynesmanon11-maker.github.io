@@ -8,6 +8,7 @@ export const MODELES_CABINET = [
   {"titre": "Brown Leather", "sert": "le grain des reliures", "auteurs": "Rob Tuytel", "licence": "CC0", "source": "https://polyhaven.com/a/brown_leather", "site": "Poly Haven"},
   {"titre": "Carved Wooden Elephant", "sert": "elephant", "auteurs": "Greg Zaal", "licence": "CC0", "source": "https://polyhaven.com/a/carved_wooden_elephant", "site": "Poly Haven"},
   {"titre": "Chandelier 03", "sert": "lustre", "auteurs": "Kirill Sannikov", "licence": "CC0", "source": "https://polyhaven.com/a/Chandelier_03", "site": "Poly Haven"},
+  {"titre": "Charolettenbrunn Park (panorama)", "sert": "le jardin et le ciel vus par les verrières et la serre", "auteurs": "Grzegorz Wronkowski", "licence": "CC0", "source": "https://polyhaven.com/a/charolettenbrunn_park", "site": "Poly Haven"},
   {"titre": "Dark Wood", "sert": "l'acajou des meubles", "auteurs": "Dario Barresi (baking), Dimitrios Savva (photography), Rico Cilliers (tiling)", "licence": "CC0", "source": "https://polyhaven.com/a/dark_wood", "site": "Poly Haven"},
   {"titre": "Fancy Picture Frame 01", "sert": "tableau ouest", "auteurs": "Rob Tuytel (scan & painting), Rico Cilliers (modeling)", "licence": "CC0", "source": "https://polyhaven.com/a/fancy_picture_frame_01", "site": "Poly Haven"},
   {"titre": "Fancy Picture Frame 02", "sert": "tableau est", "auteurs": "Rob Tuytel (scan & painting), Rico Cilliers (modeling)", "licence": "CC0", "source": "https://polyhaven.com/a/fancy_picture_frame_02", "site": "Poly Haven"},

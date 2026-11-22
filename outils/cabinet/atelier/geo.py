@@ -142,7 +142,7 @@ def tour(nom, profil, mat, centre=(0, 0, 0), n=32, groupe=None, ferme_haut=True,
     return objet(nom, bm, [mat], groupe=groupe, uv=False, lisse=lisse, atlas=atlas, **props)
 
 
-def balayer(nom, chemin, normales, haut, profil, mat, ferme=False, groupe=None, lisse=35, bouts=True, atlas='A', **props):
+def balayer(nom, chemin, normales, haut, profil, mat, ferme=False, groupe=None, lisse=35, bouts=True, atlas='A', iles=False, **props):
     """Balaie un profil de moulure le long d'un chemin.
     chemin : points (page) ; normales : pour chaque segment, la direction « vers l'avant » de la moulure
     (dans le plan perpendiculaire à haut) ; haut : direction des ordonnées du profil.
@@ -188,7 +188,8 @@ def balayer(nom, chemin, normales, haut, profil, mat, ferme=False, groupe=None, 
             except ValueError:
                 continue
             for l, (a, b) in zip(f.loops, [(i, j), (i + 1, j), (i + 1, j + 1), (i, j + 1)]):
-                l[uv].uv = (s[a], sp[b])
+                # iles : une île par segment du chemin (u repart de 0), pour servir aussi de carte de lumière
+                l[uv].uv = ((s[a] - s[i]) if iles else s[a], sp[b])
     if bouts and not ferme:
         for r in (rangs[0], rangs[-1]):
             if len(r) >= 3:
@@ -270,3 +271,32 @@ def orienter(ob, vers):
         bm.to_mesh(me)
         bm.free()
     return vote < 0
+
+
+def pan_maille(nom, axe, plan, sens, s0, s1, y0, y1, trous, mat, groupe, **props):
+    """Un pan de mur d'un seul tenant, percé de ses baies : une grille dont les cases des baies sont retirées.
+    Les cases partagent leurs sommets : la carte de lumière y voit une seule surface, sans couture.
+    sens : +1 si la face doit regarder les coordonnées croissantes (z ou x), −1 sinon."""
+    xs = sorted({s0, s1, *[max(s0, min(s1, t[k])) for t in trous for k in (0, 1)]})
+    ys = sorted({y0, y1, *[max(y0, min(y1, t[k])) for t in trous for k in (2, 3)]})
+    bm = bmesh.new()
+    def pt(s, y):
+        return V(s, y, plan) if axe == 'z' else V(plan, y, s)
+    vs = {(i, j): bm.verts.new(pt(x, y)) for i, x in enumerate(xs) for j, y in enumerate(ys)}
+    for i in range(len(xs) - 1):
+        for j in range(len(ys) - 1):
+            xm, ym = (xs[i] + xs[i + 1]) / 2, (ys[j] + ys[j + 1]) / 2
+            if any(t[0] < xm < t[1] and t[2] < ym < t[3] for t in trous):
+                continue
+            f = bm.faces.new([vs[(i, j)], vs[(i + 1, j)], vs[(i + 1, j + 1)], vs[(i, j + 1)]])
+    voulu = Vector((0, 0, 0))
+    if axe == 'z':
+        voulu = V(0, 0, sens) - V(0, 0, 0)
+    else:
+        voulu = V(sens, 0, 0) - V(0, 0, 0)
+    for f in bm.faces:
+        f.normal_update()
+        if f.normal.dot(voulu) < 0:
+            f.normal_flip()
+    uv_boite(bm)
+    return objet(nom, bm, [mat], groupe=groupe, uv=False, **props)
