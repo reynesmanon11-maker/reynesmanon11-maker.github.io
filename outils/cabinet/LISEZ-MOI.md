@@ -1,10 +1,15 @@
 # Cabinet des curiosités — passage à Three.js
 
-Ce dossier prépare la nouvelle version du cabinet, dessinée par Three.js, avec
-de vrais modèles 3D. La migration se fait par étapes, et **la version légère
+Ce dossier contient la nouvelle version du cabinet, dessinée par Three.js :
+<https://reynesmanon11-maker.github.io/outils/cabinet/> (reliée nulle part pour
+l'instant). La migration se fait par étapes, et **la version légère
 (`outils/cabinet_curiosites.html`) reste en ligne pour toujours** : un seul
 fichier, sans bibliothèque, qui s'ouvre aussi par double-clic hors connexion.
 C'est elle que voient les élèves tant que la nouvelle n'est pas prête.
+
+Ajouter `?perf` à l'adresse affiche un compteur (images par seconde, appels de
+dessin, triangles) : c'est lui qui servira à mesurer sur un poste de
+l'établissement.
 
 ## Où corriger les textes
 
@@ -25,10 +30,22 @@ correction serait écrasée.
 
 | Chemin | Rôle |
 |---|---|
+| `index.html`, `css/cabinet.css` | la page : même interface que la version légère |
+| `js/main.js` | démarrage, boucle ; message et lien vers la version légère si quelque chose manque |
 | `js/donnees/curiosites.js` | les textes des 14 curiosités (questions, fiches, indices) |
-| `synchroniser.mjs` | recopie ces textes dans la version légère |
+| `js/donnees/objets.js` | la place de chaque curiosité dans la pièce |
+| `js/jeu/` | état et mémoire, marche et collisions, visée, saisie, clavier, souris, tactile |
+| `js/ui/interface.js` | fiche, carnet, bilan, impression |
+| `js/procedural/` | le modelage par le code (géométrie, textures, décor, curiosités), repris de la version légère |
+| `js/rendu/adaptateur.js` | transforme ce modelage en maillages Three.js |
+| `js/rendu/moteur.js` | Three.js : lumières, ombres du soleil, objet tenu dessiné par-dessus |
+| `synchroniser.mjs` | recopie les textes dans la version légère |
 | `vendor/three-r187/` | Three.js r187 (licence MIT), copié tel quel depuis npm : aucun site externe |
-| `tests/` | tests rapides (Node) et parcours complet dans Chromium |
+| `tests/` | tests rapides (Node) et parcours complet dans Chromium, sur les deux versions |
+
+Le modelage de `js/procedural/` est une copie de celui de la version légère,
+découpée en modules. Désormais, chacune vit sa vie : la version légère ne bouge
+plus, la nouvelle remplacera peu à peu ses formes par des modèles GLB.
 
 ## Three.js
 
@@ -58,15 +75,21 @@ Depuis ce dossier :
     npm test
     NODE_PATH=/opt/node22/lib/node_modules CHROMIUM=/opt/pw-browsers/chromium npm run test:navigateur
 
-Le parcours rejoue tout ce que fait un élève : marche et collisions, visée,
-saisie à la souris et au doigt, réponses, carnet, bilan, impression, mémoire
-après rechargement, ouverture par double-clic, téléphone à 390 px. Chaque étape
-de la migration devra le faire passer aussi sur la nouvelle page.
+Le parcours rejoue tout ce que fait un élève, **sur les deux versions** : marche
+et collisions, visée, saisie à la souris et au doigt, réponses, carnet, bilan,
+impression, mémoire après rechargement, téléphone à 390 px. S'y ajoutent
+l'ouverture par double-clic (version légère), le renvoi vers la version légère
+sans WebGL 2 ou si les textes sont abîmés, et la progression partagée entre les
+deux versions (même clé de mémoire).
 
 ## Étapes
 
 0. Préparation : textes extraits, Three.js dans le dépôt, tests de référence. **Faite.**
-1. Le même cabinet, dessiné par Three.js.
+1. Le même cabinet, dessiné par Three.js. **Faite.** En plus : les ombres du
+   soleil (calculées une fois, le décor ne bougeant pas) et le rendu AgX. Coût
+   d'une image mesuré à peu près égal à celui de la version légère dans un
+   navigateur sans carte graphique, à condition de ne calculer les reflets que
+   pour les matières brillantes ; reste à mesurer sur un vrai poste.
 2. Matériaux et lumière réalistes, profils de qualité.
 3. Chaîne de préparation des modèles GLB, premiers vrais objets, crédits.
 4. Décor modelé, avec éclairage précalculé.

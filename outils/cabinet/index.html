@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le Cabinet des curiosités — nouvelle version (essai) · SVT</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Promenade en 3D dans le cabinet d'un naturaliste du XIXᵉ siècle et dans sa serre amazonienne : on saisit les spécimens, on les retourne, et chacun pose une question de SVT, au niveau collège ou lycée.">
+<meta name="theme-color" content="#120d08">
+<link rel="icon" href="../../favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="../../favicon-32.png?v=4" sizes="32x32" type="image/png">
+<link rel="stylesheet" href="css/cabinet.css">
+</head>
+<body>
+
+<canvas id="scene" tabindex="-1" aria-label="Vue en trois dimensions du cabinet des curiosités. Le carnet donne la liste des objets."></canvas>
+
+<!-- ===================== barre du haut ===================== -->
+<header id="hud" class="hidden">
+  <a class="pastille" href="../../index.html" title="Revenir au site">← Site</a>
+  <span class="pastille" id="compteur" aria-live="polite">🔍 0 / 0</span>
+  <span class="espace"></span>
+  <span class="chantier" title="Ce cabinet est une première version : des objets, des salles et des questions vont s'ajouter."><svg class="chantier-p" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><rect x="9.5" y="9.5" width="29" height="29" rx="4.5" transform="rotate(45 24 24)" fill="#f9c302" stroke="#17140f" stroke-width="3"/><g fill="#17140f"><circle cx="27.4" cy="17.4" r="3"/><path d="M24.3 21.6c2.6-1.1 5.3-.7 6.3 1 .8 1.3.6 3-.5 4.2h-6.8c-.8-2-.6-4 1-5.2z"/><rect x="15" y="25.6" width="13" height="1.9"/><rect x="15.3" y="27.5" width="1.8" height="5.6"/><rect x="30.9" y="18.4" width="1.9" height="14.7"/><rect x="26.4" y="27.4" width="6.4" height="1.9"/><rect x="26.7" y="29.3" width="1.7" height="3.8"/></g></svg>Work in progress =)</span>
+  <button class="pastille" id="b-carnet" type="button">📔 Carnet</button>
+  <button class="pastille" id="b-aide" type="button" aria-label="Commandes et aide">?</button>
+</header>
+
+<div id="viseur" class="hidden"></div>
+<div id="cible" class="hidden"></div>
+<div id="consigne" class="hidden"></div>
+<div id="manette" class="hidden"><span></span></div>
+<button id="b-saisir" type="button" class="hidden" aria-label="Saisir l'objet visé"><b>✋</b>Saisir</button>
+
+<!-- ===================== accueil ===================== -->
+<div id="accueil" class="voile">
+  <div class="carte" role="dialog" aria-labelledby="titre-accueil">
+    <p class="sur-titre">SVT · promenade en 3D · nouvelle version, en essai</p>
+    <h1 id="titre-accueil">Le Cabinet des curiosités</h1>
+    <p>Un naturaliste rentré d'un long voyage autour du monde a rempli son cabinet de spécimens… et construit à côté une serre pour ses plantes d'Amazonie.</p>
+    <p><strong>Promène-toi, approche-toi des objets qui luisent et saisis-les</strong> : tu peux les retourner sous tous les angles, et chacun cache une question. Ton carnet garde la trace de tes trouvailles.</p>
+    <div class="filet"></div>
+    <p class="sur-titre" id="lab-niveau">Ton niveau</p>
+    <div class="segments" role="group" aria-labelledby="lab-niveau">
+      <button type="button" data-niveau="college" aria-pressed="true">Collège<small>cycle 4 : classer, la cellule, la sélection naturelle…</small></button>
+      <button type="button" data-niveau="lycee" aria-pressed="false">Lycée<small>évolution, parenté, biodiversité, reproduction des plantes…</small></button>
+    </div>
+    <div class="boutons">
+      <button type="button" class="btn principal" id="b-entrer" disabled>Préparation du cabinet…</button>
+      <button type="button" class="btn" id="b-commandes">Les commandes</button>
+    </div>
+    <p class="petit" id="chargement">Ta progression reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
+    <p class="petit">Ordinateur ancien ou un peu lent ? <a href="../cabinet_curiosites.html">La version légère</a> contient les mêmes objets et les mêmes questions, et s'ouvre aussi sans connexion.</p>
+  </div>
+</div>
+
+<!-- ===================== aide ===================== -->
+<div id="m-aide" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-aide">
+    <h2 id="titre-aide">Les commandes</h2>
+    <p class="sur-titre">À l'ordinateur</p>
+    <dl class="commandes">
+      <dt>Regarder</dt><dd>clique dans la vue, puis bouge la souris (<kbd>Échap</kbd> rend la souris)</dd>
+      <dt>Marcher</dt><dd><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> (ou <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>) ou les flèches · <kbd>Maj</kbd> pour aller plus vite</dd>
+      <dt>Saisir</dt><dd>vise un objet qui luit, puis clic ou <kbd>E</kbd></dd>
+      <dt>Examiner</dt><dd>fais glisser l'objet pour le tourner · <kbd>1</kbd> à <kbd>4</kbd> pour répondre · <kbd>Échap</kbd> pour le reposer</dd>
+      <dt>Carnet</dt><dd><kbd>C</kbd></dd>
+    </dl>
+    <p class="sur-titre">Sur tablette ou téléphone</p>
+    <dl class="commandes">
+      <dt>Marcher</dt><dd>pose le pouce sur la moitié gauche de l'écran et fais-le glisser</dd>
+      <dt>Regarder</dt><dd>fais glisser un doigt sur la moitié droite</dd>
+      <dt>Saisir</dt><dd>touche l'objet, ou le bouton ✋ quand il est visé</dd>
+    </dl>
+    <p class="petit">Les objets ont été modelés par le programme, en formes simplifiées : ce ne sont pas des photographies. Les couleurs et les proportions sont fidèles, pas les détails.</p>
+    <div class="boutons"><button type="button" class="btn principal" data-fermer>Compris</button></div>
+  </div>
+</div>
+
+<!-- ===================== carnet ===================== -->
+<div id="m-carnet" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-carnet" style="width:min(820px,100%)">
+    <p class="sur-titre" id="carnet-niveau"></p>
+    <h2 id="titre-carnet">Mon carnet de naturaliste</h2>
+    <div class="barre" aria-hidden="true"><span id="carnet-barre"></span></div>
+    <p class="petit" id="carnet-resume"></p>
+    <div class="grille-carnet" id="carnet-grille"></div>
+    <div class="boutons">
+      <button type="button" class="btn principal" data-fermer>Retour au cabinet</button>
+      <button type="button" class="btn" id="b-bilan-carnet">Mon bilan</button>
+      <button type="button" class="btn" id="b-imprimer">Imprimer mon carnet</button>
+      <button type="button" class="btn discret" id="b-niveau-carnet"></button>
+      <button type="button" class="btn discret" id="b-effacer">Tout effacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== bilan ===================== -->
+<div id="m-bilan" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-bilan">
+    <p class="sur-titre" id="bilan-niveau"></p>
+    <h2 id="titre-bilan">Ton bilan de naturaliste</h2>
+    <div id="bilan-corps"></div>
+    <div class="boutons">
+      <button type="button" class="btn principal" data-fermer>Continuer à explorer</button>
+      <button type="button" class="btn" id="b-imprimer2">Imprimer mon carnet</button>
+      <button type="button" class="btn discret" id="b-niveau-bilan"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== fiche d'examen ===================== -->
+<aside id="fiche" class="hidden" role="dialog" aria-labelledby="f-nom">
+  <div class="f-tete">
+    <span class="f-emoji" id="f-emoji" aria-hidden="true"></span>
+    <div><h2 id="f-nom"></h2><p class="f-latin" id="f-latin"></p></div>
+    <button type="button" id="f-fermer">Reposer ✕</button>
+  </div>
+  <div class="badges"><span class="badge" id="f-regne"></span><span class="badge niv" id="f-niveau"></span></div>
+  <p id="f-desc"></p>
+  <details class="savais"><summary>Le savais-tu ?</summary><p id="f-savais"></p></details>
+  <section class="question" aria-labelledby="f-titre-q">
+    <h3 id="f-titre-q">Question</h3>
+    <p id="f-q"></p>
+    <div id="f-choix" role="group" aria-labelledby="f-q"></div>
+    <div id="f-retour" aria-live="polite"></div>
+  </section>
+  <p class="f-astuce" id="f-astuce">Fais glisser l'objet pour le tourner.</p>
+</aside>
+
+<div id="toast" role="status"></div>
+<div id="impression"></div>
+
+<!-- Three.js est copié dans le dépôt (vendor/three-r187) : aucun site extérieur n'est appelé. -->
+<script type="importmap">
+{ "imports": { "three": "./vendor/three-r187/three.module.js" } }
+</script>
+<script type="module" src="js/main.js"></script>
+<!-- navigateur trop ancien pour les modules : la version légère fonctionne partout -->
+<script nomodule>location.replace('../cabinet_curiosites.html');</script>
+</body>
+</html>

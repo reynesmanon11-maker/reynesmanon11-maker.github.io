@@ -302,6 +302,18 @@ site : on y accède par son adresse.
   `curiosites.js`, sinon elle serait écrasée.
 - Un objet = une entrée de `curiosites.js` + un modèle dans `MODELES` + une
   place dans `PLACES` (version légère), sous le même `id`.
+- **La nouvelle version est en ligne à `outils/cabinet/` (étape 1 faite), reliée
+  nulle part** : même cabinet, dessiné par Three.js, en modules ES chargés par
+  une carte d'import (`index.html`), sans étape de construction. Son modelage
+  (`js/procedural/`) est une copie découpée de celui de la version légère :
+  désormais chacune vit sa vie, et la version légère ne bouge plus. Dans la
+  nouvelle, un objet = `curiosites.js` + `MODELES` (`js/procedural/modeles.js`)
+  + `PLACES` (`js/donnees/objets.js`) + son rang dans `ORDRE_ETIQUETTES`
+  (`js/procedural/textures.js`). Les deux pages exposent les mêmes noms globaux
+  (`etat`, `J`, `saisir`…) pour que le parcours de test tourne sur les deux.
+- **Coût d'une image** : ne calculer les reflets (Phong) que pour les matières
+  brillantes, et pas d'ombre de lampe ponctuelle (une cube map à chaque pixel) ;
+  mesurer avec `?perf` dans l'adresse.
 - **Tests avant toute publication qui touche au cabinet**, depuis
   `outils/cabinet/` : `npm test`, puis `NODE_PATH=/opt/node22/lib/node_modules
   CHROMIUM=/opt/pw-browsers/chromium npm run test:navigateur` (parcours élève

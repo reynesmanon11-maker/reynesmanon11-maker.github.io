@@ -1,0 +1,182 @@
+/* ============================================================
+   Le Cabinet des curiosités — nouvelle version (Three.js)
+   Feuille de style reprise telle quelle de la version légère
+   (outils/cabinet_curiosites.html) : même interface, même charte.
+   ============================================================ */
+:root{
+  --nuit:#120d08; --bois:#24180e; --bord:#6b5131;
+  --parchemin:#f3ead6; --parchemin2:#e7d9b9; --encre:#2a1d10; --encre2:#5c4630;
+  --laiton:#c9a24e; --laiton2:#f0d58c; --vert:#2f7150; --vertc:#3f9a6c; --rouge:#a8432c;
+  --serif:"Palatino Linotype","Book Antiqua",Palatino,"URW Palladio L","TeX Gyre Pagella",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.hidden{display:none !important}
+html,body{height:100%;overflow:hidden;background:var(--nuit);color:var(--parchemin);font-family:var(--serif)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--laiton2);outline-offset:2px}
+
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:crosshair}
+
+/* ---------- barre du haut ---------- */
+#hud{position:fixed;top:0;left:0;right:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:max(10px,env(safe-area-inset-top)) 12px 10px;pointer-events:none;z-index:5}
+#hud > *{pointer-events:auto}
+.pastille{background:rgba(22,15,9,.74);border:1px solid var(--bord);color:var(--parchemin);border-radius:999px;
+  padding:7px 14px;font-size:15px;line-height:1.2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+button.pastille:hover,a.pastille:hover{border-color:var(--laiton);color:var(--laiton2)}
+#compteur{font-variant-numeric:tabular-nums}
+.espace{flex:1}
+
+/* pancarte de chantier, la même que dans les labos */
+.chantier{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-family:var(--sans);
+  font-size:11px;font-weight:700;letter-spacing:.02em;color:#6d5312;background:#fdf3d6;border:1px solid #e6cf92;
+  border-radius:7px;padding:3px 9px 3px 7px;transform:rotate(-1.4deg);cursor:help}
+.chantier-p{flex:none;width:26px;height:26px;display:block;margin:-3px 0}
+
+/* ---------- viseur et consignes ---------- */
+#viseur{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;
+  background:rgba(243,234,214,.85);box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:none;z-index:4;
+  transition:all .15s}
+#viseur.actif{width:26px;height:26px;margin:-13px 0 0 -13px;background:transparent;border:2px solid var(--laiton2);
+  box-shadow:0 0 12px rgba(240,213,140,.6)}
+#cible{position:fixed;left:50%;top:calc(50% + 24px);transform:translateX(-50%);z-index:4;pointer-events:none;
+  background:rgba(22,15,9,.8);border:1px solid var(--laiton);border-radius:10px;padding:6px 12px;font-size:15px;
+  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#cible kbd{font-family:var(--sans);font-size:12px;border:1px solid var(--bord);border-radius:4px;padding:0 5px;margin-left:4px}
+#consigne{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;
+  background:rgba(22,15,9,.78);border:1px solid var(--bord);border-radius:12px;padding:8px 14px;font-size:15px;
+  max-width:min(92vw,620px);text-align:center;pointer-events:none}
+
+/* ---------- commandes tactiles ---------- */
+#manette{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;z-index:4;pointer-events:none;
+  border:2px solid rgba(243,234,214,.45);background:rgba(22,15,9,.25)}
+#manette span{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;
+  background:rgba(243,234,214,.55)}
+#b-saisir{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(80px,calc(env(safe-area-inset-bottom) + 70px));
+  z-index:5;width:92px;height:92px;border-radius:50%;border:2px solid var(--laiton2);background:rgba(36,24,14,.85);
+  color:var(--parchemin);font-size:15px;line-height:1.15}
+#b-saisir b{display:block;font-size:30px}
+
+/* ---------- écrans par-dessus la scène ---------- */
+.voile{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:radial-gradient(ellipse at center,rgba(18,13,8,.55),rgba(18,13,8,.9));overflow:auto}
+.carte{background:linear-gradient(180deg,var(--parchemin),var(--parchemin2));color:var(--encre);border-radius:18px;
+  border:1px solid #c7b089;box-shadow:0 20px 60px rgba(0,0,0,.55);width:min(640px,100%);max-height:calc(100dvh - 32px);
+  overflow:auto;padding:26px 26px 22px;animation:apparait .3s ease-out}
+@keyframes apparait{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.carte h1{font-size:clamp(28px,6vw,42px);line-height:1.05;font-weight:700;letter-spacing:.01em}
+.carte h2{font-size:24px;margin-bottom:6px}
+.sur-titre{font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--encre2);margin-bottom:6px}
+.carte p{font-size:17px;line-height:1.5;margin:10px 0}
+.carte .petit{font-size:14px;color:var(--encre2)}
+.filet{height:1px;background:linear-gradient(90deg,transparent,#a88b5a,transparent);margin:16px 0}
+.segments{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.segments button{flex:1 1 160px;border:2px solid #b39467;background:#fbf6ea;border-radius:12px;padding:10px 12px;text-align:left;font-size:16px}
+.segments button small{display:block;font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:2px}
+.segments button[aria-pressed="true"]{border-color:var(--vert);background:#e3efe5;box-shadow:inset 0 0 0 1px var(--vert)}
+.segments button[aria-pressed="true"]::before{content:"✓ ";color:var(--vert);font-weight:700}
+.boutons{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{border:none;border-radius:12px;padding:12px 18px;font-size:17px;background:#e3d3ae;color:var(--encre);border:1px solid #b39467}
+.btn:hover{filter:brightness(1.04)}
+.btn.principal{background:var(--vert);color:#fff;border-color:#24583e;font-weight:700}
+.btn.discret{background:transparent}
+.commandes{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:15px;line-height:1.4;margin:8px 0}
+.commandes dt{font-family:var(--sans);font-size:13px;font-weight:700;white-space:nowrap}
+.commandes kbd{font-family:var(--sans);font-size:12px;background:#fbf6ea;border:1px solid #b39467;border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+#chargement{font-family:var(--sans);font-size:13px;color:var(--encre2)}
+
+/* ---------- fiche d'examen ---------- */
+#fiche{position:fixed;z-index:8;top:0;right:0;bottom:0;width:min(450px,44vw);overflow:auto;
+  background:linear-gradient(180deg,var(--parchemin),var(--parchemin2));color:var(--encre);
+  box-shadow:-12px 0 40px rgba(0,0,0,.45);padding:22px 22px 28px;border-left:1px solid #c7b089;
+  animation:glisse .35s ease-out}
+@keyframes glisse{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.f-tete{display:flex;gap:12px;align-items:flex-start}
+.f-emoji{font-size:38px;line-height:1}
+.f-tete h2{font-size:26px;line-height:1.1}
+.f-latin{font-style:italic;color:var(--encre2);margin-top:3px;font-size:16px}
+#f-fermer{margin-left:auto;flex:none;border:1px solid #b39467;background:#fbf6ea;border-radius:10px;padding:6px 10px;font-size:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.badge{font-family:var(--sans);font-size:12px;border-radius:999px;padding:3px 10px;background:#e8dcc0;border:1px solid #c7b089;color:var(--encre2)}
+.badge.niv{background:#e3efe5;border-color:#9cc2a8;color:#1f4d36}
+#f-desc{font-size:17px;line-height:1.5;margin:10px 0}
+.savais{background:#fbf6ea;border:1px dashed #b39467;border-radius:12px;padding:8px 12px;margin:10px 0}
+.savais summary{cursor:pointer;font-weight:700;font-size:16px}
+.savais p{font-size:16px;line-height:1.45;margin-top:6px}
+.question{margin-top:16px;border-top:2px solid #c7b089;padding-top:12px}
+.question h3{font-family:var(--sans);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--encre2)}
+#f-q{font-size:18px;line-height:1.45;margin:8px 0 10px;font-weight:700}
+#f-choix{display:flex;flex-direction:column;gap:8px}
+#f-choix button{text-align:left;border:2px solid #b39467;background:#fffaf0;border-radius:12px;padding:10px 12px;font-size:16px;line-height:1.35;display:flex;gap:10px;align-items:flex-start}
+#f-choix button .lettre{flex:none;font-family:var(--sans);font-weight:700;font-size:13px;width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;background:#e8dcc0;margin-top:1px}
+#f-choix button:not(:disabled):hover{border-color:var(--vert);background:#f1f7f1}
+#f-choix button:disabled{cursor:default}
+#f-choix button.juste{border-color:#2f7150;background:#e1f0e5}
+#f-choix button.juste .lettre{background:#2f7150;color:#fff}
+#f-choix button.faux{border-color:#a8432c;background:#f8e4de}
+#f-choix button.faux .lettre{background:#a8432c;color:#fff}
+#f-retour{margin-top:12px}
+.retour{border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.5}
+.retour.ok{background:#e1f0e5;border:1px solid #9cc2a8}
+.retour.ko{background:#f8e4de;border:1px solid #d9a493}
+.retour strong{display:block;font-size:18px;margin-bottom:4px}
+.retour .rappel{margin:6px 0}
+.mots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mots span{font-family:var(--sans);font-size:12px;font-weight:700;background:#fff;border:1px solid #c7b089;border-radius:999px;padding:3px 9px}
+.prog{font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:10px}
+.f-astuce{font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:14px}
+.f-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+/* ---------- carnet ---------- */
+.grille-carnet{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px}
+.entree{border:1px solid #c7b089;background:#fffaf0;border-radius:12px;padding:10px;font-size:15px;line-height:1.3;display:flex;flex-direction:column;gap:4px;text-align:left}
+.entree .e-emoji{font-size:26px}
+.entree.inconnue{background:#efe6d0;color:var(--encre2);border-style:dashed}
+.entree .etat{font-family:var(--sans);font-size:12px}
+.entree button{margin-top:auto;align-self:flex-start;border:1px solid #b39467;background:#fbf6ea;border-radius:8px;padding:4px 8px;font-size:13px}
+.barre{height:10px;border-radius:999px;background:#e3d3ae;overflow:hidden;margin:6px 0}
+.barre span{display:block;height:100%;background:var(--vert);border-radius:inherit}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-20px);opacity:0;z-index:20;pointer-events:none;
+  background:var(--parchemin);color:var(--encre);border:1px solid #b39467;border-radius:12px;padding:10px 16px;font-size:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .25s,transform .25s;max-width:90vw;text-align:center}
+#toast.vu{opacity:1;transform:translate(-50%,0)}
+
+#impression{display:none}
+
+/* ---------- écrans étroits : la fiche passe en bas ---------- */
+@media (max-width:819px){
+  #fiche{top:auto;left:0;width:auto;max-height:56dvh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid #c7b089;
+    box-shadow:0 -12px 40px rgba(0,0,0,.45);padding:16px 16px 24px;animation:monte .35s ease-out}
+  @keyframes monte{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+  .f-tete h2{font-size:22px}
+  #f-desc{font-size:16px}
+}
+@media (max-width:560px){
+  .pastille{padding:6px 10px;font-size:14px}
+  .chantier{font-size:10px;padding:2px 7px 2px 6px}
+  .carte{padding:20px 16px 18px}
+  .carte p{font-size:16px}
+  #consigne{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+
+/* ---------- impression du carnet ---------- */
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff;color:#000}
+  body > *:not(#impression){display:none !important}
+  #impression{display:block !important;font-family:Georgia,serif;padding:0 8mm}
+  #impression h1{font-size:22pt;margin-bottom:4pt}
+  #impression table{width:100%;border-collapse:collapse;margin-top:10pt;font-size:10.5pt}
+  #impression th,#impression td{border:1px solid #999;padding:5pt;vertical-align:top;text-align:left}
+  #impression tr{break-inside:avoid}
+}
+
+/* liens dans les cartes (accueil, messages) : lisibles sur le parchemin */
+.carte a{color:var(--vert);font-weight:700}
