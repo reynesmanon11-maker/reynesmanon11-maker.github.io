@@ -17,9 +17,12 @@ import { servir, RACINE } from './serveur.mjs';
 const { chromium } = createRequire(import.meta.url)('playwright');
 
 const { url: SITE, fermer } = await servir();
+// La nouvelle version est parcourue en qualité moyenne (matières réalistes) : le navigateur
+// de test n'a pas de carte graphique, et le choix automatique y prendrait la qualité basse.
+const NOUVELLE = `${SITE}outils/cabinet/index.html`;
 const PAGES = {
   'version légère': `${SITE}outils/cabinet_curiosites.html`,
-  'nouvelle version': `${SITE}outils/cabinet/index.html`,
+  'nouvelle version': `${NOUVELLE}?qualite=moyenne`,
 };
 const ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const exe = process.env.CHROMIUM || process.env.PLAYWRIGHT_CHROMIUM;
@@ -247,9 +250,70 @@ await etape('nouvelle version · une seule progression pour les deux versions', 
 
 await etape('nouvelle version · ?perf affiche le compteur d’images', async () => {
   const { ctx, p } = await contexte();
-  await ouvrir(p, PAGES['nouvelle version'] + '?perf');
+  await ouvrir(p, PAGES['nouvelle version'] + '&perf');
   await entrer(p);
   await p.waitForFunction(() => /images\/s/.test(document.body.textContent), null, { timeout: 60000 });
+  await ctx.close();
+});
+
+for (const q of ['basse', 'haute']) {
+  await etape(`nouvelle version · qualité ${q} : démarre sans erreur, 14 curiosités, saisie`, async () => {
+    const { ctx, p } = await contexte();
+    await ouvrir(p, `${NOUVELLE}?qualite=${q}`);
+    assert.equal(await p.evaluate(() => etat.profil), q);
+    assert.equal(await p.evaluate(() => OBJETS.length), 14);
+    await entrer(p);
+    await p.evaluate(() => { saisir(OBJETS.find((o) => o.id === 'microscope')); for (let i = 0; i < 12; i++) majInspection(0.05); });
+    assert.equal(await p.textContent('#f-nom'), 'Microscope en laiton');
+    assert.deepEqual(p.erreurs, []);
+    await ctx.close();
+  });
+}
+
+await etape('nouvelle version · qualité automatique : sans carte graphique, elle choisit « basse »', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, NOUVELLE);
+  assert.equal(await p.evaluate(() => etat.profil), 'basse');
+  assert.match(await p.textContent('#b-qualite'), /basse \(automatique\)/);
+  await ctx.close();
+});
+
+await etape('nouvelle version · changer de qualité dans l’aide : rechargement et choix gardé', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, NOUVELLE);
+  await p.click('#b-qualite');
+  assert.ok(await p.isVisible('#m-aide'));
+  await Promise.all([p.waitForEvent('load'), p.click('[data-qualite="haute"]')]);
+  await attendre(p);
+  assert.equal(await p.evaluate(() => etat.profil), 'haute');
+  assert.equal(await p.evaluate(() => localStorage.getItem('cabinet-curiosites-qualite')), 'haute');
+  assert.equal(await p.getAttribute('[data-qualite="haute"]', 'aria-pressed'), 'true');
+  await ctx.close();
+});
+
+await etape('nouvelle version · matières réalistes : textures photographiées, reflets, halo de chaque flamme', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, PAGES['nouvelle version']);
+  const r = await p.evaluate(() => {
+    const { scene, flammes } = moteur3d.interne();
+    let photos = 0, reflets = 0;
+    scene.traverse((o) => { if (o.isMesh && o.material.normalMap) photos++; if (o.isMesh && o.material.envMap) reflets++; });
+    return { photos, reflets, flammes: flammes.length, halos: flammes.filter((f) => f.halo && f.halo.isSprite).length };
+  });
+  assert.ok(r.photos >= 4, `textures photographiées : ${r.photos}`);
+  assert.ok(r.reflets > 20, `maillages avec reflets : ${r.reflets}`);
+  assert.ok(r.flammes > 10 && r.halos === r.flammes, JSON.stringify(r));
+  assert.equal(await p.locator('#credits li').count(), 4);
+  await ctx.close();
+});
+
+await etape('nouvelle version · textures injoignables : le cabinet démarre avec les textures dessinées', async () => {
+  const { ctx, p } = await contexte();
+  await p.route('**/outils/cabinet/textures/**', (r) => r.abort());
+  await ouvrir(p, PAGES['nouvelle version']);
+  assert.equal(await p.evaluate(() => OBJETS.length), 14);
+  const photos = await p.evaluate(() => { let n = 0; moteur3d.interne().scene.traverse((o) => { if (o.isMesh && o.material.normalMap) n++; }); return n; });
+  assert.equal(photos, 0);
   await ctx.close();
 });
 

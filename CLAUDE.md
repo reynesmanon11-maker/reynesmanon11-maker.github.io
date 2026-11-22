@@ -314,6 +314,19 @@ site : on y accède par son adresse.
 - **Coût d'une image** : ne calculer les reflets (Phong) que pour les matières
   brillantes, et pas d'ombre de lampe ponctuelle (une cube map à chaque pixel) ;
   mesurer avec `?perf` dans l'adresse.
+- **Trois qualités (étape 2 faite)** : basse (le rendu de l'étape 1, rien à
+  télécharger), moyenne (PBR, textures photographiées, reflets captés au
+  démarrage par deux sondes, cabinet et serre), haute (plus de pixels, ombres
+  plus fines, velours). Choix dans l'aide, gardé sous la clé
+  `cabinet-curiosites-qualite`, à part de la progression ; « automatique »
+  prend la basse sans carte graphique (donc dans les tests : le parcours force
+  `?qualite=moyenne`). Toute nouvelle matière du modelage reçoit une entrée
+  dans `MATS` (`js/procedural/geometrie.js`) **et** dans `PBR`
+  (`js/rendu/matieres.js`).
+- **Textures téléchargées** : `outils/cabinet/textures/`, WebP, CC0 ou CC BY.
+  **Jamais de fichier dans `textures/` sans son entrée dans
+  `js/donnees/credits.js`** (un test le vérifie) ; les crédits s'affichent dans
+  l'aide.
 - **Tests avant toute publication qui touche au cabinet**, depuis
   `outils/cabinet/` : `npm test`, puis `NODE_PATH=/opt/node22/lib/node_modules
   CHROMIUM=/opt/pw-browsers/chromium npm run test:navigateur` (parcours élève

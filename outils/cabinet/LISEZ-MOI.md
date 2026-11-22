@@ -8,8 +8,25 @@ fichier, sans bibliothèque, qui s'ouvre aussi par double-clic hors connexion.
 C'est elle que voient les élèves tant que la nouvelle n'est pas prête.
 
 Ajouter `?perf` à l'adresse affiche un compteur (images par seconde, appels de
-dessin, triangles) : c'est lui qui servira à mesurer sur un poste de
+dessin, triangles, qualité) : c'est lui qui servira à mesurer sur un poste de
 l'établissement.
+
+## Qualité de l'image
+
+Trois profils, choisis dans l'aide (bouton ?) ou automatiquement :
+
+- **basse** : le rendu de l'étape 1, matières simples et textures dessinées ;
+  rien de plus à télécharger. Choisie d'office quand la 3D est calculée sans
+  carte graphique, ou sur un appareil modeste ;
+- **moyenne** : matières réalistes (PBR), textures photographiées, reflets de
+  la pièce, captés au démarrage par deux « sondes » (cabinet et serre) ;
+- **haute** : la même chose, avec plus de pixels, des ombres plus fines et le
+  reflet du velours.
+
+Le choix est gardé dans le navigateur (clé `cabinet-curiosites-qualite`, à part
+de la progression). `?qualite=basse`, `moyenne` ou `haute` dans l'adresse
+force un profil, pour comparer. En automatique, si l'image tombe sous 18 images
+par seconde, un message propose la qualité basse.
 
 ## Où corriger les textes
 
@@ -38,7 +55,11 @@ correction serait écrasée.
 | `js/ui/interface.js` | fiche, carnet, bilan, impression |
 | `js/procedural/` | le modelage par le code (géométrie, textures, décor, curiosités), repris de la version légère |
 | `js/rendu/adaptateur.js` | transforme ce modelage en maillages Three.js |
-| `js/rendu/moteur.js` | Three.js : lumières, ombres du soleil, objet tenu dessiné par-dessus |
+| `js/rendu/qualite.js` | les trois profils de qualité, et le choix automatique |
+| `js/rendu/matieres.js` | matières réalistes : rugosité, métal, textures photographiées |
+| `js/rendu/moteur.js` | Three.js : lumières, ombres du soleil, reflets, halos, objet tenu dessiné par-dessus |
+| `js/donnees/credits.js` | crédits des textures (et des modèles, à venir) |
+| `textures/` | textures photographiées, en WebP : couleur, relief, et « arm » (occlusion, rugosité, métal) |
 | `synchroniser.mjs` | recopie les textes dans la version légère |
 | `vendor/three-r187/` | Three.js r187 (licence MIT), copié tel quel depuis npm : aucun site externe |
 | `tests/` | tests rapides (Node) et parcours complet dans Chromium, sur les deux versions |
@@ -58,11 +79,23 @@ jamais modifier un fichier à la main.
 Depuis la version r163, Three.js exige WebGL 2. Un poste qui ne l'a pas sera
 renvoyé vers la version légère.
 
+## Textures
+
+Quatre jeux CC0 de [Poly Haven](https://polyhaven.com) (parquet en point de
+Hongrie, bois sombre, brique, tomettes à cabochons), 817 Ko en tout : couleur
+et relief en 1024 px, rugosité en 512 px, convertis en WebP. **Aucun fichier
+dans `textures/` sans son entrée dans `js/donnees/credits.js`** : un test le
+vérifie, ainsi que la licence (CC0 ou CC BY). Les crédits s'affichent dans
+l'aide. Sur une photographie de bois, les nuances du modelage (noyer, acajou,
+ébène) sont gardées, rapportées à la teinte de référence (`ref` dans
+`matieres.js`), et `teinte` ramène la photographie vers les bruns d'origine
+(couleurs moyennes comparées).
+
 ## Modèles 3D (à partir de l'étape 3)
 
 - Licences acceptées : **CC0** et **CC BY** (avec crédit). Rien d'autre.
-- Chaque modèle a son crédit (auteur, licence, lien), affiché dans la fiche.
-  Aucun modèle publié sans crédit.
+- Chaque modèle a son crédit (auteur, licence, lien), dans `js/donnees/credits.js`,
+  affiché dans la fiche. Aucun modèle publié sans crédit.
 - Budgets de départ : 30 000 à 80 000 triangles et 1,5 Mo au plus pour un
   objet ; 8 Mo environ pour le décor ; 20 Mo au plus au premier chargement.
 - Pas de Git LFS : GitHub Pages ne sert pas ces fichiers. Les modèles sont
@@ -90,7 +123,11 @@ deux versions (même clé de mémoire).
    d'une image mesuré à peu près égal à celui de la version légère dans un
    navigateur sans carte graphique, à condition de ne calculer les reflets que
    pour les matières brillantes ; reste à mesurer sur un vrai poste.
-2. Matériaux et lumière réalistes, profils de qualité.
+2. Matériaux et lumière réalistes, profils de qualité. **Faite.** Textures CC0,
+   reflets par sondes, halo des flammes, velours en haute qualité. Dans un
+   navigateur sans carte graphique : la basse coûte autant que la version
+   légère, la moyenne environ 2,5 fois plus ; reste à mesurer sur un vrai
+   poste.
 3. Chaîne de préparation des modèles GLB, premiers vrais objets, crédits.
 4. Décor modelé, avec éclairage précalculé.
 5. Nouveaux objets et interactions, serre réaliste.

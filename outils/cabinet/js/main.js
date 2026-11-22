@@ -4,12 +4,55 @@
 import { etat, J, cam, CURIOSITES, parId, OBJETS, progression, $, reduitMouvement, entreeValide } from './jeu/etat.js';
 import { touches, deplacer, majCible, majInspection, saisir, reposer } from './jeu/joueur.js';
 import { brancherCommandes } from './jeu/commandes.js';
-import { brancherBoutons, majCompteur, consigne, compteBonnes, fermerModales, imprimer, ouvrirBilan } from './ui/interface.js';
+import { brancherBoutons, majCompteur, consigne, toast, compteBonnes, fermerModales, imprimer, ouvrirBilan, ouvrirModale } from './ui/interface.js';
 import { MODELES } from './procedural/modeles.js';
 import { PLACES } from './donnees/objets.js';
+import { TEXTURES, LICENCES } from './donnees/credits.js';
+import { choisirProfil, enregistrerReglage, deviner } from './rendu/qualite.js';
 
 const LEGERE = '../cabinet_curiosites.html';
+const MESSAGE_ACCUEIL = 'Ta progression reste dans ce navigateur : rien n’est envoyé sur Internet.';
 let moteur = null;
+const qualite = choisirProfil();
+
+/* --- qualité de l'image : choix dans l'aide, rappel à l'accueil --- */
+function brancherQualite(){
+  const {reglage, profil} = qualite;
+  $('b-qualite').textContent = profil.nom + (reglage === 'auto' ? ' (automatique)' : '');
+  $('b-qualite').addEventListener('click', ()=>ouvrirModale('m-aide'));
+  $('qualite-auto').textContent = 'ici : ' + deviner();
+  document.querySelectorAll('[data-qualite]').forEach(b=>{
+    b.setAttribute('aria-pressed', b.dataset.qualite === reglage ? 'true' : 'false');
+    b.addEventListener('click', ()=>{
+      enregistrerReglage(b.dataset.qualite);
+      const u = new URL(location.href); u.searchParams.delete('qualite');
+      location.replace(u.href);      // la page se recharge avec le nouveau profil
+    });
+  });
+}
+/* --- crédits des textures, dans l'aide --- */
+function afficherCredits(){
+  const ul = $('credits');
+  for (const t of Object.values(TEXTURES)){
+    const li = document.createElement('li');
+    const a = document.createElement('a'); a.href = t.source; a.textContent = t.titre; a.target = '_blank'; a.rel = 'noopener';
+    const l = document.createElement('a'); l.href = LICENCES[t.licence].lien; l.textContent = LICENCES[t.licence].nom; l.target = '_blank'; l.rel = 'noopener';
+    li.append(a, ` (${t.site}) : ${t.sert}. ${t.auteurs}. Licence `, l, '.');
+    ul.appendChild(li);
+  }
+}
+/* --- en automatique, si l'image saccade longtemps, on propose la qualité basse (une fois) --- */
+const lenteur = {temps:0, images:0, dit:false};
+function surveillerLenteur(vrai){
+  if (lenteur.dit || qualite.reglage !== 'auto' || qualite.profil.nom === 'basse' || etat.ecran !== 'jeu') return;
+  lenteur.temps += vrai; lenteur.images++;
+  if (lenteur.temps < 8) return;
+  if (lenteur.images / lenteur.temps < 18){
+    lenteur.dit = true;
+    toast('L’image saccade ? Choisis la qualité « basse » dans l’aide (bouton ?).');
+  }
+  lenteur.temps = 0; lenteur.images = 0;
+}
 
 function webgl2Disponible(){
   try { return !!document.createElement('canvas').getContext('webgl2'); } catch(e){ return false; }
@@ -41,7 +84,7 @@ function majPerf(dt){
   perf.n++; perf.cumul += dt;
   if (perf.cumul >= 1){
     const i = moteur.infosRendu();
-    perf.el.textContent = `${Math.round(perf.n/perf.cumul)} images/s · ${(1000*perf.cumul/perf.n).toFixed(1)} ms\n${i.appels} appels · ${Math.round(i.triangles/1000)} k triangles · pixels ×${i.pixels.toFixed(2)}`;
+    perf.el.textContent = `${Math.round(perf.n/perf.cumul)} images/s · ${(1000*perf.cumul/perf.n).toFixed(1)} ms · qualité ${i.profil}\n${i.appels} appels · ${Math.round(i.triangles/1000)} k triangles · pixels ×${i.pixels.toFixed(2)}`;
     perf.n = 0; perf.cumul = 0;
   }
 }
@@ -66,6 +109,7 @@ function boucle(t){
   if (etat.temps-etat.derniereConsigne>9 && etat.ecran==='jeu' && !etat.inspection && document.pointerLockElement===$('scene')) consigne('');
   moteur.rendre();
   majPerf(vrai);
+  surveillerLenteur(vrai);
   // si l'appareil peine, on dessine moins de pixels
   mesures.push(dt); if (mesures.length>90){ const moy=mesures.reduce((a,b)=>a+b,0)/mesures.length; mesures=[]; if (moy>0.04 && etat.qualite>0.6){ etat.qualite*=0.8; moteur.redimensionner(); } }
   requestAnimationFrame(boucle);
@@ -82,6 +126,9 @@ async function demarrer(){
   etat.niveau = progression.niveau === 'lycee' ? 'lycee' : 'college';
   document.querySelectorAll('[data-niveau]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.niveau===etat.niveau ? 'true':'false'));
   brancherBoutons(entrer);
+  brancherQualite();
+  afficherCredits();
+  etat.profil = qualite.profil.nom;
   exposerPourLesTests();
   // Three.js exige WebGL 2 : sans lui, direction la version légère.
   if (!webgl2Disponible()){ erreurFatale('Cet appareil ne peut pas afficher cette version (WebGL 2).'); location.replace(LEGERE); return; }
@@ -95,15 +142,16 @@ async function demarrer(){
   }
   if (!CURIOSITES.length){ erreurFatale('Aucune curiosité utilisable dans js/donnees/curiosites.js.'); return; }
 
-  try { moteur = await import('./rendu/moteur.js'); moteur.initMoteur($('scene')); window.moteur3d = moteur; }
+  try { moteur = await import('./rendu/moteur.js'); moteur.initMoteur($('scene'), qualite.profil); window.moteur3d = moteur; }
   catch(err){ console.error(err); erreurFatale('La 3D n’a pas pu démarrer (' + err.message + ').'); return; }
   brancherCommandes(moteur.redimensionner);
   moteur.redimensionner();
   window.addEventListener('resize', moteur.redimensionner);
   // on laisse la page s'afficher avant de modeler tout le cabinet
-  setTimeout(()=>{
-    try { moteur.construireScene(); }
+  setTimeout(async ()=>{
+    try { await moteur.construireScene(msg => { $('chargement').textContent = msg; }); }
     catch(err){ console.error(err); erreurFatale('Le cabinet n’a pas pu être construit (' + err.message + ').'); return; }
+    $('chargement').textContent = MESSAGE_ACCUEIL;
     etat.pret = true; etat.ecran = 'accueil';
     const b=$('b-entrer'); b.disabled=false; b.textContent='Entrer dans le cabinet';
     requestAnimationFrame(boucle);

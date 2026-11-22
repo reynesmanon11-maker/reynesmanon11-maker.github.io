@@ -48,7 +48,8 @@
       <button type="button" class="btn principal" id="b-entrer" disabled>Préparation du cabinet…</button>
       <button type="button" class="btn" id="b-commandes">Les commandes</button>
     </div>
-    <p class="petit" id="chargement">Ta progression reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
+    <p class="petit" id="chargement">Ta progression reste dans ce navigateur : rien n’est envoyé sur Internet.</p>
+    <p class="petit">Qualité de l'image : <button type="button" class="lien" id="b-qualite">automatique</button></p>
     <p class="petit">Ordinateur ancien ou un peu lent ? <a href="../cabinet_curiosites.html">La version légère</a> contient les mêmes objets et les mêmes questions, et s'ouvre aussi sans connexion.</p>
   </div>
 </div>
@@ -56,7 +57,7 @@
 <!-- ===================== aide ===================== -->
 <div id="m-aide" class="voile hidden">
   <div class="carte" role="dialog" aria-labelledby="titre-aide">
-    <h2 id="titre-aide">Les commandes</h2>
+    <h2 id="titre-aide">Commandes et réglages</h2>
     <p class="sur-titre">À l'ordinateur</p>
     <dl class="commandes">
       <dt>Regarder</dt><dd>clique dans la vue, puis bouge la souris (<kbd>Échap</kbd> rend la souris)</dd>
@@ -71,7 +72,17 @@
       <dt>Regarder</dt><dd>fais glisser un doigt sur la moitié droite</dd>
       <dt>Saisir</dt><dd>touche l'objet, ou le bouton ✋ quand il est visé</dd>
     </dl>
+    <p class="sur-titre" id="lab-qualite">Qualité de l'image</p>
+    <div class="segments" role="group" aria-labelledby="lab-qualite">
+      <button type="button" data-qualite="auto" aria-pressed="true">Automatique<small id="qualite-auto">choisie d'après l'appareil</small></button>
+      <button type="button" data-qualite="basse" aria-pressed="false">Basse<small>pour un ordinateur ancien ou une connexion lente</small></button>
+      <button type="button" data-qualite="moyenne" aria-pressed="false">Moyenne<small>matières réalistes et reflets</small></button>
+      <button type="button" data-qualite="haute" aria-pressed="false">Haute<small>plus fine encore, pour un ordinateur récent</small></button>
+    </div>
+    <p class="petit">Changer de qualité recharge la page ; tes trouvailles et tes réponses sont conservées.</p>
+    <div class="filet"></div>
     <p class="petit">Les objets ont été modelés par le programme, en formes simplifiées : ce ne sont pas des photographies. Les couleurs et les proportions sont fidèles, pas les détails.</p>
+    <details class="credits"><summary>Crédits des textures</summary><ul id="credits"></ul></details>
     <div class="boutons"><button type="button" class="btn principal" data-fermer>Compris</button></div>
   </div>
 </div>

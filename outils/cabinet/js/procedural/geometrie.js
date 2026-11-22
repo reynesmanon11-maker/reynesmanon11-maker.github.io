@@ -241,6 +241,9 @@ export function poser(L, m, g, col, o){
 export const MATS = {
   mat:        {spec:0.05, shin:10},
   satin:      {spec:0.3,  shin:28},
+  peinture:   {spec:0.3,  shin:28},   // boiseries peintes (fenêtres)
+  marbre:     {spec:0.3,  shin:28},   // cheminée, appuis et bassin de la serre
+  velours:    {spec:0.05, shin:10},   // rideaux, coussins, fauteuil
   laiton:     {spec:0.95, shin:46},
   fer:        {spec:0.35, shin:30},
   lumineux:   {unlit:true},

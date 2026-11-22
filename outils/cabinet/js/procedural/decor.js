@@ -51,7 +51,7 @@ export function flamme(p, k, vac){
   const C = new Constructeur();
   C.cyl('lumineux', I, 0.012*k, 0, 0.055*k, 8, [1.0,0.62,0.2]);
   C.cyl('lumineux', T(0,0.005*k,0), 0.006*k, 0, 0.035*k, 8, [1.0,0.95,0.7]);
-  ANIMES.push({C, p, vac:vac||0.18, ph:Math.random()*10});
+  ANIMES.push({C, p, k, vac:vac||0.18, ph:Math.random()*10});
 }
 
 /* ---------- la pièce du cabinet ---------- */
@@ -88,20 +88,20 @@ export function construireCabinet(S, rng){
   for (const t of trousSud){
     const wa=t.s0, wb=t.s1, wm=(wa+wb)/2, blanc=COUL.peinture;
     // embrasure doublée de bois (elle cache la brique) et chambranle côté pièce
-    S.pave('bois', wa,0.9,4.47, wa+0.03,3.0,4.81, blanc); S.pave('bois', wb-0.03,0.9,4.47, wb,3.0,4.81, blanc);
-    S.pave('bois', wa,2.97,4.47, wb,3.0,4.81, blanc);
-    S.pave('bois', wa-0.09,0.9,4.43, wa+0.01,3.1,4.47, blanc); S.pave('bois', wb-0.01,0.9,4.43, wb+0.09,3.1,4.47, blanc);
-    S.pave('bois', wa-0.09,3.0,4.43, wb+0.09,3.1,4.47, blanc);
-    S.pave('bois', wa-0.1,0.85,4.38, wb+0.1,0.92,4.86, blanc);
-    S.pave('satin', wa,0.9,4.62, wb,0.96,4.68, blanc); S.pave('satin', wa,2.94,4.62, wb,3.0,4.68, blanc);
-    S.pave('satin', wa,0.9,4.62, wa+0.05,3.0,4.68, blanc); S.pave('satin', wb-0.05,0.9,4.62, wb,3.0,4.68, blanc);
-    S.pave('satin', wm-0.025,0.9,4.62, wm+0.025,3.0,4.68, blanc);
-    for (const y of [1.45,2.0,2.5]) S.pave('satin', wa,y-0.015,4.63, wb,y+0.015,4.67, blanc);
+    S.pave('peinture', wa,0.9,4.47, wa+0.03,3.0,4.81, blanc); S.pave('peinture', wb-0.03,0.9,4.47, wb,3.0,4.81, blanc);
+    S.pave('peinture', wa,2.97,4.47, wb,3.0,4.81, blanc);
+    S.pave('peinture', wa-0.09,0.9,4.43, wa+0.01,3.1,4.47, blanc); S.pave('peinture', wb-0.01,0.9,4.43, wb+0.09,3.1,4.47, blanc);
+    S.pave('peinture', wa-0.09,3.0,4.43, wb+0.09,3.1,4.47, blanc);
+    S.pave('peinture', wa-0.1,0.85,4.38, wb+0.1,0.92,4.86, blanc);
+    S.pave('peinture', wa,0.9,4.62, wb,0.96,4.68, blanc); S.pave('peinture', wa,2.94,4.62, wb,3.0,4.68, blanc);
+    S.pave('peinture', wa,0.9,4.62, wa+0.05,3.0,4.68, blanc); S.pave('peinture', wb-0.05,0.9,4.62, wb,3.0,4.68, blanc);
+    S.pave('peinture', wm-0.025,0.9,4.62, wm+0.025,3.0,4.68, blanc);
+    for (const y of [1.45,2.0,2.5]) S.pave('peinture', wa,y-0.015,4.63, wb,y+0.015,4.67, blanc);
     S.quad('verre', T(wm,1.95,4.65), wb-wa, 2.1);
     // rideaux de velours, plissés
     S.cyl('laiton', T(wa-0.5,3.18,4.36).rz(-PI/2), 0.015,0.015, wb-wa+1.0, 8, COUL.laiton);
     for (const [c0,sens] of [[wa-0.45,1],[wb+0.45,-1]]){
-      for (let k=0;k<6;k++){ const x=c0+sens*k*0.065; S.cyl('mat', T(x,0.06,4.36+(k%2?0.025:-0.01)), 0.045,0.045, 3.1, 8, mult(COUL.velours, 0.85+0.15*(k%2))); }
+      for (let k=0;k<6;k++){ const x=c0+sens*k*0.065; S.cyl('velours', T(x,0.06,4.36+(k%2?0.025:-0.01)), 0.045,0.045, 3.1, 8, mult(COUL.velours, 0.85+0.15*(k%2))); }
     }
   }
   // porte de la serre
@@ -115,10 +115,10 @@ export function construireCabinet(S, rng){
   S.pave('tapis', -2.6,0,-1.75, 2.6,0.008,1.75);
   // cheminée (mur ouest)
   const m=COUL.marbre;
-  S.pave('satin', -6,0,-1.15, -5.3,0.06,1.15, mult(m,0.9));
-  S.pave('satin', -6,0.06,-0.95, -5.6,1.2,-0.62, m); S.pave('satin', -6,0.06,0.62, -5.6,1.2,0.95, m);
-  S.pave('satin', -6,0.95,-0.95, -5.6,1.2,0.95, m);
-  S.pave('satin', -6,1.2,-1.08, -5.48,1.27,1.08, mult(m,0.95));
+  S.pave('marbre', -6,0,-1.15, -5.3,0.06,1.15, mult(m,0.9));
+  S.pave('marbre', -6,0.06,-0.95, -5.6,1.2,-0.62, m); S.pave('marbre', -6,0.06,0.62, -5.6,1.2,0.95, m);
+  S.pave('marbre', -6,0.95,-0.95, -5.6,1.2,0.95, m);
+  S.pave('marbre', -6,1.2,-1.08, -5.48,1.27,1.08, mult(m,0.95));
   S.pave('mat', -5.98,0.06,-0.62, -5.9,0.95,0.62, COUL.noir); S.pave('mat', -5.98,0.06,-0.62, -5.6,0.95,-0.6, [0.1,0.08,0.07]); S.pave('mat', -5.98,0.06,0.6, -5.6,0.95,0.62, [0.1,0.08,0.07]);
   S.pave('mat', -5.98,0.93,-0.62, -5.6,0.95,0.62, [0.08,0.06,0.05]);
   for (const z of [-0.3,0.3]) { S.cyl('fer', T(-5.7,0.06,z), 0.02,0.02,0.14,8,COUL.noir); S.sphere('fer', T(-5.66,0.22,z), 0.03, 8,6, COUL.noir); }
@@ -278,7 +278,7 @@ export function table(S, x0,z0,x1,z1,h){
 export function chaise(S, x, z, ry){
   const M=T(x,0,z).ry(ry), c=COUL.noyer;
   S.boite('bois', M.t(0,0.45,0), 0.44,0.04,0.42, c);
-  S.boite('mat', M.t(0,0.485,0.01), 0.4,0.035,0.38, COUL.velours);
+  S.boite('velours', M.t(0,0.485,0.01), 0.4,0.035,0.38, COUL.velours);
   for (const [a,b] of [[-0.19,-0.18],[0.19,-0.18],[-0.19,0.18],[0.19,0.18]]) S.cyl('bois', M.t(a,0,b), 0.018,0.016,0.45,8,c);
   for (const a of [-0.19,0.19]) S.cyl('bois', M.t(a,0.45,-0.19), 0.018,0.016,0.5,8,c);
   S.boite('bois', M.t(0,0.88,-0.19), 0.42,0.1,0.03, c); S.boite('bois', M.t(0,0.68,-0.19), 0.34,0.04,0.02, c);
@@ -286,9 +286,9 @@ export function chaise(S, x, z, ry){
 }
 export function fauteuil(S, x, z, ry){
   const M=T(x,0,z).ry(ry), v=[0.16,0.3,0.2];
-  S.boite('mat', M.t(0,0.25,0), 0.8,0.3,0.78, v); S.boite('mat', M.t(0,0.43,0.04), 0.62,0.08,0.64, mult(v,1.12));
-  S.boite('mat', M.t(0,0.75,-0.33), 0.8,0.75,0.14, v);
-  for (const s of [-1,1]) S.boite('mat', M.t(s*0.35,0.52,0), 0.12,0.28,0.74, v);
+  S.boite('velours', M.t(0,0.25,0), 0.8,0.3,0.78, v); S.boite('velours', M.t(0,0.43,0.04), 0.62,0.08,0.64, mult(v,1.12));
+  S.boite('velours', M.t(0,0.75,-0.33), 0.8,0.75,0.14, v);
+  for (const s of [-1,1]) S.boite('velours', M.t(s*0.35,0.52,0), 0.12,0.28,0.74, v);
   for (const [a,b] of [[-0.34,-0.33],[0.34,-0.33],[-0.34,0.33],[0.34,0.33]]) S.cyl('bois', M.t(a,0,b), 0.03,0.02,0.1,8,COUL.noyer);
   solide(x-0.48,z-0.48,x+0.48,z+0.48);
 }
@@ -384,7 +384,7 @@ export function construireSerre(S, rng){
   const x0=6.3, x1=14, f=COUL.fer;
   S.pave('dalles', x0,-0.02,-4.5, x1,0,4.5);
   S.pave('brique', x0,0,-4.5, x1,0.6,-4.3); S.pave('brique', x0,0,4.3, x1,0.6,4.5); S.pave('brique', 13.8,0,-4.5, x1,0.6,4.5);
-  S.pave('satin', x0,0.6,-4.52, x1,0.64,-4.28, COUL.marbre); S.pave('satin', x0,0.6,4.28, x1,0.64,4.52, COUL.marbre); S.pave('satin', 13.78,0.6,-4.5, 14.02,0.64,4.5, COUL.marbre);
+  S.pave('marbre', x0,0.6,-4.52, x1,0.64,-4.28, COUL.marbre); S.pave('marbre', x0,0.6,4.28, x1,0.64,4.52, COUL.marbre); S.pave('marbre', 13.78,0.6,-4.5, 14.02,0.64,4.5, COUL.marbre);
   S.quad('verre', T((x0+x1)/2,1.92,-4.4), x1-x0, 2.56); S.quad('verre', T((x0+x1)/2,1.92,4.4), x1-x0, 2.56);
   S.quad('verre', T(13.9,1.92,0).ry(PI/2), 8.8, 2.56);
   for (let x=x0+0.02; x<=x1+0.01; x+=(x1-x0)/8){ for (const z of [-4.4,4.4]) S.pave('fer', x-0.025,0.64,z-0.03, x+0.025,3.2,z+0.03, f); }
@@ -404,8 +404,8 @@ export function construireSerre(S, rng){
   solide(x0,-4.9,x1+0.4,-4.3); solide(x0,4.3,x1+0.4,4.9); solide(13.8,-4.9,14.4,4.9);
   // bassin du nénuphar géant
   const bx0=8.0, bx1=11.6, bz=1.7;
-  S.pave('satin', bx0,0,-bz, bx1,0.45,-bz+0.2, COUL.marbre); S.pave('satin', bx0,0,bz-0.2, bx1,0.45,bz, COUL.marbre);
-  S.pave('satin', bx0,0,-bz, bx0+0.2,0.45,bz, COUL.marbre); S.pave('satin', bx1-0.2,0,-bz, bx1,0.45,bz, COUL.marbre);
+  S.pave('marbre', bx0,0,-bz, bx1,0.45,-bz+0.2, COUL.marbre); S.pave('marbre', bx0,0,bz-0.2, bx1,0.45,bz, COUL.marbre);
+  S.pave('marbre', bx0,0,-bz, bx0+0.2,0.45,bz, COUL.marbre); S.pave('marbre', bx1-0.2,0,-bz, bx1,0.45,bz, COUL.marbre);
   S.pave('mat', bx0+0.2,0.0,-bz+0.2, bx1-0.2,0.06,bz-0.2, [0.12,0.16,0.12]);
   S.quad('eau', T((bx0+bx1)/2,0.32,0).rx(-PI/2), bx1-bx0-0.4, 2*bz-0.4, [0.18,0.32,0.3]);
   for (const [x,z,r] of [[8.85,-0.65,0.68],[9.95,0.55,0.62],[10.95,-0.75,0.58],[8.85,0.95,0.48],[10.2,-0.35,0.3]]) feuilleVictoria(S, x, 0.322, z, r);

@@ -3,6 +3,7 @@
 // pendant que les modèles GLB arrivent, un objet après l'autre.
 import * as THREE from 'three';
 import { MATS } from '../procedural/geometrie.js';
+import { creerMateriauPBR, teinteRef } from './matieres.js';
 
 // Les couleurs du modelage sont des couleurs « d'écran » ; Three.js calcule la lumière en linéaire.
 const lineaire = v => v <= 0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
@@ -55,8 +56,11 @@ export function creerMateriau(nom, textures){
 /**
  * Un Constructeur → un groupe Three.js (un maillage par matière).
  * partage : les matières du décor sont partagées ; une curiosité a les siennes, pour luire seule.
+ * profil  : en profil basse, les matières de l'étape 1 ; sinon les matières réalistes (PBR),
+ *           avec les textures photographiées de « jeux » quand elles sont arrivées.
  */
-export function versThree(C, textures, {partage = true, cache = {}} = {}){
+export function versThree(C, textures, {partage = true, cache = {}, profil = {pbr:false}, jeux = {}} = {}){
+  const fabrique = nom => profil.pbr ? creerMateriauPBR(nom, textures, jeux, profil) : creerMateriau(nom, textures);
   const groupe = new THREE.Group();
   let rayon = 0;
   for (const nom in C.lots){
@@ -64,6 +68,10 @@ export function versThree(C, textures, {partage = true, cache = {}} = {}){
     if (!n) continue;
     const P = Float32Array.from(L.p), N = Float32Array.from(L.n), U = Float32Array.from(L.u);
     const K = Float32Array.from(L.c, lineaire);
+    // Sur une photographie de bois, les nuances du modelage (noyer, acajou, ébène) sont
+    // rapportées à la teinte pour laquelle la photographie est juste.
+    const ref = profil.pbr ? teinteRef(nom, jeux) : null;
+    if (ref){ const r = ref.map(lineaire); for (let i=0;i<K.length;i++) K[i] = Math.min(1.3, K[i] / r[i%3]); }
     // Le moteur maison dessinait les deux faces de tout triangle : l'ordre de ses sommets
     // n'avait pas d'importance. Three.js s'en sert pour savoir quelle face il voit ; on
     // remet donc chaque triangle dans le sens de ses normales.
@@ -85,7 +93,7 @@ export function versThree(C, textures, {partage = true, cache = {}} = {}){
     g.setAttribute('color', new THREE.BufferAttribute(K, 3));
     g.setAttribute('uv', new THREE.BufferAttribute(U, 2));
     g.computeBoundingSphere();
-    const mat = partage ? (cache[nom] || (cache[nom] = creerMateriau(nom, textures))) : creerMateriau(nom, textures);
+    const mat = partage ? (cache[nom] || (cache[nom] = fabrique(nom))) : fabrique(nom);
     const maille = new THREE.Mesh(g, mat);
     const m = MATS[nom];
     maille.castShadow = !m.transp && !m.unlit;

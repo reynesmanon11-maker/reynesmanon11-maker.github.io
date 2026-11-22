@@ -180,3 +180,11 @@ button.pastille:hover,a.pastille:hover{border-color:var(--laiton);color:var(--la
 
 /* liens dans les cartes (accueil, messages) : lisibles sur le parchemin */
 .carte a{color:var(--vert);font-weight:700}
+
+/* bouton qui se lit comme un lien (choix de la qualité, à l'accueil) */
+.lien{background:none;border:none;padding:0;color:var(--vert);font-weight:700;text-decoration:underline;font-size:inherit}
+/* crédits des textures, dans l'aide */
+.credits{margin:10px 0 0;font-size:14px;line-height:1.45}
+.credits summary{cursor:pointer;font-weight:700}
+.credits ul{margin:8px 0 0 18px}
+.credits li{margin-bottom:6px}
