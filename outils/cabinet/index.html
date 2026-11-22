@@ -79,10 +79,15 @@
       <button type="button" data-qualite="moyenne" aria-pressed="false">Moyenne<small>matières réalistes et reflets</small></button>
       <button type="button" data-qualite="haute" aria-pressed="false">Haute<small>plus fine encore, pour un ordinateur récent</small></button>
     </div>
-    <p class="petit">Changer de qualité recharge la page ; tes trouvailles et tes réponses sont conservées.</p>
+    <p class="sur-titre" id="lab-decor">Décor du cabinet</p>
+    <div class="segments" role="group" aria-labelledby="lab-decor">
+      <button type="button" data-decor="prototype" aria-pressed="true">Nouveau<small>pièce modelée, vrais spécimens numérisés, lumière du jour calculée</small></button>
+      <button type="button" data-decor="actuel" aria-pressed="false">Ancien<small>le décor dessiné par le programme, plus léger</small></button>
+    </div>
+    <p class="petit">Changer de qualité ou de décor recharge la page ; tes trouvailles et tes réponses sont conservées.</p>
     <div class="filet"></div>
-    <p class="petit">Les objets ont été modelés par le programme, en formes simplifiées : ce ne sont pas des photographies. Les couleurs et les proportions sont fidèles, pas les détails.</p>
-    <details class="credits"><summary>Crédits des textures</summary><ul id="credits"></ul></details>
+    <p class="petit">Dans le nouveau décor, les spécimens des vitrines et des étagères (coquillages, coraux, crânes, fossiles) sont de vrais objets de musée numérisés en 3D, et une partie du mobilier a été modelée par des artistes : tous sous licence libre (voir les crédits). Les quatorze curiosités, elles, sont encore modelées par le programme, en formes simplifiées : leurs couleurs et leurs proportions sont fidèles, pas leurs détails.</p>
+    <details class="credits"><summary>Crédits des textures et des modèles</summary><ul id="credits"></ul></details>
     <div class="boutons"><button type="button" class="btn principal" data-fermer>Compris</button></div>
   </div>
 </div>
@@ -143,7 +148,7 @@
 
 <!-- Three.js est copié dans le dépôt (vendor/three-r187) : aucun site extérieur n'est appelé. -->
 <script type="importmap">
-{ "imports": { "three": "./vendor/three-r187/three.module.js" } }
+{ "imports": { "three": "./vendor/three-r187/three.module.js", "three/addons/": "./vendor/three-r187/addons/" } }
 </script>
 <script type="module" src="js/main.js"></script>
 <!-- navigateur trop ancien pour les modules : la version légère fonctionne partout -->

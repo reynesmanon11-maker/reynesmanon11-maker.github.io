@@ -9,10 +9,12 @@
 // pas), halo autour des flammes, objet tenu dessiné par-dessus tout le reste.
 import * as THREE from 'three';
 import { etat, J, cam, OBJETS, CURIOSITES, progression, reduitMouvement } from '../jeu/etat.js';
-import { Constructeur, aleaGraine, qAxe, TAU, lisse, add, sca, nrm } from '../procedural/geometrie.js';
+import { Constructeur, aleaGraine, qAxe, TAU, lisse, add, sca, nrm, T } from '../procedural/geometrie.js';
 import { texParquet, texBois, texTapisserie, texBrique, texDalles, texTapis, texLivres, texEcaille, texPlanche,
-  texPapillons, texEtiquettes, texHerbier, texGlobe } from '../procedural/textures.js';
-import { construireCabinet, construireSerre, construireDehors, LUMIERES, ANIMES } from '../procedural/decor.js';
+  texPapillons, texEtiquettes, texHerbier, texGlobe, ETIQ_SERRE } from '../procedural/textures.js';
+import { construireCabinet, construireSerre, construireDehors, LUMIERES, ANIMES, SOLIDES, etiquette, flamme } from '../procedural/decor.js';
+import { chargerPiece, sondeProche, construireDehorsPrototype } from './prototype.js';
+import { SOLEIL as SOLEIL_PROTO, PLACES as PLACES_PROTO, etiquettes, FLAMMES, SONDES as SONDES_PROTO, LUMIERE } from '../donnees/prototype.js';
 import { MODELES, TENUE, NE_TOURNE_PAS } from '../procedural/modeles.js';
 import { PLACES } from '../donnees/objets.js';
 import { creerTextures, versThree } from './adaptateur.js';
@@ -20,7 +22,7 @@ import { chargerJeux } from './matieres.js';
 import { baseCamera, poseObjet } from '../jeu/joueur.js';
 
 const COUCHE_TENU = 1;        // l'objet saisi est dessiné à part, par-dessus tout le reste
-const SOLEIL = nrm([-0.45, 0.62, 0.6]);
+let SOLEIL = nrm([-0.45, 0.62, 0.6]);
 const srgb = (r, g, b) => new THREE.Color().setRGB(r, g, b, THREE.SRGBColorSpace);
 // où les deux sondes photographient leur environnement (au-dessus de la table, à côté du bassin)
 const SONDES = {cabinet:[0.3, 1.6, 0.9], serre:[10, 1.6, 2.2]};
@@ -28,11 +30,13 @@ const LIMITE_SERRE = 6.2;     // au-delà (en x), une curiosité reflète la ser
 
 let rendu, scene, camera, sceneVoile, camVoile, voile, lampeExamen;
 let profil = {nom:'basse', pbr:false, ombre:1024, pixels:1, velours:false};
+let decor = 'actuel';         // 'prototype' : la pièce modelée dans Blender (rendu/prototype.js)
 const lampes = [];            // {lumiere, base, vac, i}
 const flammes = [];           // {groupe, vac, ph, halo, opacite, taille}
 
-export function initMoteur(canvas, p){
+export function initMoteur(canvas, p, d){
   profil = p;
+  decor = d === 'prototype' ? 'prototype' : 'actuel';
   rendu = new THREE.WebGLRenderer({canvas, antialias:true, powerPreference:'high-performance'});
   rendu.toneMapping = THREE.AgXToneMapping;      // le plus proche des bruns de la version légère (essais ACES, AgX, Neutral)
   rendu.toneMappingExposure = 1.0;
@@ -60,6 +64,8 @@ function installerLumieres(){
   // Le moteur maison atténuait en (1 − d/r)² ; Three.js en 1/d (decay = 1) coupé à r.
   // L'intensité est réglée pour que les deux concordent au tiers de la portée.
   LUMIERES.forEach((L, i) => {
+    // nouveau décor : les lampes du cabinet sont déjà dans la lumière cuite (on garde la serre et la lampe d'examen)
+    if (decor === 'prototype' && i < LUMIERES.length - 1 && L.p[0] < 6.5) return;
     // La lampe d'appoint de la serre portait jusque dans le cabinet, à travers le mur.
     // Le soleil, qui a maintenant ses ombres, éclaire la serre : on raccourcit sa portée
     // à la serre elle-même (une ombre dans toutes les directions coûtait trop cher).
@@ -77,7 +83,9 @@ function installerLumieres(){
   const ambiance = new THREE.AmbientLight(srgb(1, 0.82, 0.64), profil.pbr ? 0.42 : 0.62);
   ambiance.layers.enableAll();
   scene.add(ambiance);
-  const soleil = new THREE.DirectionalLight(srgb(0.95, 0.86, 0.68), 3.0);
+  const soleil = decor === 'prototype'
+    ? new THREE.DirectionalLight(srgb(1.0, 0.9, 0.76), LUMIERE.soleil * LUMIERE.gain)
+    : new THREE.DirectionalLight(srgb(0.95, 0.86, 0.68), 3.0);
   soleil.layers.enableAll();
   soleil.target.position.set(4, 0, 0);
   soleil.position.set(4 + SOLEIL[0]*40, SOLEIL[1]*40, SOLEIL[2]*40);
@@ -112,8 +120,8 @@ function ajouterHalo(f, a, tex){
 }
 
 /* --- reflets : une photographie de l'environnement, prise une fois au démarrage --- */
-function sonde(pmrem, pos){
-  const cible = new THREE.WebGLCubeRenderTarget(128, {type:THREE.HalfFloatType});
+function sonde(pmrem, pos, taille = 128){
+  const cible = new THREE.WebGLCubeRenderTarget(taille, {type:THREE.HalfFloatType});
   const appareil = new THREE.CubeCamera(0.05, 120, cible);
   appareil.position.set(...pos);
   scene.add(appareil);
@@ -131,6 +139,26 @@ function donnerReflets(groupe, env){
     o.material.envMap = env; o.material.envMapIntensity = 1.0; o.material.needsUpdate = true;
   });
 }
+/* nouveau décor : chaque maillage prend la sonde la plus proche (les matières partagées sont copiées par sonde) */
+const parSonde = new Map();
+function donnerSonde(o, env, k){
+  const une = m => {
+    if (!(m.isMeshStandardMaterial || m.isMeshLambertMaterial || m.isMeshPhongMaterial)) return m;
+    if (m.userData.sonde === k) return m;
+    if (m.userData.sonde !== undefined){
+      const cle = m.uuid + '|' + k;
+      if (!parSonde.has(cle)){ const c = m.clone(); c.onBeforeCompile = m.onBeforeCompile; c.customProgramCacheKey = m.customProgramCacheKey; parSonde.set(cle, c); }
+      m = parSonde.get(cle);
+    }
+    m.userData.sonde = k; m.envMap = env; m.envMapIntensity = 1.0; m.needsUpdate = true;
+    // matières simples (qualité basse) : la sonde éclaire, mais ne se mélange pas à la couleur comme un miroir
+    if (!m.isMeshStandardMaterial) m.reflectivity = 0;
+    return m;
+  };
+  o.material = Array.isArray(o.material) ? o.material.map(une) : une(o.material);
+}
+const centre = new THREE.Vector3(), boite = new THREE.Box3();
+function centreDe(o){ boite.setFromObject(o).getCenter(centre); return [centre.x, centre.y, centre.z]; }
 
 /* --- construction : textures, décor, curiosités, flammes --- */
 export async function construireScene(annoncer = () => {}){
@@ -142,13 +170,35 @@ export async function construireScene(annoncer = () => {}){
   }, rendu);
   let jeux = {};
   if (profil.pbr){ annoncer('Chargement des matières…'); jeux = await chargerJeux(rendu); }
+  let piece = null;
+  if (decor === 'prototype'){
+    try { piece = await chargerPiece(rendu, profil, annoncer); }
+    catch(err){ console.warn('Le nouveau cabinet n’a pas pu être chargé : on garde le décor dessiné par le code.', err); decor = 'actuel'; }
+  }
+  if (decor === 'prototype') SOLEIL = nrm(SOLEIL_PROTO);
   annoncer('Construction du cabinet…');
   // Le décor est rangé en trois zones, chacune avec ses matières : la pièce reflète la pièce,
   // la serre et le dehors reflètent la serre. Même ordre de construction, donc même décor.
   const zones = {cabinet:new Constructeur(), serre:new Constructeur(), dehors:new Constructeur()};
+  const nSolides = SOLIDES.length, nAnimes = ANIMES.length;
   construireCabinet(zones.cabinet, rng);
+  if (piece){
+    // Le cabinet dessiné est remplacé par la pièce modelée. On l'a quand même construit (puis oublié) :
+    // ses tirages au hasard précèdent ceux de la serre, qui reste ainsi identique.
+    SOLIDES.splice(nSolides); ANIMES.splice(nAnimes);
+    zones.cabinet = new Constructeur();
+    for (const e of etiquettes(T, ETIQ_SERRE)) etiquette(zones.cabinet, e.i, e.M, e.w);
+    for (const s of piece.donnees.solides) SOLIDES.push(s);
+    for (const [x, y, z, k] of FLAMMES) flamme([x, y, z], k, 0.35);
+    scene.add(piece.groupe);
+  }
   construireSerre(zones.serre, rng);
-  construireDehors(zones.dehors, rng);
+  if (piece) construireDehorsPrototype(zones.dehors);
+  else construireDehors(zones.dehors, rng);
+  if (piece && piece.fond){
+    scene.background = piece.fond;
+    scene.fog = new THREE.Fog(srgb(0.78, 0.82, 0.8), 30, 140);
+  }
   const groupes = {};
   for (const [nom, C] of Object.entries(zones)){
     groupes[nom] = versThree(C, textures, {cache:{}, profil, jeux});
@@ -159,7 +209,7 @@ export async function construireScene(annoncer = () => {}){
   for (const c of CURIOSITES){
     const B = new Constructeur(); MODELES[c.id](B);
     const groupe = versThree(B, textures, {partage:false, profil, jeux});
-    const pl = PLACES[c.id], q = qAxe(0, 1, 0, pl.ry);
+    const pl = (piece && PLACES_PROTO[c.id]) || PLACES[c.id], q = qAxe(0, 1, 0, pl.ry);
     groupe.position.set(...pl.p); groupe.quaternion.set(...q);
     groupe.name = c.id;
     scene.add(groupe);
@@ -179,7 +229,22 @@ export async function construireScene(annoncer = () => {}){
   }
   installerLumieres();
   rendu.shadowMap.needsUpdate = true;      // la première prise de vue (sonde ou image) calcule les ombres
-  if (profil.pbr){
+  if (piece){
+    // nouveau décor : huit sondes dans la pièce ; décor, petits objets et curiosités prennent la plus proche
+    annoncer('Lumière de la pièce…');
+    const pmrem = new THREE.PMREMGenerator(rendu);
+    const envs = SONDES_PROTO.map(p => sonde(pmrem, p, profil.pbr ? 128 : 64));
+    const envSerre = profil.pbr ? sonde(pmrem, SONDES.serre) : null;
+    pmrem.dispose();
+    piece.groupe.traverse(o => { if (o.isMesh){ const k = sondeProche(centreDe(o)); donnerSonde(o, envs[k], k); } });
+    groupes.cabinet.traverse(o => { if (o.isMesh) donnerSonde(o, envs[0], 0); });
+    if (envSerre){ donnerReflets(groupes.serre, envSerre); donnerReflets(groupes.dehors, envSerre); }
+    for (const ob of OBJETS){
+      if (ob.pos[0] > LIMITE_SERRE){ if (envSerre) donnerReflets(ob.groupe, envSerre); continue; }
+      const k = sondeProche(ob.pos);
+      ob.groupe.traverse(o => { if (o.isMesh) donnerSonde(o, envs[k], k); });
+    }
+  } else if (profil.pbr){
     annoncer('Reflets de la pièce…');
     const pmrem = new THREE.PMREMGenerator(rendu);
     const env = {cabinet:sonde(pmrem, SONDES.cabinet), serre:sonde(pmrem, SONDES.serre)};
@@ -256,7 +321,8 @@ export function rendre(){
 }
 
 /** Accès au moteur Three.js, pour les réglages et les diagnostics (console, tests). */
-export function interne(){ return {rendu, scene, camera, THREE, profil, flammes}; }
+export function interne(){ return {rendu, scene, camera, THREE, profil, flammes, decor}; }
+export function decorActif(){ return decor; }
 
 /** Pour le compteur ?perf : ce que coûte une image. */
 export function infosRendu(){

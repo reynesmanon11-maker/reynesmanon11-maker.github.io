@@ -9,11 +9,14 @@ import { MODELES } from './procedural/modeles.js';
 import { PLACES } from './donnees/objets.js';
 import { TEXTURES, LICENCES } from './donnees/credits.js';
 import { choisirProfil, enregistrerReglage, deviner } from './rendu/qualite.js';
+import { choisirDecor, enregistrerDecor } from './donnees/prototype.js';
+import { MODELES_CABINET } from './donnees/credits-cabinet.js';
 
 const LEGERE = '../cabinet_curiosites.html';
 const MESSAGE_ACCUEIL = 'Ta progression reste dans ce navigateur : rien n’est envoyé sur Internet.';
 let moteur = null;
 const qualite = choisirProfil();
+const decor = choisirDecor();
 
 /* --- qualité de l'image : choix dans l'aide, rappel à l'accueil --- */
 function brancherQualite(){
@@ -30,10 +33,21 @@ function brancherQualite(){
     });
   });
 }
-/* --- crédits des textures, dans l'aide --- */
+/* --- décor du cabinet : le nouveau (modelé dans Blender) ou celui dessiné par le code, pour comparer --- */
+function brancherDecor(){
+  document.querySelectorAll('[data-decor]').forEach(b=>{
+    b.setAttribute('aria-pressed', b.dataset.decor === decor.decor ? 'true' : 'false');
+    b.addEventListener('click', ()=>{
+      enregistrerDecor(b.dataset.decor);
+      const u = new URL(location.href); u.searchParams.delete('decor');
+      location.replace(u.href);
+    });
+  });
+}
+/* --- crédits des textures et des modèles, dans l'aide --- */
 function afficherCredits(){
   const ul = $('credits');
-  for (const t of Object.values(TEXTURES)){
+  for (const t of Object.values(TEXTURES).concat(decor.decor === 'prototype' ? MODELES_CABINET : [])){
     const li = document.createElement('li');
     const a = document.createElement('a'); a.href = t.source; a.textContent = t.titre; a.target = '_blank'; a.rel = 'noopener';
     const l = document.createElement('a'); l.href = LICENCES[t.licence].lien; l.textContent = LICENCES[t.licence].nom; l.target = '_blank'; l.rel = 'noopener';
@@ -127,6 +141,7 @@ async function demarrer(){
   document.querySelectorAll('[data-niveau]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.niveau===etat.niveau ? 'true':'false'));
   brancherBoutons(entrer);
   brancherQualite();
+  brancherDecor();
   afficherCredits();
   etat.profil = qualite.profil.nom;
   exposerPourLesTests();
@@ -142,7 +157,7 @@ async function demarrer(){
   }
   if (!CURIOSITES.length){ erreurFatale('Aucune curiosité utilisable dans js/donnees/curiosites.js.'); return; }
 
-  try { moteur = await import('./rendu/moteur.js'); moteur.initMoteur($('scene'), qualite.profil); window.moteur3d = moteur; }
+  try { moteur = await import('./rendu/moteur.js'); moteur.initMoteur($('scene'), qualite.profil, decor.decor); window.moteur3d = moteur; }
   catch(err){ console.error(err); erreurFatale('La 3D n’a pas pu démarrer (' + err.message + ').'); return; }
   brancherCommandes(moteur.redimensionner);
   moteur.redimensionner();

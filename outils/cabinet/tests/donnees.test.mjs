@@ -3,6 +3,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { relative, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { CURIOSITES } from '../js/donnees/curiosites.js';
 import { synchroniser, LEGERE } from '../synchroniser.mjs';
 
@@ -44,7 +46,13 @@ test('la copie des textes dans la version légère est à jour (sinon : node syn
 test('Three.js r187 est intact (empreintes de vendor/three-r187/SHA256SUMS)', async () => {
   const dossier = new URL('../vendor/three-r187/', import.meta.url);
   const lignes = (await readFile(new URL('SHA256SUMS', dossier), 'utf8')).trim().split('\n');
-  assert.equal(lignes.length, 3);
+  const listes = lignes.map((l) => l.split(/\s+/)[1]);
+  for (const f of ['three.core.js', 'three.module.js', 'LICENSE']) assert.ok(listes.includes(f), `${f} manque dans SHA256SUMS`);
+  // aucun fichier du dossier hors de la liste : tout ce qui vient de Three.js est vérifié
+  const racine = fileURLToPath(dossier);
+  const presents = (await readdir(dossier, { recursive: true, withFileTypes: true })).filter((e) => e.isFile())
+    .map((e) => relative(racine, join(e.parentPath || e.path, e.name))).filter((f) => f !== 'SHA256SUMS');
+  for (const f of presents) assert.ok(listes.includes(f), `vendor/three-r187/${f} n’a pas d’empreinte dans SHA256SUMS`);
   for (const l of lignes) {
     const [empreinte, nom] = l.split(/\s+/);
     const calcul = createHash('sha256').update(await readFile(new URL(nom, dossier))).digest('hex');

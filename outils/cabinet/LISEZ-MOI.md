@@ -7,6 +7,13 @@ l'instant). La migration se fait par étapes, et **la version légère
 fichier, sans bibliothèque, qui s'ouvre aussi par double-clic hors connexion.
 C'est elle que voient les élèves tant que la nouvelle n'est pas prête.
 
+**Nouveau décor (prototype)** : la pièce du cabinet a été refaite dans Blender,
+avec une vraie architecture, du mobilier modelé, de vrais spécimens de musée
+numérisés et une lumière du jour précalculée. C'est le décor par défaut ; l'aide
+permet de revenir à l'ancien pour comparer. Tout est expliqué dans
+`modeles/cabinet/LISEZ-MOI.md` (le résultat) et `atelier/LISEZ-MOI.md` (la
+fabrication).
+
 Ajouter `?perf` à l'adresse affiche un compteur (images par seconde, appels de
 dessin, triangles, qualité) : c'est lui qui servira à mesurer sur un poste de
 l'établissement.
@@ -58,7 +65,12 @@ correction serait écrasée.
 | `js/rendu/qualite.js` | les trois profils de qualité, et le choix automatique |
 | `js/rendu/matieres.js` | matières réalistes : rugosité, métal, textures photographiées |
 | `js/rendu/moteur.js` | Three.js : lumières, ombres du soleil, reflets, halos, objet tenu dessiné par-dessus |
-| `js/donnees/credits.js` | crédits des textures (et des modèles, à venir) |
+| `js/donnees/credits.js` | crédits des textures |
+| `js/donnees/prototype.js` | nouveau décor : choix du décor, soleil, places qui changent, étiquettes, flammes, sondes |
+| `js/donnees/credits-cabinet.js` | crédits de tout ce que contient `modeles/cabinet/` (fichier produit par l'atelier) |
+| `js/rendu/prototype.js` | nouveau décor : chargement, lumière cuite, verre, sondes, panorama du dehors |
+| `modeles/cabinet/` | la pièce modelée, ses cartes de lumière, le panorama du jardin |
+| `atelier/` | la chaîne de fabrication (Blender, Python, Node) : rien n'y est chargé par la page |
 | `textures/` | textures photographiées, en WebP : couleur, relief, et « arm » (occlusion, rugosité, métal) |
 | `synchroniser.mjs` | recopie les textes dans la version légère |
 | `vendor/three-r187/` | Three.js r187 (licence MIT), copié tel quel depuis npm : aucun site externe |
@@ -129,6 +141,10 @@ deux versions (même clé de mémoire).
    légère, la moyenne environ 2,5 fois plus ; reste à mesurer sur un vrai
    poste.
 3. Chaîne de préparation des modèles GLB, premiers vrais objets, crédits.
-4. Décor modelé, avec éclairage précalculé.
+   **Faite pour le décor** (atelier/, modeles/cabinet/) ; les curiosités restent
+   modelées par le code.
+4. Décor modelé, avec éclairage précalculé. **Prototype fait pour la pièce du
+   cabinet** (grandes verrières, établi, vitrines de spécimens, lumière cuite) ;
+   reste à mesurer sur un poste de l'établissement et à alléger si besoin.
 5. Nouveaux objets et interactions, serre réaliste.
 6. Liens depuis les pages de niveau ; l'ancienne page devient la version légère.

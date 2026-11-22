@@ -22,7 +22,8 @@ const { url: SITE, fermer } = await servir();
 const NOUVELLE = `${SITE}outils/cabinet/index.html`;
 const PAGES = {
   'version légère': `${SITE}outils/cabinet_curiosites.html`,
-  'nouvelle version': `${NOUVELLE}?qualite=moyenne`,
+  'nouvelle version': `${NOUVELLE}?qualite=moyenne&decor=actuel`,
+  'nouveau décor': `${NOUVELLE}?qualite=moyenne&decor=prototype`,
 };
 const ARGS = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
 const exe = process.env.CHROMIUM || process.env.PLAYWRIGHT_CHROMIUM;
@@ -80,7 +81,7 @@ async function scenarioCommun(nomPage, adresse) {
   await entrer(p);
 
   await E('collisions : le mur est arrête, la porte mène à la serre, le bassin arrête', async () => {
-    const [xMur] = await marcher(p, 5.0, -3.0, Math.PI / 2, 'KeyW', 60);
+    const [xMur] = await marcher(p, 5.0, -1.6, Math.PI / 2, 'KeyW', 60);
     assert.ok(xMur > 5.6 && xMur < 5.73, `arrêt devant le mur attendu vers x = 5,72, obtenu ${xMur}`);
     const [xPorte] = await marcher(p, 5.0, 0, Math.PI / 2, 'KeyW', 30);
     assert.ok(xPorte > 6.5, `on devait entrer dans la serre (x > 6,5), obtenu ${xPorte}`);
@@ -314,6 +315,71 @@ await etape('nouvelle version · textures injoignables : le cabinet démarre ave
   assert.equal(await p.evaluate(() => OBJETS.length), 14);
   const photos = await p.evaluate(() => { let n = 0; moteur3d.interne().scene.traverse((o) => { if (o.isMesh && o.material.normalMap) n++; }); return n; });
   assert.equal(photos, 0);
+  await ctx.close();
+});
+
+/* ============================================================
+   Propre au nouveau décor (modeles/cabinet/)
+   ============================================================ */
+await etape('nouveau décor · pièce chargée, lumière cuite, sondes, flammes, crédits, image non noire', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, PAGES['nouveau décor']);
+  const r = await p.evaluate(() => {
+    const { scene, flammes } = moteur3d.interne();
+    let cartes = 0, sondes = 0;
+    scene.traverse((o) => { if (!o.isMesh) return; for (const m of [].concat(o.material)) { if (m.lightMap) cartes++; else if (m.envMap) sondes++; } });
+    return { decor: moteur3d.decorActif(), cartes, sondes, flammes: flammes.length, halos: flammes.filter((f) => f.halo && f.halo.isSprite).length, fond: !!scene.background };
+  });
+  assert.equal(r.decor, 'prototype');
+  assert.ok(r.cartes > 20, `matières à lumière cuite : ${r.cartes}`);
+  assert.ok(r.sondes > 20, `objets éclairés par sonde : ${r.sondes}`);
+  assert.ok(r.flammes === 5 && r.halos === 5, JSON.stringify(r));
+  assert.ok(r.fond, 'le panorama du dehors manque');
+  assert.ok(await p.locator('#credits li').count() > 40, 'crédits des modèles absents de l’aide');
+  await entrer(p);
+  await p.evaluate(() => { J.x = -4.3; J.z = 2.9; J.yaw = 1.15; J.pitch = -0.06; });
+  await p.waitForTimeout(800);
+  const png = await p.screenshot();
+  const moyenne = await p.evaluate(async (b64) => {
+    const im = new Image(); im.src = 'data:image/png;base64,' + b64; await im.decode();
+    const c = document.createElement('canvas'); c.width = 64; c.height = 36; const x = c.getContext('2d'); x.drawImage(im, 0, 0, 64, 36);
+    const d = x.getImageData(0, 0, 64, 36).data; let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] + d[i + 1] + d[i + 2];
+    return s / (d.length / 4) / 3;
+  }, png.toString('base64'));
+  assert.ok(moyenne > 60 && moyenne < 220, `luminosité moyenne de l’image : ${moyenne}`);
+  assert.deepEqual(p.erreurs, []);
+  await ctx.close();
+});
+
+await etape('nouveau décor · qualité basse : couleur × lumière cuite, sans calcul de lumière', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, `${NOUVELLE}?qualite=basse&decor=prototype`);
+  const n = await p.evaluate(() => { let n = 0; moteur3d.interne().scene.traverse((o) => { if (o.isMesh && o.material.isMeshBasicMaterial && o.material.lightMap) n++; }); return n; });
+  assert.ok(n > 20, `matières simples à lumière cuite : ${n}`);
+  assert.equal(await p.evaluate(() => OBJETS.length), 14);
+  assert.deepEqual(p.erreurs, []);
+  await ctx.close();
+});
+
+await etape('nouveau décor · fichiers injoignables : repli sur le décor dessiné, sans erreur bloquante', async () => {
+  const { ctx, p } = await contexte();
+  await p.route('**/outils/cabinet/modeles/**', (r) => r.abort());
+  await ouvrir(p, PAGES['nouveau décor']);
+  assert.equal(await p.evaluate(() => moteur3d.decorActif()), 'actuel');
+  assert.equal(await p.evaluate(() => OBJETS.length), 14);
+  await ctx.close();
+});
+
+await etape('nouveau décor · changer de décor dans l’aide : rechargement et choix gardé', async () => {
+  const { ctx, p } = await contexte();
+  await ouvrir(p, `${NOUVELLE}?qualite=basse`);
+  assert.equal(await p.evaluate(() => moteur3d.decorActif()), 'prototype');
+  await p.click('#b-qualite');
+  await Promise.all([p.waitForEvent('load'), p.click('[data-decor="actuel"]')]);
+  await attendre(p);
+  assert.equal(await p.evaluate(() => moteur3d.decorActif()), 'actuel');
+  assert.equal(await p.evaluate(() => localStorage.getItem('cabinet-curiosites-decor')), 'actuel');
+  assert.equal(await p.getAttribute('[data-decor="actuel"]', 'aria-pressed'), 'true');
   await ctx.close();
 });
 

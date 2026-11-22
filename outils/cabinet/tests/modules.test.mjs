@@ -19,6 +19,11 @@ test('chaque import des modules pointe vers un fichier qui existe', async () => 
     const source = await readFile(new URL(`js/${f}`, RACINE), 'utf8');
     for (const [, cible] of source.matchAll(/(?:from|import)\s*\(?\s*'([^']+)'/g)) {
       if (cible === 'three') continue;
+      if (cible.startsWith('three/addons/')) {     // modules complémentaires de Three.js, copiés dans vendor/
+        assert.ok(carte['three/addons/'], 'la carte d’import doit déclarer « three/addons/ »');
+        await access(new URL(carte['three/addons/'] + cible.slice('three/addons/'.length), RACINE)).catch(() => assert.fail(`${f} importe « ${cible} », introuvable dans vendor`));
+        continue;
+      }
       assert.ok(cible.startsWith('.'), `${f} : import « ${cible} » inconnu (ni relatif, ni « three »)`);
       await access(new URL(cible, new URL(`js/${f}`, RACINE))).catch(() => assert.fail(`${f} importe « ${cible} », introuvable`));
     }

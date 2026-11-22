@@ -334,6 +334,25 @@ site : on y accède par son adresse.
 - La progression de l'élève reste dans son navigateur (`localStorage`, clé
   `cabinet-curiosites-v1`) : la nouvelle version doit garder la même clé et le
   même format.
+- **Nouveau décor du cabinet (prototype, décor par défaut de `outils/cabinet/`)** :
+  la pièce refaite dans Blender d'après la photographie de référence de Manon
+  (grandes verrières, établi à plateau de pierre noire, vitrines de spécimens,
+  lumière naturelle). Fichiers produits dans `outils/cabinet/modeles/cabinet/`
+  par la chaîne de `outils/cabinet/atelier/` (voir son LISEZ-MOI) : **ne jamais
+  les retoucher à la main**, relancer la chaîne. Lumière des surfaces fixes
+  précalculée (cartes de lumière) ; petits objets et curiosités éclairés par
+  sondes. L'aide propose « Nouveau / Ancien » (clé `cabinet-curiosites-decor`,
+  `?decor=actuel|prototype`) pour comparer. Si les fichiers manquent, la page
+  repart sur le décor dessiné par le code.
+- **Ressources du nouveau décor : CC0 ou CC BY seulement**, chaque ressource
+  créditée dans `js/donnees/credits-cabinet.js` (écrit par `atelier/publier.py`,
+  avec les auteurs réels) et affichée dans l'aide ; un test refuse tout fichier
+  inconnu dans `modeles/cabinet/`. Sources actuelles : Smithsonian Open Access
+  (spécimens numérisés), Poly Haven (mobilier, instruments, textures, panorama),
+  et textures dessinées par programme.
+- Dans le nouveau décor, une curiosité garde sa place (`js/donnees/objets.js`)
+  sauf si `js/donnees/prototype.js` la déplace (microscope : l'établi est plus
+  haut que l'ancienne table).
 
 ## Outil de correction de copies (`correction_copies.html`) — pour Manon, pas pour les élèves
 
