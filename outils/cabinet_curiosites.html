@@ -1,0 +1,2698 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Le Cabinet des curiosités — promenade de naturaliste · SVT</title>
+<meta name="description" content="Promenade en 3D dans le cabinet d'un naturaliste du XIXᵉ siècle et dans sa serre amazonienne : on saisit les spécimens, on les retourne, et chacun pose une question de SVT, au niveau collège ou lycée.">
+<meta name="theme-color" content="#120d08">
+<link rel="icon" href="../favicon.svg?v=4" type="image/svg+xml">
+<link rel="icon" href="../favicon-32.png?v=4" sizes="32x32" type="image/png">
+<style>
+/* ============================================================
+   Le Cabinet des curiosités
+   Page autonome : aucune bibliothèque, aucun fichier externe.
+   La 3D est dessinée par un petit moteur WebGL écrit plus bas,
+   et tous les objets sont modelés par le programme lui-même.
+   ============================================================ */
+:root{
+  --nuit:#120d08; --bois:#24180e; --bord:#6b5131;
+  --parchemin:#f3ead6; --parchemin2:#e7d9b9; --encre:#2a1d10; --encre2:#5c4630;
+  --laiton:#c9a24e; --laiton2:#f0d58c; --vert:#2f7150; --vertc:#3f9a6c; --rouge:#a8432c;
+  --serif:"Palatino Linotype","Book Antiqua",Palatino,"URW Palladio L","TeX Gyre Pagella",Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+.hidden{display:none !important}
+html,body{height:100%;overflow:hidden;background:var(--nuit);color:var(--parchemin);font-family:var(--serif)}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--laiton2);outline-offset:2px}
+
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:crosshair}
+
+/* ---------- barre du haut ---------- */
+#hud{position:fixed;top:0;left:0;right:0;display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+  padding:max(10px,env(safe-area-inset-top)) 12px 10px;pointer-events:none;z-index:5}
+#hud > *{pointer-events:auto}
+.pastille{background:rgba(22,15,9,.74);border:1px solid var(--bord);color:var(--parchemin);border-radius:999px;
+  padding:7px 14px;font-size:15px;line-height:1.2;text-decoration:none;display:inline-flex;align-items:center;gap:6px;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+button.pastille:hover,a.pastille:hover{border-color:var(--laiton);color:var(--laiton2)}
+#compteur{font-variant-numeric:tabular-nums}
+.espace{flex:1}
+
+/* pancarte de chantier, la même que dans les labos */
+.chantier{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-family:var(--sans);
+  font-size:11px;font-weight:700;letter-spacing:.02em;color:#6d5312;background:#fdf3d6;border:1px solid #e6cf92;
+  border-radius:7px;padding:3px 9px 3px 7px;transform:rotate(-1.4deg);cursor:help}
+.chantier-p{flex:none;width:26px;height:26px;display:block;margin:-3px 0}
+
+/* ---------- viseur et consignes ---------- */
+#viseur{position:fixed;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;
+  background:rgba(243,234,214,.85);box-shadow:0 0 0 2px rgba(0,0,0,.35);pointer-events:none;z-index:4;
+  transition:all .15s}
+#viseur.actif{width:26px;height:26px;margin:-13px 0 0 -13px;background:transparent;border:2px solid var(--laiton2);
+  box-shadow:0 0 12px rgba(240,213,140,.6)}
+#cible{position:fixed;left:50%;top:calc(50% + 24px);transform:translateX(-50%);z-index:4;pointer-events:none;
+  background:rgba(22,15,9,.8);border:1px solid var(--laiton);border-radius:10px;padding:6px 12px;font-size:15px;
+  white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
+#cible kbd{font-family:var(--sans);font-size:12px;border:1px solid var(--bord);border-radius:4px;padding:0 5px;margin-left:4px}
+#consigne{position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:4;
+  background:rgba(22,15,9,.78);border:1px solid var(--bord);border-radius:12px;padding:8px 14px;font-size:15px;
+  max-width:min(92vw,620px);text-align:center;pointer-events:none}
+
+/* ---------- commandes tactiles ---------- */
+#manette{position:fixed;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;z-index:4;pointer-events:none;
+  border:2px solid rgba(243,234,214,.45);background:rgba(22,15,9,.25)}
+#manette span{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;
+  background:rgba(243,234,214,.55)}
+#b-saisir{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(80px,calc(env(safe-area-inset-bottom) + 70px));
+  z-index:5;width:92px;height:92px;border-radius:50%;border:2px solid var(--laiton2);background:rgba(36,24,14,.85);
+  color:var(--parchemin);font-size:15px;line-height:1.15}
+#b-saisir b{display:block;font-size:30px}
+
+/* ---------- écrans par-dessus la scène ---------- */
+.voile{position:fixed;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:16px;
+  background:radial-gradient(ellipse at center,rgba(18,13,8,.55),rgba(18,13,8,.9));overflow:auto}
+.carte{background:linear-gradient(180deg,var(--parchemin),var(--parchemin2));color:var(--encre);border-radius:18px;
+  border:1px solid #c7b089;box-shadow:0 20px 60px rgba(0,0,0,.55);width:min(640px,100%);max-height:calc(100dvh - 32px);
+  overflow:auto;padding:26px 26px 22px;animation:apparait .3s ease-out}
+@keyframes apparait{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+.carte h1{font-size:clamp(28px,6vw,42px);line-height:1.05;font-weight:700;letter-spacing:.01em}
+.carte h2{font-size:24px;margin-bottom:6px}
+.sur-titre{font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--encre2);margin-bottom:6px}
+.carte p{font-size:17px;line-height:1.5;margin:10px 0}
+.carte .petit{font-size:14px;color:var(--encre2)}
+.filet{height:1px;background:linear-gradient(90deg,transparent,#a88b5a,transparent);margin:16px 0}
+.segments{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px}
+.segments button{flex:1 1 160px;border:2px solid #b39467;background:#fbf6ea;border-radius:12px;padding:10px 12px;text-align:left;font-size:16px}
+.segments button small{display:block;font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:2px}
+.segments button[aria-pressed="true"]{border-color:var(--vert);background:#e3efe5;box-shadow:inset 0 0 0 1px var(--vert)}
+.segments button[aria-pressed="true"]::before{content:"✓ ";color:var(--vert);font-weight:700}
+.boutons{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.btn{border:none;border-radius:12px;padding:12px 18px;font-size:17px;background:#e3d3ae;color:var(--encre);border:1px solid #b39467}
+.btn:hover{filter:brightness(1.04)}
+.btn.principal{background:var(--vert);color:#fff;border-color:#24583e;font-weight:700}
+.btn.discret{background:transparent}
+.commandes{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:15px;line-height:1.4;margin:8px 0}
+.commandes dt{font-family:var(--sans);font-size:13px;font-weight:700;white-space:nowrap}
+.commandes kbd{font-family:var(--sans);font-size:12px;background:#fbf6ea;border:1px solid #b39467;border-bottom-width:2px;border-radius:5px;padding:1px 6px}
+#chargement{font-family:var(--sans);font-size:13px;color:var(--encre2)}
+
+/* ---------- fiche d'examen ---------- */
+#fiche{position:fixed;z-index:8;top:0;right:0;bottom:0;width:min(450px,44vw);overflow:auto;
+  background:linear-gradient(180deg,var(--parchemin),var(--parchemin2));color:var(--encre);
+  box-shadow:-12px 0 40px rgba(0,0,0,.45);padding:22px 22px 28px;border-left:1px solid #c7b089;
+  animation:glisse .35s ease-out}
+@keyframes glisse{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.f-tete{display:flex;gap:12px;align-items:flex-start}
+.f-emoji{font-size:38px;line-height:1}
+.f-tete h2{font-size:26px;line-height:1.1}
+.f-latin{font-style:italic;color:var(--encre2);margin-top:3px;font-size:16px}
+#f-fermer{margin-left:auto;flex:none;border:1px solid #b39467;background:#fbf6ea;border-radius:10px;padding:6px 10px;font-size:14px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.badge{font-family:var(--sans);font-size:12px;border-radius:999px;padding:3px 10px;background:#e8dcc0;border:1px solid #c7b089;color:var(--encre2)}
+.badge.niv{background:#e3efe5;border-color:#9cc2a8;color:#1f4d36}
+#f-desc{font-size:17px;line-height:1.5;margin:10px 0}
+.savais{background:#fbf6ea;border:1px dashed #b39467;border-radius:12px;padding:8px 12px;margin:10px 0}
+.savais summary{cursor:pointer;font-weight:700;font-size:16px}
+.savais p{font-size:16px;line-height:1.45;margin-top:6px}
+.question{margin-top:16px;border-top:2px solid #c7b089;padding-top:12px}
+.question h3{font-family:var(--sans);font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--encre2)}
+#f-q{font-size:18px;line-height:1.45;margin:8px 0 10px;font-weight:700}
+#f-choix{display:flex;flex-direction:column;gap:8px}
+#f-choix button{text-align:left;border:2px solid #b39467;background:#fffaf0;border-radius:12px;padding:10px 12px;font-size:16px;line-height:1.35;display:flex;gap:10px;align-items:flex-start}
+#f-choix button .lettre{flex:none;font-family:var(--sans);font-weight:700;font-size:13px;width:24px;height:24px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;background:#e8dcc0;margin-top:1px}
+#f-choix button:not(:disabled):hover{border-color:var(--vert);background:#f1f7f1}
+#f-choix button:disabled{cursor:default}
+#f-choix button.juste{border-color:#2f7150;background:#e1f0e5}
+#f-choix button.juste .lettre{background:#2f7150;color:#fff}
+#f-choix button.faux{border-color:#a8432c;background:#f8e4de}
+#f-choix button.faux .lettre{background:#a8432c;color:#fff}
+#f-retour{margin-top:12px}
+.retour{border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.5}
+.retour.ok{background:#e1f0e5;border:1px solid #9cc2a8}
+.retour.ko{background:#f8e4de;border:1px solid #d9a493}
+.retour strong{display:block;font-size:18px;margin-bottom:4px}
+.retour .rappel{margin:6px 0}
+.mots{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mots span{font-family:var(--sans);font-size:12px;font-weight:700;background:#fff;border:1px solid #c7b089;border-radius:999px;padding:3px 9px}
+.prog{font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:10px}
+.f-astuce{font-family:var(--sans);font-size:12px;color:var(--encre2);margin-top:14px}
+.f-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+
+/* ---------- carnet ---------- */
+.grille-carnet{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin-top:12px}
+.entree{border:1px solid #c7b089;background:#fffaf0;border-radius:12px;padding:10px;font-size:15px;line-height:1.3;display:flex;flex-direction:column;gap:4px;text-align:left}
+.entree .e-emoji{font-size:26px}
+.entree.inconnue{background:#efe6d0;color:var(--encre2);border-style:dashed}
+.entree .etat{font-family:var(--sans);font-size:12px}
+.entree button{margin-top:auto;align-self:flex-start;border:1px solid #b39467;background:#fbf6ea;border-radius:8px;padding:4px 8px;font-size:13px}
+.barre{height:10px;border-radius:999px;background:#e3d3ae;overflow:hidden;margin:6px 0}
+.barre span{display:block;height:100%;background:var(--vert);border-radius:inherit}
+
+/* ---------- toast ---------- */
+#toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-20px);opacity:0;z-index:20;pointer-events:none;
+  background:var(--parchemin);color:var(--encre);border:1px solid #b39467;border-radius:12px;padding:10px 16px;font-size:16px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .25s,transform .25s;max-width:90vw;text-align:center}
+#toast.vu{opacity:1;transform:translate(-50%,0)}
+
+#impression{display:none}
+
+/* ---------- écrans étroits : la fiche passe en bas ---------- */
+@media (max-width:819px){
+  #fiche{top:auto;left:0;width:auto;max-height:56dvh;border-radius:18px 18px 0 0;border-left:none;border-top:1px solid #c7b089;
+    box-shadow:0 -12px 40px rgba(0,0,0,.45);padding:16px 16px 24px;animation:monte .35s ease-out}
+  @keyframes monte{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+  .f-tete h2{font-size:22px}
+  #f-desc{font-size:16px}
+}
+@media (max-width:560px){
+  .pastille{padding:6px 10px;font-size:14px}
+  .chantier{font-size:10px;padding:2px 7px 2px 6px}
+  .carte{padding:20px 16px 18px}
+  .carte p{font-size:16px}
+  #consigne{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
+
+/* ---------- impression du carnet ---------- */
+@media print{
+  html,body{overflow:visible;height:auto;background:#fff;color:#000}
+  body > *:not(#impression){display:none !important}
+  #impression{display:block !important;font-family:Georgia,serif;padding:0 8mm}
+  #impression h1{font-size:22pt;margin-bottom:4pt}
+  #impression table{width:100%;border-collapse:collapse;margin-top:10pt;font-size:10.5pt}
+  #impression th,#impression td{border:1px solid #999;padding:5pt;vertical-align:top;text-align:left}
+  #impression tr{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<canvas id="scene" tabindex="-1" aria-label="Vue en trois dimensions du cabinet des curiosités. Le carnet donne la liste des objets."></canvas>
+
+<!-- ===================== barre du haut ===================== -->
+<header id="hud" class="hidden">
+  <a class="pastille" href="../index.html" title="Revenir au site">← Site</a>
+  <span class="pastille" id="compteur" aria-live="polite">🔍 0 / 0</span>
+  <span class="espace"></span>
+  <span class="chantier" title="Ce cabinet est une première version : des objets, des salles et des questions vont s'ajouter."><svg class="chantier-p" viewBox="0 0 48 48" aria-hidden="true" focusable="false"><rect x="9.5" y="9.5" width="29" height="29" rx="4.5" transform="rotate(45 24 24)" fill="#f9c302" stroke="#17140f" stroke-width="3"/><g fill="#17140f"><circle cx="27.4" cy="17.4" r="3"/><path d="M24.3 21.6c2.6-1.1 5.3-.7 6.3 1 .8 1.3.6 3-.5 4.2h-6.8c-.8-2-.6-4 1-5.2z"/><rect x="15" y="25.6" width="13" height="1.9"/><rect x="15.3" y="27.5" width="1.8" height="5.6"/><rect x="30.9" y="18.4" width="1.9" height="14.7"/><rect x="26.4" y="27.4" width="6.4" height="1.9"/><rect x="26.7" y="29.3" width="1.7" height="3.8"/></g></svg>Work in progress =)</span>
+  <button class="pastille" id="b-carnet" type="button">📔 Carnet</button>
+  <button class="pastille" id="b-aide" type="button" aria-label="Commandes et aide">?</button>
+</header>
+
+<div id="viseur" class="hidden"></div>
+<div id="cible" class="hidden"></div>
+<div id="consigne" class="hidden"></div>
+<div id="manette" class="hidden"><span></span></div>
+<button id="b-saisir" type="button" class="hidden" aria-label="Saisir l'objet visé"><b>✋</b>Saisir</button>
+
+<!-- ===================== accueil ===================== -->
+<div id="accueil" class="voile">
+  <div class="carte" role="dialog" aria-labelledby="titre-accueil">
+    <p class="sur-titre">SVT · promenade en 3D</p>
+    <h1 id="titre-accueil">Le Cabinet des curiosités</h1>
+    <p>Un naturaliste rentré d'un long voyage autour du monde a rempli son cabinet de spécimens… et construit à côté une serre pour ses plantes d'Amazonie.</p>
+    <p><strong>Promène-toi, approche-toi des objets qui luisent et saisis-les</strong> : tu peux les retourner sous tous les angles, et chacun cache une question. Ton carnet garde la trace de tes trouvailles.</p>
+    <div class="filet"></div>
+    <p class="sur-titre" id="lab-niveau">Ton niveau</p>
+    <div class="segments" role="group" aria-labelledby="lab-niveau">
+      <button type="button" data-niveau="college" aria-pressed="true">Collège<small>cycle 4 : classer, la cellule, la sélection naturelle…</small></button>
+      <button type="button" data-niveau="lycee" aria-pressed="false">Lycée<small>évolution, parenté, biodiversité, reproduction des plantes…</small></button>
+    </div>
+    <div class="boutons">
+      <button type="button" class="btn principal" id="b-entrer" disabled>Préparation du cabinet…</button>
+      <button type="button" class="btn" id="b-commandes">Les commandes</button>
+    </div>
+    <p class="petit" id="chargement">Fichier unique, il fonctionne hors connexion. Ta progression reste dans ce navigateur : rien n'est envoyé sur Internet.</p>
+  </div>
+</div>
+
+<!-- ===================== aide ===================== -->
+<div id="m-aide" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-aide">
+    <h2 id="titre-aide">Les commandes</h2>
+    <p class="sur-titre">À l'ordinateur</p>
+    <dl class="commandes">
+      <dt>Regarder</dt><dd>clique dans la vue, puis bouge la souris (<kbd>Échap</kbd> rend la souris)</dd>
+      <dt>Marcher</dt><dd><kbd>Z</kbd><kbd>Q</kbd><kbd>S</kbd><kbd>D</kbd> (ou <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>) ou les flèches · <kbd>Maj</kbd> pour aller plus vite</dd>
+      <dt>Saisir</dt><dd>vise un objet qui luit, puis clic ou <kbd>E</kbd></dd>
+      <dt>Examiner</dt><dd>fais glisser l'objet pour le tourner · <kbd>1</kbd> à <kbd>4</kbd> pour répondre · <kbd>Échap</kbd> pour le reposer</dd>
+      <dt>Carnet</dt><dd><kbd>C</kbd></dd>
+    </dl>
+    <p class="sur-titre">Sur tablette ou téléphone</p>
+    <dl class="commandes">
+      <dt>Marcher</dt><dd>pose le pouce sur la moitié gauche de l'écran et fais-le glisser</dd>
+      <dt>Regarder</dt><dd>fais glisser un doigt sur la moitié droite</dd>
+      <dt>Saisir</dt><dd>touche l'objet, ou le bouton ✋ quand il est visé</dd>
+    </dl>
+    <p class="petit">Les objets ont été modelés par le programme, en formes simplifiées : ce ne sont pas des photographies. Les couleurs et les proportions sont fidèles, pas les détails.</p>
+    <div class="boutons"><button type="button" class="btn principal" data-fermer>Compris</button></div>
+  </div>
+</div>
+
+<!-- ===================== carnet ===================== -->
+<div id="m-carnet" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-carnet" style="width:min(820px,100%)">
+    <p class="sur-titre" id="carnet-niveau"></p>
+    <h2 id="titre-carnet">Mon carnet de naturaliste</h2>
+    <div class="barre" aria-hidden="true"><span id="carnet-barre"></span></div>
+    <p class="petit" id="carnet-resume"></p>
+    <div class="grille-carnet" id="carnet-grille"></div>
+    <div class="boutons">
+      <button type="button" class="btn principal" data-fermer>Retour au cabinet</button>
+      <button type="button" class="btn" id="b-bilan-carnet">Mon bilan</button>
+      <button type="button" class="btn" id="b-imprimer">Imprimer mon carnet</button>
+      <button type="button" class="btn discret" id="b-niveau-carnet"></button>
+      <button type="button" class="btn discret" id="b-effacer">Tout effacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== bilan ===================== -->
+<div id="m-bilan" class="voile hidden">
+  <div class="carte" role="dialog" aria-labelledby="titre-bilan">
+    <p class="sur-titre" id="bilan-niveau"></p>
+    <h2 id="titre-bilan">Ton bilan de naturaliste</h2>
+    <div id="bilan-corps"></div>
+    <div class="boutons">
+      <button type="button" class="btn principal" data-fermer>Continuer à explorer</button>
+      <button type="button" class="btn" id="b-imprimer2">Imprimer mon carnet</button>
+      <button type="button" class="btn discret" id="b-niveau-bilan"></button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== fiche d'examen ===================== -->
+<aside id="fiche" class="hidden" role="dialog" aria-labelledby="f-nom">
+  <div class="f-tete">
+    <span class="f-emoji" id="f-emoji" aria-hidden="true"></span>
+    <div><h2 id="f-nom"></h2><p class="f-latin" id="f-latin"></p></div>
+    <button type="button" id="f-fermer">Reposer ✕</button>
+  </div>
+  <div class="badges"><span class="badge" id="f-regne"></span><span class="badge niv" id="f-niveau"></span></div>
+  <p id="f-desc"></p>
+  <details class="savais"><summary>Le savais-tu ?</summary><p id="f-savais"></p></details>
+  <section class="question" aria-labelledby="f-titre-q">
+    <h3 id="f-titre-q">Question</h3>
+    <p id="f-q"></p>
+    <div id="f-choix" role="group" aria-labelledby="f-q"></div>
+    <div id="f-retour" aria-live="polite"></div>
+  </section>
+  <p class="f-astuce" id="f-astuce">Fais glisser l'objet pour le tourner.</p>
+</aside>
+
+<div id="toast" role="status"></div>
+<div id="impression"></div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   1. DONNÉES — ZONE À MODIFIER
+   ============================================================
+   CURIOSITES : un objet que l'on peut saisir = une entrée.
+   - id     : identifiant unique ; il relie l'entrée à son modèle 3D (MODELES)
+              et à sa place dans la pièce (PLACES). Ne pas le changer.
+   - nom, latin, emoji, regne : ce qu'affiche la fiche.
+   - ou     : l'indice donné dans le carnet tant que l'objet n'a pas été trouvé.
+   - desc   : ce que l'élève lit en prenant l'objet en main.
+   - savais : le « Le savais-tu ? ».
+   - college / lycee : la question de chaque niveau.
+       q      : la question
+       choix  : les réponses proposées ; LA BONNE EST TOUJOURS LA PREMIÈRE
+                de la liste (l'ordre est mélangé à l'affichage).
+       expl   : l'explication, montrée après la réponse, juste ou non.
+       prog   : le lien au programme.
+   - mots   : les mots-clés à retenir.
+   Pour changer une question, il suffit de modifier le texte ici.
+   Pour ajouter un objet, il faut aussi lui écrire un modèle dans MODELES
+   (section 4) et une place dans PLACES, juste en dessous.
+*/
+const CURIOSITES = [
+  {
+    id:'pinsons', nom:'Pinsons de Darwin', latin:'Geospiza magnirostris, G. fortis, Certhidea olivacea', emoji:'🐦',
+    regne:'Animal · Oiseaux', ou:'Sous une cloche de verre, sur le guéridon près de la vitrine',
+    desc:'Trois oiseaux rapportés des îles Galápagos en 1835. Même taille, même plumage terne… mais des becs très différents : massif pour broyer les graines dures, moyen, ou fin comme une pince pour attraper les insectes.',
+    savais:'Darwin les avait pris pour des oiseaux de familles différentes. C’est l’ornithologue John Gould qui lui montra, en 1837, qu’ils étaient tous proches parents. Ce ne sont d’ailleurs pas de vrais pinsons, mais des tangaras.',
+    mots:['variation héréditaire','sélection naturelle','adaptation','pression de sélection'],
+    college:{
+      q:'Pourquoi ces oiseaux, proches parents, ont-ils des becs si différents ?',
+      choix:['Chaque forme de bec convient à une nourriture : sur chaque île, les oiseaux au bec le mieux adapté ont survécu et eu plus de petits.',
+             'Chaque oiseau a modelé son bec au cours de sa vie, à force de s’en servir.',
+             'Ils n’ont aucun lien de parenté : la ressemblance du plumage est un hasard.',
+             'Le bec pousse plus ou moins selon la quantité de nourriture mangée.'],
+      expl:'Dans une population, la forme du bec varie d’un individu à l’autre, et ce caractère est héréditaire. Là où il n’y a que des graines dures, les oiseaux à gros bec se nourrissent mieux, survivent davantage et transmettent ce caractère : c’est la sélection naturelle. Un caractère acquis pendant la vie, lui, ne se transmet pas.',
+      prog:'Cycle 4 — Le vivant et son évolution : diversité, parenté et sélection naturelle'},
+    lycee:{
+      q:'En 1977, une sécheresse sur l’île Daphné Majeure ne laisse que des graines grosses et dures. L’année suivante, le bec moyen de la population de Geospiza fortis est plus épais. Quelle explication retenir ?',
+      choix:['Les individus à bec épais, déjà présents, ont mieux survécu et se sont davantage reproduits : la fréquence du caractère a augmenté.',
+             'La sécheresse a provoqué chez les oiseaux des mutations qui épaississent le bec.',
+             'Chaque oiseau a épaissi son bec en forçant sur les graines dures, puis l’a transmis.',
+             'C’est un effet de la dérive génétique : le hasard seul explique ce changement.'],
+      expl:'La variation existait avant la sécheresse : les mutations surviennent au hasard, elles ne sont pas provoquées par le besoin. Le milieu a trié les individus (pression de sélection) et, l’épaisseur du bec étant héréditaire, la génération suivante en a hérité. Un changement aussi net, dans le sens prévisible, en une génération, n’est pas l’œuvre du seul hasard.',
+      prog:'2nde — Biodiversité, résultat et étape de l’évolution : la sélection naturelle'}
+  },
+  {
+    id:'phalene', nom:'Phalène du bouleau', latin:'Biston betularia', emoji:'🦋',
+    regne:'Animal · Insectes (papillon de nuit)', ou:'Dans un cadre accroché entre les deux fenêtres',
+    desc:'Une boîte d’entomologiste : la même espèce de papillon de nuit sous deux formes, claire (typica) et sombre (carbonaria), posées sur deux écorces. L’une est couverte de lichens clairs, l’autre noircie par la suie des usines.',
+    savais:'La forme sombre est due à une seule mutation d’un gène, apparue vers 1819 en Angleterre. Elle était rarissime avant que la suie ne noircisse les troncs.',
+    mots:['camouflage','prédation','sélection naturelle','fréquence d’un caractère'],
+    college:{
+      q:'Au XIXᵉ siècle, près de Manchester, les troncs sont noircis par la suie. Quelle forme devient la plus fréquente ?',
+      choix:['La forme sombre : sur un tronc noirci, elle est moins repérée par les oiseaux qui chassent à vue.',
+             'La forme claire : elle se voit mieux et attire davantage de partenaires.',
+             'Aucune : la suie tue toutes les phalènes de la même façon.',
+             'La forme sombre, parce que la suie colore les ailes des papillons.'],
+      expl:'Les deux formes existent déjà dans la population. Sur un fond sombre, les papillons sombres sont moins mangés : ils survivent mieux et laissent plus de descendants. En quelques dizaines d’années, la forme sombre est devenue majoritaire autour des villes industrielles. La suie ne colore pas les ailes : la couleur est héréditaire.',
+      prog:'Cycle 4 — Le vivant et son évolution : la sélection naturelle'},
+    lycee:{
+      q:'Depuis les lois contre la pollution de l’air (à partir de 1956), la forme sombre est redevenue rare. Qu’est-ce que cela montre ?',
+      choix:['L’avantage d’un caractère dépend du milieu : quand le milieu change, la pression de sélection s’inverse.',
+             'Les phalènes sombres ont appris à s’éclaircir pour rester camouflées.',
+             'La pollution provoquait directement la mutation sombre ; sans pollution, elle n’apparaît plus.',
+             'La forme sombre était une maladie, guérie par l’air pur.'],
+      expl:'Un caractère n’est pas « meilleur » dans l’absolu : il l’est dans un environnement donné. Les troncs redevenus clairs avantagent à nouveau la forme claire. La mutation sombre peut toujours apparaître au hasard, mais les oiseaux repèrent et mangent davantage les papillons qui la portent.',
+      prog:'2nde — Biodiversité : sélection naturelle et pression du milieu'}
+  },
+  {
+    id:'tortue', nom:'Carapace de tortue géante', latin:'Chelonoidis sp. — îles Galápagos', emoji:'🐢',
+    regne:'Animal · Reptiles (tortues)', ou:'Sur le coffre, près de la porte de la serre',
+    desc:'Le vice-gouverneur des Galápagos affirmait à Darwin qu’il savait dire de quelle île venait une tortue rien qu’à sa carapace. Sur les îles humides, elle est bombée en dôme ; sur les îles sèches, comme celle-ci, elle est relevée à l’avant, « en selle ».',
+    savais:'« George le Solitaire », dernier représentant connu de l’île de Pinta, est mort en 2012 : son espèce a disparu avec lui.',
+    mots:['adaptation','isolement géographique','spéciation','dérive génétique'],
+    college:{
+      q:'Sur les îles sèches, la nourriture principale est un cactus dont les raquettes poussent en hauteur. Quel avantage donne la carapace relevée « en selle » ?',
+      choix:['Elle permet de tendre le cou vers le haut pour atteindre les raquettes de cactus.',
+             'Elle protège mieux de la chaleur du soleil.',
+             'Elle rend la tortue plus légère pour nager d’une île à l’autre.',
+             'Aucun : la forme de la carapace est sans rapport avec le mode de vie.'],
+      expl:'Une carapace échancrée à l’avant libère le cou : la tortue peut se dresser et brouter haut. Sur ces îles, les tortues qui atteignaient la nourriture ont mieux survécu et se sont davantage reproduites : c’est une adaptation au milieu, produite par la sélection naturelle.',
+      prog:'Cycle 4 — Le vivant et son évolution : adaptation au milieu'},
+    lycee:{
+      q:'Les tortues de chaque île vivent séparées par la mer et ne se reproduisent plus entre elles. Que se passe-t-il au fil des générations ?',
+      choix:['Chaque population évolue de son côté (mutations, sélection, dérive) : elles divergent jusqu’à pouvoir former des espèces distinctes.',
+             'Elles restent identiques, puisqu’elles descendent des mêmes ancêtres.',
+             'Elles finissent par se ressembler, puisqu’elles vivent sous le même climat.',
+             'Elles deviennent toutes stériles, faute de partenaires.'],
+      expl:'L’isolement géographique empêche les échanges de gènes. Les mutations, la sélection naturelle et la dérive génétique agissent alors indépendamment dans chaque population : les différences s’accumulent. Quand les populations ne peuvent plus se reproduire entre elles, on parle de nouvelles espèces : c’est la spéciation.',
+      prog:'Lycée — Biodiversité et évolution : isolement, dérive génétique, spéciation'}
+  },
+  {
+    id:'nautile', nom:'Nautile', latin:'Nautilus pompilius', emoji:'🐚',
+    regne:'Animal · Mollusques (céphalopodes)', ou:'Dans la vitrine, sur l’étagère du haut',
+    desc:'Une coquille enroulée en spirale, cloisonnée à l’intérieur en une trentaine de chambres. L’animal vit dans la dernière, la plus grande ; il règle la quantité de gaz et de liquide des autres pour monter ou descendre dans l’eau.',
+    savais:'Le nautile porte jusqu’à 90 tentacules, mais aucune ventouse. Il vit le plus souvent entre 150 et 300 m de profondeur, dans l’océan Indien et le Pacifique.',
+    mots:['mollusque','céphalopode','attributs partagés','ancêtre commun'],
+    college:{
+      q:'À quel groupe appartient le nautile ?',
+      choix:['Aux mollusques, comme l’escargot, la moule et la pieuvre.',
+             'Aux crustacés, comme le crabe, puisqu’il a une coquille dure.',
+             'Aux poissons, puisqu’il vit dans la mer.',
+             'À aucun groupe vivant : c’est une pierre en forme de spirale.'],
+      expl:'On classe un être vivant d’après les attributs qu’il partage avec d’autres, pas d’après son milieu de vie. Le nautile a un corps mou, un manteau qui fabrique la coquille et des tentacules autour de la tête : c’est un mollusque, dans le même groupe que la pieuvre et le calmar (les céphalopodes). Le crabe, lui, a un squelette externe articulé.',
+      prog:'Cycle 4 — Classer les êtres vivants d’après les attributs partagés'},
+    lycee:{
+      q:'La coquille cloisonnée du nautile ressemble à celle des ammonites fossiles. Comment interpréter cette ressemblance ?',
+      choix:['Nautiles et ammonites ont hérité ce caractère d’un ancêtre commun, un céphalopode à coquille cloisonnée.',
+             'Le nautile descend des ammonites, qui se sont transformées en nautiles.',
+             'C’est une simple coïncidence de forme, sans lien de parenté.',
+             'Les ammonites descendent du nautile actuel.'],
+      expl:'Une espèce actuelle ne descend ni d’une autre espèce actuelle, ni d’un fossile précis : on cherche l’ancêtre commun. Les premiers céphalopodes à coquille cloisonnée datent d’environ 500 millions d’années, bien avant les ammonites ; nautiles et ammonites en sont deux branches.',
+      prog:'Lycée — Parentés et évolution : la notion d’ancêtre commun'}
+  },
+  {
+    id:'ammonite', nom:'Ammonite', latin:'Céphalopode fossile du Jurassique', emoji:'🪨',
+    regne:'Fossile · Mollusques disparus', ou:'Dans la vitrine, sur l’étagère du milieu',
+    desc:'Une coquille spiralée devenue pierre. Les ammonites ont peuplé les mers pendant plus de 300 millions d’années, avant de disparaître il y a 66 millions d’années, en même temps que les grands dinosaures.',
+    savais:'Leur nom vient du dieu égyptien Amon, représenté avec des cornes de bélier enroulées. En Angleterre, on les appelait autrefois « pierres de serpent ».',
+    mots:['fossile','fossile stratigraphique','datation relative','extinction'],
+    college:{
+      q:'Qu’est-ce qu’une ammonite ?',
+      choix:['Le reste d’un animal marin disparu, conservé dans une roche : un fossile.',
+             'Une roche qui a pris par hasard la forme d’une coquille.',
+             'Un serpent enroulé changé en pierre.',
+             'Une coquille d’escargot de jardin récente.'],
+      expl:'Après la mort de l’animal, sa coquille est enfouie dans les sédiments du fond de la mer ; au fil des millions d’années, elle est moulée ou remplacée par des minéraux. Trouver une ammonite dans une roche, c’est savoir que la mer recouvrait autrefois cet endroit.',
+      prog:'Cycle 4 — La Terre et le vivant : les fossiles, témoins des mondes passés'},
+    lycee:{
+      q:'Pourquoi les ammonites sont-elles d’excellents fossiles stratigraphiques ?',
+      choix:['Chaque espèce a existé peu de temps, mais était abondante et répandue sur de vastes régions.',
+             'Elles ont vécu sans changer pendant des centaines de millions d’années.',
+             'On peut mesurer leur âge exact grâce au carbone 14.',
+             'Elles ne se trouvent que dans une seule région du monde.'],
+      expl:'Un bon fossile stratigraphique appartient à une espèce de courte durée, nombreuse et répandue sur une grande étendue. Deux couches éloignées qui contiennent la même espèce d’ammonite ont donc le même âge : c’est le principe d’identité paléontologique, base de la datation relative. Le carbone 14, lui, ne date que les derniers ~50 000 ans.',
+      prog:'Lycée — Datation relative : les fossiles stratigraphiques'}
+  },
+  {
+    id:'corail', nom:'Corail « corne de cerf »', latin:'Acropora cervicornis', emoji:'🪸',
+    regne:'Animal · Cnidaires', ou:'Dans la vitrine, sur l’étagère du bas',
+    desc:'On l’a cru plante, puis pierre. C’est en réalité le squelette calcaire d’une colonie de minuscules animaux, les polypes, cousins des méduses. Celui-ci vient de la mer des Caraïbes.',
+    savais:'Dans les années 1720, le médecin marseillais Jean-André Peyssonnel montra que le corail est un animal. Les savants de l’Académie mirent des années à le croire.',
+    mots:['polype','symbiose','photosynthèse','blanchissement'],
+    college:{
+      q:'Le corail est-il un minéral, un végétal ou un animal ?',
+      choix:['Un animal : une colonie de polypes qui fabrique un squelette calcaire.',
+             'Un végétal, puisqu’il pousse fixé au fond comme une plante.',
+             'Un minéral, puisqu’il est dur comme la pierre.',
+             'Un champignon marin.'],
+      expl:'Chaque polype a une bouche entourée de tentacules qui capturent du plancton : c’est un animal. La colonie construit un squelette de calcaire, d’où sa dureté. Dans ses tissus vivent des algues microscopiques, ce qui a longtemps entretenu la confusion avec les plantes.',
+      prog:'Cycle 4 — Classer les êtres vivants ; relations entre êtres vivants'},
+    lycee:{
+      q:'Lors des vagues de chaleur marines, les coraux blanchissent. Que se passe-t-il ?',
+      choix:['Les polypes expulsent les algues symbiotiques qui leur donnent leur couleur et une grande part de leur nourriture.',
+             'Le calcaire du squelette fond sous l’effet de la chaleur.',
+             'Les polypes changent de couleur pour renvoyer la lumière et se protéger.',
+             'Les coraux meurent dès que l’eau dépasse 20 °C.'],
+      expl:'Le corail vit en symbiose avec des algues unicellulaires, les zooxanthelles : elles lui cèdent une partie des produits de leur photosynthèse, il leur offre abri et CO₂. Une eau trop chaude rompt l’association : le corail les expulse et laisse voir son squelette blanc. Si la chaleur dure, il meurt de faim. Ces épisodes se multiplient avec le réchauffement climatique.',
+      prog:'Lycée — Écosystèmes et changement climatique : la symbiose'}
+  },
+  {
+    id:'serpent', nom:'Python en bocal', latin:'Python regius', emoji:'🐍',
+    regne:'Animal · Reptiles (serpents)', ou:'Dans la vitrine, en bas à gauche, dans un bocal',
+    desc:'Conservé dans l’alcool. Pas de pattes, un corps fait de plus de deux cents vertèbres… mais, de part et d’autre du cloaque, deux petits ergots griffus, que l’on retrouve chez les pythons et les boas.',
+    savais:'Sous chaque ergot se cachent de petits os du bassin et de la cuisse. Le mâle s’en sert pour gratter et stimuler la femelle pendant l’accouplement.',
+    mots:['vertébré','organe vestigial','homologie','tétrapode'],
+    college:{
+      q:'Le python n’a pas de pattes. Est-ce pour autant un invertébré ?',
+      choix:['Non : il a un squelette interne avec une colonne vertébrale, c’est un vertébré.',
+             'Oui, puisqu’il n’a pas de pattes.',
+             'Oui, puisqu’il rampe comme un ver de terre.',
+             'Non, c’est un mammifère, puisqu’il a des écailles.'],
+      expl:'« Vertébré » veut dire « qui possède des vertèbres » : le python en a plusieurs centaines. Il partage aussi avec le lézard la peau couverte d’écailles et la ponte d’œufs à coquille. Pour classer, on regarde ce que l’animal possède, pas seulement ce qui lui manque.',
+      prog:'Cycle 4 — Classer les êtres vivants d’après les attributs partagés'},
+    lycee:{
+      q:'À quoi correspondent les petits os du bassin et les ergots du python ?',
+      choix:['À des restes de membres postérieurs, hérités d’ancêtres à quatre pattes.',
+             'À des organes en formation : les pythons de demain auront des pattes.',
+             'À des griffes apparues pour grimper aux arbres, sans lien avec des pattes.',
+             'À une malformation propre à cet individu.'],
+      expl:'Ces os sont homologues du bassin et du fémur des autres tétrapodes : ce sont des organes vestigiaux, témoins de la parenté des serpents avec des ancêtres à pattes. L’évolution ne prépare pas l’avenir : elle modifie ce qui existe déjà.',
+      prog:'Lycée — Parentés et évolution : organes homologues et vestigiaux'}
+  },
+  {
+    id:'crocodile', nom:'Crocodile naturalisé', latin:'Crocodylus niloticus', emoji:'🐊',
+    regne:'Animal · Crocodiliens', ou:'Lève les yeux : il est suspendu aux poutres',
+    desc:'Le trophée de tout cabinet qui se respecte : un crocodile du Nil empaillé, pendu au plafond pour impressionner les visiteurs. Mâchoires puissantes, dos cuirassé de plaques osseuses.',
+    savais:'Chez le crocodile, c’est la température à laquelle les œufs sont couvés qui décide du sexe des petits.',
+    mots:['attributs partagés','groupes emboîtés','archosaures','parenté'],
+    college:{
+      q:'Pour classer le crocodile, un naturaliste note : colonne vertébrale, quatre membres, peau à écailles, œufs à coquille. Que fait-il de ces observations ?',
+      choix:['Il cherche les attributs qu’il partage avec d’autres animaux, pour le placer dans des groupes emboîtés.',
+             'Rien : il le classe d’après son milieu de vie, avec les poissons, puisqu’il nage.',
+             'Il le classe d’après sa taille, avec les grands animaux.',
+             'Il le classe d’après ce qu’il mange, avec les carnivores : cela suffit.'],
+      expl:'La classification repose sur les attributs partagés : des vertèbres → vertébrés ; quatre membres → tétrapodes ; un œuf à coquille → avec les oiseaux, les tortues, les lézards… Les groupes s’emboîtent les uns dans les autres. Le milieu de vie ou le régime alimentaire ne disent rien de la parenté.',
+      prog:'Cycle 4 — Classer les êtres vivants en groupes emboîtés'},
+    lycee:{
+      q:'Parmi ces animaux actuels, lequel est le plus proche parent du crocodile ?',
+      choix:['L’oiseau.','Le lézard.','La tortue.','Le serpent.'],
+      expl:'Crocodiles et oiseaux partagent des caractères hérités d’un ancêtre commun exclusif, par exemple un cœur à quatre cavités et un estomac musculeux en gésier ; ils construisent des nids et s’occupent de leurs petits. Avec les dinosaures disparus, ils forment le groupe des archosaures. La ressemblance avec le lézard est trompeuse : elle tient à des caractères anciens, partagés par beaucoup de groupes.',
+      prog:'Lycée — Parentés et évolution : lire une phylogénie'}
+  },
+  {
+    id:'microscope', nom:'Microscope en laiton', latin:'Microscope composé, vers 1840', emoji:'🔬',
+    regne:'Instrument d’observation', ou:'Sur la grande table, au centre',
+    desc:'Deux jeux de lentilles, un miroir pour envoyer la lumière à travers la lame, une vis pour la mise au point. Grâce à lui, les naturalistes du XIXᵉ siècle découvrent que plantes et animaux sont faits de cellules.',
+    savais:'En 1665, Robert Hooke observe une fine tranche de liège et y voit de petites loges qu’il nomme « cells », comme les chambres des moines.',
+    mots:['cellule','théorie cellulaire','paroi','microscope'],
+    college:{
+      q:'Qu’ont révélé les microscopes sur tous les êtres vivants ?',
+      choix:['Qu’ils sont tous constitués d’une ou de plusieurs cellules.',
+             'Que seuls les animaux sont faits de cellules, pas les plantes.',
+             'Que les cellules se forment toutes seules dans la boue.',
+             'Que les êtres vivants sont faits de petits cristaux.'],
+      expl:'En 1838 et 1839, Schleiden pour les plantes et Schwann pour les animaux le généralisent : la cellule est l’unité de base de tout être vivant. Virchow ajoute en 1855 que toute cellule provient d’une autre cellule.',
+      prog:'Cycle 4 — La cellule, unité du vivant'},
+    lycee:{
+      q:'Hooke observe des « cellules » dans le liège en 1665. Que voyait-il en réalité ?',
+      choix:['Les parois de cellules végétales mortes et vides.',
+             'Les noyaux de cellules vivantes.',
+             'Des bactéries qui avaient envahi le liège.',
+             'Des chloroplastes.'],
+      expl:'Le liège est un tissu mort : il n’en reste que les parois, rigides, qui délimitent des loges vides. Les instruments de l’époque, sans colorants, ne montraient pas l’intérieur des cellules vivantes. Le noyau ne sera décrit qu’en 1831, par Robert Brown.',
+      prog:'2nde — La cellule, unité structurale et fonctionnelle du vivant'}
+  },
+  {
+    id:'planche', nom:'Planche des membres antérieurs', latin:'Homme, chauve-souris, baleine, cheval', emoji:'🦴',
+    regne:'Document · Anatomie comparée', ou:'Encadrée au-dessus de la cheminée',
+    desc:'Quatre membres faits pour saisir, voler, nager ou courir. Chaque os est peint de la même couleur et porte le même numéro d’un animal à l’autre : un os (l’humérus), puis deux (radius et ulna), puis les petits os du poignet, puis les doigts.',
+    savais:'Le naturaliste Richard Owen appelait ces correspondances des « homologies » dès 1843. Darwin y vit la marque d’une ascendance commune.',
+    mots:['homologie','analogie','ancêtre commun','plan d’organisation'],
+    college:{
+      q:'Ces membres servent à des choses très différentes, mais ont la même organisation. Qu’est-ce que cela suggère ?',
+      choix:['Que ces animaux sont apparentés : ils ont hérité ce plan d’organisation d’un ancêtre commun.',
+             'Que ces animaux vivent dans le même milieu.',
+             'Que la forme d’un membre ne dépend que de son usage.',
+             'Rien : c’est une coïncidence.'],
+      expl:'Si chaque membre avait été conçu seulement pour son usage, rien n’obligerait une nageoire et une aile à avoir les mêmes os, dans le même ordre. Ce plan commun est un héritage : homme, chauve-souris, baleine et cheval descendent d’un ancêtre commun à quatre membres. Les différences (longueur des doigts, nombre d’os) se sont mises en place au cours de l’évolution.',
+      prog:'Cycle 4 — Parenté entre les êtres vivants'},
+    lycee:{
+      q:'L’aile d’une chauve-souris et celle d’un papillon servent toutes deux à voler. Ces organes sont…',
+      choix:['Analogues : même fonction, mais ni la même organisation ni la même origine.',
+             'Homologues, puisqu’ils ont la même fonction.',
+             'Homologues, puisque ce sont deux ailes.',
+             'Vestigiaux.'],
+      expl:'Deux organes sont homologues s’ils occupent la même position et ont la même organisation, hérités d’un ancêtre commun, quelle que soit leur fonction : l’aile de la chauve-souris et le bras humain. L’aile du papillon, sans aucun os, a la même fonction mais une tout autre origine : c’est une analogie, née d’une convergence évolutive.',
+      prog:'Lycée — Parentés et évolution : homologie et convergence'}
+  },
+  {
+    id:'glossopetres', nom:'Glossopètres', latin:'Dents fossiles de requin', emoji:'🦈',
+    regne:'Fossile · Poissons cartilagineux', ou:'Dans le plateau posé sur le médaillier, sous la fenêtre de gauche',
+    desc:'Des « langues de pierre » triangulaires, ramassées à Malte. On les croyait tombées du ciel ou poussées dans la roche, et on les portait en amulette contre les poisons.',
+    savais:'En 1667, Nicolas Sténon dissèque la tête d’un grand requin et reconnaît ses dents dans les glossopètres. Il en tire aussi une idée qui fonde la géologie : les couches de roche se déposent les unes sur les autres.',
+    mots:['fossile','actualisme','superposition','datation relative'],
+    college:{
+      q:'Que sont réellement les glossopètres ?',
+      choix:['Des dents de requin fossilisées.',
+             'Des langues de serpent changées en pierre.',
+             'Des cristaux qui poussent dans la roche.',
+             'Des pointes de flèche taillées par les humains préhistoriques.'],
+      expl:'Sténon a comparé leur forme, leurs bords dentelés et leur structure aux dents d’un requin actuel : elles sont identiques. Comparer un fossile à un être vivant actuel pour le comprendre, c’est raisonner par actualisme. Le squelette d’un requin est fait de cartilage, qui se conserve mal : ce sont surtout ses dents, très dures, qui se fossilisent.',
+      prog:'Cycle 4 — Les fossiles, témoins des êtres vivants passés'},
+    lycee:{
+      q:'Sténon énonce aussi le principe de superposition. Que dit-il ?',
+      choix:['Dans une série de couches non déformées, chaque couche est plus récente que celle qu’elle recouvre.',
+             'Les couches les plus épaisses sont toujours les plus anciennes.',
+             'Les fossiles les plus gros se trouvent dans les couches les plus profondes.',
+             'Toutes les couches d’une falaise ont le même âge.'],
+      expl:'Les sédiments se déposent les uns après les autres, à l’horizontale : ce qui est dessous est donc plus ancien que ce qui est dessus, sauf si les couches ont été plissées ou renversées ensuite. C’est l’un des principes de la datation relative, avec la continuité, le recoupement et l’identité paléontologique.',
+      prog:'Lycée — Datation relative : principes de stratigraphie'}
+  },
+  {
+    id:'cacao', nom:'Cabosse de cacaoyer', latin:'Theobroma cacao', emoji:'🍫',
+    regne:'Végétal · Plantes à fleurs', ou:'Dans la serre, accrochée au tronc du cacaoyer',
+    desc:'Le cacaoyer, originaire de la forêt amazonienne, porte ses fleurs et ses fruits directement sur le tronc. Chaque cabosse renferme de 20 à 50 graines, les fèves de cacao, entourées d’une pulpe sucrée.',
+    savais:'Ses fleurs, minuscules, sont pollinisées presque uniquement par de petits moucherons. « Theobroma » signifie « nourriture des dieux ».',
+    mots:['fleur','fécondation','fruit','pollinisation'],
+    college:{
+      q:'La cabosse est un fruit. D’où vient-elle ?',
+      choix:['De la transformation d’une fleur après la fécondation : le fruit protège les graines.',
+             'D’une feuille qui s’est enroulée et a durci.',
+             'D’une racine sortie du sol.',
+             'Elle pousse sur le tronc sans qu’il y ait jamais eu de fleur.'],
+      expl:'Après la pollinisation, la fécondation a lieu dans le pistil de la fleur : la partie qui renfermait les ovules (l’ovaire) grossit et devient le fruit, les ovules deviennent les graines. Chez le cacaoyer, les fleurs poussent sur le tronc : les fruits y poussent donc aussi.',
+      prog:'Cycle 4 — Reproduction sexuée des plantes à fleurs : de la fleur au fruit'},
+    lycee:{
+      q:'Dans certaines plantations, les moucherons pollinisateurs ont presque disparu. Quelle conséquence pour la récolte ?',
+      choix:['Moins de pollen transporté, donc moins de fécondations : moins de cabosses et de fèves.',
+             'Aucune : le cacaoyer peut former des fruits par sa seule photosynthèse.',
+             'Le vent prend le relais, sans aucune perte.',
+             'Les cabosses deviennent plus grosses, puisqu’elles sont moins nombreuses.'],
+      expl:'Le cacaoyer, fixé au sol, dépend d’un animal pour transporter le pollen d’une fleur à l’autre. Sans pollinisateur, pas de fécondation, donc pas de fruit. Seule une petite fraction des fleurs donne une cabosse ; laisser au sol la litière où se développent les moucherons améliore les récoltes.',
+      prog:'Terminale spé — Reproduction de la plante : la pollinisation par les animaux'}
+  },
+  {
+    id:'banane', nom:'Régime de bananes', latin:'Musa (groupe Cavendish)', emoji:'🍌',
+    regne:'Végétal · Plantes à fleurs', ou:'Dans la serre, sous les grandes feuilles du bananier',
+    desc:'Le bananier n’est pas un arbre : son « tronc » est fait des gaines de ses feuilles, serrées les unes contre les autres. Les bananes du commerce n’ont pas de vraies graines, seulement de petits points noirs : des ovules qui ne se sont pas développés.',
+    savais:'Jusqu’aux années 1950, la banane la plus vendue était la ‘Gros Michel’. Un champignon du sol, la maladie de Panama, l’a presque fait disparaître des plantations.',
+    mots:['reproduction asexuée','clone','diversité génétique','agrosystème'],
+    college:{
+      q:'Sans graines, comment produit-on de nouveaux bananiers ?',
+      choix:['On replante les rejets qui poussent au pied de la plante : c’est une reproduction asexuée.',
+             'On sème les petits points noirs de la banane.',
+             'On greffe une banane sur un palmier.',
+             'On ne peut pas : chaque bananier vit éternellement.'],
+      expl:'Le pied du bananier produit des rejets, que l’on sépare et que l’on replante. Chaque nouveau bananier est un clone : il a les mêmes caractères que la plante d’origine. C’est une reproduction asexuée, sans fleur ni fécondation.',
+      prog:'Cycle 4 — La reproduction asexuée des végétaux'},
+    lycee:{
+      q:'Presque toutes les bananes exportées sont des clones d’une même variété. Quel risque cela fait-il courir ?',
+      choix:['Sans diversité génétique, une maladie qui touche un plant peut toucher tous les autres.',
+             'Aucun : des clones résistent mieux que des plantes issues de graines.',
+             'Les bananes risquent de redevenir sauvages.',
+             'Les clones vieillissent plus vite et donnent des bananes plus petites.'],
+      expl:'La diversité génétique d’une population est son assurance : face à un nouveau parasite, quelques individus portent souvent des allèles de résistance. Dans une plantation de clones, tous ont les mêmes allèles. Une nouvelle souche du champignon de la maladie de Panama (TR4) menace aujourd’hui la Cavendish.',
+      prog:'2nde — Biodiversité génétique et agrosystèmes'}
+  },
+  {
+    id:'victoria', nom:'Fleur du nénuphar géant', latin:'Victoria amazonica', emoji:'🪷',
+    regne:'Végétal · Plantes à fleurs', ou:'Dans la serre, sur le bassin',
+    desc:'Dans les eaux calmes de l’Amazone, ses feuilles flottantes dépassent deux mètres de diamètre (celles du bassin sont encore jeunes). Sa fleur ne s’ouvre que deux nuits : blanche et parfumée la première, rose la seconde.',
+    savais:'Les grosses nervures du dessous de la feuille auraient inspiré au jardinier Joseph Paxton la charpente du Crystal Palace de Londres, en 1851.',
+    mots:['stomate','pollinisation croisée','coévolution','adaptation'],
+    college:{
+      q:'La feuille flotte à la surface de l’eau. Où se trouvent ses stomates, les petits orifices qui laissent passer les gaz ?',
+      choix:['Sur la face supérieure, au contact de l’air.',
+             'Sur la face inférieure, comme chez la plupart des plantes terrestres.',
+             'Nulle part : elle n’en a pas, puisqu’elle vit dans l’eau.',
+             'Dans les racines.'],
+      expl:'Les stomates permettent les échanges de gaz avec l’air, en particulier l’entrée du dioxyde de carbone utilisé par la photosynthèse. Sous une feuille flottante, il n’y a que de l’eau : chez les nénuphars, les stomates sont donc sur la face supérieure. L’organisation de la feuille est adaptée à son milieu.',
+      prog:'Cycle 4 — Nutrition des végétaux : les échanges avec le milieu'},
+    lycee:{
+      q:'La 1re nuit, la fleur blanche, chaude et parfumée attire des scarabées et se referme sur eux. La 2e nuit, devenue rose, elle les relâche couverts de pollen. Quel intérêt pour la plante ?',
+      choix:['Les scarabées portent ce pollen vers une autre fleur qui vient de s’ouvrir : la pollinisation est croisée.',
+             'Les scarabées servent de nourriture à la plante.',
+             'Les scarabées protègent la fleur contre les poissons.',
+             'Aucun : la fleur s’autoféconde, les scarabées sont des parasites.'],
+      expl:'La première nuit, la fleur est en phase femelle : les scarabées y déposent le pollen d’une autre fleur. Le lendemain, en phase mâle, elle libère son propre pollen sur eux avant de les relâcher. Ce décalage favorise la fécondation croisée, donc le brassage génétique. Plante et insecte ont évolué ensemble : c’est une coévolution.',
+      prog:'Terminale spé — Reproduction de la plante : pollinisation et coévolution'}
+  }
+];
+
+/* Où se trouve chaque objet : p = [x, y, z] en mètres, ry = rotation (radians).
+   Repères : x va de l'ouest (−6, cheminée) à l'est (+6, porte de la serre) ;
+   la serre s'étend de x = 6 à x = 14. z va du nord (−4,5 : bibliothèques et
+   vitrine) au sud (+4,5 : les fenêtres). Le sol est à y = 0. */
+const PLACES = {
+  pinsons:     {p:[4.25, 0.955, -2.25], ry:-1.08},
+  phalene:     {p:[-0.75, 1.75, 4.44], ry:Math.PI},
+  tortue:      {p:[4.65, 0.68, 3.38], ry:-Math.PI/2 - 0.35},
+  nautile:     {p:[1.0, 2.09, -4.22], ry:0.25},
+  ammonite:    {p:[1.95, 1.59, -4.22], ry:-0.15},
+  corail:      {p:[2.7, 1.1, -4.22], ry:0},
+  serpent:     {p:[0.85, 1.08, -4.22], ry:0.25},
+  crocodile:   {p:[2.4, 3.25, 0.9], ry:0.12},
+  microscope:  {p:[-0.55, 0.985, -0.05], ry:0.55},
+  planche:     {p:[-5.955, 2.3, 0], ry:Math.PI/2},
+  glossopetres:{p:[-3.0, 0.885, 4.12], ry:Math.PI},
+  cacao:       {p:[12.785, 1.12, -3.15], ry:0},
+  banane:      {p:[12.55, 1.42, 2.95], ry:0},
+  victoria:    {p:[10.9, 0.39, 0.72], ry:0}
+};
+
+const NIVEAUX = {college:'Collège', lycee:'Lycée'};
+const PORTEE = 2.9;          // distance (m) à laquelle on peut saisir un objet
+const CLE_MEMOIRE = 'cabinet-curiosites-v1';
+
+/* ============================================================
+   2. ÉTAT
+   ============================================================ */
+const etat = {
+  ecran:'chargement',   // chargement → accueil → jeu
+  niveau:'college',
+  inspection:null,      // {ob, t, sens, rx, ry, glisse}
+  cible:null,           // objet visé au centre de l'écran
+  modale:null,
+  tactile:false,
+  verrouImpossible:false,
+  pret:false
+};
+const J = {x:-4.3, z:2.9, yaw:1.15, pitch:-0.06, pas:0};   // le joueur
+const cam = {pos:[0,1.6,0], fov:1.1, asp:1};
+let progression = chargerProgression();
+
+function progressionVide(){ return {v:1, niveau:'college', vus:{}, rep:{college:{}, lycee:{}}, bilanVu:{college:false, lycee:false}}; }
+function chargerProgression(){
+  try{
+    const o = JSON.parse(localStorage.getItem(CLE_MEMOIRE) || 'null');
+    if (o && o.v === 1 && o.rep) return Object.assign(progressionVide(), o);
+  }catch(e){ /* navigation privée : on joue sans mémoire */ }
+  return progressionVide();
+}
+function sauver(){ try{ localStorage.setItem(CLE_MEMOIRE, JSON.stringify(progression)); }catch(e){} }
+
+/* ============================================================
+   3. MOTEUR 3D — petit moteur WebGL écrit pour ce cabinet
+   ============================================================ */
+const PI = Math.PI, TAU = Math.PI*2;
+const BLANC = [1,1,1];
+function hex(h){ const n = parseInt(h.slice(1),16); return [(n>>16&255)/255, (n>>8&255)/255, (n&255)/255]; }
+function mult(c,k){ return [c[0]*k, c[1]*k, c[2]*k]; }
+function melangeC(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t, a[2]+(b[2]-a[2])*t]; }
+function aleaGraine(s){ return function(){ s|=0; s=s+0x6D2B79F5|0; let t=Math.imul(s^s>>>15,1|s); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function lisse(t){ t = Math.max(0, Math.min(1, t)); return t*t*(3-2*t); }
+
+/* --- vecteurs --- */
+const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const sca=(a,k)=>[a[0]*k,a[1]*k,a[2]*k];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]];
+const len=a=>Math.hypot(a[0],a[1],a[2]);
+const nrm=a=>{ const l=len(a)||1; return [a[0]/l,a[1]/l,a[2]/l]; };
+
+/* --- matrices 4×4, rangées par colonnes comme WebGL les attend --- */
+const M4 = {
+  id(){ return [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]; },
+  mul(a,b){
+    const o = new Array(16);
+    for (let c=0;c<4;c++) for (let r=0;r<4;r++)
+      o[c*4+r] = a[r]*b[c*4] + a[4+r]*b[c*4+1] + a[8+r]*b[c*4+2] + a[12+r]*b[c*4+3];
+    return o;
+  },
+  tr(x,y,z){ return [1,0,0,0, 0,1,0,0, 0,0,1,0, x,y,z,1]; },
+  sc(x,y,z){ return [x,0,0,0, 0,y,0,0, 0,0,z,0, 0,0,0,1]; },
+  rx(a){ const c=Math.cos(a), s=Math.sin(a); return [1,0,0,0, 0,c,s,0, 0,-s,c,0, 0,0,0,1]; },
+  ry(a){ const c=Math.cos(a), s=Math.sin(a); return [c,0,-s,0, 0,1,0,0, s,0,c,0, 0,0,0,1]; },
+  rz(a){ const c=Math.cos(a), s=Math.sin(a); return [c,s,0,0, -s,c,0,0, 0,0,1,0, 0,0,0,1]; },
+  persp(fovy, asp, n, f){ const t = 1/Math.tan(fovy/2); return [t/asp,0,0,0, 0,t,0,0, 0,0,(f+n)/(n-f),-1, 0,0,2*f*n/(n-f),0]; }
+};
+/* Transformations enchaînées : T(1,0,2).ry(0.5).s(2) = translation, puis rotation, puis échelle. */
+class Tr {
+  constructor(m){ this.m = m; }
+  t(x,y,z){ return new Tr(M4.mul(this.m, M4.tr(x,y,z))); }
+  rx(a){ return new Tr(M4.mul(this.m, M4.rx(a))); }
+  ry(a){ return new Tr(M4.mul(this.m, M4.ry(a))); }
+  rz(a){ return new Tr(M4.mul(this.m, M4.rz(a))); }
+  s(x,y,z){ if (y === undefined){ y = x; z = x; } return new Tr(M4.mul(this.m, M4.sc(x,y,z))); }
+  fois(o){ return new Tr(M4.mul(this.m, o.m || o)); }
+}
+const I = new Tr(M4.id());
+function T(x,y,z){ return I.t(x||0, y||0, z||0); }
+function enTr(M){ return M instanceof Tr ? M : new Tr(M); }
+/* matrice dont les colonnes sont trois axes donnés (pour orienter une forme le long d'une direction) */
+function base3(o, ax, ay, az){ return new Tr([ax[0],ax[1],ax[2],0, ay[0],ay[1],ay[2],0, az[0],az[1],az[2],0, o[0],o[1],o[2],1]); }
+
+/* --- quaternions, pour faire pivoter en douceur l'objet saisi --- */
+function qAxe(x,y,z,a){ const s=Math.sin(a/2); return [x*s,y*s,z*s,Math.cos(a/2)]; }
+function qMul(a,b){ return [
+  a[3]*b[0]+a[0]*b[3]+a[1]*b[2]-a[2]*b[1],
+  a[3]*b[1]-a[0]*b[2]+a[1]*b[3]+a[2]*b[0],
+  a[3]*b[2]+a[0]*b[1]-a[1]*b[0]+a[2]*b[3],
+  a[3]*b[3]-a[0]*b[0]-a[1]*b[1]-a[2]*b[2]]; }
+function qSlerp(a,b,t){
+  let c = a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]; let bb = b;
+  if (c < 0){ c = -c; bb = [-b[0],-b[1],-b[2],-b[3]]; }
+  if (c > 0.9995){ const r=[a[0]+(bb[0]-a[0])*t, a[1]+(bb[1]-a[1])*t, a[2]+(bb[2]-a[2])*t, a[3]+(bb[3]-a[3])*t]; const l=Math.hypot(...r); return r.map(v=>v/l); }
+  const th = Math.acos(c), s = Math.sin(th), wa = Math.sin((1-t)*th)/s, wb = Math.sin(t*th)/s;
+  return [a[0]*wa+bb[0]*wb, a[1]*wa+bb[1]*wb, a[2]*wa+bb[2]*wb, a[3]*wa+bb[3]*wb];
+}
+function composer(p, q, s){
+  const [x,y,z,w] = q, x2=x+x, y2=y+y, z2=z+z;
+  const xx=x*x2, yx=y*x2, yy=y*y2, zx=z*x2, zy=z*y2, zz=z*z2, wx=w*x2, wy=w*y2, wz=w*z2;
+  return [(1-yy-zz)*s,(yx+wz)*s,(zx-wy)*s,0, (yx-wz)*s,(1-xx-zz)*s,(zy+wx)*s,0, (zx+wy)*s,(zy-wx)*s,(1-xx-yy)*s,0, p[0],p[1],p[2],1];
+}
+
+/* --- géométries de base, en coordonnées locales ---
+   Chaque géométrie est une liste de triangles : positions P, normales N, coordonnées de texture U. */
+function triangle(g, a,b,c, na,nb,nc, ua,ub,uc){
+  g.P.push(a[0],a[1],a[2], b[0],b[1],b[2], c[0],c[1],c[2]);
+  g.N.push(na[0],na[1],na[2], nb[0],nb[1],nb[2], nc[0],nc[1],nc[2]);
+  g.U.push(ua[0],ua[1], ub[0],ub[1], uc[0],uc[1]);
+}
+function quadri(g, a,b,c,d, na,nb,nc,nd, ua,ub,uc,ud){ triangle(g,a,b,c,na,nb,nc,ua,ub,uc); triangle(g,a,c,d,na,nc,nd,ua,uc,ud); }
+const GEO_BOITE = (function(){       // cube de côté 1 centré sur l'origine
+  const g={P:[],N:[],U:[]}, h=0.5, uv=[[0,0],[1,0],[1,1],[0,1]];
+  const f=(n,a,b,c,d)=>quadri(g,a,b,c,d,n,n,n,n,uv[0],uv[1],uv[2],uv[3]);
+  f([1,0,0],[h,-h,h],[h,-h,-h],[h,h,-h],[h,h,h]);
+  f([-1,0,0],[-h,-h,-h],[-h,-h,h],[-h,h,h],[-h,h,-h]);
+  f([0,1,0],[-h,h,h],[h,h,h],[h,h,-h],[-h,h,-h]);
+  f([0,-1,0],[-h,-h,-h],[h,-h,-h],[h,-h,h],[-h,-h,h]);
+  f([0,0,1],[-h,-h,h],[h,-h,h],[h,h,h],[-h,h,h]);       // face avant : la texture s'y lit à l'endroit
+  f([0,0,-1],[h,-h,-h],[-h,-h,-h],[-h,h,-h],[h,h,-h]);
+  return g;
+})();
+const GEO_QUAD = (function(){        // carré de côté 1 dans le plan XY, tourné vers +z
+  const g={P:[],N:[],U:[]}, n=[0,0,1];
+  quadri(g,[-0.5,-0.5,0],[0.5,-0.5,0],[0.5,0.5,0],[-0.5,0.5,0],n,n,n,n,[0,0],[1,0],[1,1],[0,1]);
+  return g;
+})();
+/* cylindre ou cône : base en y = 0, sommet en y = h */
+function geoCyl(rb, rt, h, seg, plat, sansFonds){
+  const g={P:[],N:[],U:[]}, pente=(rb-rt)/h;
+  const pt=(a,r,y)=>[r*Math.cos(a), y, r*Math.sin(a)];
+  for (let i=0;i<seg;i++){
+    const a0=i/seg*TAU, a1=(i+1)/seg*TAU, am=(a0+a1)/2;
+    const n0 = nrm([Math.cos(plat?am:a0), pente, Math.sin(plat?am:a0)]);
+    const n1 = plat ? n0 : nrm([Math.cos(a1), pente, Math.sin(a1)]);
+    const u0=i/seg, u1=(i+1)/seg;
+    quadri(g, pt(a0,rb,0), pt(a1,rb,0), pt(a1,rt,h), pt(a0,rt,h), n0,n1,n1,n0, [u0,0],[u1,0],[u1,1],[u0,1]);
+    if (!sansFonds){
+      const c0=[.5+.5*Math.cos(a0),.5+.5*Math.sin(a0)], c1=[.5+.5*Math.cos(a1),.5+.5*Math.sin(a1)];
+      if (rb>0) triangle(g, [0,0,0], pt(a1,rb,0), pt(a0,rb,0), [0,-1,0],[0,-1,0],[0,-1,0], [.5,.5], c1, c0);
+      if (rt>0) triangle(g, [0,h,0], pt(a0,rt,h), pt(a1,rt,h), [0,1,0],[0,1,0],[0,1,0], [.5,.5], c0, c1);
+    }
+  }
+  return g;
+}
+/* sphère de rayon 1 (thMax < π pour une calotte) */
+const cacheSph = {};
+function geoSphere(sw, sh, thMax){
+  thMax = thMax || PI;
+  const cle = sw+'/'+sh+'/'+thMax;
+  if (cacheSph[cle]) return cacheSph[cle];
+  const g={P:[],N:[],U:[]};
+  const pt=(th,ph)=>[Math.sin(th)*Math.cos(ph), Math.cos(th), Math.sin(th)*Math.sin(ph)];
+  for (let j=0;j<sh;j++) for (let i=0;i<sw;i++){
+    const t0=j/sh*thMax, t1=(j+1)/sh*thMax, p0=i/sw*TAU, p1=(i+1)/sw*TAU;
+    const a=pt(t0,p0), b=pt(t0,p1), c=pt(t1,p1), d=pt(t1,p0);
+    quadri(g, a,b,c,d, a,b,c,d, [i/sw,1-t0/PI],[(i+1)/sw,1-t0/PI],[(i+1)/sw,1-t1/PI],[i/sw,1-t1/PI]);
+  }
+  return cacheSph[cle] = g;
+}
+/* surface de révolution autour de l'axe y, à partir d'un profil [[rayon, y], …] */
+function geoTour(prof, seg, dur){
+  const g={P:[],N:[],U:[]}, n=prof.length;
+  const n2 = [];
+  for (let j=0;j<n;j++){
+    const a=prof[Math.max(0,j-1)], b=prof[Math.min(n-1,j+1)];
+    const dr=b[0]-a[0], dy=b[1]-a[1], l=Math.hypot(dr,dy)||1;
+    n2.push([dy/l, -dr/l]);
+  }
+  for (let j=0;j<n-1;j++){
+    let na=n2[j], nb=n2[j+1];
+    if (dur){ const dr=prof[j+1][0]-prof[j][0], dy=prof[j+1][1]-prof[j][1], l=Math.hypot(dr,dy)||1; na=nb=[dy/l,-dr/l]; }
+    for (let i=0;i<seg;i++){
+      const a0=i/seg*TAU, a1=(i+1)/seg*TAU, c0=Math.cos(a0), s0=Math.sin(a0), c1=Math.cos(a1), s1=Math.sin(a1);
+      const [r0,y0]=prof[j], [r1,y1]=prof[j+1];
+      quadri(g, [r0*c0,y0,r0*s0],[r0*c1,y0,r0*s1],[r1*c1,y1,r1*s1],[r1*c0,y1,r1*s0],
+        [na[0]*c0,na[1],na[0]*s0],[na[0]*c1,na[1],na[0]*s1],[nb[0]*c1,nb[1],nb[0]*s1],[nb[0]*c0,nb[1],nb[0]*s0],
+        [i/seg,j/(n-1)],[(i+1)/seg,j/(n-1)],[(i+1)/seg,(j+1)/(n-1)],[i/seg,(j+1)/(n-1)]);
+    }
+  }
+  return g;
+}
+/* tube le long d'un chemin ; rayon(t) donne r, ou [largeur, hauteur] pour une section ovale */
+function geoTube(pts, rayon, seg, o){
+  o = o || {};
+  const g={P:[],N:[],U:[]}, n=pts.length, Ts=[], rf = typeof rayon === 'function' ? rayon : ()=>rayon;
+  for (let i=0;i<n;i++) Ts.push(nrm(sub(pts[Math.min(n-1,i+1)], pts[Math.max(0,i-1)])));
+  let Nv = o.haut || [0,1,0];
+  const anneaux = [];
+  for (let i=0;i<n;i++){
+    const Tg = Ts[i];
+    let Np = sub(Nv, sca(Tg, dot(Nv,Tg)));
+    if (len(Np) < 1e-5) Np = Math.abs(Tg[0]) < 0.9 ? cross(Tg,[1,0,0]) : cross(Tg,[0,0,1]);
+    Np = nrm(Np); Nv = Np;
+    const B = cross(Tg, Np);
+    let r = rf(i/(n-1)); if (typeof r === 'number') r = [r,r];
+    const rw = Math.max(r[0],1e-4), rh = Math.max(r[1],1e-4);
+    const anneau = [];
+    for (let k=0;k<=seg;k++){
+      const a=k/seg*TAU, ca=Math.cos(a), sa=Math.sin(a);
+      anneau.push([add(pts[i], add(sca(B,rw*ca), sca(Np,rh*sa))), nrm(add(sca(B,ca/rw), sca(Np,sa/rh))), [i/(n-1), k/seg]]);
+    }
+    anneaux.push(anneau);
+  }
+  for (let i=0;i<n-1;i++) for (let k=0;k<seg;k++){
+    const a=anneaux[i][k], b=anneaux[i][k+1], c=anneaux[i+1][k+1], d=anneaux[i+1][k];
+    quadri(g, a[0],b[0],c[0],d[0], a[1],b[1],c[1],d[1], a[2],b[2],c[2],d[2]);
+  }
+  if (o.bouts !== false){
+    const n0 = sca(Ts[0],-1), n1 = Ts[n-1];
+    for (let k=0;k<seg;k++){
+      triangle(g, pts[0], anneaux[0][k+1][0], anneaux[0][k][0], n0,n0,n0, [0,.5],[0,.5],[0,.5]);
+      triangle(g, pts[n-1], anneaux[n-1][k][0], anneaux[n-1][k+1][0], n1,n1,n1, [1,.5],[1,.5],[1,.5]);
+    }
+  }
+  return g;
+}
+/* feuille : le long de +z, nervure en x = 0, face supérieure vers +y.
+   largeur(t) et hauteur(t) pour t de 0 (pétiole) à 1 (pointe). */
+function geoFeuille(L, W, n, largeur, hauteur, pli){
+  const g={P:[],N:[],U:[]}, rangs=[];
+  for (let i=0;i<=n;i++){
+    const t=i/n, z=t*L, hw=W/2*largeur(t), y=hauteur(t)*L;
+    rangs.push({gch:[-hw, y+pli*hw, z], mil:[0,y,z], dr:[hw, y+pli*hw, z], t});
+  }
+  const nr = rangs.map((r,i)=>{ const a=rangs[Math.max(0,i-1)].mil, b=rangs[Math.min(n,i+1)].mil; return nrm(cross(nrm(sub(b,a)),[1,0,0])); });
+  for (let i=0;i<n;i++){
+    const A=rangs[i], B=rangs[i+1], na=nr[i], nb=nr[i+1];
+    quadri(g, A.gch, A.mil, B.mil, B.gch, na,na,nb,nb, [0,A.t],[.5,A.t],[.5,B.t],[0,B.t]);
+    quadri(g, A.mil, A.dr, B.dr, B.mil, na,na,nb,nb, [.5,A.t],[1,A.t],[1,B.t],[.5,B.t]);
+  }
+  return g;
+}
+
+/* --- « poser » une géométrie dans un lot : la transformer et la colorer ---
+   col : [r,g,b] ou fonction (x,y,z,u,v) → [r,g,b] en coordonnées locales.
+   o.uvMonde : texture plaquée d'après la position dans la pièce (bois, briques…)
+   o.uvRect  : sous-rectangle [u0,v0,u1,v1] d'une planche de textures
+   o.deforme : fonction qui modifie chaque point avant la transformation */
+function cofacteurs(m){
+  const a=m[0],b=m[4],c=m[8], d=m[1],e=m[5],f=m[9], g=m[2],h=m[6],i=m[10];
+  const C=[e*i-f*h, -(d*i-f*g), d*h-e*g, -(b*i-c*h), a*i-c*g, -(a*h-b*g), b*f-c*e, -(a*f-c*d), a*e-b*d];
+  const det = a*C[0] + b*C[1] + c*C[2];
+  if (det < 0) for (let k=0;k<9;k++) C[k] = -C[k];
+  // n' = C·n, C rangée par lignes (cofacteurs = inverse transposée × déterminant)
+  return C;
+}
+function poser(L, m, g, col, o){
+  const C = cofacteurs(m), P=g.P, N=g.N, U=g.U, nv=P.length/3, fn = typeof col === 'function';
+  for (let i=0;i<nv;i++){
+    let x=P[3*i], y=P[3*i+1], z=P[3*i+2];
+    if (o.deforme){ const q=o.deforme(x,y,z); x=q[0]; y=q[1]; z=q[2]; }
+    const wx=m[0]*x+m[4]*y+m[8]*z+m[12], wy=m[1]*x+m[5]*y+m[9]*z+m[13], wz=m[2]*x+m[6]*y+m[10]*z+m[14];
+    const nx=N[3*i], ny=N[3*i+1], nz=N[3*i+2];
+    let tx=C[0]*nx+C[1]*ny+C[2]*nz, ty=C[3]*nx+C[4]*ny+C[5]*nz, tz=C[6]*nx+C[7]*ny+C[8]*nz;
+    const l=Math.hypot(tx,ty,tz)||1; tx/=l; ty/=l; tz/=l;
+    L.p.push(wx,wy,wz); L.n.push(tx,ty,tz);
+    const c = fn ? col(x,y,z,U[2*i],U[2*i+1]) : col;
+    L.c.push(c[0],c[1],c[2]);
+    let u=U[2*i], v=U[2*i+1];
+    if (o.uvRect){ const r=o.uvRect; u=r[0]+u*(r[2]-r[0]); v=r[1]+v*(r[3]-r[1]); }
+    else if (o.uvMonde){
+      const s=o.uvMonde, ax=Math.abs(tx), ay=Math.abs(ty), az=Math.abs(tz);
+      if (ay>=ax && ay>=az){ u=wx*s; v=wz*s; } else if (ax>=az){ u=wz*s; v=wy*s; } else { u=wx*s; v=wy*s; }
+    }
+    L.u.push(u,v);
+  }
+}
+
+/* --- matières : réglage de l'éclairage et texture éventuelle --- */
+const MATS = {
+  mat:        {spec:0.05, shin:10},
+  satin:      {spec:0.3,  shin:28},
+  laiton:     {spec:0.95, shin:46},
+  fer:        {spec:0.35, shin:30},
+  lumineux:   {unlit:true},
+  feuille:    {spec:0.22, shin:18, double:true},
+  bois:       {tex:'bois', spec:0.22, shin:26, uvMonde:1.1},
+  parquet:    {tex:'parquet', spec:0.35, shin:40, uvMonde:0.5},
+  tapisserie: {tex:'tapisserie', spec:0.04, shin:8, uvMonde:2.1},
+  brique:     {tex:'brique', spec:0.03, shin:6, uvMonde:0.75},
+  dalles:     {tex:'dalles', spec:0.15, shin:22, uvMonde:0.85},
+  tapis:      {tex:'tapis', spec:0.02, shin:4},
+  livres:     {tex:'livres', spec:0.18, shin:16},
+  ecaille:    {tex:'ecaille', spec:0.55, shin:30},
+  planche:    {tex:'planche', spec:0.06, shin:8},
+  papillons:  {tex:'papillons', spec:0.05, shin:8},
+  etiquettes: {tex:'etiquettes', spec:0.03, shin:6},
+  herbier:    {tex:'herbier', spec:0.03, shin:6},
+  globe:      {tex:'globe', spec:0.4, shin:30},
+  eau:        {spec:1.3, shin:90, alpha:0.68, transp:true, ordre:1},
+  liquide:    {spec:0.8, shin:60, alpha:0.38, transp:true, ordre:2},
+  verre:      {spec:1.6, shin:120, alpha:0.1, transp:true, ordre:3, verre:true}
+};
+
+class Constructeur {
+  constructor(){ this.lots = {}; }
+  lot(mat){ if (!MATS[mat]) throw new Error('Matière inconnue : '+mat); return this.lots[mat] || (this.lots[mat] = {p:[],n:[],c:[],u:[]}); }
+  geo(mat, M, g, col, o){
+    const opt = Object.assign({}, MATS[mat].uvMonde ? {uvMonde:MATS[mat].uvMonde} : {}, o || {});
+    poser(this.lot(mat), (M.m || M), g, col || BLANC, opt); return this;
+  }
+  boite(mat, M, w,h,d, col, o){ return this.geo(mat, enTr(M).s(w,h,d), GEO_BOITE, col, o); }
+  pave(mat, x0,y0,z0, x1,y1,z1, col, o){ return this.geo(mat, T((x0+x1)/2,(y0+y1)/2,(z0+z1)/2).s(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)), GEO_BOITE, col, o); }
+  cyl(mat, M, rb, rt, h, seg, col, o){ return this.geo(mat, M, geoCyl(rb,rt,h,seg,o&&o.plat,o&&o.sansFonds), col, o); }
+  sphere(mat, M, r, sw, sh, col, o){ return this.geo(mat, enTr(M).s(r), geoSphere(sw,sh,o&&o.thMax), col, o); }
+  tour(mat, M, prof, seg, col, o){ return this.geo(mat, M, geoTour(prof, seg, o&&o.dur), col, o); }
+  tube(mat, M, pts, rayon, seg, col, o){ return this.geo(mat, M, geoTube(pts, rayon, seg, o), col, o); }
+  quad(mat, M, w, h, col, o){ return this.geo(mat, enTr(M).s(w,h,1), GEO_QUAD, col, o); }
+  feuille(mat, M, L, W, n, largeur, hauteur, pli, col, o){ return this.geo(mat, M, geoFeuille(L,W,n,largeur,hauteur,pli||0), col, o); }
+  tri(mat, a,b,c, n, col, o){ const g={P:[],N:[],U:[]}; triangle(g,a,b,c,n,n,n,[0,0],[1,0],[.5,1]); return this.geo(mat, I, g, col, o); }
+}
+
+/* --- WebGL --- */
+let gl, prog, U = {}, TEX = {}, extAniso = null;
+const NL = 8;   // nombre de lumières ponctuelles
+const VS = `
+attribute vec3 aPos; attribute vec3 aNor; attribute vec3 aCol; attribute vec2 aUV;
+uniform mat4 uVP; uniform mat4 uM; uniform mat3 uN;
+varying vec3 vPos; varying vec3 vNor; varying vec3 vCol; varying vec2 vUV;
+void main(){
+  vec4 w = uM * vec4(aPos, 1.0);
+  vPos = w.xyz; vNor = uN * aNor; vCol = aCol; vUV = aUV;
+  gl_Position = uVP * w;
+}`;
+const FS = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+const int NL = ${NL};
+uniform vec3 uLPos[NL]; uniform vec3 uLCol[NL]; uniform float uLRay[NL];
+uniform vec3 uCam; uniform sampler2D uTex; uniform float uAvecTex;
+uniform float uAlpha; uniform float uSpec; uniform float uShin; uniform float uDouble; uniform float uUnlit; uniform float uDim; uniform float uVerre;
+uniform vec3 uEmis;
+uniform vec3 uAmbInt; uniform vec3 uAmbExt; uniform vec3 uSoleilDir; uniform vec3 uSoleilCol;
+uniform vec3 uBrumeInt; uniform vec3 uBrumeExt;
+varying vec3 vPos; varying vec3 vNor; varying vec3 vCol; varying vec2 vUV;
+void main(){
+  vec3 base = vCol;
+  if (uAvecTex > 0.5) base *= texture2D(uTex, vUV).rgb;
+  if (uUnlit > 0.5){ gl_FragColor = vec4((base + uEmis) * uDim, uAlpha); return; }
+  vec3 N = normalize(vNor);
+  vec3 V = normalize(uCam - vPos);
+  if (uDouble > 0.5 && dot(N, V) < 0.0) N = -N;
+  // à l'intérieur du cabinet (pièce close) ou dehors / dans la serre (lumière du jour)
+  float ix = smoothstep(-6.45, -5.9, vPos.x) * (1.0 - smoothstep(5.9, 6.45, vPos.x));
+  float iz = 1.0 - smoothstep(4.45, 4.9, abs(vPos.z));
+  float iy = 1.0 - smoothstep(4.3, 4.6, vPos.y);
+  float dedans = ix * iz * iy;
+  float dehors = 1.0 - dedans;
+  vec3 amb = mix(uAmbExt, uAmbInt, dedans);
+  vec3 lum = amb * (0.68 + 0.32 * N.y);
+  lum += uSoleilCol * max(dot(N, uSoleilDir), 0.0) * dehors;
+  vec3 spec = vec3(0.0);
+  for (int i = 0; i < NL; i++){
+    vec3 L = uLPos[i] - vPos; float d = length(L); L /= max(d, 0.0001);
+    float att = clamp(1.0 - d / uLRay[i], 0.0, 1.0); att *= att;
+    float nl = max(dot(N, L), 0.0);
+    lum += uLCol[i] * nl * att;
+    vec3 H = normalize(L + V);
+    spec += uLCol[i] * pow(max(dot(N, H), 0.0), uShin) * att * step(0.0001, nl);
+  }
+  spec += uSoleilCol * pow(max(dot(N, normalize(uSoleilDir + V)), 0.0), uShin) * dehors * 0.6;
+  vec3 col = base * lum + spec * uSpec + uEmis;
+  float dist = length(uCam - vPos);
+  vec3 brumeCol = mix(uBrumeExt, uBrumeInt, dedans);
+  float brume = mix(smoothstep(14.0, 75.0, dist) * 0.55, smoothstep(4.0, 22.0, dist) * 0.3, dedans);
+  col = mix(col, brumeCol, brume);
+  col = vec3(1.0) - exp(-col * 1.55);          // exposition douce : les flammes ne « brûlent » pas l'image
+  float a = uAlpha;
+  if (uVerre > 0.5){
+    float fres = pow(1.0 - abs(dot(N, V)), 3.0);
+    a = clamp(uAlpha + fres * 0.45 + dot(spec * uSpec, vec3(0.3)) * 0.8, 0.0, 0.95);
+  }
+  gl_FragColor = vec4(col * uDim, a);
+}`;
+
+function initGL(canvas){
+  const opts = {antialias:true, alpha:false, premultipliedAlpha:false, powerPreference:'high-performance'};
+  gl = canvas.getContext('webgl', opts) || canvas.getContext('experimental-webgl', opts);
+  if (!gl) throw new Error('WebGL indisponible');
+  const sh = (type, src)=>{ const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  prog = gl.createProgram();
+  gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+  gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+  gl.bindAttribLocation(prog, 0, 'aPos');
+  gl.linkProgram(prog);
+  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+  gl.useProgram(prog);
+  ['uVP','uM','uN','uCam','uTex','uAvecTex','uAlpha','uSpec','uShin','uDouble','uUnlit','uDim','uVerre','uEmis',
+   'uAmbInt','uAmbExt','uSoleilDir','uSoleilCol','uBrumeInt','uBrumeExt']
+    .forEach(n => U[n] = gl.getUniformLocation(prog, n));
+  ['uLPos','uLCol','uLRay'].forEach(n => U[n] = gl.getUniformLocation(prog, n+'[0]'));
+  U.aPos = gl.getAttribLocation(prog,'aPos'); U.aNor = gl.getAttribLocation(prog,'aNor');
+  U.aCol = gl.getAttribLocation(prog,'aCol'); U.aUV = gl.getAttribLocation(prog,'aUV');
+  gl.enable(gl.DEPTH_TEST);
+  gl.disable(gl.CULL_FACE);   // les faces sont dessinées des deux côtés : feuilles, verre, rideaux…
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+  extAniso = gl.getExtension('EXT_texture_filter_anisotropic') || gl.getExtension('WEBKIT_EXT_texture_filter_anisotropic');
+  gl.uniform1i(U.uTex, 0);
+}
+function creerTexture(nom, canvas){
+  const t = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, t);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  gl.generateMipmap(gl.TEXTURE_2D);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+  if (extAniso) gl.texParameterf(gl.TEXTURE_2D, extAniso.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(extAniso.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
+  TEX[nom] = t;
+}
+/* envoie les lots d'un constructeur à la carte graphique ; renvoie les appels de dessin et le rayon englobant */
+function televerser(C){
+  const draws = []; let rayon = 0;
+  for (const mat in C.lots){
+    const L = C.lots[mat], n = L.p.length/3;
+    if (!n) continue;
+    const d = new Float32Array(n*11);
+    let r2max = 0;
+    for (let i=0, o=0;i<n;i++, o+=11){
+      const x=L.p[3*i], y=L.p[3*i+1], z=L.p[3*i+2];
+      d[o]=x; d[o+1]=y; d[o+2]=z; d[o+3]=L.n[3*i]; d[o+4]=L.n[3*i+1]; d[o+5]=L.n[3*i+2];
+      d[o+6]=L.c[3*i]; d[o+7]=L.c[3*i+1]; d[o+8]=L.c[3*i+2]; d[o+9]=L.u[2*i]; d[o+10]=L.u[2*i+1];
+      const r2=x*x+y*y+z*z; if (r2>r2max) r2max=r2;
+    }
+    rayon = Math.max(rayon, Math.sqrt(r2max));
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, d, gl.STATIC_DRAW);
+    draws.push({mat, buf, n, m:MATS[mat]});
+  }
+  draws.sort((a,b)=>(a.m.ordre||0)-(b.m.ordre||0));
+  return {draws, rayon};
+}
+const ZERO3 = new Float32Array(3);
+const ID4 = new Float32Array(M4.id());
+function dessinerModele(modele, M, emis, dim, transp){
+  let pret = false;
+  for (const d of modele.draws){
+    const m = d.m;
+    if (!!m.transp !== transp) continue;
+    if (!pret){
+      gl.uniformMatrix4fv(U.uM, false, M);
+      gl.uniformMatrix3fv(U.uN, false, new Float32Array([M[0],M[1],M[2],M[4],M[5],M[6],M[8],M[9],M[10]]));
+      gl.uniform3fv(U.uEmis, emis || ZERO3);
+      gl.uniform1f(U.uDim, dim);
+      pret = true;
+    }
+    gl.uniform1f(U.uAlpha, m.alpha || 1);
+    gl.uniform1f(U.uSpec, m.spec || 0);
+    gl.uniform1f(U.uShin, m.shin || 10);
+    gl.uniform1f(U.uDouble, m.double ? 1 : 0);
+    gl.uniform1f(U.uUnlit, m.unlit ? 1 : 0);
+    gl.uniform1f(U.uVerre, m.verre ? 1 : 0);
+    if (m.tex && TEX[m.tex]){ gl.bindTexture(gl.TEXTURE_2D, TEX[m.tex]); gl.uniform1f(U.uAvecTex, 1); }
+    else gl.uniform1f(U.uAvecTex, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, d.buf);
+    const st = 44;
+    gl.enableVertexAttribArray(U.aPos); gl.vertexAttribPointer(U.aPos, 3, gl.FLOAT, false, st, 0);
+    gl.enableVertexAttribArray(U.aNor); gl.vertexAttribPointer(U.aNor, 3, gl.FLOAT, false, st, 12);
+    gl.enableVertexAttribArray(U.aCol); gl.vertexAttribPointer(U.aCol, 3, gl.FLOAT, false, st, 24);
+    gl.enableVertexAttribArray(U.aUV);  gl.vertexAttribPointer(U.aUV, 2, gl.FLOAT, false, st, 36);
+    gl.drawArrays(gl.TRIANGLES, 0, d.n);
+  }
+}
+
+/* ============================================================
+   4. DÉCOR ET MODÈLES — tout est modelé ici, en formes simples
+   ============================================================ */
+const COUL = {
+  noyer:[0.6,0.37,0.22], acajou:[0.55,0.25,0.15], chene:[0.8,0.6,0.4], ebene:[0.2,0.15,0.11],
+  laiton:[0.8,0.6,0.27], fer:[0.17,0.21,0.2], marbre:[0.82,0.79,0.74], velours:[0.48,0.08,0.08],
+  vertVelours:[0.1,0.22,0.16], papier:[0.95,0.91,0.82], noir:[0.04,0.035,0.03], peinture:[0.88,0.85,0.77],
+  cuir:[0.42,0.21,0.12], terre:[0.22,0.15,0.1], cuite:[0.7,0.38,0.23], os:[0.88,0.84,0.72], cire:[0.96,0.94,0.86],
+  feuillage:[0.2,0.42,0.16], feuillage2:[0.28,0.5,0.2], feuillageSombre:[0.12,0.3,0.12]
+};
+const SOLIDES = [];         // rectangles [x0, z0, x1, z1] qu'on ne peut pas traverser
+function solide(x0,z0,x1,z1){ SOLIDES.push([Math.min(x0,x1), Math.min(z0,z1), Math.max(x0,x1), Math.max(z0,z1)]); }
+const ANIMES = [];          // flammes : petits modèles qui tremblent
+const LUMIERES = [
+  {p:[0,3.0,0],        c:[1.0,0.72,0.42], k:1.55, r:9.5, vac:0.06},   // lustre
+  {p:[-5.55,0.55,0],   c:[1.0,0.47,0.17], k:2.0,  r:6.5, vac:0.22},   // cheminée
+  {p:[0.95,1.1,-0.35], c:[1.0,0.7,0.4],   k:0.65, r:3.2, vac:0.14},   // bougeoir de la table
+  {p:[1.8,2.35,-3.1],  c:[1.0,0.82,0.58], k:0.65, r:3.4, vac:0},      // éclaire la vitrine
+  {p:[-3.0,2.1,3.85],  c:[0.86,0.9,0.98], k:0.75, r:5.0, vac:0},      // fenêtre de gauche
+  {p:[1.5,2.1,3.85],   c:[0.86,0.9,0.98], k:0.75, r:5.0, vac:0},      // fenêtre de droite
+  {p:[11.0,4.0,0],     c:[0.95,1.0,0.88], k:0.55, r:8.0, vac:0},      // serre
+  {p:[0,0,0],          c:[1.0,0.93,0.82], k:0,    r:2.4, vac:0}       // lampe d'examen, suit le regard
+];
+
+/* --- textures dessinées sur des canevas --- */
+function toile(w,h){ const c=document.createElement('canvas'); c.width=w; c.height=h; return [c, c.getContext('2d')]; }
+function texParquet(){
+  const [c,x]=toile(512,512), r=aleaGraine(7);
+  x.fillStyle='#2e1c10'; x.fillRect(0,0,512,512);
+  const latte=(px,row,L,teinte,lum,graines)=>{
+    x.save(); x.beginPath(); x.rect(px+1,row*64+1,L-2,62); x.clip();
+    x.fillStyle=`hsl(${teinte},46%,${lum}%)`; x.fillRect(px,row*64,L,64);
+    for (const gr of graines){
+      x.strokeStyle=`rgba(25,12,4,${gr.a})`; x.lineWidth=gr.w; x.beginPath();
+      for (let s=0;s<=L;s+=8){ const yy=row*64+gr.y+Math.sin((s+gr.ph)/38)*gr.am; s===0?x.moveTo(px+s,yy):x.lineTo(px+s,yy); }
+      x.stroke();
+    }
+    x.restore();
+  };
+  for (let row=0;row<8;row++){
+    let px = -Math.floor(r()*200);
+    while (px < 512){
+      const L=140+Math.floor(r()*220), teinte=22+r()*10, lum=27+r()*13, graines=[];
+      for (let k=0;k<13;k++) graines.push({y:3+r()*58, ph:r()*300, am:0.6+r()*2.6, a:0.07+r()*0.13, w:0.6+r()*1.3});
+      latte(px,row,L,teinte,lum,graines);
+      if (px+L>512) latte(px-512,row,L,teinte,lum,graines);
+      if (px<0) latte(px+512,row,L,teinte,lum,graines);
+      px += L;
+    }
+  }
+  return c;
+}
+function texBois(){
+  const [c,x]=toile(256,256), r=aleaGraine(11);
+  x.fillStyle='#dcc6a4'; x.fillRect(0,0,256,256);
+  for (let k=0;k<70;k++){
+    const x0=r()*256, a=0.05+r()*0.16, w=0.5+r()*2.2, am=1+r()*5, f=1+Math.floor(r()*3), ph=r()*TAU;
+    for (const dx of [0,-256,256]){
+      x.strokeStyle=`rgba(95,58,30,${a})`; x.lineWidth=w; x.beginPath();
+      for (let y=0;y<=256;y+=4){ const xx=x0+dx+Math.sin(y/256*TAU*f+ph)*am; y===0?x.moveTo(xx,y):x.lineTo(xx,y); }
+      x.stroke();
+    }
+  }
+  return c;
+}
+function texTapisserie(){
+  const [c,x]=toile(256,256);
+  x.fillStyle='#284534'; x.fillRect(0,0,256,256);
+  for (let i=0;i<256;i+=16){ x.fillStyle='rgba(0,0,0,0.06)'; x.fillRect(i,0,8,256); }
+  const motif=(cx,cy)=>{
+    x.save(); x.translate(cx,cy);
+    x.strokeStyle='rgba(214,184,116,0.22)'; x.fillStyle='rgba(214,184,116,0.12)'; x.lineWidth=3;
+    x.beginPath(); x.ellipse(0,0,14,30,0,0,TAU); x.fill(); x.stroke();
+    for (const s of [-1,1]){
+      x.beginPath(); x.moveTo(0,22); x.bezierCurveTo(s*40,30,s*52,-6,s*30,-26); x.bezierCurveTo(s*22,-34,s*10,-24,s*18,-14); x.stroke();
+      x.beginPath(); x.moveTo(0,-30); x.bezierCurveTo(s*18,-46,s*30,-40,s*24,-56); x.stroke();
+      x.beginPath(); x.arc(s*30,-26,4,0,TAU); x.fill();
+    }
+    x.beginPath(); x.arc(0,-46,7,0,TAU); x.fill(); x.stroke();
+    x.beginPath(); x.moveTo(0,30); x.lineTo(0,52); x.stroke();
+    x.restore();
+  };
+  motif(128,128); motif(0,0); motif(256,0); motif(0,256); motif(256,256);
+  const r=aleaGraine(5);
+  for (let k=0;k<1500;k++){ x.fillStyle=`rgba(0,0,0,${r()*0.08})`; x.fillRect(r()*256,r()*256,2,2); }
+  return c;
+}
+function texBrique(){
+  const [c,x]=toile(256,256), r=aleaGraine(3);
+  x.fillStyle='#b8aa94'; x.fillRect(0,0,256,256);
+  for (let row=0;row<8;row++) for (let k=-1;k<5;k++){
+    const bx=k*64+(row%2?32:0), by=row*32;
+    x.fillStyle=`hsl(${12+r()*12},${38+r()*14}%,${30+r()*12}%)`;
+    x.fillRect(bx+3,by+3,58,26);
+    x.fillStyle=`rgba(0,0,0,${r()*0.12})`; x.fillRect(bx+3,by+18,58,11);
+  }
+  return c;
+}
+function texDalles(){
+  const [c,x]=toile(256,256), r=aleaGraine(9);
+  x.fillStyle='#6d6152'; x.fillRect(0,0,256,256);
+  for (let i=0;i<4;i++) for (let j=0;j<4;j++){
+    const clair=(i+j)%2===0;
+    x.fillStyle = clair ? `hsl(40,${30+r()*8}%,${72+r()*6}%)` : `hsl(${18+r()*6},${45+r()*8}%,${40+r()*6}%)`;
+    x.fillRect(i*64+2,j*64+2,60,60);
+  }
+  for (let k=0;k<2500;k++){ x.fillStyle=`rgba(0,0,0,${r()*0.07})`; x.fillRect(r()*256,r()*256,2,2); }
+  return c;
+}
+function texTapis(){
+  const [c,x]=toile(512,512), r=aleaGraine(21);
+  x.fillStyle='#5a1611'; x.fillRect(0,0,512,512);
+  x.fillStyle='#1d2a44'; x.fillRect(0,0,512,46); x.fillRect(0,466,512,46); x.fillRect(0,0,46,512); x.fillRect(466,0,46,512);
+  x.strokeStyle='#c9a24e'; x.lineWidth=4; x.strokeRect(50,50,412,412); x.strokeRect(14,14,484,484);
+  for (let i=60;i<452;i+=24){ for (const [px,py] of [[i,23],[i,489],[23,i],[489,i]]){ x.fillStyle='#c9a24e'; x.beginPath(); x.moveTo(px,py-7); x.lineTo(px+7,py); x.lineTo(px,py+7); x.lineTo(px-7,py); x.fill(); } }
+  x.save(); x.translate(256,256);
+  x.fillStyle='#1d2a44'; x.beginPath(); x.moveTo(0,-150); x.lineTo(110,0); x.lineTo(0,150); x.lineTo(-110,0); x.closePath(); x.fill();
+  x.strokeStyle='#c9a24e'; x.lineWidth=5; x.stroke();
+  x.fillStyle='#8c2a1e'; x.beginPath(); x.moveTo(0,-90); x.lineTo(65,0); x.lineTo(0,90); x.lineTo(-65,0); x.closePath(); x.fill();
+  x.fillStyle='#e4cf9a'; x.beginPath(); x.arc(0,0,22,0,TAU); x.fill();
+  x.restore();
+  for (const [px,py] of [[92,92],[420,92],[92,420],[420,420]]){ x.fillStyle='#1d2a44'; x.beginPath(); x.arc(px,py,26,0,TAU); x.fill(); x.strokeStyle='#c9a24e'; x.lineWidth=3; x.stroke(); }
+  for (let k=0;k<60;k++){ const px=80+r()*352, py=80+r()*352; if (Math.abs(px-256)/110+Math.abs(py-256)/150<1.08) continue;
+    x.fillStyle=r()<0.5?'#e4cf9a':'#c9a24e'; x.beginPath(); x.arc(px,py,3+r()*4,0,TAU); x.fill(); }
+  for (let k=0;k<5000;k++){ x.fillStyle=`rgba(0,0,0,${r()*0.1})`; x.fillRect(r()*512,r()*512,2,2); }
+  return c;
+}
+const PALETTE_LIVRES = ['#6e1d17','#1f3d2b','#1d2a4a','#5a3a1c','#7a5a1e','#3b1f33','#2c2a26','#8a4a1c'];
+function texLivres(){
+  const [c,x]=toile(512,256);
+  PALETTE_LIVRES.forEach((coul,i)=>{
+    const x0=i*64;
+    const g=x.createLinearGradient(x0,0,x0+64,0); g.addColorStop(0,'rgba(0,0,0,0.45)'); g.addColorStop(0.5,'rgba(255,255,255,0.08)'); g.addColorStop(1,'rgba(0,0,0,0.45)');
+    x.fillStyle=coul; x.fillRect(x0,0,64,256); x.fillStyle=g; x.fillRect(x0,0,64,256);
+    x.fillStyle='#d3ad55';
+    for (const y of [22,30,226,234]) x.fillRect(x0+4,y,56,3);
+    if (i%2===0){ x.fillRect(x0+8,96,48,2); x.fillRect(x0+8,140,48,2); x.fillStyle='rgba(0,0,0,0.35)'; x.fillRect(x0+8,99,48,40); }
+    else { x.fillRect(x0+6,110,52,3); x.fillRect(x0+6,124,52,3); }
+  });
+  return c;
+}
+function rectLivre(i){ return [i/8, 0, (i+1)/8, 1]; }
+function texEcaille(){
+  const [c,x]=toile(512,256), r=aleaGraine(13);
+  x.fillStyle='#3a2512'; x.fillRect(0,0,512,256);
+  // v = 1 en haut de la carapace (haut du canevas), 0,5 au bord : on dessine la moitié haute
+  const rangs=[[0,26,1],[26,64,5],[64,104,8],[104,128,26]];
+  for (const [y0,y1,n] of rangs){
+    for (let k=0;k<n;k++){
+      const x0=k*512/n, w=512/n;
+      const cx=x0+w/2, cy=(y0+y1)/2;
+      x.fillStyle=`hsl(${26+r()*8},${45+r()*10}%,${24+r()*8}%)`;
+      x.fillRect(x0+2,y0+2,w-4,y1-y0-4);
+      for (let a=0;a<5;a++){ const f=1-a*0.18; x.strokeStyle=`rgba(${a%2?20:120},${a%2?12:80},${a%2?6:40},0.35)`; x.lineWidth=2;
+        x.strokeRect(cx-(w/2-4)*f, cy-((y1-y0)/2-4)*f, (w-8)*f, (y1-y0-8)*f); }
+      x.fillStyle='rgba(190,140,70,0.35)'; x.fillRect(cx-w*0.12,cy-(y1-y0)*0.12,w*0.24,(y1-y0)*0.24);
+    }
+  }
+  x.fillStyle='#5b4422'; x.fillRect(0,128,512,128);
+  return c;
+}
+
+/* planche d'anatomie comparée : quatre membres antérieurs, os de même couleur ET de même numéro */
+const COUL_OS = {h:'#b5452f', r:'#d9a520', c:'#4f8f3a', m:'#3b6ea8'};
+function membres(){
+  const os=(t,x1,y1,x2,y2,w)=>({t,s:[x1,y1,x2,y2],w});
+  const rond=(x,y,r)=>({t:'c',o:[x,y,r]});
+  const doigt=(x,y,ang,n,l,w0)=>{ const L=[]; let px=x, py=y; for (let k=0;k<n;k++){ const nx=px+Math.sin(ang)*l, ny=py+Math.cos(ang)*l; L.push(os('m',px,py,nx,ny,Math.max(2,w0-k*0.8))); px=nx+Math.sin(ang)*3; py=ny+Math.cos(ang)*3; } return L; };
+  const homme = {nom:'Homme', usage:'saisir', os:[
+    os('h',0,0,0,160,17), os('r',-8,170,-16,300,9), os('r',8,170,10,300,10),
+    rond(-14,312,6), rond(-2,312,6), rond(10,312,6), rond(-16,325,6), rond(-4,325,6), rond(8,325,6), rond(18,320,5),
+    ...doigt(-22,330,-0.55,3,20,7), ...doigt(-10,334,-0.1,4,22,6), ...doigt(1,336,0,4,24,6), ...doigt(12,334,0.1,4,22,6), ...doigt(21,331,0.25,4,18,5)
+  ]};
+  const chauve = {nom:'Chauve-souris', usage:'voler', voile:[[4,40],[70,300],[150,420],[188,545],[134,552],[86,505],[20,470],[-6,300]], os:[
+    os('h',0,0,18,110,12), os('r',20,118,70,292,8), os('r',24,120,34,170,4),
+    rond(68,302,5), rond(78,300,5), rond(73,311,5),
+    os('m',70,307,58,330,4), os('m',58,333,52,346,3),
+    ...doigt(80,308,0.55,3,48,5), ...doigt(80,310,0.42,3,72,5), ...doigt(78,312,0.22,3,68,5), ...doigt(75,312,0.05,3,62,4)
+  ]};
+  const baleine = {nom:'Baleine', usage:'nager', aileron:[[-24,-4],[-36,140],[-44,262],[-6,352],[30,270],[32,140],[24,-4]], os:[
+    os('h',0,0,0,60,26), os('r',-11,70,-13,132,16), os('r',11,70,13,132,16),
+    rond(-14,146,8), rond(0,146,8), rond(14,146,8), rond(-8,163,7), rond(8,163,7),
+    ...doigt(-22,178,-0.12,3,16,8), ...doigt(-11,180,-0.05,7,17,8), ...doigt(0,181,0,8,17,8), ...doigt(11,180,0.05,6,17,8), ...doigt(21,178,0.1,3,16,7)
+  ]};
+  const cheval = {nom:'Cheval', usage:'courir', sabot:[[2,528],[30,528],[40,560],[-8,560]], os:[
+    os('h',0,0,16,105,20), os('r',16,113,16,270,14), os('r',25,113,27,152,7),
+    rond(8,282,7), rond(20,282,7), rond(31,283,6), rond(12,296,7), rond(25,296,7),
+    os('m',16,310,16,452,12), os('m',6,312,5,392,4), os('m',26,312,27,392,4),
+    os('m',16,458,17,492,11), os('m',17,497,18,520,10), os('m',18,526,18,548,9)
+  ]};
+  return [homme, chauve, baleine, cheval];
+}
+function texPlanche(){
+  const [c,x]=toile(1024,1024), r=aleaGraine(17);
+  x.save(); x.scale(1, 1024/768);
+  const g=x.createRadialGradient(512,384,120,512,384,720); g.addColorStop(0,'#f1e6c8'); g.addColorStop(1,'#cdb68a');
+  x.fillStyle=g; x.fillRect(0,0,1024,768);
+  for (let k=0;k<40;k++){ x.fillStyle=`rgba(120,85,40,${r()*0.05})`; x.beginPath(); x.arc(r()*1024,r()*768,10+r()*60,0,TAU); x.fill(); }
+  x.strokeStyle='#5a4329'; x.lineWidth=3; x.strokeRect(18,18,988,732); x.lineWidth=1; x.strokeRect(26,26,972,716);
+  x.fillStyle='#3a2a18'; x.textAlign='center';
+  x.font='bold 40px Georgia, "Times New Roman", serif'; x.fillText('Membres antérieurs', 512, 70);
+  x.font='italic 25px Georgia, "Times New Roman", serif'; x.fillText('quatre usages, un même plan d’organisation', 512, 104);
+  membres().forEach((mb,i)=>{
+    const pts=[]; mb.os.forEach(o=>{ if (o.s) pts.push([o.s[0],o.s[1]],[o.s[2],o.s[3]]); else pts.push([o.o[0],o.o[1]]); });
+    (mb.voile||mb.aileron||mb.sabot||[]).forEach(p=>pts.push(p));
+    const minX=Math.min(...pts.map(p=>p[0])), maxX=Math.max(...pts.map(p=>p[0])), maxY=Math.max(...pts.map(p=>p[1]));
+    const k=Math.min(470/maxY, 200/(maxX-minX));
+    const cx=128+i*256;
+    x.save(); x.translate(cx-(minX+maxX)/2*k, 130); x.scale(k,k);
+    const poly=(P,fill,stroke)=>{ x.beginPath(); P.forEach((p,j)=>j?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1])); x.closePath(); x.fillStyle=fill; x.fill(); if (stroke){ x.strokeStyle=stroke; x.lineWidth=1.5/k*2; x.stroke(); } };
+    if (mb.voile) poly(mb.voile,'rgba(110,85,70,0.22)','rgba(90,65,50,0.45)');
+    if (mb.aileron) poly(mb.aileron,'rgba(70,100,130,0.2)','rgba(60,85,110,0.5)');
+    if (mb.sabot) poly(mb.sabot,'rgba(45,36,28,0.55)','#2d241c');
+    for (const o of mb.os){
+      x.lineCap='round';
+      if (o.s){
+        x.strokeStyle='#3a2a1a'; x.lineWidth=o.w+3.5; x.beginPath(); x.moveTo(o.s[0],o.s[1]); x.lineTo(o.s[2],o.s[3]); x.stroke();
+        x.strokeStyle=COUL_OS[o.t]; x.lineWidth=o.w; x.beginPath(); x.moveTo(o.s[0],o.s[1]); x.lineTo(o.s[2],o.s[3]); x.stroke();
+      } else {
+        x.fillStyle='#3a2a1a'; x.beginPath(); x.arc(o.o[0],o.o[1],o.o[2]+1.8,0,TAU); x.fill();
+        x.fillStyle=COUL_OS.c; x.beginPath(); x.arc(o.o[0],o.o[1],o.o[2],0,TAU); x.fill();
+      }
+    }
+    // numéros : la couleur n'est jamais la seule information
+    const premier=t=>mb.os.find(o=>o.t===t);
+    [['h','1'],['r','2'],['c','3'],['m','4']].forEach(([t,num])=>{
+      const o=premier(t); let px, py;
+      if (o.s){ px=(o.s[0]+o.s[2])/2; py=(o.s[1]+o.s[3])/2; } else { px=o.o[0]; py=o.o[1]; }
+      if (t==='m'){ py += 18; }
+      px -= 34/k*1.6 > 60 ? 60 : 34/k*1.6;
+      x.fillStyle='#fffaf0'; x.strokeStyle='#3a2a1a'; x.lineWidth=1.6/k*1.5;
+      x.beginPath(); x.arc(px,py,11/k*1.4,0,TAU); x.fill(); x.stroke();
+      x.fillStyle='#3a2a1a'; x.font=`bold ${15/k*1.4}px Georgia, serif`; x.textAlign='center'; x.textBaseline='middle'; x.fillText(num,px,py+0.5);
+    });
+    x.restore();
+    x.fillStyle='#3a2a18'; x.textAlign='center'; x.textBaseline='alphabetic';
+    x.font='bold 28px Georgia, serif'; x.fillText(mb.nom, cx, 640);
+    x.font='italic 22px Georgia, serif'; x.fillText(mb.usage, cx, 668);
+  });
+  const leg=[['h','1  humérus'],['r','2  radius et ulna'],['c','3  os du poignet'],['m','4  métacarpes et phalanges']];
+  x.font='20px Georgia, serif'; x.textAlign='left';
+  leg.forEach(([t,txt],i)=>{ const lx=70+i*236; x.fillStyle=COUL_OS[t]; x.fillRect(lx,700,26,18); x.strokeStyle='#3a2a1a'; x.lineWidth=1.5; x.strokeRect(lx,700,26,18); x.fillStyle='#3a2a18'; x.fillText(txt,lx+34,716); });
+  x.restore();
+  return c;
+}
+function texPapillons(){
+  const [c,x]=toile(512,512), r=aleaGraine(29);
+  x.save(); x.scale(1, 512/384);
+  x.fillStyle='#ece3cc'; x.fillRect(0,0,512,384);
+  x.fillStyle='#3a2a18'; x.textAlign='center';
+  x.font='italic bold 22px Georgia, serif'; x.fillText('Biston betularia', 256, 34);
+  x.font='italic 16px Georgia, serif'; x.fillText('phalène du bouleau : forme claire et forme sombre', 256, 54);
+  const ecorce=(x0,y0,w,h,fond,taches)=>{
+    x.fillStyle=fond; x.fillRect(x0,y0,w,h);
+    for (let k=0;k<420;k++){ x.fillStyle=taches[Math.floor(r()*taches.length)]; x.globalAlpha=0.55; x.beginPath(); x.ellipse(x0+r()*w,y0+r()*h,2+r()*10,2+r()*7,r()*3,0,TAU); x.fill(); }
+    x.globalAlpha=1; x.strokeStyle='rgba(0,0,0,0.25)';
+    for (let k=0;k<14;k++){ x.lineWidth=1+r()*2; x.beginPath(); let px=x0+r()*w, py=y0; x.moveTo(px,py); while (py<y0+h){ py+=10; px+=(r()-0.5)*6; x.lineTo(px,py); } x.stroke(); }
+  };
+  ecorce(24,70,224,250,'#b7b6a5',['#d8dac6','#a7b199','#e6e4d4','#8e9985','#c9cbb6']);
+  ecorce(264,70,224,250,'#2d2925',['#3b3631','#1d1a17','#4a443c','#26221e']);
+  const phalene=(cx,cy,s,sombre)=>{
+    x.save(); x.translate(cx,cy); x.scale(s,s);
+    const aile=(sg)=>{
+      x.beginPath(); x.moveTo(0,-4); x.bezierCurveTo(sg*20,-26,sg*52,-30,sg*58,-20); x.lineTo(sg*50,6); x.bezierCurveTo(sg*32,10,sg*12,8,0,4); x.closePath();
+      x.moveTo(0,4); x.bezierCurveTo(sg*16,8,sg*40,12,sg*38,28); x.bezierCurveTo(sg*28,38,sg*8,30,0,14); x.closePath();
+    };
+    x.fillStyle = sombre ? '#262220' : '#e4dfd1';
+    aile(-1); x.fill(); aile(1); x.fill();
+    x.save(); aile(-1); aile(1); x.clip();
+    for (let k=0;k<(sombre?40:170);k++){ x.fillStyle = sombre ? 'rgba(120,115,105,0.5)' : 'rgba(30,26,22,0.75)'; x.fillRect(-60+r()*120,-32+r()*72,1.4+r()*1.8,1.4+r()*1.8); }
+    if (!sombre){ x.strokeStyle='rgba(30,26,22,0.6)'; x.lineWidth=1.5; for (const sg of [-1,1]){ x.beginPath(); x.moveTo(sg*8,-10); x.lineTo(sg*20,-4); x.lineTo(sg*30,-12); x.lineTo(sg*44,-4); x.stroke(); } }
+    x.restore();
+    x.fillStyle = sombre ? '#171412' : '#6b5a48'; x.beginPath(); x.ellipse(0,6,4,16,0,0,TAU); x.fill();
+    x.strokeStyle = x.fillStyle; x.lineWidth=1.2; for (const sg of [-1,1]){ x.beginPath(); x.moveTo(0,-8); x.quadraticCurveTo(sg*8,-22,sg*14,-26); x.stroke(); }
+    x.fillStyle='#d8d2c0'; x.beginPath(); x.arc(0,-2,2.2,0,TAU); x.fill();
+    x.restore();
+  };
+  const etq=(cx,cy,t)=>{ x.fillStyle='#f7f1e1'; x.fillRect(cx-38,cy,76,18); x.strokeStyle='#5a4329'; x.lineWidth=1; x.strokeRect(cx-38,cy,76,18); x.fillStyle='#2a1d10'; x.font='italic 13px Georgia, serif'; x.textAlign='center'; x.fillText(t,cx,cy+13); };
+  phalene(100,140,0.95,false); etq(100,178,'typica');
+  phalene(180,250,0.95,true);  etq(180,288,'carbonaria');
+  phalene(350,140,0.95,false); etq(350,178,'typica');
+  phalene(420,250,0.95,true);  etq(420,288,'carbonaria');
+  x.fillStyle='#3a2a18'; x.font='15px Georgia, serif'; x.textAlign='center';
+  x.fillText('écorce couverte de lichens', 136, 345); x.fillText('écorce noircie par la suie', 376, 345);
+  x.font='italic 13px Georgia, serif'; x.fillText('(campagne)', 136, 364); x.fillText('(ville industrielle, XIXᵉ s.)', 376, 364);
+  x.restore();
+  return c;
+}
+/* étiquettes des spécimens : 16 cases de 512 × 128 */
+const ETIQ_SERRE = 14, ETIQ_CABINET = 15;
+function texEtiquettes(){
+  const [c,x]=toile(1024,1024);
+  const textes = CURIOSITES.map(o=>[o.nom, o.latin.split(',')[0]]);
+  textes[ETIQ_SERRE] = ['Serre tropicale','plantes d’Amazonie'];
+  textes[ETIQ_CABINET] = ['Cabinet d’histoire naturelle','entrez, observez'];
+  textes.forEach(([a,b],i)=>{
+    const x0=(i%2)*512, y0=Math.floor(i/2)*128;
+    x.fillStyle='#efe3c3'; x.fillRect(x0,y0,512,128);
+    x.strokeStyle='#5a4329'; x.lineWidth=4; x.strokeRect(x0+8,y0+8,496,112); x.lineWidth=1.5; x.strokeRect(x0+16,y0+16,480,96);
+    x.fillStyle='#2a1d10'; x.textAlign='center';
+    let taille=40; x.font=`bold ${taille}px Georgia, serif`; while (x.measureText(a).width>460 && taille>20){ taille-=2; x.font=`bold ${taille}px Georgia, serif`; }
+    x.fillText(a, x0+256, y0+58);
+    taille=28; x.font=`italic ${taille}px Georgia, serif`; while (x.measureText(b).width>460 && taille>16){ taille-=2; x.font=`italic ${taille}px Georgia, serif`; }
+    x.fillText(b, x0+256, y0+96);
+  });
+  return c;
+}
+function rectEtiquette(i){ const col=i%2, row=Math.floor(i/2); return [col*0.5, 1-(row+1)/8, col*0.5+0.5, 1-row/8]; }
+function texHerbier(){
+  const [c,x]=toile(512,256), r=aleaGraine(31);
+  x.fillStyle='#eee3c6'; x.fillRect(0,0,512,256);
+  const g=x.createLinearGradient(236,0,276,0); g.addColorStop(0,'rgba(0,0,0,0)'); g.addColorStop(0.5,'rgba(60,40,20,0.35)'); g.addColorStop(1,'rgba(0,0,0,0)');
+  x.fillStyle=g; x.fillRect(226,0,60,256);
+  // fougère pressée
+  x.strokeStyle='#5d6a32'; x.lineWidth=3; x.beginPath(); x.moveTo(60,236); x.quadraticCurveTo(110,140,180,24); x.stroke();
+  for (let k=0;k<16;k++){ const t=k/16, px=60+t*(120)+Math.sin(t*3)*8, py=236-t*212; const l=34*(1-t*0.7);
+    x.fillStyle=k%2?'#6f7d3a':'#7d8b45';
+    for (const sg of [-1,1]){ x.save(); x.translate(px,py); x.rotate(sg*1.1-0.4); x.beginPath(); x.ellipse(l/2,0,l/2,5,0,0,TAU); x.fill(); x.restore(); } }
+  x.fillStyle='#3a2a18'; x.font='italic 20px Georgia, serif'; x.fillText('Theobroma cacao L.', 296, 44);
+  x.strokeStyle='rgba(58,42,24,0.7)'; x.lineWidth=1.3;
+  for (let l=0;l<7;l++){ let px=296; const py=78+l*22; x.beginPath(); x.moveTo(px,py);
+    while (px<480-r()*40){ x.quadraticCurveTo(px+3,py-5-r()*4,px+6,py); px+=6+r()*3; if (r()<0.12) { px+=8; x.moveTo(px,py); } } x.stroke(); }
+  x.fillStyle='#b8762a'; x.beginPath(); x.ellipse(440,222,14,26,0.4,0,TAU); x.fill(); x.strokeStyle='#6d4317'; x.stroke();
+  return c;
+}
+/* globe ancien : contours très simplifiés des continents et route du Beagle (1831-1836) */
+const CONTINENTS = [
+  [[-168,66],[-140,70],[-110,73],[-85,70],[-80,63],[-65,60],[-55,52],[-66,45],[-75,38],[-81,31],[-80,25],[-90,30],[-97,26],[-97,20],[-90,15],[-83,9],[-79,8],[-86,13],[-95,16],[-105,20],[-112,30],[-118,34],[-124,40],[-125,48],[-135,58],[-150,60],[-165,62]],
+  [[-50,60],[-42,60],[-20,70],[-20,80],[-60,82],[-70,76],[-55,68]],
+  [[-80,8],[-72,12],[-62,10],[-50,0],[-35,-5],[-38,-15],[-48,-25],[-58,-35],[-65,-42],[-68,-52],[-72,-54],[-75,-48],[-73,-38],[-71,-25],[-76,-15],[-81,-5]],
+  [[-17,15],[-17,21],[-10,30],[-6,36],[10,37],[20,32],[32,31],[35,28],[43,12],[51,12],[40,-2],[40,-15],[33,-26],[20,-35],[17,-29],[12,-17],[13,-5],[9,4],[-8,4],[-14,10]],
+  [[-10,36],[-9,43],[-2,44],[-5,48],[0,50],[5,54],[10,57],[5,62],[15,69],[30,71],[45,68],[60,70],[80,73],[100,77],[120,73],[140,72],[160,70],[180,68],[180,62],[160,60],[155,50],[140,47],[135,35],[122,30],[121,22],[108,18],[105,10],[100,13],[100,3],[104,1],[98,8],[92,22],[80,15],[77,8],[72,20],[66,25],[57,26],[56,23],[50,25],[48,30],[35,36],[27,37],[26,40],[23,40],[19,42],[16,38],[12,44],[8,44],[3,43],[-1,37]],
+  [[35,28],[39,22],[43,13],[45,13],[52,16],[58,21],[56,26],[51,24],[48,29],[35,32]],
+  [[114,-22],[122,-18],[130,-12],[137,-12],[142,-11],[146,-19],[153,-26],[150,-37],[140,-38],[132,-32],[115,-34]],
+  [[-180,-70],[-120,-72],[-60,-66],[0,-69],[60,-67],[120,-66],[180,-70],[180,-90],[-180,-90]],
+  [[-5,50],[2,51],[0,53],[-3,58],[-6,56],[-4,53]],
+  [[172,-34],[178,-38],[174,-41],[167,-46],[170,-46],[174,-40]],
+  [[44,-25],[50,-15],[49,-12],[43,-17]]
+];
+const BEAGLE = [[-4,50],[-23,15],[-38,-13],[-43,-23],[-56,-35],[-59,-52],[-68,-55],[-72,-33],[-77,-12],[-90,-0.5],[-149,-17.5],[-186,-35],[-209,-34],[-213,-43],[-242,-35],[-263,-12],[-302.5,-20],[-342,-34],[-365.7,-16],[-374,-8],[-398,-13],[-387,38],[-365,50]];
+function texGlobe(){
+  const [c,x]=toile(512,256);
+  const X=lon=>(180-lon)/360*512, Y=lat=>(90-lat)/180*256;   // miroir : la sphère se lit de l'extérieur
+  x.fillStyle='#c6cdb0'; x.fillRect(0,0,512,256);
+  x.strokeStyle='rgba(90,70,40,0.35)'; x.lineWidth=1;
+  for (let l=-150;l<=180;l+=30){ x.beginPath(); x.moveTo(X(l),0); x.lineTo(X(l),256); x.stroke(); }
+  for (let l=-60;l<=60;l+=30){ x.beginPath(); x.moveTo(0,Y(l)); x.lineTo(512,Y(l)); x.stroke(); }
+  for (const P of CONTINENTS){ x.beginPath(); P.forEach(([lo,la],i)=>i?x.lineTo(X(lo),Y(la)):x.moveTo(X(lo),Y(la))); x.closePath(); x.fillStyle='#dcc38f'; x.fill(); x.strokeStyle='#6b5233'; x.lineWidth=1.2; x.stroke(); }
+  x.strokeStyle='#9b2d1f'; x.lineWidth=2; x.setLineDash([5,4]);
+  for (const dec of [0,360,-360]){ x.beginPath(); BEAGLE.forEach(([lo,la],i)=>i?x.lineTo(X(lo+dec),Y(la)):x.moveTo(X(lo+dec),Y(la))); x.stroke(); }
+  x.setLineDash([]);
+  return c;
+}
+
+/* --- petits outils de construction --- */
+function rectanglesMur(s0, s1, y0, y1, trous){
+  const xs=[s0,s1]; for (const t of trous) xs.push(Math.max(s0,Math.min(s1,t.s0)), Math.max(s0,Math.min(s1,t.s1)));
+  xs.sort((a,b)=>a-b);
+  const res=[];
+  for (let k=0;k<xs.length-1;k++){
+    const a=xs[k], b=xs[k+1]; if (b-a<1e-6) continue; const mid=(a+b)/2;
+    let ys=[[y0,y1]];
+    for (const t of trous) if (t.s0<mid && mid<t.s1){
+      const nv=[]; for (const [c,d] of ys){ if (t.y1<=c || t.y0>=d){ nv.push([c,d]); continue; } if (t.y0>c) nv.push([c,t.y0]); if (t.y1<d) nv.push([t.y1,d]); } ys=nv;
+    }
+    for (const [c,d] of ys) if (d-c>1e-6) res.push([a,c,b,d]);
+  }
+  return res;
+}
+/* mur perpendiculaire à z (axe 'z', s = x) ou à x (axe 'x', s = z), d'épaisseur a0 → a1 */
+function mur(S, mat, axe, a0, a1, s0, s1, y0, y1, trous, col){
+  for (const [sa,ya,sb,yb] of rectanglesMur(s0,s1,y0,y1,trous||[])){
+    if (axe==='z') S.pave(mat, sa,ya,a0, sb,yb,a1, col); else S.pave(mat, a0,ya,sa, a1,yb,sb, col);
+  }
+}
+function etiquette(S, i, M, w){ w = w || 0.2; S.quad('etiquettes', M, w, w/4, BLANC, {uvRect:rectEtiquette(i)}); }
+function flamme(p, k, vac){
+  const C = new Constructeur();
+  C.cyl('lumineux', I, 0.012*k, 0, 0.055*k, 8, [1.0,0.62,0.2]);
+  C.cyl('lumineux', T(0,0.005*k,0), 0.006*k, 0, 0.035*k, 8, [1.0,0.95,0.7]);
+  ANIMES.push({C, p, vac:vac||0.18, ph:Math.random()*10});
+}
+
+/* ---------- la pièce du cabinet ---------- */
+function construireCabinet(S, rng){
+  const trousSud = [{s0:-3.7,s1:-2.3,y0:0.9,y1:3.0},{s0:0.8,s1:2.2,y0:0.9,y1:3.0}];
+  const trouEst = [{s0:-1.1,s1:1.1,y0:0,y1:2.7}];
+  // sol, plafond, poutres
+  S.pave('parquet', -6,-0.02,-4.5, 6,0,4.5);
+  S.pave('bois', -6.3,4.2,-4.8, 6.3,4.4,4.8, [0.42,0.3,0.2]);
+  for (let x=-5; x<=5.01; x+=2.5) S.pave('bois', x-0.12,3.95,-4.5, x+0.12,4.2,4.5, [0.36,0.24,0.15]);
+  // murs (briques dehors, tapisserie et lambris dedans)
+  mur(S,'brique','z',-4.8,-4.5,-6.3,6.3,0,4.4);
+  mur(S,'brique','z',4.5,4.8,-6.3,6.3,0,4.4,trousSud);
+  mur(S,'brique','x',-6.3,-6.0,-4.8,4.8,0,4.4);
+  mur(S,'brique','x',6.0,6.3,-4.8,4.8,0,4.4,trouEst);
+  const lambris=[0.5,0.31,0.19], cimaise=[0.4,0.25,0.15];
+  mur(S,'tapisserie','z',-4.5,-4.485,-6,6,1.0,4.2);
+  mur(S,'tapisserie','z',4.485,4.5,-6,6,1.0,4.2,trousSud);
+  mur(S,'tapisserie','x',-6.0,-5.985,-4.5,4.5,1.0,4.2);
+  mur(S,'tapisserie','x',5.985,6.0,-4.5,4.5,1.0,4.2,trouEst);
+  mur(S,'bois','z',-4.5,-4.47,-6,6,0,1.0,[],lambris);
+  mur(S,'bois','z',4.47,4.5,-6,6,0,1.0,trousSud,lambris);
+  mur(S,'bois','x',-6.0,-5.97,-4.5,4.5,0,1.0,[],lambris);
+  mur(S,'bois','x',5.97,6.0,-4.5,4.5,0,1.0,trouEst,lambris);
+  mur(S,'bois','z',-4.5,-4.45,-6,6,0.97,1.04,[],cimaise);
+  mur(S,'bois','z',4.45,4.5,-6,6,0.97,1.04,trousSud,cimaise);
+  mur(S,'bois','x',-6.0,-5.95,-4.5,4.5,0.97,1.04,[],cimaise);
+  mur(S,'bois','x',5.95,6.0,-4.5,4.5,0.97,1.04,trouEst,cimaise);
+  for (const [a,b,ax] of [[-4.5,-4.42,'z'],[4.42,4.5,'z'],[-6.0,-5.92,'x'],[5.92,6.0,'x']]) mur(S,'bois',ax,a,b,ax==='z'?-6:-4.5,ax==='z'?6:4.5,4.05,4.2,[],cimaise);
+  solide(-6.4,-4.9,6.4,-4.5); solide(-6.4,4.5,6.4,4.9); solide(-6.4,-4.9,-6.0,4.9);
+  solide(6.0,-4.9,6.3,-1.1); solide(6.0,1.1,6.3,4.9);
+
+  // fenêtres
+  for (const t of trousSud){
+    const wa=t.s0, wb=t.s1, wm=(wa+wb)/2, blanc=COUL.peinture;
+    // embrasure doublée de bois (elle cache la brique) et chambranle côté pièce
+    S.pave('bois', wa,0.9,4.47, wa+0.03,3.0,4.81, blanc); S.pave('bois', wb-0.03,0.9,4.47, wb,3.0,4.81, blanc);
+    S.pave('bois', wa,2.97,4.47, wb,3.0,4.81, blanc);
+    S.pave('bois', wa-0.09,0.9,4.43, wa+0.01,3.1,4.47, blanc); S.pave('bois', wb-0.01,0.9,4.43, wb+0.09,3.1,4.47, blanc);
+    S.pave('bois', wa-0.09,3.0,4.43, wb+0.09,3.1,4.47, blanc);
+    S.pave('bois', wa-0.1,0.85,4.38, wb+0.1,0.92,4.86, blanc);
+    S.pave('satin', wa,0.9,4.62, wb,0.96,4.68, blanc); S.pave('satin', wa,2.94,4.62, wb,3.0,4.68, blanc);
+    S.pave('satin', wa,0.9,4.62, wa+0.05,3.0,4.68, blanc); S.pave('satin', wb-0.05,0.9,4.62, wb,3.0,4.68, blanc);
+    S.pave('satin', wm-0.025,0.9,4.62, wm+0.025,3.0,4.68, blanc);
+    for (const y of [1.45,2.0,2.5]) S.pave('satin', wa,y-0.015,4.63, wb,y+0.015,4.67, blanc);
+    S.quad('verre', T(wm,1.95,4.65), wb-wa, 2.1);
+    // rideaux de velours, plissés
+    S.cyl('laiton', T(wa-0.5,3.18,4.36).rz(-PI/2), 0.015,0.015, wb-wa+1.0, 8, COUL.laiton);
+    for (const [c0,sens] of [[wa-0.45,1],[wb+0.45,-1]]){
+      for (let k=0;k<6;k++){ const x=c0+sens*k*0.065; S.cyl('mat', T(x,0.06,4.36+(k%2?0.025:-0.01)), 0.045,0.045, 3.1, 8, mult(COUL.velours, 0.85+0.15*(k%2))); }
+    }
+  }
+  // porte de la serre
+  S.pave('bois', 5.92,0,-1.24, 6.02,2.84,-1.1, COUL.noyer); S.pave('bois', 5.92,0,1.1, 6.02,2.84,1.24, COUL.noyer);
+  S.pave('bois', 5.92,2.7,-1.24, 6.02,2.9,1.24, COUL.noyer);
+  S.pave('bois', 6.0,0,-1.12, 6.3,2.7,-1.1, COUL.noyer); S.pave('bois', 6.0,0,1.1, 6.3,2.7,1.12, COUL.noyer);
+  S.pave('bois', 6.0,2.68,-1.1, 6.3,2.7,1.1, COUL.noyer); S.pave('dalles', 6.0,-0.02,-1.1, 6.3,0.0,1.1);
+  S.pave('bois', 5.9,3.0,-0.38, 5.96,3.24,0.38, COUL.ebene);
+  etiquette(S, ETIQ_SERRE, T(5.895,3.12,0).ry(-PI/2), 0.66);
+  // tapis
+  S.pave('tapis', -2.6,0,-1.75, 2.6,0.008,1.75);
+  // cheminée (mur ouest)
+  const m=COUL.marbre;
+  S.pave('satin', -6,0,-1.15, -5.3,0.06,1.15, mult(m,0.9));
+  S.pave('satin', -6,0.06,-0.95, -5.6,1.2,-0.62, m); S.pave('satin', -6,0.06,0.62, -5.6,1.2,0.95, m);
+  S.pave('satin', -6,0.95,-0.95, -5.6,1.2,0.95, m);
+  S.pave('satin', -6,1.2,-1.08, -5.48,1.27,1.08, mult(m,0.95));
+  S.pave('mat', -5.98,0.06,-0.62, -5.9,0.95,0.62, COUL.noir); S.pave('mat', -5.98,0.06,-0.62, -5.6,0.95,-0.6, [0.1,0.08,0.07]); S.pave('mat', -5.98,0.06,0.6, -5.6,0.95,0.62, [0.1,0.08,0.07]);
+  S.pave('mat', -5.98,0.93,-0.62, -5.6,0.95,0.62, [0.08,0.06,0.05]);
+  for (const z of [-0.3,0.3]) { S.cyl('fer', T(-5.7,0.06,z), 0.02,0.02,0.14,8,COUL.noir); S.sphere('fer', T(-5.66,0.22,z), 0.03, 8,6, COUL.noir); }
+  for (const [z,a] of [[-0.12,0.1],[0.1,-0.15],[0,0.02]]) S.cyl('bois', T(-5.75,0.12+(z===0?0.07:0),z-0.3).rx(PI/2).rz(a), 0.05,0.05,0.6,8,[0.3,0.18,0.1]);
+  S.pave('lumineux', -5.9,0.07,-0.35, -5.6,0.1,0.35, [1.0,0.42,0.1]);
+  [[-5.78,0.13,-0.2,4.2],[-5.75,0.12,0.05,5.2],[-5.78,0.13,0.25,3.8],[-5.72,0.15,-0.05,3.2],[-5.8,0.12,0.12,4.6]].forEach(([x,y,z,k])=>flamme([x,y,z],k,0.35));
+  solide(-6.0,-1.15,-5.3,1.15);
+  // vanité et chandeliers sur la tablette
+  crane(S, T(-5.74,1.27,-0.72).ry(PI/2+0.4));
+  for (const z of [-0.35,0.45]) chandelierPetit(S, -5.72, 1.27, z);
+  // bibliothèques et vitrine (mur nord)
+  bibliotheque(S, -5.85, -1.0, -4.5, 0.45, 3.0, rng);
+  bibliotheque(S, 3.65, 5.85, -4.5, 0.45, 3.0, rng);
+  vitrine(S, 0.3, 3.3, -4.5, 0.55);
+  chouette(S, T(-3.2,3.12,-4.25));
+  globe(S, -5.05, -3.35);
+  // table centrale et ce qu'il y a dessus
+  table(S, -1.4,-0.7, 1.4,0.7, 0.78);
+  chaise(S, 0.1, 1.15, PI); chaise(S, -0.9, -1.15, 0);
+  herbier(S, T(0.45,0.78,0.12).ry(-0.2));
+  chandelierPetit(S, 0.95, 0.78, -0.35);
+  loupe(S, T(0.1,0.785,-0.4).ry(0.6));
+  pileLivres(S, 1.1, 0.78, 0.35, rng);
+  encrier(S, -1.12, 0.78, 0.42);
+  S.quad('mat', T(-0.05,0.782,0.38).rx(-PI/2).rz(0.3), 0.21, 0.29, COUL.papier);
+  S.quad('mat', T(-1.05,0.781,-0.3).rx(-PI/2).rz(-0.5), 0.21, 0.29, mult(COUL.papier,0.95));
+  // lustre
+  lustre(S, 0, 0);
+  // fauteuil près du feu
+  fauteuil(S, -4.35, 1.5, -PI/2+0.35);
+  // médaillier sous la fenêtre de gauche, bureau sous celle de droite
+  medaillier(S, -3.8, -2.2, 3.84, 4.38, 0.86);
+  etiquette(S, 10, T(-3.0,0.868,3.93).ry(PI).rx(-1.25), 0.22);
+  bureau(S, 0.85, 2.15, 3.72, 4.38, 0.76);
+  chaise(S, 1.5, 3.22, 0);
+  // guéridon et cloche des pinsons
+  gueridon(S, 4.25, -2.25);
+  S.tour('verre', T(4.25,0.755,-2.25), [[0.205,0],[0.21,0.02],[0.21,0.3],[0.195,0.38],[0.155,0.43],[0.085,0.455],[0,0.462]], 28);
+  S.sphere('verre', T(4.25,1.225,-2.25), 0.025, 10,8);
+  etiquette(S, 0, T(4.25,0.758,-2.25).ry(-1.08).t(0,0,0.31).rx(-1.25), 0.16);
+  // coffre de la tortue
+  coffre(S, 4.0, 5.3, 2.95, 3.85, 0.5);
+  etiquette(S, 2, T(4.0-0.005,0.38,3.4).ry(-PI/2), 0.24);
+  // cordes du crocodile
+  for (const dx of [-0.75,0.8]) S.cyl('mat', T(2.4+dx,3.3,0.9+dx*0.12), 0.008,0.008,0.9,6,[0.55,0.45,0.3]);
+}
+
+function bibliotheque(S, x0, x1, zF, prof, h, rng){
+  const zA=zF+prof, ep=0.04, c=COUL.noyer;
+  S.pave('bois', x0,0,zF, x0+ep,h,zA, c); S.pave('bois', x1-ep,0,zF, x1,h,zA, c);
+  S.pave('bois', x0-0.03,h,zF, x1+0.03,h+0.12,zA+0.06, c);
+  S.pave('bois', x0,0,zF, x1,0.12,zA+0.01, mult(c,0.85));
+  S.pave('bois', x0,0,zF, x1,h,zF+0.02, mult(c,0.6));
+  const nb=Math.max(1,Math.round((x1-x0)/1.2)), lg=(x1-x0)/nb;
+  for (let k=1;k<nb;k++){ const x=x0+k*lg; S.pave('bois', x-0.02,0.12,zF, x+0.02,h,zA, c); }
+  const etages=[0.12,0.58,1.04,1.5,1.96,2.42];
+  for (const y of etages){
+    if (y>0.12) S.pave('bois', x0,y-0.025,zF, x1,y,zA, c);
+    for (let k=0;k<nb;k++){ const a=x0+k*lg+(k?0.02:ep)+0.01, b=x0+(k+1)*lg-(k<nb-1?0.02:ep)-0.01; rangeeLivres(S, a, b, y, zF+0.02, zA, rng); }
+  }
+  solide(x0,zF,x1,zA);
+}
+function rangeeLivres(S, a, b, y, zF, zA, rng){
+  let x=a;
+  while (x < b-0.03){
+    if (rng()<0.05){ x += 0.06+rng()*0.12; continue; }
+    const w=0.026+rng()*0.045; if (x+w>b) break;
+    const hh=0.22+rng()*0.16, d=Math.min(zA-zF-0.03, 0.17+rng()*0.1), lum=0.7+rng()*0.3;
+    S.pave('livres', x,y,zA-0.02-d, x+w,y+hh,zA-0.02, [lum,lum,lum], {uvRect:rectLivre(Math.floor(rng()*8))});
+    x += w+0.003;
+  }
+  if (b-x>0.12 && rng()<0.7){   // une petite pile couchée au bout du rayon
+    for (let k=0;k<3;k++){ const e=0.035+rng()*0.02, lum=0.7+rng()*0.3; S.pave('livres', x+0.01,y+k*0.045,zA-0.25, x+0.01+Math.min(0.2,b-x-0.02),y+k*0.045+e,zA-0.03, [lum,lum,lum], {uvRect:rectLivre(Math.floor(rng()*8))}); }
+  }
+}
+function vitrine(S, x0, x1, zF, prof){
+  const zA=zF+prof, h=2.5, c=COUL.acajou, xm=(x0+x1)/2;
+  S.pave('bois', x0,0,zF, x1,0.88,zA, c);
+  for (let k=0;k<3;k++){ const w=(x1-x0-0.16)/3; S.pave('bois', x0+0.08+k*w+0.03,0.16,zA, x0+0.08+(k+1)*w-0.03,0.74,zA+0.015, mult(c,1.18)); S.sphere('laiton', T(x0+0.08+(k+0.5)*w,0.62,zA+0.03), 0.018, 8,6, COUL.laiton); }
+  S.pave('bois', x0-0.02,0,zF, x1+0.02,0.1,zA+0.03, mult(c,0.8));
+  S.pave('mat', x0+0.04,0.88,zF+0.02, x1-0.04,0.9,zA-0.04, COUL.vertVelours);
+  S.pave('bois', x0,0.88,zF, x0+0.05,h,zA, c); S.pave('bois', x1-0.05,0.88,zF, x1,h,zA, c);
+  S.pave('mat', x0+0.05,0.9,zF, x1-0.05,h-0.06,zF+0.02, COUL.vertVelours);
+  for (const y of [1.45,1.95]) S.pave('bois', x0+0.05,y-0.025,zF+0.02, x1-0.05,y,zA-0.05, c);
+  S.pave('bois', x0,h-0.06,zF, x1,h,zA, c); S.pave('bois', x0-0.04,h,zF, x1+0.04,h+0.1,zA+0.05, c);
+  S.pave('bois', x0+0.05,0.9,zA-0.035, x1-0.05,0.95,zA, c); S.pave('bois', x0+0.05,h-0.11,zA-0.035, x1-0.05,h-0.06,zA, c);
+  S.pave('bois', xm-0.025,0.9,zA-0.035, xm+0.025,h-0.06,zA, c);
+  S.quad('verre', T((x0+0.05+xm-0.025)/2,(0.95+h-0.11)/2,zA-0.018), xm-x0-0.1, h-0.11-0.95);
+  S.quad('verre', T((xm+0.025+x1-0.05)/2,(0.95+h-0.11)/2,zA-0.018), x1-xm-0.1, h-0.11-0.95);
+  for (const xx of [xm-0.06, xm+0.06]) S.sphere('laiton', T(xx,1.6,zA+0.01), 0.014, 8,6, COUL.laiton);
+  // bocaux et petites curiosités de décor
+  bocal(S, T(1.7,0.9,-4.25), 0.07, 0.24, [0.82,0.72,0.42], (B,M)=>{ B.sphere('satin', M.t(0,0.1,0).s(1,0.7,1.2), 0.04, 10,8, [0.45,0.52,0.3]); B.sphere('satin', M.t(0,0.135,0.035), 0.022, 8,6, [0.5,0.56,0.33]); });
+  bocal(S, T(2.15,0.9,-4.3), 0.055, 0.2, [0.75,0.8,0.55], (B,M)=>{ B.sphere('satin', M.t(0,0.09,0).s(0.6,1,0.35), 0.06, 10,8, [0.7,0.7,0.72]); });
+  bocal(S, T(3.05,1.45,-4.3), 0.05, 0.17, [0.85,0.65,0.4], (B,M)=>{ for (let k=0;k<4;k++) B.tube('satin', M, [[0,0.03,0],[0.03*Math.cos(k*1.6),0.07,0.03*Math.sin(k*1.6)],[0.035*Math.cos(k*1.6+0.6),0.12,0.035*Math.sin(k*1.6+0.6)]], t=>0.01*(1-t*0.7), 6, [0.75,0.5,0.45]); B.sphere('satin', M.t(0,0.03,0), 0.03, 8,6, [0.75,0.5,0.45]); });
+  oursin(S, T(1.95,1.975,-4.25));
+  etoileMer(S, T(2.75,1.976,-4.25));
+  for (let k=0;k<3;k++) S.sphere('satin', T(0.6+k*0.11,1.475,-4.2).s(1,0.6,1.3), 0.035, 10,6, [0.9-k*0.1,0.8-k*0.08,0.7]);
+  etiquette(S, 3, T(1.0,1.925,-3.996), 0.18);
+  etiquette(S, 4, T(1.95,1.425,-3.996), 0.18);
+  etiquette(S, 5, T(2.7,0.85,-3.947), 0.18);
+  solide(x0,zF,x1,zA);
+}
+function bocal(S, M, r, h, couleur, contenu){
+  S.tour('verre', M, [[0,0],[r,0],[r*1.05,0.012],[r*1.05,h*0.85],[r*0.85,h*0.93],[r*0.8,h]], 20);
+  S.tour('liquide', M.t(0,0.004,0), [[0,0],[r*0.97,0],[r*0.97,h*0.78],[0,h*0.78]], 18, couleur);
+  S.cyl('mat', M.t(0,h-0.005,0), r*0.82, r*0.82, 0.03, 16, [0.6,0.45,0.3]);
+  contenu(S, M);
+}
+function oursin(S, M){
+  const rng=aleaGraine(41);
+  S.sphere('satin', M.t(0,0.05,0).s(1,0.75,1), 0.05, 12,8, [0.45,0.2,0.35]);
+  for (let k=0;k<70;k++){ const th=Math.acos(1-rng()*1.6), ph=rng()*TAU; const d=[Math.sin(th)*Math.cos(ph), Math.cos(th)*0.75, Math.sin(th)*Math.sin(ph)];
+    const o=add([0,0.05,0], sca(d,0.045)); const z=nrm(d), x=nrm(cross([0,1,0.01],z)), y=cross(z,x);
+    S.cyl('satin', base3(add(M.m.slice(12,15),o), x, z, y), 0.004, 0, 0.06, 4, [0.55,0.28,0.42]); }
+}
+function etoileMer(S, M){
+  for (let k=0;k<5;k++){ const a=k/5*TAU; S.tube('mat', M, [[0,0.012,0],[Math.cos(a)*0.05,0.012,Math.sin(a)*0.05],[Math.cos(a)*0.1,0.008,Math.sin(a)*0.1]], t=>[0.022*(1-t*0.8),0.01*(1-t*0.5)], 6, [0.85,0.5,0.25]); }
+}
+function crane(S, M){
+  const os=COUL.os;
+  S.sphere('satin', M.t(0,0.1,-0.01).s(0.075,0.08,0.095), 1, 14,10, os);
+  S.sphere('satin', M.t(0,0.055,0.06).s(0.06,0.05,0.05), 1, 12,8, os);
+  for (const s of [-1,1]) S.sphere('mat', M.t(s*0.026,0.075,0.098).s(1,0.85,0.6), 0.02, 8,6, COUL.noir);
+  S.sphere('mat', M.t(0,0.045,0.108).s(0.6,1,0.5), 0.012, 6,5, COUL.noir);
+  S.boite('satin', M.t(0,0.012,0.05), 0.08,0.025,0.07, os);
+  for (let k=-3;k<=3;k++) S.boite('satin', M.t(k*0.009,0.027,0.088-Math.abs(k)*0.004), 0.007,0.012,0.006, [0.95,0.92,0.82]);
+}
+function chandelierPetit(S, x, y, z){
+  S.tour('laiton', T(x,y,z), [[0,0],[0.05,0],[0.05,0.012],[0.015,0.03],[0.012,0.12],[0.022,0.14],[0.03,0.16],[0,0.16]], 14, COUL.laiton);
+  S.cyl('mat', T(x,y+0.16,z), 0.012,0.012,0.12,10, COUL.cire);
+  flamme([x,y+0.28,z], 1, 0.2);
+}
+function chouette(S, M){
+  const p=[0.48,0.36,0.24];
+  S.sphere('mat', M.t(0,0.14,0).s(0.1,0.15,0.09), 1, 12,10, (x,y,z)=> y<0.2&&z>0.3 ? [0.75,0.66,0.5] : p);
+  S.sphere('mat', M.t(0,0.31,0.01).s(0.085,0.075,0.075), 1, 12,10, p);
+  for (const s of [-1,1]){ S.sphere('satin', M.t(s*0.035,0.32,0.065), 0.025, 10,8, [0.95,0.6,0.1]); S.sphere('satin', M.t(s*0.035,0.32,0.085), 0.012, 8,6, COUL.noir); S.cyl('mat', M.t(s*0.05,0.36,0.03).rz(-s*0.5), 0.015,0,0.05,6,p); }
+  S.cyl('mat', M.t(0,0.29,0.07).rx(PI/2+0.4), 0.01,0,0.03,6,[0.3,0.25,0.15]);
+  S.cyl('bois', M, 0.08,0.08,0.025,12,COUL.noyer);
+}
+function globe(S, x, z){
+  const c=COUL.noyer;
+  for (let k=0;k<3;k++){ const a=k/3*TAU; S.tube('bois', I, [[x+Math.cos(a)*0.32,0,z+Math.sin(a)*0.32],[x+Math.cos(a)*0.22,0.4,z+Math.sin(a)*0.22],[x+Math.cos(a)*0.3,0.78,z+Math.sin(a)*0.3]], 0.025, 8, c); }
+  S.tube('bois', I, Array.from({length:41},(_,i)=>[x+Math.cos(i/40*TAU)*0.33,0.8,z+Math.sin(i/40*TAU)*0.33]), [0.035,0.012], 6, c, {bouts:false});
+  S.tube('laiton', T(x,0.92,z).rz(0.41), Array.from({length:33},(_,i)=>[Math.cos(i/32*TAU)*0.3,Math.sin(i/32*TAU)*0.3,0]), 0.008, 6, COUL.laiton, {bouts:false, haut:[0,0,1]});
+  S.sphere('globe', T(x,0.92,z).rz(0.41).ry(2.3), 0.28, 36,20);
+  solide(x-0.36,z-0.36,x+0.36,z+0.36);
+}
+function table(S, x0,z0,x1,z1,h){
+  const c=COUL.noyer;
+  S.pave('bois', x0,h-0.05,z0, x1,h,z1, c);
+  S.pave('bois', x0+0.08,h-0.17,z0+0.08, x1-0.08,h-0.05,z1-0.08, mult(c,0.85));
+  const pied=[[0,0],[0.03,0],[0.045,0.05],[0.03,0.12],[0.028,0.4],[0.044,0.48],[0.03,0.56],[0.038,h-0.17],[0,h-0.17]];
+  for (const [cx,cz] of [[x0+0.12,z0+0.12],[x1-0.12,z0+0.12],[x0+0.12,z1-0.12],[x1-0.12,z1-0.12]]) S.tour('bois', T(cx,0,cz), pied, 10, c);
+  solide(x0,z0,x1,z1);
+}
+function chaise(S, x, z, ry){
+  const M=T(x,0,z).ry(ry), c=COUL.noyer;
+  S.boite('bois', M.t(0,0.45,0), 0.44,0.04,0.42, c);
+  S.boite('mat', M.t(0,0.485,0.01), 0.4,0.035,0.38, COUL.velours);
+  for (const [a,b] of [[-0.19,-0.18],[0.19,-0.18],[-0.19,0.18],[0.19,0.18]]) S.cyl('bois', M.t(a,0,b), 0.018,0.016,0.45,8,c);
+  for (const a of [-0.19,0.19]) S.cyl('bois', M.t(a,0.45,-0.19), 0.018,0.016,0.5,8,c);
+  S.boite('bois', M.t(0,0.88,-0.19), 0.42,0.1,0.03, c); S.boite('bois', M.t(0,0.68,-0.19), 0.34,0.04,0.02, c);
+  solide(x-0.26,z-0.26,x+0.26,z+0.26);
+}
+function fauteuil(S, x, z, ry){
+  const M=T(x,0,z).ry(ry), v=[0.16,0.3,0.2];
+  S.boite('mat', M.t(0,0.25,0), 0.8,0.3,0.78, v); S.boite('mat', M.t(0,0.43,0.04), 0.62,0.08,0.64, mult(v,1.12));
+  S.boite('mat', M.t(0,0.75,-0.33), 0.8,0.75,0.14, v);
+  for (const s of [-1,1]) S.boite('mat', M.t(s*0.35,0.52,0), 0.12,0.28,0.74, v);
+  for (const [a,b] of [[-0.34,-0.33],[0.34,-0.33],[-0.34,0.33],[0.34,0.33]]) S.cyl('bois', M.t(a,0,b), 0.03,0.02,0.1,8,COUL.noyer);
+  solide(x-0.48,z-0.48,x+0.48,z+0.48);
+}
+function gueridon(S, x, z){
+  const c=COUL.acajou;
+  S.cyl('bois', T(x,0.72,z), 0.42,0.42,0.035,32,c);
+  S.tour('bois', T(x,0.12,z), [[0,0],[0.06,0],[0.05,0.08],[0.035,0.3],[0.055,0.42],[0.04,0.5],[0.05,0.6],[0,0.6]], 12, c);
+  for (let k=0;k<3;k++){ const a=k/3*TAU+0.3; S.tube('bois', I, [[x,0.14,z],[x+Math.cos(a)*0.2,0.08,z+Math.sin(a)*0.2],[x+Math.cos(a)*0.34,0.0,z+Math.sin(a)*0.34]], t=>0.035*(1-t*0.5), 8, c); }
+  solide(x-0.42,z-0.42,x+0.42,z+0.42);
+}
+function coffre(S, x0, x1, z0, z1, h){
+  const c=[0.45,0.27,0.15], f=COUL.fer;
+  S.pave('bois', x0,0.03,z0, x1,h-0.06,z1, c); S.pave('bois', x0-0.02,h-0.06,z0-0.02, x1+0.02,h,z1+0.02, mult(c,1.1));
+  for (const x of [x0+0.15, x1-0.15]){ S.pave('fer', x-0.03,0.03,z0-0.012, x+0.03,h+0.005,z0+0.005, f); S.pave('fer', x-0.03,0.03,z1-0.005, x+0.03,h+0.005,z1+0.012, f); S.pave('fer', x-0.03,h,z0, x+0.03,h+0.008,z1, f); }
+  S.pave('laiton', x0-0.015,h-0.16,(z0+z1)/2-0.05, x0,h-0.06,(z0+z1)/2+0.05, COUL.laiton);
+  for (const [x,z] of [[x0+0.05,z0+0.05],[x1-0.05,z0+0.05],[x0+0.05,z1-0.05],[x1-0.05,z1-0.05]]) S.sphere('bois', T(x,0.03,z), 0.035, 8,6, mult(c,0.8));
+  solide(x0,z0,x1,z1);
+}
+function medaillier(S, x0, x1, z0, z1, h){
+  const c=COUL.acajou;
+  S.pave('bois', x0,0,z0, x1,h,z1, c); S.pave('bois', x0-0.02,h-0.03,z0-0.03, x1+0.02,h,z1, mult(c,1.1));
+  const n=6, w=(x1-x0-0.08)/2, hh=(h-0.14)/n;
+  for (let col=0;col<2;col++) for (let k=0;k<n;k++){
+    const a=x0+0.04+col*w, y=0.08+k*hh;
+    S.pave('bois', a+0.01,y+0.008,z0-0.015, a+w-0.01,y+hh-0.008,z0, mult(c,1.15));
+    S.sphere('laiton', T(a+w/2,y+hh/2,z0-0.025), 0.013, 8,6, COUL.laiton);
+  }
+  solide(x0,z0,x1,z1);
+}
+function bureau(S, x0, x1, z0, z1, h){
+  const c=COUL.noyer;
+  S.pave('bois', x0,h-0.04,z0, x1,h,z1, c);
+  S.pave('bois', x0,h-0.2,z0+0.05, x1,h-0.04,z1, mult(c,0.85));
+  for (const [a,b] of [[x0+0.05,z0+0.05],[x1-0.05,z0+0.05],[x0+0.05,z1-0.05],[x1-0.05,z1-0.05]]) S.cyl('bois', T(a,0,b), 0.025,0.02,h-0.04,8,c);
+  S.sphere('laiton', T((x0+x1)/2,h-0.12,z0+0.04), 0.014,8,6,COUL.laiton);
+  S.quad('mat', T((x0+x1)/2-0.15,h+0.002,(z0+z1)/2).rx(-PI/2).rz(0.15), 0.22,0.3, COUL.papier);
+  encrier(S, x1-0.2, h, (z0+z1)/2+0.05);
+  loupe(S, T(x0+0.3,h+0.005,(z0+z1)/2+0.1).ry(-0.4));
+  solide(x0,z0,x1,z1);
+}
+function encrier(S, x, y, z){
+  S.tour('verre', T(x,y,z), [[0,0],[0.035,0],[0.035,0.04],[0.015,0.05],[0.015,0.06],[0,0.06]], 12);
+  S.cyl('mat', T(x,y+0.002,z), 0.03,0.03,0.035,12,[0.03,0.03,0.08]);
+  S.tube('mat', I, [[x,y+0.04,z],[x+0.04,y+0.16,z+0.03],[x+0.07,y+0.26,z+0.06]], t=>[0.004+0.02*Math.sin(t*PI)*(t>0.2?1:0.2),0.003], 6, [0.92,0.9,0.85]);
+}
+function loupe(S, M){
+  S.tube('laiton', M.t(0,0.012,0), Array.from({length:25},(_,i)=>[Math.cos(i/24*TAU)*0.045,0,Math.sin(i/24*TAU)*0.045]), 0.006, 6, COUL.laiton, {bouts:false});
+  S.cyl('verre', M.t(0,0.008,0), 0.045,0.045,0.008,20);
+  S.cyl('bois', M.t(0.05,0.012,0).rz(PI/2).rz(PI), 0.008,0.01,0.11,8,COUL.ebene);
+}
+function pileLivres(S, x, y, z, rng){
+  let yy=y;
+  for (let k=0;k<3;k++){ const e=0.04+rng()*0.02, a=(rng()-0.5)*0.4; S.boite('livres', T(x,yy+e/2,z).ry(a), 0.26-k*0.02, e, 0.19-k*0.01, [0.9,0.9,0.9], {uvRect:rectLivre(k*3%8)}); yy+=e; }
+}
+function herbier(S, M){
+  S.boite('bois', M.t(0,0.01,0), 0.5,0.02,0.34, COUL.cuir);
+  S.quad('herbier', M.t(0,0.022,0).rx(-PI/2), 0.48, 0.32, BLANC);
+}
+function lustre(S, x, z){
+  const y=3.15;
+  S.cyl('laiton', T(x,y-0.1,z), 0.02,0.02,0.85,8,COUL.laiton);
+  for (let k=0;k<4;k++) S.tube('fer', I, [[x,3.95-k*0.12,z],[x,3.95-(k+1)*0.12,z]], 0.012, 5, COUL.fer);
+  S.sphere('laiton', T(x,y-0.12,z), 0.05, 10,8, COUL.laiton);
+  S.tube('laiton', I, Array.from({length:41},(_,i)=>[x+Math.cos(i/40*TAU)*0.45,y,z+Math.sin(i/40*TAU)*0.45]), 0.018, 6, COUL.laiton, {bouts:false});
+  for (let k=0;k<6;k++){
+    const a=k/6*TAU+0.3, px=x+Math.cos(a)*0.45, pz=z+Math.sin(a)*0.45;
+    S.tube('laiton', I, [[x,y+0.25,z],[x+Math.cos(a)*0.25,y+0.12,z+Math.sin(a)*0.25],[px,y,pz]], 0.01, 5, COUL.laiton);
+    S.cyl('laiton', T(px,y+0.01,pz), 0.028,0.02,0.03,10,COUL.laiton);
+    S.cyl('mat', T(px,y+0.035,pz), 0.014,0.014,0.13,8,COUL.cire);
+    flamme([px,y+0.165,pz], 1.1, 0.15);
+  }
+}
+function construireDehors(S, rng){
+  S.pave('mat', -80,-0.08,-80, 80,-0.03,80, [0.3,0.4,0.19]);
+  // ciel : une grande sphère éclairée d'elle-même, dégradée de l'horizon au zénith
+  S.sphere('lumineux', I, 90, 24, 16, (x,y)=> y<0 ? [0.55,0.6,0.5] : melangeC([0.97,0.86,0.68],[0.42,0.6,0.86], Math.pow(Math.min(1,y*1.6),0.7)));
+  // toit d'ardoise du cabinet et pignons
+  for (const s of [-1,1]) S.boite('mat', T(0,5.3,s*2.4).rx(s*0.3588), 12.9, 0.1, 5.13, [0.24,0.26,0.3]);
+  for (const x of [-6.3,6.15]) S.tri('brique', [x,4.4,-4.8],[x,4.4,4.8],[x,6.2,0],[x<0?-1:1,0,0]);
+  // arbres et collines au loin
+  for (let k=0;k<26;k++){
+    const a=rng()*TAU, d=18+rng()*20, x=Math.cos(a)*d, z=Math.sin(a)*d;
+    if (x>-9 && x<17 && Math.abs(z)<9) continue;
+    const h=2.5+rng()*3;
+    S.cyl('mat', T(x,0,z), 0.25,0.18,h,8,[0.3,0.22,0.15]);
+    for (let j=0;j<4;j++) S.sphere('mat', T(x+(rng()-0.5)*1.6,h+rng()*1.4,z+(rng()-0.5)*1.6), 1.3+rng()*1.2, 10,7, melangeC(COUL.feuillageSombre,COUL.feuillage,rng()));
+  }
+  for (let k=0;k<9;k++){ const a=k/9*TAU+0.3; S.sphere('mat', T(Math.cos(a)*70,-4,Math.sin(a)*70).s(1,0.32,1), 22, 14,8, [0.36,0.45,0.34]); }
+}
+
+/* ---------- la serre ---------- */
+function construireSerre(S, rng){
+  const x0=6.3, x1=14, f=COUL.fer;
+  S.pave('dalles', x0,-0.02,-4.5, x1,0,4.5);
+  S.pave('brique', x0,0,-4.5, x1,0.6,-4.3); S.pave('brique', x0,0,4.3, x1,0.6,4.5); S.pave('brique', 13.8,0,-4.5, x1,0.6,4.5);
+  S.pave('satin', x0,0.6,-4.52, x1,0.64,-4.28, COUL.marbre); S.pave('satin', x0,0.6,4.28, x1,0.64,4.52, COUL.marbre); S.pave('satin', 13.78,0.6,-4.5, 14.02,0.64,4.5, COUL.marbre);
+  S.quad('verre', T((x0+x1)/2,1.92,-4.4), x1-x0, 2.56); S.quad('verre', T((x0+x1)/2,1.92,4.4), x1-x0, 2.56);
+  S.quad('verre', T(13.9,1.92,0).ry(PI/2), 8.8, 2.56);
+  for (let x=x0+0.02; x<=x1+0.01; x+=(x1-x0)/8){ for (const z of [-4.4,4.4]) S.pave('fer', x-0.025,0.64,z-0.03, x+0.025,3.2,z+0.03, f); }
+  for (let z=-4.4; z<=4.41; z+=8.8/9) S.pave('fer', 13.87,0.64,z-0.025, 13.93,3.2,z+0.025, f);
+  for (const y of [1.9,3.2]){ S.pave('fer', x0,y-0.025,-4.43, x1,y+0.025,-4.37, f); S.pave('fer', x0,y-0.025,4.37, x1,y+0.025,4.43, f); S.pave('fer', 13.87,y-0.025,-4.4, 13.93,y+0.025,4.4, f); }
+  // toit de verre à deux pentes
+  S.quad('verre', T((x0+x1)/2,4.1,-2.2).rx(1.183), x1-x0, 4.754);
+  S.quad('verre', T((x0+x1)/2,4.1,2.2).rx(-1.183), x1-x0, 4.754);
+  S.tri('verre', [13.9,3.2,-4.4],[13.9,3.2,4.4],[13.9,5.0,0],[1,0,0]);
+  for (let x=x0+0.02; x<=x1+0.01; x+=(x1-x0)/8){
+    S.boite('fer', T(x,4.1,-2.2).rx(-0.388), 0.05,0.05,4.754, f);
+    S.boite('fer', T(x,4.1,2.2).rx(0.388), 0.05,0.05,4.754, f);
+  }
+  S.pave('fer', x0,4.96,-0.05, x1,5.04,0.05, f);
+  for (const s of [-1,1]) S.boite('fer', T(13.9,4.1,s*2.2).rx(s*0.388), 0.05,0.05,4.754, f);
+  etiquette(S, ETIQ_CABINET, T(6.32,3.0,0).ry(PI/2), 0.7);
+  solide(x0,-4.9,x1+0.4,-4.3); solide(x0,4.3,x1+0.4,4.9); solide(13.8,-4.9,14.4,4.9);
+  // bassin du nénuphar géant
+  const bx0=8.0, bx1=11.6, bz=1.7;
+  S.pave('satin', bx0,0,-bz, bx1,0.45,-bz+0.2, COUL.marbre); S.pave('satin', bx0,0,bz-0.2, bx1,0.45,bz, COUL.marbre);
+  S.pave('satin', bx0,0,-bz, bx0+0.2,0.45,bz, COUL.marbre); S.pave('satin', bx1-0.2,0,-bz, bx1,0.45,bz, COUL.marbre);
+  S.pave('mat', bx0+0.2,0.0,-bz+0.2, bx1-0.2,0.06,bz-0.2, [0.12,0.16,0.12]);
+  S.quad('eau', T((bx0+bx1)/2,0.32,0).rx(-PI/2), bx1-bx0-0.4, 2*bz-0.4, [0.18,0.32,0.3]);
+  for (const [x,z,r] of [[8.85,-0.65,0.68],[9.95,0.55,0.62],[10.95,-0.75,0.58],[8.85,0.95,0.48],[10.2,-0.35,0.3]]) feuilleVictoria(S, x, 0.322, z, r);
+  etiquette(S, 13, T(10.9,0.452,bz-0.1).rx(-PI/2+0.25), 0.24);
+  solide(bx0,-bz,bx1,bz);
+  // plates-bandes : cacaoyer au nord, bananier au sud
+  for (const [za,zb] of [[-4.3,-2.2],[2.2,4.3]]){
+    S.pave('brique', 12.2,0,za, 13.8,0.22,za+0.08); S.pave('brique', 12.2,0,zb-0.08, 13.8,0.22,zb); S.pave('brique', 12.2,0,za, 12.28,0.22,zb);
+    S.pave('mat', 12.28,0,za+0.08, 13.8,0.18,zb-0.08, COUL.terre);
+    solide(12.2,za,13.8,zb);
+  }
+  cacaoyer(S, 12.95, -3.15, rng);
+  bananier(S, 12.95, 3.1, rng);
+  for (const [z,i] of [[-2.35,11],[2.35,12]]){ S.cyl('bois', T(12.32,0,z), 0.01,0.01,0.55,6,COUL.noyer); etiquette(S, i, T(12.32,0.6,z).ry(-PI/2).rx(-0.3), 0.22); }
+  // palmiers en caisse près de l'entrée, fougères le long du mur sud, établi au nord
+  palmier(S, 7.2, -3.6, rng); palmier(S, 7.2, 3.6, rng);
+  for (const x of [8.6,10.0,11.4]) fougereEnPot(S, x, 3.75, rng);
+  const c=COUL.noyer;
+  S.pave('bois', 8.4,0.82,-4.3, 11.6,0.87,-3.72, c);
+  for (const x of [8.5,11.5]) for (const z of [-4.22,-3.8]) S.pave('bois', x-0.03,0,z-0.03, x+0.03,0.82,z+0.03, c);
+  S.pave('bois', 8.45,0.25,-4.25, 11.55,0.28,-3.77, c);
+  for (let k=0;k<7;k++){ const x=8.7+k*0.42; S.tour('mat', T(x,0.87,-4.0), [[0,0],[0.06,0],[0.08,0.12],[0.085,0.12],[0,0.12]], 12, COUL.cuite); if (k%3!==2) for (let j=0;j<5;j++){ const a=j/5*TAU+k; S.feuille('feuille', T(x,0.99,-4.0).ry(a).rx(-0.7), 0.12,0.05,4, t=>Math.sin(PI*t), t=>-0.15*t*t, 0, COUL.feuillage2); } }
+  arrosoir(S, T(11.3,0,-3.4).ry(0.6));
+  solide(8.4,-4.3,11.6,-3.7);
+}
+function feuilleVictoria(S, x, y, z, R){
+  const prof=[[0,0],[R,0],[R,0.055],[R-0.016,0.055],[R-0.016,0.012],[R*0.75,0.012],[R*0.5,0.012],[R*0.25,0.012],[0,0.012]];
+  S.tour('satin', T(x,y,z).ry(R*7), prof, 56, (px,py,pz,u)=>{
+    const r=Math.hypot(px,pz);
+    if (py<0.005) return [0.45,0.13,0.15];
+    if (r>R-0.03) return [0.5,0.22,0.16];
+    const nerv = Math.abs(Math.sin(u*TAU*8))<0.12;
+    return nerv ? [0.32,0.48,0.18] : [0.22,0.42,0.14];
+  }, {dur:true});
+}
+function cacaoyer(S, x, z, rng){
+  const tronc=[[x,0.18,z],[x+0.02,0.8,z+0.01],[x-0.02,1.5,z+0.03],[x,2.1,z]];
+  S.tube('bois', I, tronc, t=>0.11-0.04*t, 10, [0.55,0.42,0.32]);
+  const fe=COUL.feuillageSombre;
+  for (let k=0;k<5;k++){
+    const a=k/5*TAU+0.4, h=1.7+k*0.08, L=0.7+rng()*0.2;
+    const p0=[x,h,z], p1=[x+Math.cos(a)*L*0.5,h+0.35,z+Math.sin(a)*L*0.5], p2=[x+Math.cos(a)*L,h+0.55,z+Math.sin(a)*L*0.9];
+    S.tube('bois', I, [p0,p1,p2], t=>0.05-0.03*t, 7, [0.5,0.38,0.28]);
+    for (let j=0;j<12;j++){
+      const b=rng()*TAU, el=-0.3-rng()*0.6, q=add(p2,[(rng()-0.5)*0.4,(rng()-0.5)*0.25,(rng()-0.5)*0.4]);
+      const jeune = rng()<0.15;
+      S.feuille('feuille', T(q[0],q[1],q[2]).ry(b).rx(-el), 0.34,0.12,5, t=>Math.pow(Math.sin(PI*Math.min(1,t*1.05)),0.7), t=>-0.25*t*t, 0, jeune?[0.6,0.25,0.22]:melangeC(fe,COUL.feuillage,rng()*0.5));
+    }
+  }
+  // fleurs minuscules et cabosses de décor, directement sur le tronc : la cauliflorie
+  for (let k=0;k<22;k++){ const a=rng()*TAU, h=0.5+rng()*1.3; S.sphere('satin', T(x+Math.cos(a)*0.085,h,z+Math.sin(a)*0.085), 0.008, 5,4, [0.95,0.85,0.82]); }
+  for (const [a,h,coul] of [[1.9,0.75,[0.55,0.15,0.2]],[4.0,1.35,[0.4,0.6,0.15]],[0.5,1.55,[0.85,0.55,0.12]],[5.0,0.95,[0.75,0.3,0.12]]]){
+    const p=[x+Math.cos(a)*0.14, h, z+Math.sin(a)*0.14];
+    S.geo('satin', T(p[0],p[1],p[2]).ry(PI-a).s(0.75), geoCabosse(), coul);
+  }
+}
+function geoCabosse(){
+  // ellipsoïde allongé à dix côtes, en pointe vers le bas ; le pédoncule (vers +x) rejoint le tronc
+  const g=geoSphere(20,14), d={P:[],N:g.N,U:g.U};
+  for (let i=0;i<g.P.length;i+=3){
+    let x=g.P[i], y=g.P[i+1], z=g.P[i+2];
+    const ph=Math.atan2(z,x), cote=1+0.08*Math.cos(10*ph);
+    let k=cote*(y<0 ? 1+0.45*y : 1-0.15*y*y);
+    x*=k; z*=k; y=y*(y<0 ? 1+0.2*y*y : 1);
+    d.P.push(x*0.06, y*0.11, z*0.06);
+  }
+  const t=geoCyl(0.008,0.006,0.06,6);
+  for (let i=0;i<t.P.length;i+=3){ const x=t.P[i], y=t.P[i+1], z=t.P[i+2]; d.P.push(y*1.2, 0.09+x+y*0.35, z); }
+  return {P:d.P, N:g.N.concat(t.N), U:g.U.concat(t.U)};
+}
+function bananier(S, x, z, rng){
+  const st=[[x,0.18,z],[x+0.03,1.2,z],[x+0.02,2.25,z+0.02]];
+  S.tube('satin', I, st, t=>0.16-0.06*t, 10, (px,py,pz,u,v)=> Math.sin(v*TAU*5+u*6)>0.6 ? [0.38,0.4,0.18] : [0.5,0.6,0.25]);
+  for (let k=0;k<8;k++){
+    const a=k/8*TAU+rng()*0.4, el=0.9-rng()*0.5;
+    S.cyl('feuille', T(x,2.2,z).ry(-a).rz(-0.4), 0.02,0.015,0.5,6,[0.4,0.55,0.2]);
+    S.feuille('feuille', T(x+Math.cos(a)*0.18,2.55,z+Math.sin(a)*0.18).ry(PI/2-a).rx(-el), 1.2,0.4,12,
+      t=>Math.min(1,t*5)*Math.min(1,(1-t)*5+0.25), t=>-0.55*t*t, 0.12, (px,py,pz,u)=> Math.abs(u-0.5)<0.1 ? [0.62,0.72,0.38] : melangeC([0.25,0.5,0.17],[0.35,0.58,0.2],rng()*0.3));
+  }
+  // la hampe qui porte le régime part du sommet et retombe
+  S.tube('satin', I, [[x+0.02,2.3,z],[x-0.15,2.45,z-0.05],[x-0.32,2.25,z-0.12],[x-0.4,1.9,z-0.15]], 0.025, 8, [0.42,0.45,0.2]);
+  for (let k=0;k<4;k++){ const r0=0.33+k*0.08; S.cyl('feuille', T(x,0.18,z).ry(k*1.7).t(r0,0,0), 0.08,0.05,0.28,8,[0.4,0.52,0.22]); }   // rejets
+}
+function palmier(S, x, z, rng){
+  S.pave('bois', x-0.3,0,z-0.3, x+0.3,0.5,z+0.3, [0.35,0.45,0.32]);
+  S.pave('mat', x-0.27,0.5,z-0.27, x+0.27,0.52,z+0.27, COUL.terre);
+  S.tube('bois', I, [[x,0.5,z],[x+0.05,1.4,z+0.03],[x+0.02,2.3,z]], t=>0.09-0.03*t, 9, (px,py,pz,u)=> Math.sin(u*60)>0.3 ? [0.48,0.38,0.26] : [0.4,0.31,0.21]);
+  for (let k=0;k<11;k++){ const a=k/11*TAU+rng()*0.3; S.feuille('feuille', T(x,2.3,z).ry(a).rx(-0.5-rng()*0.4), 0.95,0.28,10, t=>Math.sin(PI*Math.min(1,t*1.1)), t=>-0.5*t*t, 0.25, (px,py,pz,u)=> Math.abs(u-0.5)<0.08?[0.55,0.62,0.3]:[0.22,0.45,0.18]); }
+  solide(x-0.32,z-0.32,x+0.32,z+0.32);
+}
+function fougereEnPot(S, x, z, rng){
+  S.tour('mat', T(x,0,z), [[0,0],[0.16,0],[0.22,0.38],[0.24,0.4],[0.2,0.4],[0.2,0.36],[0,0.36]], 16, COUL.cuite, {dur:true});
+  for (let k=0;k<12;k++){ const a=k/12*TAU+rng()*0.4; S.feuille('feuille', T(x,0.38,z).ry(a).rx(-0.9-rng()*0.4), 0.55,0.18,10, t=>Math.sin(PI*t)*(0.6+0.4*Math.abs(Math.sin(t*40))), t=>-0.6*t*t, 0, COUL.feuillage2); }
+  solide(x-0.25,z-0.25,x+0.25,z+0.25);
+}
+function arrosoir(S, M){
+  const v=[0.42,0.5,0.45];
+  S.cyl('fer', M, 0.11,0.1,0.26,16,v);
+  S.tube('fer', M, [[0.08,0.06,0],[0.2,0.18,0],[0.3,0.3,0]], 0.014, 6, v);
+  S.cyl('fer', M.t(0.3,0.3,0).rz(-0.9), 0.02,0.035,0.05,8,v);
+  S.tube('fer', M, [[-0.09,0.24,0],[-0.02,0.36,0],[0.06,0.24,0]], 0.01, 5, v, {bouts:false});
+}
+
+/* ---------- modèles des curiosités (centrés sur leur origine) ---------- */
+function oiseau(B, M, type){
+  const cfg = {gros:{col:[0.13,0.12,0.11], bec:[0.022,0.03], tete:0.034, cb:[0.18,0.17,0.15]},
+               moyen:{col:[0.26,0.21,0.16], bec:[0.015,0.027], tete:0.031, cb:[0.3,0.27,0.22]},
+               fin:{col:[0.45,0.42,0.28], bec:[0.006,0.034], tete:0.027, cb:[0.32,0.28,0.2]}}[type];
+  B.sphere('satin', M.t(0,0.045,0).rx(-0.4).s(0.036,0.034,0.058), 1, 14,10, cfg.col);
+  B.sphere('satin', M.t(0,0.082,0.042), cfg.tete, 12,10, cfg.col);
+  for (const s of [-1,1]){ B.sphere('satin', M.t(s*0.031,0.05,-0.005).s(0.008,0.024,0.046), 1, 8,6, mult(cfg.col,0.8)); B.sphere('satin', M.t(s*0.021,0.088,0.06), 0.005, 6,5, [0.02,0.02,0.02]); }
+  B.cyl('satin', M.t(0,0.08,0.042+cfg.tete*0.8).rx(PI/2), cfg.bec[0], 0.001, cfg.bec[1], 10, cfg.cb);
+  B.boite('satin', M.t(0,0.03,-0.07).rx(0.35), 0.032,0.006,0.055, mult(cfg.col,0.85));
+  for (const s of [-1,1]) B.cyl('mat', M.t(s*0.012,0,0.005), 0.0025,0.0025,0.02,4,[0.25,0.2,0.15]);
+}
+function spirale(B, M, rFin, croissance, k, tours, pas, col, ecrase, cotes){
+  const b=Math.log(croissance)/TAU, pts=[], th0=-tours*TAU;
+  for (let th=th0; th<=0.0001; th+=pas){ const r=rFin*Math.exp(b*th); pts.push([r*Math.cos(th), r*Math.sin(th), 0]); }
+  const n=pts.length;
+  B.tube('satin', M, pts, t=>{ const th=th0+t*(-th0); const r=rFin*Math.exp(b*th); let rr=k*r; if (cotes) rr*=1+cotes*Math.pow(Math.max(0,Math.sin(th*18)),2); return [rr, rr*ecrase]; }, 14, col, {haut:[0,0,1]});
+  return n;
+}
+const MODELES = {
+  pinsons(B){
+    B.cyl('bois', T(0,-0.2,0), 0.15,0.15,0.03,24, COUL.noyer);
+    for (const x of [-0.11,0.11]) B.cyl('bois', T(x,-0.17,0), 0.008,0.008,0.085,6, COUL.noyer);
+    B.tube('mat', I, [[-0.17,-0.085,0],[-0.05,-0.095,0.015],[0.07,-0.08,-0.01],[0.17,-0.09,0]], t=>0.011-0.004*t, 7, [0.42,0.32,0.22]);
+    oiseau(B, T(-0.11,-0.077,0).ry(0.35), 'gros');
+    oiseau(B, T(0.0,-0.088,0.01).ry(-0.15), 'moyen');
+    oiseau(B, T(0.12,-0.08,0).ry(0.55), 'fin');
+  },
+  phalene(B){
+    const c=COUL.ebene, w=0.62, h=0.48, e=0.04;
+    B.boite('bois', T(0,0,-0.02), w,h,0.02, c);
+    B.boite('bois', T(0,h/2-e/2,0.01), w,e,0.06, c); B.boite('bois', T(0,-h/2+e/2,0.01), w,e,0.06, c);
+    B.boite('bois', T(-w/2+e/2,0,0.01), e,h,0.06, c); B.boite('bois', T(w/2-e/2,0,0.01), e,h,0.06, c);
+    B.quad('papillons', T(0,0,-0.009), w-2*e, h-2*e);
+    B.quad('verre', T(0,0,0.035), w-2*e, h-2*e);
+  },
+  tortue(B){
+    const sel = (x,y,z)=>{ const avant=Math.max(0,z); return [x, y + 0.42*Math.pow(avant,4)*(1-y), z]; };
+    B.sphere('ecaille', T(0,-0.15,0).s(0.36,0.36,0.46), 1, 36, 12, BLANC, {thMax:PI/2, deforme:sel});
+    B.cyl('satin', T(0,-0.17,0).s(0.33,1,0.43), 1,1,0.025,28, [0.62,0.5,0.3]);
+  },
+  nautile(B){
+    B.cyl('bois', T(0,-0.14,0), 0.06,0.07,0.02,16, COUL.ebene);
+    B.cyl('laiton', T(0,-0.12,0), 0.008,0.008,0.04,6, COUL.laiton);
+    spirale(B, T(0.01,0.03,0).rz(-0.5), 0.085, 3.0, 0.58, 3, 0.09, (x,y,z,u)=>{
+      const th=-3*TAU*(1-u); const flamme=Math.sin(th*7+Math.sin(th*2)*1.5);
+      const efface=lisse((0.9-u)/0.25);
+      if (u>0.995) return [0.82,0.78,0.84];
+      return flamme>0.25 ? melangeC([0.94,0.89,0.8],[0.55,0.3,0.15],efface) : [0.94,0.89,0.8];
+    }, 0.72, 0);
+  },
+  ammonite(B){
+    B.boite('bois', T(0,-0.125,0), 0.2,0.03,0.09, COUL.ebene);
+    spirale(B, T(0,0.03,0).rz(0.3), 0.1, 2.0, 0.38, 3.2, 0.045, (x,y,z,u)=>{
+      const th=-3.2*TAU*(1-u); const cote=Math.pow(Math.max(0,Math.sin(th*18)),2);
+      return melangeC([0.55,0.5,0.42],[0.72,0.66,0.55],cote*0.8);
+    }, 0.8, 0.12);
+  },
+  corail(B){
+    B.boite('bois', T(0,-0.18,0), 0.14,0.04,0.12, COUL.ebene);
+    const rng=aleaGraine(23);
+    const branche=(M,L,r,d)=>{
+      B.cyl('mat', M, r, r*0.82, L, 7, (x,y,z)=> [0.93-0.05*rng(),0.89-0.05*rng(),0.8]);
+      if (d===0){ B.sphere('mat', M.t(0,L,0), r*0.85, 7,5, [0.97,0.95,0.9]); return; }
+      const n=2+(rng()<0.55?1:0);
+      for (let k=0;k<n;k++){ const a=k/n*TAU+rng()*1.3, inc=0.3+rng()*0.45; branche(M.t(0,L*0.95,0).ry(a).rz(inc), L*(0.72+rng()*0.15), r*0.74, d-1); }
+    };
+    branche(T(0,-0.16,0), 0.1, 0.022, 4);
+    branche(T(0.03,-0.16,0.01).rz(-0.5), 0.08, 0.017, 3);
+  },
+  serpent(B){
+    const M=T(0,-0.18,0), r=0.115, h=0.36;
+    B.tour('verre', M, [[0,0],[r,0],[r*1.04,0.012],[r*1.04,h*0.86],[r*0.86,h*0.93],[r*0.8,h]], 24);
+    B.tour('liquide', M.t(0,0.004,0), [[0,0],[r*0.97,0],[r*0.97,h*0.8],[0,h*0.8]], 22, [0.85,0.75,0.45]);
+    B.cyl('mat', M.t(0,h-0.005,0), r*0.83,r*0.83,0.035,20,[0.55,0.4,0.25]);
+    B.cyl('mat', M.t(0,h+0.028,0), r*0.86,r*0.86,0.012,20,[0.35,0.12,0.1]);
+    const pts=[];
+    for (let s=0;s<=1.0001;s+=0.012){ const th=s*5.4*PI, R=0.075-0.025*s; pts.push([R*Math.cos(th), 0.03+s*0.2, R*Math.sin(th)]); }
+    const fin=pts[pts.length-1]; pts.push([fin[0]*0.6,fin[1]+0.03,fin[2]*0.6]); pts.push([fin[0]*0.3,fin[1]+0.045,fin[2]*0.3]);
+    B.tube('satin', M, pts, t=> t<0.12 ? 0.003+0.017*t/0.12 : (t>0.97 ? 0.022 : 0.02), 9, (x,y,z,u,v)=>{
+      if (Math.cos(v*TAU) < -0.55) return [0.78,0.72,0.55];
+      return (Math.sin(u*95)+0.4*Math.sin(v*TAU*2))>0.35 ? [0.62,0.48,0.27] : [0.2,0.14,0.09];
+    });
+    const p=pts[pts.length-1], q=pts[pts.length-3], dir=nrm(sub(p,q));
+    const ax=nrm(cross([0,1,0],dir)), ay=cross(dir,ax);
+    B.sphere('satin', enTr(M).fois(base3(p, ax, ay, dir)).s(0.026,0.018,0.034), 1, 10,8, [0.22,0.16,0.1]);
+    B.quad('etiquettes', M.t(0,0.12,r*1.045), 0.14, 0.035, BLANC, {uvRect:rectEtiquette(6)});
+  },
+  crocodile(B){
+    const prof=[[0,0.015,0.03],[0.2,0.08,0.11],[0.42,0.13,0.14],[0.5,0.2,0.14],[0.68,0.21,0.135],[0.76,0.15,0.1],[0.83,0.15,0.09],[0.88,0.12,0.07],[1,0.05,0.04]];
+    const interp=t=>{ for (let i=0;i<prof.length-1;i++){ const a=prof[i], b=prof[i+1]; if (t<=b[0]){ const k=(t-a[0])/(b[0]-a[0]); return [a[1]+(b[1]-a[1])*k, a[2]+(b[2]-a[2])*k]; } } return [0.05,0.04]; };
+    const pts=[]; for (let i=0;i<=60;i++){ const t=i/60, x=-1.1+t*2.2; pts.push([x, 0.02*Math.sin(t*3), 0.08*Math.sin(t*PI*1.6+0.4)*(1-t)]); }
+    B.tube('satin', I, pts, interp, 14, (x,y,z,u,v)=>{
+      if (Math.sin(v*TAU) < -0.5) return [0.66,0.6,0.44];          // ventre clair
+      const ecaille=Math.sin(u*170)>0.4 ? 0.82 : 1;                  // bandes de plaques osseuses
+      return mult([0.3,0.28,0.18], ecaille);
+    });
+    for (const s of [-1,1]){
+      B.sphere('satin', T(0.82,0.075,s*0.045), 0.022, 8,6, [0.3,0.28,0.18]);
+      B.sphere('satin', T(0.83,0.085,s*0.05), 0.01, 6,5, [0.55,0.45,0.1]);
+      for (let k=0;k<9;k++){ const xx=0.9+k*0.022, w=interp((xx+1.1)/2.2); B.cyl('satin', T(xx,-w[1]*0.25,s*w[0]*0.93).rx(PI), 0.0045,0,0.014,4,[0.95,0.92,0.82]); }
+      for (const [x,arr] of [[0.45,1],[-0.05,-1]]){
+        B.tube('satin', I, [[x,0,s*0.18],[x+0.04*arr,-0.06,s*0.3],[x+0.07*arr,-0.15,s*0.33]], 0.035, 7, [0.32,0.29,0.19]);
+        B.boite('satin', T(x+0.1*arr,-0.16,s*0.34), 0.09,0.02,0.07, [0.3,0.27,0.18]);
+      }
+    }
+  },
+  microscope(B){
+    const L=COUL.laiton, n=[0.12,0.1,0.08];
+    B.boite('satin', T(0,-0.19,0), 0.16,0.02,0.13, n);
+    B.cyl('laiton', T(0,-0.18,-0.04), 0.016,0.014,0.13,10,L);
+    B.boite('laiton', T(0,-0.045,0.005), 0.11,0.008,0.1, L);
+    B.boite('mat', T(0,-0.039,0.01), 0.075,0.002,0.026, [0.85,0.9,0.92]);
+    B.cyl('laiton', T(0,-0.12,0.01).rx(0.5), 0.027,0.027,0.006,16,L);
+    B.cyl('laiton', T(0,-0.119,0.01).rx(0.5), 0.022,0.022,0.007,16,[0.9,0.92,0.95]);
+    B.boite('laiton', T(0,0.06,-0.045), 0.024,0.2,0.022, L);
+    B.boite('laiton', T(0,0.12,-0.022), 0.02,0.03,0.04, L);
+    B.cyl('laiton', T(0,-0.015,0.01), 0.018,0.018,0.21,16,L);
+    B.cyl('laiton', T(0,-0.035,0.01), 0.008,0.012,0.022,10,[0.2,0.18,0.15]);
+    B.cyl('laiton', T(0,0.19,0.01), 0.014,0.014,0.04,12,L);
+    B.cyl('mat', T(0,0.228,0.01), 0.016,0.016,0.006,12,[0.1,0.08,0.06]);
+    for (const s of [-1,1]) B.cyl('laiton', T(s*0.012,0.1,-0.045).rz(s*PI/2), 0.018,0.018,0.012,14,L);
+  },
+  planche(B){
+    const w=0.88, h=0.68, e=0.055, o=[0.78,0.6,0.28];
+    B.boite('bois', T(0,0,-0.012), w,h,0.02, COUL.ebene);
+    B.boite('laiton', T(0,h/2-e/2,0.01), w,e,0.04, o); B.boite('laiton', T(0,-h/2+e/2,0.01), w,e,0.04, o);
+    B.boite('laiton', T(-w/2+e/2,0,0.01), e,h,0.04, o); B.boite('laiton', T(w/2-e/2,0,0.01), e,h,0.04, o);
+    B.quad('planche', T(0,0,0.0), w-2*e, h-2*e);
+  },
+  glossopetres(B){
+    B.boite('bois', T(0,-0.012,0), 0.34,0.024,0.22, COUL.noyer);
+    for (const [x,z,w,d] of [[0,-0.105,0.34,0.012],[0,0.105,0.34,0.012],[-0.165,0,0.012,0.22],[0.165,0,0.012,0.22]]) B.boite('bois', T(x,0.008,z), w,0.025,d, COUL.noyer);
+    B.boite('mat', T(0,0.001,0), 0.31,0.004,0.19, [0.42,0.08,0.08]);
+    const dents=[[-0.11,-0.04,0.3,1.3],[-0.03,0.04,-0.4,1.0],[0.06,-0.03,0.9,1.45],[0.12,0.05,-0.2,0.85],[-0.1,0.06,1.7,0.75]];
+    for (const [x,z,a,k] of dents){
+      const M=T(x,0.008,z).ry(a).s(k).rx(PI/2);
+      B.geo('satin', M.s(1,1,0.32), geoCyl(0.024,0.0015,0.055,14), (px,py)=> py<0.004 ? [0.42,0.32,0.22] : [0.38,0.37,0.36]);
+      B.boite('mat', M.t(0,-0.006,0), 0.052,0.014,0.016, [0.45,0.34,0.22]);
+    }
+  },
+  cacao(B){ B.geo('satin', T(0,0,0), geoCabosse(), (x,y)=> melangeC([0.93,0.68,0.16],[0.8,0.38,0.1], lisse(0.5-y*5))); },
+  banane(B){
+    B.tube('satin', I, [[0,0.42,0],[0.0,0.2,0.01],[0.02,-0.1,0],[0.01,-0.36,0]], 0.022, 8, [0.4,0.42,0.18]);
+    const rng=aleaGraine(37);
+    [0.25,0.1,-0.05,-0.2].forEach((y,m)=>{
+      const n=8-m;
+      for (let k=0;k<n;k++){
+        const a=(k/(n-1)-0.5)*PI*1.4+(m%2?0.3:-0.3)+PI/2, d=[Math.cos(a),0,Math.sin(a)];
+        const L=0.17-m*0.012, pts=[];
+        for (let i=0;i<=8;i++){ const s=i/8; pts.push(add([0,y,0], add(sca(d,0.02+L*0.75*s), [0, L*(0.15*s+0.7*s*s)+ (rng()-0.5)*0.004, 0]))); }
+        B.tube('satin', I, pts, t=>0.004+0.016*Math.pow(Math.sin(PI*Math.min(1,t*1.05)),0.6), 5, (x,yy,z,u)=> u>0.93 ? [0.2,0.18,0.1] : [0.6,0.68,0.2]);
+      }
+    });
+    B.sphere('satin', T(0.01,-0.44,0).s(0.05,0.1,0.05), 1, 12,10, [0.42,0.1,0.16]);
+    B.sphere('satin', T(0.01,-0.41,0.012).s(0.054,0.085,0.05), 1, 12,10, [0.5,0.14,0.2]);
+  },
+  victoria(B){
+    B.sphere('satin', T(0,-0.02,0).s(0.06,0.04,0.06), 1, 12,8, [0.45,0.15,0.18]);
+    const couronne=(n,L,W,el,r0,coul,dec)=>{ for (let k=0;k<n;k++){ const a=k/n*TAU+dec; B.feuille('feuille', T(Math.cos(a)*r0,0,Math.sin(a)*r0).ry(PI/2-a).rx(-el), L,W,6, t=>Math.pow(Math.sin(PI*Math.min(1,t*1.02)),0.6), t=>-0.12*t*t, 0.15, coul); } };
+    couronne(4, 0.13, 0.06, 0.15, 0.04, [0.45,0.13,0.18], 0.4);
+    couronne(14, 0.12, 0.045, 0.55, 0.035, (x,y,z,u,v)=>melangeC([0.97,0.95,0.9],[0.98,0.88,0.88],v), 0);
+    couronne(12, 0.1, 0.04, 0.95, 0.03, [0.98,0.9,0.9], 0.13);
+    couronne(10, 0.075, 0.035, 1.25, 0.022, [0.92,0.6,0.66], 0.3);
+    B.cyl('satin', T(0,0.0,0), 0.025,0.012,0.05,12,[0.95,0.88,0.6]);
+  }
+};
+/* une curiosité tenue en main occupe à peu près ce rayon (m) devant les yeux */
+const TENUE = {crocodile:0.32, planche:0.3, phalene:0.28, tortue:0.27};
+const NE_TOURNE_PAS = {planche:true, phalene:true};
+
+/* ============================================================
+   5. AFFICHAGE — scène, fiche, carnet, bilan
+   ============================================================ */
+const canvas = document.getElementById('scene');
+const $ = id => document.getElementById(id);
+let SCENE = null, OBJETS = [], FLAMMES = [], dpr = 1, temps = 0;
+const parId = {}; CURIOSITES.forEach(c=>parId[c.id]=c);
+
+function construireTout(){
+  const rng = aleaGraine(1840);
+  [['parquet',texParquet],['bois',texBois],['tapisserie',texTapisserie],['brique',texBrique],['dalles',texDalles],['tapis',texTapis],
+   ['livres',texLivres],['ecaille',texEcaille],['planche',texPlanche],['papillons',texPapillons],['etiquettes',texEtiquettes],
+   ['herbier',texHerbier],['globe',texGlobe]].forEach(([n,f])=>creerTexture(n, f()));
+  const S = new Constructeur();
+  construireCabinet(S, rng);
+  construireSerre(S, rng);
+  construireDehors(S, rng);
+  SCENE = televerser(S);
+  // les curiosités, chacune dans sa propre « boîte » pour pouvoir la saisir
+  OBJETS = CURIOSITES.map(c=>{
+    const B = new Constructeur(); MODELES[c.id](B);
+    const mod = televerser(B), pl = PLACES[c.id];
+    const q = qAxe(0,1,0,pl.ry);
+    return {id:c.id, modele:mod, pos:pl.p, q, rayon:mod.rayon, tenue:TENUE[c.id]||0.22, tourne:!NE_TOURNE_PAS[c.id],
+      repos:new Float32Array(composer(pl.p, q, 1)), ph:Math.random()*TAU};
+  });
+  FLAMMES = ANIMES.map(a=>({modele:televerser(a.C), p:a.p, vac:a.vac, ph:a.ph}));
+}
+
+/* --- caméra --- */
+function baseCamera(yaw, pitch){
+  const cp=Math.cos(pitch);
+  const f=[Math.sin(yaw)*cp, Math.sin(pitch), -Math.cos(yaw)*cp];
+  const d=[Math.cos(yaw), 0, Math.sin(yaw)];
+  return {f, d, h:cross(d,f)};
+}
+function matriceVue(e, b){
+  const {f,d,h}=b;
+  return [d[0],h[0],-f[0],0, d[1],h[1],-f[1],0, d[2],h[2],-f[2],0, -dot(d,e),-dot(h,e),dot(f,e),1];
+}
+function redimensionner(){
+  const w = window.innerWidth, h = window.innerHeight;
+  const plafond = etat.tactile ? 1.5 : 2;
+  dpr = Math.min(window.devicePixelRatio || 1, plafond) * (etat.qualite || 1);
+  canvas.width = Math.max(1, Math.round(w*dpr)); canvas.height = Math.max(1, Math.round(h*dpr));
+  cam.asp = w/h;
+  // en portrait, on élargit le champ pour garder une vue confortable
+  cam.fov = Math.min(1.75, Math.max(1.13, 2*Math.atan(Math.tan(0.62)/cam.asp)));
+}
+
+/* --- dessin d'une image --- */
+const LPOS = new Float32Array(NL*3), LCOL = new Float32Array(NL*3), LRAY = new Float32Array(NL);
+function dessiner(){
+  if (!SCENE) return;
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(0.06,0.045,0.03,1); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  const b = baseCamera(J.yaw, J.pitch);
+  const VP = M4.mul(M4.persp(cam.fov, cam.asp, 0.04, 200), matriceVue(cam.pos, b));
+  gl.uniformMatrix4fv(U.uVP, false, new Float32Array(VP));
+  gl.uniform3fv(U.uCam, cam.pos);
+  const calme = reduitMouvement();
+  LUMIERES.forEach((L,i)=>{
+    let k=L.k;
+    if (L.vac && !calme) k *= 1 + L.vac*(Math.sin(temps*7.3+i)*0.5+Math.sin(temps*13.1+2*i)*0.3+Math.sin(temps*23.7+i)*0.2);
+    LPOS.set(L.p, i*3); LCOL.set(sca(L.c,k), i*3); LRAY[i]=L.r;
+  });
+  gl.uniform3fv(U.uLPos, LPOS); gl.uniform3fv(U.uLCol, LCOL); gl.uniform1fv(U.uLRay, LRAY);
+  gl.uniform3fv(U.uAmbInt, [0.2,0.16,0.12]); gl.uniform3fv(U.uAmbExt, [0.5,0.53,0.5]);
+  gl.uniform3fv(U.uSoleilDir, nrm([-0.45,0.62,0.6])); gl.uniform3fv(U.uSoleilCol, [0.95,0.86,0.68]);
+  gl.uniform3fv(U.uBrumeInt, [0.11,0.08,0.06]); gl.uniform3fv(U.uBrumeExt, [0.82,0.8,0.72]);
+
+  const insp = etat.inspection, e = insp ? lisse(insp.t) : 0, dim = 1 - 0.5*e;
+  const tenu = insp ? insp.ob : null;
+  const lueur = ob => {
+    if (ob === tenu) return null;
+    if (ob === etat.cible) { const p=0.65+0.35*Math.sin(temps*5); return [0.3*p,0.22*p,0.1*p]; }
+    if (!progression.vus[ob.id] && etat.ecran==='jeu'){ const p=0.5+0.5*Math.sin(temps*2.2+ob.ph); return [0.14*p,0.1*p,0.04*p]; }
+    return null;
+  };
+  // 1. opaques
+  gl.disable(gl.BLEND); gl.depthMask(true);
+  dessinerModele(SCENE, ID4, null, dim, false);
+  for (const ob of OBJETS) if (ob !== tenu) dessinerModele(ob.modele, ob.repos, lueur(ob), dim, false);
+  const flammes = FLAMMES.map(fl=>{ const s = calme ? 1 : 1 + fl.vac*Math.sin(temps*11+fl.ph)*0.8 + 0.1*Math.sin(temps*23+fl.ph*2);
+    return new Float32Array(M4.mul(M4.tr(fl.p[0],fl.p[1],fl.p[2]), M4.sc(1, Math.max(0.6,s), 1))); });
+  FLAMMES.forEach((fl,i)=>dessinerModele(fl.modele, flammes[i], null, dim, false));
+  // 2. transparents (verre, eau), sans écrire la profondeur
+  gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+  dessinerModele(SCENE, ID4, null, dim, true);
+  for (const ob of OBJETS) if (ob !== tenu) dessinerModele(ob.modele, ob.repos, lueur(ob), dim, true);
+  gl.depthMask(true); gl.disable(gl.BLEND);
+  // 3. l'objet tenu en main, par-dessus tout le reste (il ne traverse jamais un mur)
+  if (tenu){
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+    const M = new Float32Array(matriceTenue(tenu, e));
+    dessinerModele(tenu.modele, M, null, 1, false);
+    gl.enable(gl.BLEND); gl.depthMask(false);
+    dessinerModele(tenu.modele, M, null, 1, true);
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  }
+}
+function poseTenue(ob){
+  const large = window.innerWidth >= 820;
+  const th = Math.tan(cam.fov/2), frac = large ? 0.42 : 0.3;
+  const dist = Math.max(0.3, ob.tenue/(frac*th));
+  const ndc = large ? [-0.38, 0.04] : [0, 0.47];
+  const b = baseCamera(J.yaw, J.pitch);
+  const p = add(cam.pos, add(sca(b.f,dist), add(sca(b.d, ndc[0]*th*cam.asp*dist), sca(b.h, ndc[1]*th*dist))));
+  const insp = etat.inspection;
+  const q = qMul(qAxe(0,1,0,-J.yaw), qMul(qAxe(1,0,0,insp.rx), qAxe(0,1,0,insp.ry)));
+  return {p, q, s:Math.max(0.15, Math.min(3, ob.tenue/ob.rayon))};
+}
+function matriceTenue(ob, e){
+  const t = poseTenue(ob);
+  const p = [ob.pos[0]+(t.p[0]-ob.pos[0])*e, ob.pos[1]+(t.p[1]-ob.pos[1])*e, ob.pos[2]+(t.p[2]-ob.pos[2])*e];
+  return composer(p, qSlerp(ob.q, t.q, e), 1+(t.s-1)*e);
+}
+
+/* --- interface : fiche d'examen --- */
+function melanger(t){ const a=t.slice(); for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function compteBonnes(niv){ return Object.values(progression.rep[niv]).filter(r=>r.ok).length; }
+function majCompteur(){
+  const vus = CURIOSITES.filter(c=>progression.vus[c.id]).length;
+  $('compteur').textContent = `🔍 ${vus} / ${CURIOSITES.length} curiosités · ✓ ${compteBonnes(etat.niveau)}`;
+}
+function ouvrirFiche(ob){
+  const c = parId[ob.id], Q = c[etat.niveau];
+  $('f-emoji').textContent = c.emoji; $('f-nom').textContent = c.nom; $('f-latin').textContent = c.latin;
+  $('f-regne').textContent = c.regne; $('f-niveau').textContent = 'Question ' + NIVEAUX[etat.niveau].toLowerCase();
+  $('f-desc').textContent = c.desc; $('f-savais').textContent = c.savais;
+  $('f-q').textContent = Q.q;
+  $('f-astuce').textContent = etat.tactile ? 'Fais glisser le doigt sur l’objet pour le tourner.' : 'Fais glisser l’objet avec la souris pour le tourner. Échap pour le reposer.';
+  const zone = $('f-choix'); zone.textContent = '';
+  const ordre = melanger(Q.choix.map((_,i)=>i));
+  ordre.forEach((idx,k)=>{
+    const bt = document.createElement('button'); bt.type='button'; bt.dataset.i = idx;
+    const l = document.createElement('span'); l.className='lettre'; l.textContent = String(k+1);
+    const t = document.createElement('span'); t.textContent = Q.choix[idx];
+    bt.append(l,t); bt.addEventListener('click', ()=>repondre(ob, idx));
+    zone.appendChild(bt);
+  });
+  $('f-retour').textContent = '';
+  const deja = progression.rep[etat.niveau][ob.id];
+  if (deja) afficherRetour(ob, deja.choix, true);
+  $('fiche').classList.remove('hidden');
+  $('fiche').scrollTop = 0;
+  const premier = zone.querySelector('button:not(:disabled)') || $('f-fermer');
+  setTimeout(()=>premier.focus({preventScroll:true}), 60);
+}
+function repondre(ob, idx){
+  const niv = etat.niveau;
+  if (progression.rep[niv][ob.id]) return;
+  const ok = idx === 0;
+  progression.rep[niv][ob.id] = {ok, choix:idx};
+  sauver(); majCompteur();
+  afficherRetour(ob, idx, false);
+}
+function afficherRetour(ob, idx, deja){
+  const c = parId[ob.id], Q = c[etat.niveau], ok = idx === 0;
+  $('f-choix').querySelectorAll('button').forEach(bt=>{
+    const i = +bt.dataset.i; bt.disabled = true;
+    if (i === 0){ bt.classList.add('juste'); bt.querySelector('.lettre').textContent='✓'; bt.setAttribute('aria-label','Bonne réponse : '+Q.choix[i]); }
+    else if (i === idx){ bt.classList.add('faux'); bt.querySelector('.lettre').textContent='✗'; bt.setAttribute('aria-label','Ta réponse, inexacte : '+Q.choix[i]); }
+  });
+  const box = document.createElement('div'); box.className = 'retour ' + (ok?'ok':'ko');
+  const tit = document.createElement('strong');
+  tit.textContent = (ok ? '✅ Bien vu !' : '❌ Pas tout à fait.') + (deja ? ' (tu avais déjà répondu)' : '');
+  box.appendChild(tit);
+  if (!ok){ const r=document.createElement('p'); r.className='rappel'; r.textContent='La bonne réponse : '+Q.choix[0]; box.appendChild(r); }
+  const ex = document.createElement('p'); ex.textContent = Q.expl; box.appendChild(ex);
+  const mots = document.createElement('div'); mots.className='mots';
+  const lab = document.createElement('span'); lab.textContent='À retenir'; lab.style.background='#e8dcc0'; mots.appendChild(lab);
+  c.mots.forEach(m=>{ const s=document.createElement('span'); s.textContent=m; mots.appendChild(s); });
+  box.appendChild(mots);
+  const pr = document.createElement('p'); pr.className='prog'; pr.textContent = Q.prog; box.appendChild(pr);
+  const act = document.createElement('div'); act.className='f-actions';
+  const bt = document.createElement('button'); bt.type='button'; bt.className='btn principal'; bt.textContent='Reposer l’objet';
+  bt.addEventListener('click', reposer); act.appendChild(bt);
+  box.appendChild(act);
+  const zone = $('f-retour'); zone.textContent=''; zone.appendChild(box);
+  if (!deja){ setTimeout(()=>{ box.scrollIntoView({behavior: reduitMouvement()?'auto':'smooth', block:'nearest'}); bt.focus({preventScroll:true}); }, 80); }
+}
+
+/* --- carnet et bilan --- */
+function ouvrirModale(id){
+  fermerModales(); touches.clear();
+  if (document.pointerLockElement) document.exitPointerLock();
+  etat.modale = id; $(id).classList.remove('hidden');
+  const f = $(id).querySelector('button'); if (f) setTimeout(()=>f.focus({preventScroll:true}), 30);
+}
+function fermerModales(){ ['m-aide','m-carnet','m-bilan'].forEach(i=>$(i).classList.add('hidden')); etat.modale=null; }
+function autreNiveau(){ return etat.niveau==='college' ? 'lycee' : 'college'; }
+function ouvrirCarnet(){
+  const niv = etat.niveau, rep = progression.rep[niv];
+  const vus = CURIOSITES.filter(c=>progression.vus[c.id]).length, faites = Object.keys(rep).length;
+  $('carnet-niveau').textContent = 'Niveau ' + NIVEAUX[niv].toLowerCase();
+  $('carnet-barre').style.width = (100*faites/CURIOSITES.length)+'%';
+  $('carnet-resume').textContent = `${vus} curiosité${vus>1?'s':''} trouvée${vus>1?'s':''} sur ${CURIOSITES.length} · ${faites} question${faites>1?'s':''} traitée${faites>1?'s':''}, dont ${compteBonnes(niv)} réussie${compteBonnes(niv)>1?'s':''} du premier coup.`;
+  const g = $('carnet-grille'); g.textContent='';
+  CURIOSITES.forEach(c=>{
+    const d=document.createElement('div'); const connu=!!progression.vus[c.id];
+    d.className='entree'+(connu?'':' inconnue');
+    const em=document.createElement('span'); em.className='e-emoji'; em.textContent = connu ? c.emoji : '❔'; em.setAttribute('aria-hidden','true');
+    const nm=document.createElement('strong'); nm.textContent = connu ? c.nom : 'À trouver';
+    const et=document.createElement('span'); et.className='etat';
+    if (!connu) et.textContent = c.ou;
+    else if (!rep[c.id]) et.textContent = 'Question pas encore traitée';
+    else et.textContent = rep[c.id].ok ? '✓ réussie' : '✗ à revoir';
+    d.append(em,nm,et);
+    if (connu){ const b=document.createElement('button'); b.type='button'; b.textContent='Faire venir l’objet'; b.addEventListener('click',()=>{ fermerModales(); saisir(OBJETS.find(o=>o.id===c.id)); }); d.appendChild(b); }
+    g.appendChild(d);
+  });
+  $('b-niveau-carnet').textContent = 'Passer au niveau ' + NIVEAUX[autreNiveau()].toLowerCase();
+  $('b-bilan-carnet').disabled = faites === 0;
+  ouvrirModale('m-carnet');
+}
+function ouvrirBilan(){
+  const niv = etat.niveau, rep = progression.rep[niv];
+  const faites = Object.keys(rep).length, bonnes = compteBonnes(niv), pct = faites ? Math.round(100*bonnes/faites) : 0;
+  $('bilan-niveau').textContent = 'Niveau ' + NIVEAUX[niv].toLowerCase();
+  const corps = $('bilan-corps'); corps.textContent='';
+  const p1=document.createElement('p');
+  p1.textContent = faites === CURIOSITES.length
+    ? `Ton carnet est complet : ${bonnes} bonne${bonnes>1?'s':''} réponse${bonnes>1?'s':''} du premier coup sur ${CURIOSITES.length} (${pct} %).`
+    : `${faites} question${faites>1?'s':''} traitée${faites>1?'s':''} sur ${CURIOSITES.length}, dont ${bonnes} réussie${bonnes>1?'s':''} du premier coup (${pct} %). Il reste des curiosités à trouver !`;
+  const p2=document.createElement('p');
+  p2.textContent = pct>=80 ? 'Un vrai regard de naturaliste.' : pct>=50 ? 'Belle exploration : relis les fiches marquées « à revoir ».' : 'Les explications des fiches sont là pour ça : refais venir les objets marqués « à revoir » depuis ton carnet.';
+  const p3=document.createElement('p');
+  p3.textContent = 'Ce que racontent ces curiosités : la diversité du vivant est le fruit de l’évolution (variations héréditaires, sélection naturelle, isolement), et la parenté entre les êtres vivants se lit dans les attributs qu’ils partagent.';
+  const h=document.createElement('p'); h.className='sur-titre'; h.textContent='Les notions rencontrées';
+  const mots=document.createElement('div'); mots.className='mots';
+  const vus=new Set(); CURIOSITES.filter(c=>rep[c.id]).forEach(c=>c.mots.forEach(m=>{ if(!vus.has(m)){ vus.add(m); const s=document.createElement('span'); s.textContent=m; mots.appendChild(s);} }));
+  corps.append(p1,p2,p3,h,mots);
+  const ul=document.createElement('ul'); ul.style.cssText='margin:12px 0 0 18px;font-size:15px;line-height:1.6';
+  CURIOSITES.forEach(c=>{ if(!rep[c.id]) return; const li=document.createElement('li'); li.textContent=(rep[c.id].ok?'✓ ':'✗ ')+c.nom; ul.appendChild(li); });
+  corps.appendChild(ul);
+  $('b-niveau-bilan').textContent = 'Essayer les questions ' + NIVEAUX[autreNiveau()].toLowerCase();
+  ouvrirModale('m-bilan');
+}
+function imprimer(){
+  const niv = etat.niveau, rep = progression.rep[niv], zone = $('impression');
+  zone.textContent='';
+  const h=document.createElement('h1'); h.textContent='Mon carnet de naturaliste — Cabinet des curiosités';
+  const p=document.createElement('p'); p.textContent=`Niveau ${NIVEAUX[niv].toLowerCase()} · ${new Date().toLocaleDateString('fr-FR')} · ${compteBonnes(niv)} réussite(s) du premier coup sur ${Object.keys(rep).length} question(s) traitée(s).`;
+  const tb=document.createElement('table'); const tr0=document.createElement('tr');
+  ['Curiosité','Question','Résultat','À retenir'].forEach(t=>{ const th=document.createElement('th'); th.textContent=t; tr0.appendChild(th); }); tb.appendChild(tr0);
+  CURIOSITES.forEach(c=>{
+    const tr=document.createElement('tr'); const r=rep[c.id];
+    [c.nom+' ('+c.latin+')', c[niv].q, r ? (r.ok?'✓ réussie':'✗ à revoir — '+c[niv].choix[0]) : 'non traitée', c.mots.join(', ')].forEach(t=>{ const td=document.createElement('td'); td.textContent=t; tr.appendChild(td); });
+    tb.appendChild(tr);
+  });
+  zone.append(h,p,tb);
+  window.print();
+}
+let minuteurToast = 0;
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('vu'); clearTimeout(minuteurToast); minuteurToast=setTimeout(()=>t.classList.remove('vu'), 2600); }
+function consigne(msg){ const c=$('consigne'); if (!msg){ c.classList.add('hidden'); return; } c.textContent=msg; c.classList.remove('hidden'); }
+
+/* ============================================================
+   6. COMMANDES, NAVIGATION, INITIALISATION
+   ============================================================ */
+const touches = new Set();
+const manette = {id:null, x0:0, y0:0, x:0, y:0};
+let regard = null;          // glisser pour regarder (tactile, ou souris sans capture)
+let tourne = null;          // glisser pour tourner l'objet tenu
+let derniereConsigne = 0;
+
+function reduitMouvement(){ return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+
+function collision(x, z){
+  const r = 0.28;
+  for (const s of SOLIDES) if (x>s[0]-r && x<s[2]+r && z>s[1]-r && z<s[3]+r) return true;
+  return false;
+}
+function deplacer(dt){
+  let av=0, la=0;
+  if (touches.has('KeyW')||touches.has('ArrowUp')) av+=1;
+  if (touches.has('KeyS')||touches.has('ArrowDown')) av-=1;
+  if (touches.has('KeyD')||touches.has('ArrowRight')) la+=1;
+  if (touches.has('KeyA')||touches.has('ArrowLeft')) la-=1;
+  if (manette.id!==null){ av += -manette.y; la += manette.x; }
+  const n=Math.hypot(av,la); if (n>1){ av/=n; la/=n; }
+  const v=((touches.has('ShiftLeft')||touches.has('ShiftRight')) ? 3.6 : 2.0)*dt;
+  const fx=Math.sin(J.yaw), fz=-Math.cos(J.yaw), rx=Math.cos(J.yaw), rz=Math.sin(J.yaw);
+  const dx=(fx*av+rx*la)*v, dz=(fz*av+rz*la)*v;
+  if (dx && !collision(J.x+dx, J.z)) J.x+=dx;
+  if (dz && !collision(J.x, J.z+dz)) J.z+=dz;
+  if (n>0.05) J.pas += dt*9*Math.min(1,n);
+}
+function interSphere(o, d, c, r){
+  const oc=sub(o,c), b=dot(oc,d), cc=dot(oc,oc)-r*r, disc=b*b-cc;
+  if (disc<0) return null;
+  const s=Math.sqrt(disc); let t=-b-s; if (t<0) t=-b+s; return t<0 ? null : t;
+}
+function viser(o, d){
+  let best=null, bt=PORTEE;
+  for (const ob of OBJETS){ const t=interSphere(o,d,ob.pos,Math.max(0.12, ob.rayon*0.85)); if (t!==null && t<bt){ bt=t; best=ob; } }
+  return best;
+}
+function rayonEcran(px, py){
+  const r=canvas.getBoundingClientRect(), nx=((px-r.left)/r.width)*2-1, ny=1-((py-r.top)/r.height)*2;
+  const th=Math.tan(cam.fov/2), b=baseCamera(J.yaw,J.pitch);
+  return nrm(add(b.f, add(sca(b.d, nx*th*cam.asp), sca(b.h, ny*th))));
+}
+function majCible(){
+  const ancienne = etat.cible;
+  etat.cible = (etat.ecran==='jeu' && !etat.inspection && !etat.modale) ? viser(cam.pos, baseCamera(J.yaw,J.pitch).f) : null;
+  if (ancienne === etat.cible) return;
+  const v=$('viseur'), c=$('cible'), bs=$('b-saisir');
+  if (etat.cible){
+    v.classList.add('actif');
+    const nom = progression.vus[etat.cible.id] ? parId[etat.cible.id].nom : 'Une curiosité';
+    c.textContent = (etat.tactile ? '✋ ' : '✋ Saisir : ') + nom;
+    if (!etat.tactile){ const k=document.createElement('kbd'); k.textContent='clic ou E'; c.appendChild(k); }
+    c.classList.remove('hidden');
+    if (etat.tactile) bs.classList.remove('hidden');
+  } else { v.classList.remove('actif'); c.classList.add('hidden'); bs.classList.add('hidden'); }
+}
+function saisir(ob){
+  if (!ob || etat.inspection) return;
+  if (document.pointerLockElement) document.exitPointerLock();
+  touches.clear(); manette.id=null; $('manette').classList.add('hidden');
+  etat.inspection = {ob, t:0, sens:1, rx:ob.tourne?0.3:0, ry:0};
+  const nouveau = !progression.vus[ob.id];
+  progression.vus[ob.id] = true; sauver(); majCompteur();
+  if (nouveau) toast('📔 Nouvelle curiosité dans ton carnet : ' + parId[ob.id].nom);
+  $('viseur').classList.add('hidden'); $('cible').classList.add('hidden'); $('b-saisir').classList.add('hidden'); consigne('');
+  etat.cible = null;
+  ouvrirFiche(ob);
+}
+function reposer(){
+  const insp = etat.inspection; if (!insp || insp.sens<0) return;
+  insp.sens = -1;
+  $('fiche').classList.add('hidden');
+  canvas.focus({preventScroll:true});
+}
+function finInspection(){
+  etat.inspection = null;
+  $('viseur').classList.remove('hidden');
+  const niv = etat.niveau;
+  if (Object.keys(progression.rep[niv]).length === CURIOSITES.length && !progression.bilanVu[niv]){
+    progression.bilanVu[niv] = true; sauver(); ouvrirBilan(); return;
+  }
+  consigne(etat.tactile ? 'Glisse à gauche pour marcher, à droite pour regarder.' : (etat.verrouImpossible ? 'Fais glisser la souris pour regarder.' : 'Clique dans la vue pour reprendre la promenade.'));
+  derniereConsigne = temps;
+}
+function majInspection(dt){
+  const insp = etat.inspection; if (!insp) return;
+  insp.t += insp.sens*dt/0.5;
+  if (insp.t >= 1){ insp.t = 1; if (insp.ob.tourne && !tourne && !reduitMouvement()) insp.ry += dt*0.4; }
+  if (insp.t <= 0 && insp.sens < 0) finInspection();
+}
+
+/* --- clavier --- */
+window.addEventListener('keydown', e=>{
+  if (etat.modale){ if (e.key==='Escape'){ fermerModales(); e.preventDefault(); if (etat.ecran!=='jeu') $('b-entrer').focus(); } return; }
+  if (etat.ecran !== 'jeu') return;
+  if (etat.inspection){
+    if (e.key==='Escape'){ reposer(); e.preventDefault(); return; }
+    if (/^[1-4]$/.test(e.key) && !e.target.closest('input,textarea')){
+      const bts=$('f-choix').querySelectorAll('button'); const b=bts[+e.key-1]; if (b && !b.disabled){ b.click(); e.preventDefault(); }
+    }
+    return;
+  }
+  if (e.target.closest && e.target.closest('button,a') && (e.key===' '||e.key==='Enter')) return;
+  touches.add(e.code);
+  if (e.code==='KeyE'){ saisir(etat.cible); e.preventDefault(); }
+  if (e.code==='KeyC'){ ouvrirCarnet(); e.preventDefault(); }
+  if (/^Arrow/.test(e.code) || e.code==='Space') e.preventDefault();
+});
+window.addEventListener('keyup', e=>touches.delete(e.code));
+window.addEventListener('blur', ()=>{ touches.clear(); manette.id=null; });
+
+/* --- souris --- */
+canvas.addEventListener('mousedown', e=>{
+  if (etat.ecran!=='jeu' || etat.modale || e.button!==0) return;
+  if (etat.inspection){ tourne={x:e.clientX, y:e.clientY}; return; }
+  if (document.pointerLockElement===canvas){ saisir(etat.cible); return; }
+  regard={x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, bouge:false};
+});
+window.addEventListener('mousemove', e=>{
+  if (etat.ecran!=='jeu') return;
+  if (tourne && etat.inspection){ const i=etat.inspection; i.ry += (e.clientX-tourne.x)*0.01; i.rx = Math.max(-1.3, Math.min(1.5, i.rx + (e.clientY-tourne.y)*0.01)); tourne={x:e.clientX, y:e.clientY}; return; }
+  if (document.pointerLockElement===canvas){ tournerRegard(e.movementX, e.movementY, 0.0024); return; }
+  if (regard){ const dx=e.clientX-regard.x, dy=e.clientY-regard.y; regard.x=e.clientX; regard.y=e.clientY;
+    if (Math.abs(e.clientX-regard.x0)+Math.abs(e.clientY-regard.y0)>5) regard.bouge=true;
+    tournerRegard(dx, dy, 0.005); }
+});
+window.addEventListener('mouseup', e=>{
+  tourne=null;
+  if (!regard) return;
+  const r=regard; regard=null;
+  if (r.bouge || etat.inspection || etat.modale) return;
+  const ob = viser(cam.pos, rayonEcran(e.clientX, e.clientY));
+  if (ob){ saisir(ob); return; }
+  demanderCapture();
+});
+function tournerRegard(dx, dy, k){ J.yaw += dx*k; J.pitch = Math.max(-1.45, Math.min(1.45, J.pitch - dy*k)); }
+function demanderCapture(){
+  if (etat.verrouImpossible || !canvas.requestPointerLock) return;
+  try { const p = canvas.requestPointerLock(); if (p && p.catch) p.catch(()=>{ etat.verrouImpossible = true; consigne('Fais glisser la souris pour regarder autour de toi.'); }); }
+  catch(err){ etat.verrouImpossible = true; }
+}
+document.addEventListener('pointerlockchange', ()=>{
+  if (document.pointerLockElement===canvas){ consigne(''); }
+  else if (etat.ecran==='jeu' && !etat.inspection && !etat.modale){ consigne('Clique dans la vue pour reprendre la promenade.'); }
+});
+document.addEventListener('pointerlockerror', ()=>{ etat.verrouImpossible = true; consigne('Fais glisser la souris pour regarder autour de toi.'); });
+
+/* --- tactile --- */
+canvas.addEventListener('touchstart', e=>{
+  if (etat.ecran!=='jeu' || etat.modale) return;
+  e.preventDefault();
+  if (!etat.tactile){ etat.tactile = true; redimensionner(); }
+  for (const t of e.changedTouches){
+    if (etat.inspection){ tourne={id:t.identifier, x:t.clientX, y:t.clientY}; continue; }
+    if (t.clientX < window.innerWidth*0.45 && manette.id===null){
+      Object.assign(manette, {id:t.identifier, x0:t.clientX, y0:t.clientY, x:0, y:0});
+      const m=$('manette'); m.style.left=t.clientX+'px'; m.style.top=t.clientY+'px'; m.firstElementChild.style.transform=''; m.classList.remove('hidden');
+    } else if (!regard){ regard={id:t.identifier, x:t.clientX, y:t.clientY, x0:t.clientX, y0:t.clientY, t0:performance.now(), bouge:false}; }
+  }
+  if (temps-derniereConsigne>1) consigne('');
+}, {passive:false});
+canvas.addEventListener('touchmove', e=>{
+  if (etat.ecran!=='jeu') return;
+  e.preventDefault();
+  for (const t of e.changedTouches){
+    if (tourne && tourne.id===t.identifier && etat.inspection){ const i=etat.inspection; i.ry += (t.clientX-tourne.x)*0.012; i.rx=Math.max(-1.3,Math.min(1.5,i.rx+(t.clientY-tourne.y)*0.012)); tourne.x=t.clientX; tourne.y=t.clientY; }
+    else if (t.identifier===manette.id){
+      let dx=t.clientX-manette.x0, dy=t.clientY-manette.y0; const l=Math.hypot(dx,dy), max=50; if (l>max){ dx*=max/l; dy*=max/l; }
+      manette.x=dx/max; manette.y=dy/max; $('manette').firstElementChild.style.transform=`translate(${dx}px,${dy}px)`;
+    } else if (regard && regard.id===t.identifier){
+      const dx=t.clientX-regard.x, dy=t.clientY-regard.y; regard.x=t.clientX; regard.y=t.clientY;
+      if (Math.abs(t.clientX-regard.x0)+Math.abs(t.clientY-regard.y0)>10) regard.bouge=true;
+      tournerRegard(dx, dy, 0.006);
+    }
+  }
+}, {passive:false});
+function finToucher(e){
+  for (const t of e.changedTouches){
+    if (tourne && tourne.id===t.identifier) tourne=null;
+    if (t.identifier===manette.id){ manette.id=null; manette.x=manette.y=0; $('manette').classList.add('hidden'); }
+    if (regard && regard.id===t.identifier){
+      const r=regard; regard=null;
+      if (!r.bouge && performance.now()-r.t0<350 && !etat.inspection){ const ob=viser(cam.pos, rayonEcran(t.clientX,t.clientY)); if (ob) saisir(ob); }
+    }
+  }
+}
+canvas.addEventListener('touchend', finToucher);
+canvas.addEventListener('touchcancel', finToucher);
+
+/* --- boutons --- */
+document.querySelectorAll('[data-niveau]').forEach(b=>b.addEventListener('click', ()=>{
+  etat.niveau = b.dataset.niveau; progression.niveau = etat.niveau; sauver();
+  document.querySelectorAll('[data-niveau]').forEach(x=>x.setAttribute('aria-pressed', x===b ? 'true':'false'));
+}));
+$('b-entrer').addEventListener('click', entrer);
+$('b-commandes').addEventListener('click', ()=>{ $('m-aide').classList.remove('hidden'); etat.modale='m-aide'; $('m-aide').querySelector('button').focus(); });
+$('b-aide').addEventListener('click', ()=>ouvrirModale('m-aide'));
+$('b-carnet').addEventListener('click', ouvrirCarnet);
+$('b-saisir').addEventListener('click', ()=>saisir(etat.cible));
+$('f-fermer').addEventListener('click', reposer);
+$('b-bilan-carnet').addEventListener('click', ouvrirBilan);
+$('b-imprimer').addEventListener('click', imprimer);
+$('b-imprimer2').addEventListener('click', imprimer);
+function changerNiveau(){ etat.niveau = autreNiveau(); progression.niveau = etat.niveau; sauver(); majCompteur(); fermerModales(); toast('Questions de niveau ' + NIVEAUX[etat.niveau].toLowerCase() + ' : les objets que tu as trouvés gardent leur place dans le carnet.'); }
+$('b-niveau-carnet').addEventListener('click', changerNiveau);
+$('b-niveau-bilan').addEventListener('click', changerNiveau);
+$('b-effacer').addEventListener('click', ()=>{
+  if (!confirm('Effacer toutes tes trouvailles et tes réponses, aux deux niveaux ?')) return;
+  const niv = etat.niveau; progression = progressionVide(); progression.niveau = niv; sauver(); majCompteur(); ouvrirCarnet();
+});
+document.querySelectorAll('[data-fermer]').forEach(b=>b.addEventListener('click', ()=>{
+  fermerModales();
+  if (etat.ecran==='jeu' && !etat.inspection) consigne(etat.tactile ? 'Glisse à gauche pour marcher, à droite pour regarder.' : 'Clique dans la vue pour reprendre la promenade.');
+  if (etat.ecran!=='jeu') $('b-entrer').focus();
+}));
+function entrer(){
+  if (!etat.pret) return;
+  etat.ecran = 'jeu'; etat.cible = null;
+  $('accueil').classList.add('hidden'); $('hud').classList.remove('hidden'); $('viseur').classList.remove('hidden');
+  J.x=-4.3; J.z=2.9; J.yaw=1.15; J.pitch=-0.06;
+  majCompteur();
+  consigne(etat.tactile ? 'Glisse le pouce à gauche pour marcher, un doigt à droite pour regarder. Touche un objet qui luit pour le saisir.'
+                        : 'Clique dans la vue pour regarder avec la souris · ZQSD ou flèches pour marcher · vise un objet qui luit et clique pour le saisir.');
+  derniereConsigne = temps;
+  canvas.focus({preventScroll:true});
+}
+
+/* --- boucle --- */
+let tPrec = performance.now(), mesures = [];
+function boucle(t){
+  const dt = Math.min(0.05, Math.max(0, (t-tPrec)/1000)); tPrec = t; temps += dt;
+  if (etat.ecran==='jeu'){
+    if (!etat.inspection && !etat.modale) deplacer(dt);
+    const bob = reduitMouvement() ? 0 : Math.sin(J.pas)*0.022;
+    cam.pos = [J.x, 1.6+bob, J.z];
+  } else {
+    // à l'accueil, la caméra fait lentement le tour de la pièce
+    const a = reduitMouvement() ? 0.6 : temps*0.07+0.6;
+    J.x = 0.6+Math.cos(a)*3.2; J.z = Math.sin(a)*2.4; J.pitch = -0.12;
+    J.yaw = Math.atan2(0.6-J.x, J.z);   // regarde le centre de la pièce
+    cam.pos = [J.x, 1.75, J.z];
+  }
+  majInspection(dt);
+  if (etat.ecran==='jeu') majCible();
+  const L = LUMIERES[NL-1];
+  if (etat.inspection){ const b=baseCamera(J.yaw,J.pitch); L.p = add(cam.pos, add(sca(b.h,0.35), sca(b.f,0.1))); L.k = 1.1*lisse(etat.inspection.t); } else L.k = 0;
+  if (temps-derniereConsigne>9 && etat.ecran==='jeu' && !etat.inspection && document.pointerLockElement===canvas) consigne('');
+  dessiner();
+  // si l'appareil peine, on dessine moins de pixels
+  mesures.push(dt); if (mesures.length>90){ const moy=mesures.reduce((a,b)=>a+b,0)/mesures.length; mesures=[]; if (moy>0.04 && (etat.qualite||1)>0.6){ etat.qualite=(etat.qualite||1)*0.8; redimensionner(); } }
+  requestAnimationFrame(boucle);
+}
+
+/* --- démarrage --- */
+function erreurFatale(msg){
+  const b=$('b-entrer'); b.disabled=true; b.textContent='3D indisponible';
+  $('chargement').textContent = 'Ce navigateur n’a pas pu afficher la 3D (WebGL). Essaie avec un navigateur récent (Firefox, Chrome, Edge, Safari) ou sur un autre appareil. Détail : ' + msg;
+}
+function demarrer(){
+  etat.tactile = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  etat.niveau = progression.niveau === 'lycee' ? 'lycee' : 'college';
+  document.querySelectorAll('[data-niveau]').forEach(x=>x.setAttribute('aria-pressed', x.dataset.niveau===etat.niveau ? 'true':'false'));
+  try { initGL(canvas); } catch(err){ erreurFatale(err.message); return; }
+  redimensionner();
+  window.addEventListener('resize', redimensionner);
+  // on laisse la page s'afficher avant de modeler tout le cabinet
+  setTimeout(()=>{
+    try { construireTout(); }
+    catch(err){ console.error(err); erreurFatale(err.message); return; }
+    etat.pret = true; etat.ecran = 'accueil';
+    const b=$('b-entrer'); b.disabled=false; b.textContent='Entrer dans le cabinet';
+    requestAnimationFrame(boucle);
+  }, 30);
+}
+demarrer();
+</script>
+</body>
+</html>

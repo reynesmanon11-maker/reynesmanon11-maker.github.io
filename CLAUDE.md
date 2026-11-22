@@ -272,6 +272,23 @@ modifiée, vérifier l'absence d'erreur JavaScript en console, le rendu à 390 p
 de large, et — pour toute page qui dessine dans un `<canvas>` — la stabilité de
 la hauteur de page avec `deviceScaleFactor: 2`.
 
+## Le Cabinet des curiosités (`outils/cabinet_curiosites.html`)
+
+Promenade en 3D dans le cabinet d'un naturaliste vers 1840 et dans sa serre
+amazonienne : on saisit 14 spécimens, on les retourne, et chacun pose une
+question de niveau collège ou lycée (au choix à l'accueil). Pancarte
+« Work in progress =) » comme les labos. Pas encore relié depuis les pages du
+site : on y accède par son adresse.
+
+- Un seul fichier, **sans bibliothèque** : un petit moteur WebGL écrit pour lui
+  (section 3 du script). Tous les objets sont modelés par le code (section 4) :
+  aucune image, aucun modèle 3D téléchargé, rien à créditer.
+- Les textes sont dans `CURIOSITES`, en tête du script. **La bonne réponse est
+  toujours la première du tableau `choix`** : l'ordre est mélangé à l'affichage.
+  Un objet = une entrée de `CURIOSITES` + un modèle dans `MODELES` + une place
+  dans `PLACES`, sous le même `id`.
+- La progression de l'élève reste dans son navigateur (`localStorage`).
+
 ## Outil de correction de copies (`correction_copies.html`) — pour Manon, pas pour les élèves
 
 Appli autonome (un seul fichier HTML, clé API Claude saisie par Manon, données
