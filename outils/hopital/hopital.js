@@ -98,6 +98,8 @@ async function construire(){
       else if (/^(led|voyant)/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.emissive && m.emissive.getHex() ? m.emissive : m.color});
       else if (atlas){ n = m.clone(); n.lightMap = cartes[atlas]; n.lightMapIntensity = Math.PI * d.lumiere[atlas].max * GAIN; lumiereCuite(n); }
       else n = m;
+      // affiches, plaques et touches : collées à un demi-millimètre de leur support, elles passent toujours devant
+      if (/^(affiche_|plan_hall|signal_|clavier|ecran_)/.test(m.name)){ n.polygonOffset = true; n.polygonOffsetFactor = -1; n.polygonOffsetUnits = -4; }
       cache.set(cle, n);
       return n;
     };
