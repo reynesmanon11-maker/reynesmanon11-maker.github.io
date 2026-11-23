@@ -64,7 +64,7 @@ function carte(chargeur, f){
 async function construire(){
   rendu = new THREE.WebGLRenderer({canvas:$('scene'), antialias:true, powerPreference:'high-performance'});
   rendu.toneMapping = THREE.AgXToneMapping;
-  rendu.toneMappingExposure = 0.82; // murs et sols clairs : sans cela tout sort blanc
+  rendu.toneMappingExposure = 0.7;  // murs et sols clairs : sans cela tout sort blanc
   rendu.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, 1, 0.05, 300);
@@ -244,7 +244,19 @@ function majAvancement(){
 }
 
 /* ------------------------------------------------------------ marche */
+// On ne marche que dans une salle, un couloir ou l'embrasure d'une porte (les murs n'ont pas d'autre existence
+// pour la marche) ; puis les meubles et les battants fermés arrêtent le pas.
+function dansBatiment(x, z){
+  const R = RAYON;
+  for (const s of Object.values(donnees.salles)){
+    if (x > s.x0 + R && x < s.x1 - R && z > s.z0 + R && z < s.z1 - R) return true;
+    if (x > s.porte[0] + R && x < s.porte[1] - R && z > Math.min(s.z_porte, s.z_couloir) - R && z < Math.max(s.z_porte, s.z_couloir) + R) return true;
+  }
+  for (const c of donnees.couloirs || []) if (x > c[0] + R && x < c[2] - R && z > c[1] + R && z < c[3] - R) return true;
+  return !donnees.couloirs;          // anciennes données sans couloirs : pas de murs (comportement d'avant)
+}
 function libre(x, z){
+  if (!dansBatiment(x, z)) return false;
   for (const s of solides) if (x > s[0] - RAYON && x < s[2] + RAYON && z > s[1] - RAYON && z < s[3] + RAYON) return false;
   for (const p of Object.values(portes)) if (p.angle < 0.6){ const s = p.rect; if (x > s[0] - RAYON && x < s[2] + RAYON && z > s[1] - RAYON && z < s[3] + RAYON) return false; }
   return true;

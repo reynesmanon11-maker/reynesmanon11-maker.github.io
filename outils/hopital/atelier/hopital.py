@@ -493,8 +493,8 @@ def meubler():
     xm = (x0 + x1) / 2
     E.table_operation('table_bloc', xm - 0.1, z0 + 2.9, ry=PI / 2)
     E.scialytique('scialytique', xm - 0.1, z0 + 2.9, H, coupoles=((-0.45, 0.3, 1.85), (0.5, -0.25, 1.95)))
-    E.bras_plafonnier('bras_bloc', x1 - 1.5, z0 + 1.6, H)
-    E.respirateur('respirateur', x1 - 0.65, z0 + 1.3, ry=-PI / 2 - 0.3)
+    E.bras_plafonnier('bras_bloc', x1 - 1.5, z0 + 2.25, H)
+    E.respirateur('respirateur', x1 - 0.9, z0 + 1.0, ry=-PI / 2 - 0.3)
     E.chariot_instruments('instruments1', x0 + 0.65, z0 + 3.4, ry=PI / 2)
     E.chariot_instruments('instruments2', xm + 0.9, z0 + 4.4, ry=0.2)
     mobilier.solide(x0 + 0.35, z0 + 2.95, x0 + 0.95, z0 + 3.85); mobilier.solide(xm + 0.45, z0 + 4.1, xm + 1.35, z0 + 4.7)
@@ -665,6 +665,7 @@ geo.collection('piece')
 geo.reunir()
 DONNEES['soleil'] = ciel()
 DONNEES['solides'] = mobilier.SOLIDES
+DONNEES['couloirs'] = [[X(CH[0]), Z(CH[1]), X(CH[2]), Z(CH[3])], [X(CV[0]), Z(CV[1]), X(CV[2]), Z(CV[3])]]   # où l'on marche, hors des salles
 DONNEES['credits'] = accessoires.CREDITS
 sc = bpy.context.scene
 sc.render.engine = 'CYCLES'; sc.cycles.device = 'CPU'; sc.cycles.samples = 32; sc.cycles.use_denoising = True

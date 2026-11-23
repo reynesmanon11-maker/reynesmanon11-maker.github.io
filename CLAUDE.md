@@ -369,3 +369,23 @@ note sur 20. Les référentiels officiels qu'elle utilise sont enregistrés dans
 `competences_svt_cycle4.json`, + `LISEZ-MOI.md`) : c'est la mémoire de référence
 pour bâtir un **mode collège** de l'outil. L'échelle de maîtrise reste à caler
 avec elle.
+
+## L'hôpital 3D du « garçon à utérus » (`outils/hopital/`)
+
+Version 3D de l'activité « Le garçon à utérus » de **Yamina Lucas** (professeure de SVT, à créditer
+partout où l'activité est citée). On marche de service en service et on parle aux médecins (touche E) ;
+l'exercice d'origine (`exercice.html`, ses questions, son score, sa mémoire) s'ouvre dans un panneau à
+l'étape du médecin, par la passerelle `window.jeu3d`. Pas encore relié depuis les pages du site.
+
+- **Ne jamais réécrire les questions** : elles vivent dans `exercice.html`, la 3D n'en change que la
+  circulation. Le plan des salles (`ROOMS`, `STEP_ROOM`) est celui de l'exercice.
+- **Rien dans le décor ne doit souffler une réponse** : pas de chaîne SRY → AMH sur une affiche, pas de
+  formule de caryotype sur un écran. Les affiches reprennent des schémas que l'exercice montre déjà.
+- Bâtiment, équipement médical et personnes sont fabriqués par `outils/hopital/atelier/` (Blender,
+  voir son LISEZ-MOI) : ne jamais retoucher `modeles/` à la main. Personnes : MakeHuman (CC0).
+  Équipement : modelé pièce par pièce dans `equipement.py`.
+- La marche n'est permise que dans les salles, les couloirs (`couloirs` dans `hopital.json`) et les
+  embrasures de porte ; meubles (`solides`) et battants fermés arrêtent le pas.
+- Avant de publier, depuis `outils/hopital/` : `NODE_PATH=/opt/node22/lib/node_modules
+  CHROMIUM=/opt/pw-browsers/chromium node tests/parcours.mjs` (chargement sans erreur, chaque médecin
+  atteignable à pied, chaque conversation ouvre l'enquête, téléphone).

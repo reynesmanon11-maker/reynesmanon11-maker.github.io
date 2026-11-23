@@ -685,7 +685,7 @@ def cadre_affiche(nom, r, c, w, h, img, groupe='cadres_affiches'):
     for (dx, dy, ww, hh) in ((0, h / 2 + 0.01, w + 0.04, 0.02), (0, -h / 2 - 0.01, w + 0.04, 0.02), (-w / 2 - 0.01, 0, 0.02, h), (w / 2 + 0.01, 0, 0.02, h)):
         boite(f'{nom}_c{dx:.2f}{dy:.2f}', r, (x + dx, y + dy, z + 0.012), (ww, hh, 0.024), 'inox_brosse', ch=0.003, groupe=groupe)
     boite(nom + '_fond', r, (x, y, z + 0.006), (w, h, 0.012), 'laque', ch=0, groupe=groupe)
-    plaque(nom + '_image', r, (x, y, z + 0.0125), w, h, img, groupe=img)
+    plaque(nom + '_image', r, (x, y, z + 0.0125), w, h, img, groupe=img, lumiere='sonde')
 
 
 def panneau_suspendu(nom, x, z, ry, w, h, img, y_haut, h_plafond, deux_faces=True):

@@ -1,7 +1,8 @@
 // Parcours de l'hôpital 3D dans Chromium : chargement sans erreur, chaque personne atteignable à pied depuis
 // le hall (portes ouvertes), chaque conversation ouvre l'exercice à la bonne étape, affichage sur téléphone.
 // Depuis outils/hopital : NODE_PATH=/opt/node22/lib/node_modules CHROMIUM=/opt/pw-browsers/chromium node tests/parcours.mjs
-import { chromium } from 'playwright';
+import { createRequire } from 'node:module';
+const { chromium } = createRequire(import.meta.url)('playwright');   // NODE_PATH : le Playwright préinstallé
 import { servir } from '../../cabinet/tests/serveur.mjs';
 
 const srv = await servir();
@@ -15,6 +16,7 @@ async function ouvrir(options){
   const err = [];
   p.on('pageerror', e => err.push(e.message));
   p.on('console', m => { if (m.type() === 'error') err.push(m.text()); });
+  p.on('response', r => { if (r.status() >= 400) err.push(r.status() + ' ' + r.url()); });
   await p.goto(srv.url + 'outils/hopital/index.html');
   await p.waitForFunction(() => !document.getElementById('b-entrer').disabled, null, {timeout: 300000});
   return {p, err};
@@ -27,13 +29,14 @@ async function ouvrir(options){
   const r = await p.evaluate(() => {
     for (const g of Object.values(portes)) { g.ouverte = true; g.angle = 1.5; }
     // parcours en largeur sur une grille de 10 cm, depuis la position de départ, avec la vraie fonction de collision
-    const pas = 0.1, vus = new Set(), file = [[Math.round(J.x / pas), Math.round(J.z / pas)]];
+    let fuite = null; const pas = 0.1, vus = new Set(), file = [[Math.round(J.x / pas), Math.round(J.z / pas)]];
     vus.add(file[0].join(','));
     while (file.length){
       const [i, k] = file.shift();
       for (const [di, dk] of [[1, 0], [-1, 0], [0, 1], [0, -1]]){
         const c = [i + di, k + dk], cle = c.join(',');
         if (vus.has(cle) || !libre(c[0] * pas, c[1] * pas)) continue;
+        if (Math.abs(c[0] * pas) > 15.4 || Math.abs(c[1] * pas) > 9.0){ fuite = [c[0] * pas, c[1] * pas]; continue; }
         vus.add(cle); file.push(c);
       }
     }
@@ -43,8 +46,9 @@ async function ouvrir(options){
       for (const cle of vus){ const [i, k] = cle.split(',').map(Number); mieux = Math.min(mieux, Math.hypot(i * pas - g.p[0], k * pas - g.p[2])); }
       res[code] = +mieux.toFixed(2);
     }
-    return {res, cases: vus.size};
+    return {res, cases: vus.size, fuite};
   });
+  ok(!r.fuite, `on ne sort pas du bâtiment${r.fuite ? ' (sortie près de ' + r.fuite.map(v => v.toFixed(1)) + ')' : ''}`);
   ok(r.cases > 2000, `zone praticable : ${r.cases} cases de 10 cm`);
   for (const [code, d] of Object.entries(r.res)) ok(d < 1.6, `${code} atteignable (à ${d} m au plus près)`);
   for (const code of ['AC', 'DL', 'DB', 'DR', 'DN', 'DP', 'DM']){
