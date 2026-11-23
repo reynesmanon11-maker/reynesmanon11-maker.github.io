@@ -388,9 +388,14 @@ l'étape du médecin, par la passerelle `window.jeu3d`. Pas encore relié depuis
   embrasures de porte ; meubles (`solides`) et battants arrêtent le pas.
 - **Portes : `outils/hopital/portes.js`**, une classe `Porte` réutilisable (battant modelé autour de sa
   charnière, paumelles, E pour ouvrir et refermer, passage au-delà de 60°, le battant ouvert est lui-même un
-  obstacle, on peut toujours s'en écarter). Une porte de service pas encore ouvert dans l'enquête est
-  `verrouillee` : c'est ce qui garde l'ordre des étapes. Nouvelle salle = son entrée dans `salles` + son
+  obstacle, on peut toujours s'en écarter). **Choix de Manon : toutes les portes sont ouvertes au départ et
+  aucune n'est verrouillée**, pour circuler librement (l'ordre des étapes reste tenu par l'exercice lui-même) ;
+  `verrouillee` existe dans le module si l'on en a besoin un jour. Nouvelle salle = son entrée dans `salles` + son
   battant `battant_<salle>` modelé par `equipement.porte_battant`.
+- **Fluidité** : la marche ne dépend pas de la fluidité (pas de temps jusqu'à 0,2 s, découpé en pas de 4 cm) ;
+  shaders compilés et textures envoyées au chargement (`compileAsync`), sinon chaque salle gèle à son premier
+  passage ; une salle vue par une porte n'est dessinée que devant soi et à moins de 11 m, ses petits objets
+  à moins de 5 m.
 - **Performance** : l'atelier range chaque objet dans une zone (`groupe@zone` : une salle, `couloir`,
   `dehors`) ; la page ne dessine que la zone où l'on est, le couloir et les salles visibles par une porte
   ouverte (`majZones`). Ne jamais refusionner les objets de zones différentes. Les personnes sont allégées
@@ -405,7 +410,8 @@ l'étape du médecin, par la passerelle `window.jeu3d`. Pas encore relié depuis
   d'information animé, gel, fontaine, sortie. Le « carnet de découvertes » (clé `hopital-decouvertes`)
   est un bonus : il ne touche jamais au score de l'exercice.
 - **Trois qualités** (clé `hopital-qualite`, `?qualite=legere|belle|tresbelle`) : légère = rendu cuit
-  seul (choisie d'office sans carte graphique, donc dans les tests) ; belle = halo des sources, étalonnage,
+  seul, définition 1:1 (choisie d'office partout sauf carte graphique dédiée reconnue : les puces intégrées
+  des portables et des postes du lycée commencent en légère) ; belle = halo des sources, étalonnage,
   anticrénelage ; très belle = plus occlusion ambiante. Modules de post-traitement de Three.js r187 copiés
   dans `outils/hopital/vendor/three-r187-post/`, jamais retouchés. Les sources lumineuses ne sont
   intensifiées qu'après la capture des sondes, sinon les vitres deviennent laiteuses.

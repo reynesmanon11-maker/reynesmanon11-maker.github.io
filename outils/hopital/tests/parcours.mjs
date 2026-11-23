@@ -26,12 +26,19 @@ async function ouvrir(options){
 {
   const {p, err} = await ouvrir({viewport: {width: 1280, height: 720}});
   await p.evaluate(() => document.getElementById('b-entrer').click());
+  // marche : la touche d'avance fait vraiment avancer, même quand l'image est lente
+  await p.evaluate(() => Object.assign(J, {x: -11, z: -0.45, yaw: Math.PI / 2, pitch: 0}));
+  await p.keyboard.down('KeyW'); await p.waitForTimeout(3000); await p.keyboard.up('KeyW');
+  const avance = await p.evaluate(() => J.x + 11);
+  ok(avance > 0.5, `la touche d'avance fait avancer (${avance.toFixed(2)} m en 3 s de rendu logiciel)`);
   // portes : fermée = infranchissable ; E ouvre (si le service est ouvert) ; on passe quand l'ouverture suffit ; E referme
   const pt = await p.evaluate(async () => {
     const attendre = ms => new Promise(r => setTimeout(r, ms));
     // le rendu logiciel des tests tourne à ~1 image/s : on attend la fin réelle de l'animation, pas un délai fixe
     const jusqua = async (f, max = 90000) => { const t = Date.now(); while (!f() && Date.now() - t < max) await attendre(200); };
     const b = portes.bloc, [cx, cz] = b.centre, res = {};
+    res.ouvertesDEmblee = Object.values(portes).every(p => p.ouverte && !p.verrouillee);
+    actionnerPorte(b); await jusqua(() => b.angle < 0.001);          // on la ferme d'abord
     res.fermeeBloque = !libre(cx, cz);
     actionnerPorte(b); await jusqua(() => b.angle > 1.55);
     res.ouverteLaissePasser = libre(cx, cz);
@@ -39,15 +46,17 @@ async function ouvrir(options){
     res.battantSolide = !libre((hx + ex) / 2 + 0.05, (hz + ez) / 2);
     actionnerPorte(b); await jusqua(() => b.angle < 0.001);
     res.refermee = !libre(cx, cz) && b.angle < 0.01;
-    const c = portes.consult; c.verrouillee = true; actionnerPorte(c); await attendre(800);
+    const c = portes.consult; c.ouverte = false; c.animer(0, true); c.verrouillee = true; actionnerPorte(c); await attendre(800);
     res.verrouilleeResiste = c.angle === 0 && !c.ouverte;
+    c.verrouillee = false; c.ouverte = true;
     return res;
   });
+  ok(pt.ouvertesDEmblee, 'toutes les portes sont ouvertes au départ');
   ok(pt.fermeeBloque, 'une porte fermée arrête le pas');
   ok(pt.ouverteLaissePasser, 'E ouvre la porte, on passe une fois l’ouverture suffisante');
   ok(pt.battantSolide, 'on ne traverse pas le battant ouvert');
   ok(pt.refermee, 'E referme la porte');
-  ok(pt.verrouilleeResiste, 'la porte d’un service pas encore ouvert reste fermée');
+  ok(pt.verrouilleeResiste, 'une porte verrouillée (option du module) reste fermée');
   const r = await p.evaluate(() => {
     for (const g of Object.values(portes)) { g.verrouillee = false; g.ouverte = true; g.angle = 1.6; }
     // parcours en largeur sur une grille de 10 cm, depuis la position de départ, avec la vraie fonction de collision

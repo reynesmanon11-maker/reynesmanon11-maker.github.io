@@ -20,7 +20,7 @@ const ecrire = (cle, v) => { try { localStorage.setItem(cle, v); } catch (e){ /*
 // Légère : le rendu cuit tel quel (ordinateurs du lycée). Belle : halo des lumières, étalonnage, anticrénelage.
 // Très belle : en plus, occlusion ambiante (les ombres de contact entre les objets) et plus de pixels.
 const QUALITES = {
-  legere:    {nom:'Légère',     post:false, ao:false, ratio:1.25, sonde:96},
+  legere:    {nom:'Légère',     post:false, ao:false, ratio:1,    sonde:96},
   belle:     {nom:'Belle',      post:true,  ao:false, ratio:1.5,  sonde:160},
   tresbelle: {nom:'Très belle', post:true,  ao:true,  ratio:2,    sonde:256}
 };
@@ -29,8 +29,10 @@ function choisirQualite(r){
   if (QUALITES[q]) return q;
   const gl = r.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
   const carte = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
-  if (/swiftshader|llvmpipe|software|softpipe/i.test(carte) || (matchMedia && matchMedia('(pointer: coarse)').matches)) return 'legere';
-  return 'belle';
+  // Belle seulement sur une carte graphique dédiée reconnue ; tout le reste (puces intégrées des portables et des
+  // postes du lycée, tablettes, rendu logiciel) commence en Légère. La page remonte ou descend ensuite d'elle-même.
+  if (/nvidia|geforce|quadro|radeon (rx|pro)|apple m\d|apple gpu/i.test(carte) && !(matchMedia && matchMedia('(pointer: coarse)').matches)) return 'belle';
+  return 'legere';
 }
 let Q = QUALITES.legere, qualite = 'legere', composer = null;
 const ETALONNAGE = {
@@ -54,11 +56,11 @@ const adapt = {auto: true, n: 0, t: 0, ratio: 1};
 function adapter(dt){
   if (!adapt.auto || ecran !== 'jeu') return;
   adapt.n++; adapt.t += dt;
-  if (adapt.t < 2.5) return;
+  if (adapt.t < 1.5) return;
   const fps = adapt.n / adapt.t; adapt.n = 0; adapt.t = 0;
-  if (composer && fps < 40){ composer = null; adapt.note = 'post-traitement coupé'; return; }
-  if (!composer && fps < 28 && adapt.ratio > 0.6){ adapt.ratio = Math.max(0.6, adapt.ratio - 0.15); }
-  else if (fps > 55 && adapt.ratio < 1){ adapt.ratio = Math.min(1, adapt.ratio + 0.1); }
+  if (composer && fps < 45){ composer = null; adapt.note = 'post-traitement coupé'; return; }
+  if (!composer && fps < 30 && adapt.ratio > 0.5){ adapt.ratio = Math.max(0.5, adapt.ratio - (fps < 15 ? 0.25 : 0.12)); }
+  else if (fps > 57 && adapt.ratio < 1){ adapt.ratio = Math.min(1, adapt.ratio + 0.08); }
   else return;
   rendu.setPixelRatio(Math.min(devicePixelRatio || 1, Q.ratio) * adapt.ratio);
   adapt.note = `définition ${Math.round(adapt.ratio * 100)} %`;
@@ -237,6 +239,11 @@ async function construire(){
     });
     if (o.material.length === 1) o.material = o.material[0];
   });
+  // pas de gel au premier passage dans une salle : shaders compilés et textures envoyées à la carte dès le chargement
+  $('chargement').textContent = 'Préparation des matières…';
+  try { await rendu.compileAsync(scene, camera); } catch (e){ rendu.compile(scene, camera); }
+  scene.traverse(o => { if (o.isMesh) for (const m of [].concat(o.material)) for (const k of ['map', 'lightMap', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap'])
+    if (m[k]) rendu.initTexture(m[k]); });
   // le décor ne bouge pas : ses matrices sont calculées une fois pour toutes
   modele.scene.traverse(o => { o.updateMatrix(); o.matrixAutoUpdate = false; });
   rangerParZone(modele.scene);
@@ -253,10 +260,14 @@ async function construire(){
 // proche (l'oculus). Une salle fermée n'est pas dessinée : c'est la plus grosse économie de la page.
 const zones = {};                 // zone → objets
 let zonesCle = '';
+const DETAIL = /^(petits|chaises|clavier|led|inox|ecran_|lettres|logo_plaque|signaletique|cadres_affiches|affiche_|plan_hall|photo_)/;
+const details = {};               // zone → petits objets, qu'on ne dessine que de près
 function rangerParZone(racine){
   for (const o of [...racine.children]){
     const z = o.userData && o.userData.zone;
-    if (z) (zones[z] = zones[z] || []).push(o);
+    if (!z) continue;
+    (zones[z] = zones[z] || []).push(o);
+    if (DETAIL.test(o.name)) (details[z] = details[z] || []).push(o);
   }
   for (const g of Object.values(gens)){
     const z = g.zone; if (z) (zones[z] = zones[z] || []).push(g.pivot);
@@ -267,18 +278,22 @@ function zoneDe(x, z){
   return 'couloir';
 }
 function majZones(){
-  const ici = zoneDe(J.x, J.z), v = new Set([ici, 'couloir']);
+  const ici = zoneDe(J.x, J.z), v = new Set([ici, 'couloir']), pres = new Set([ici, 'couloir', 'dehors']);
+  const fx = Math.sin(J.yaw), fz = -Math.cos(J.yaw);
   for (const [nom, s] of Object.entries(donnees.salles)){
     if (v.has(nom)) continue;
     const p = portes[nom], ouverte = !p || p.angle > 0.06;
-    const d = Math.hypot(J.x - (s.porte[0] + s.porte[1]) / 2, J.z - s.z_couloir);
-    if ((ouverte && d < 16) || d < 2.6) v.add(nom);
+    const dx = (s.porte[0] + s.porte[1]) / 2 - J.x, dz = s.z_couloir - J.z, d = Math.hypot(dx, dz);
+    const devant = d < 3 || (dx * fx + dz * fz) / d > -0.1;          // une porte dans le dos ne montre rien
+    if ((ouverte && devant && d < 11) || d < 2.6) v.add(nom);
+    if (d < 5) pres.add(nom);                                         // de près, on voit aussi les petits objets
   }
   if (v.has('hall')) v.add('dehors');
-  const cle = [...v].sort().join('|');
+  const cle = [...v].sort().join('|') + '/' + [...pres].sort().join('|');
   if (cle === zonesCle) return;
   zonesCle = cle;
   for (const [z, objs] of Object.entries(zones)) for (const o of objs) o.visible = v.has(z);
+  for (const [z, objs] of Object.entries(details)) if (v.has(z) && !pres.has(z)) for (const o of objs) o.visible = false;
 }
 
 /* ------------------------------------------------------------ ombres de contact */
@@ -318,6 +333,7 @@ function construirePortes(){
       scene.add(feuille, poignee); objets = [feuille, poignee];
     }
     portes[nom] = creerPorte({nom, objets, charniere:[a + 0.01, zp], largeur:L, sens, embrasure:rect, scene});
+    portes[nom].ouverte = true; portes[nom].animer(0, true);     // toutes les salles accessibles d'emblée ; E pour fermer
   }
 }
 function viserPorte(){
@@ -373,7 +389,7 @@ function majAvancement(){
     const ouverte = k >= 0 && exo.ouverte(k);
     const connue = g.salle === 'hall' || g.salle === 'bloc' || (k > 0 && ouverte);
     g.ouverte = ouverte;
-    if (portes[g.salle]) portes[g.salle].verrouillee = g.salle === 'bloc' ? false : !ouverte;   // on ouvre soi-même (touche E)
+
     dessinerEnseigne(g.salle, connue, ouverte, (k >= 1 && k <= 6) ? String(k) : '');
   }
   const pts = exo.points(); $('score').textContent = pts + (pts > 1 ? ' points' : ' point');
@@ -417,11 +433,16 @@ function deplacer(dt){
   if (touches.has('ArrowRight')) J.yaw += 1.8 * dt;
   if (manette.id !== null){ av -= manette.dy / 50; la += manette.dx / 50; }
   const n = Math.hypot(av, la); if (n > 1){ av /= n; la /= n; }
+  if (!av && !la) return;
   const v = (touches.has('ShiftLeft') || touches.has('ShiftRight') ? 3.4 : 2.0) * dt;
   const fx = Math.sin(J.yaw), fz = -Math.cos(J.yaw);
-  const dx = (fx * av - fz * la) * v, dz = (fz * av + fx * la) * v;
-  if (libre(J.x + dx, J.z)) J.x += dx;
-  if (libre(J.x, J.z + dz)) J.z += dz;
+  // même vitesse de marche quelle que soit la fluidité : un grand pas est découpé en petits pas de 4 cm au plus,
+  // pour ne jamais sauter par-dessus un obstacle
+  const n2 = Math.max(1, Math.ceil(v / 0.04)), dx = (fx * av - fz * la) * v / n2, dz = (fz * av + fx * la) * v / n2;
+  for (let k = 0; k < n2; k++){
+    if (libre(J.x + dx, J.z)) J.x += dx;
+    if (libre(J.x, J.z + dz)) J.z += dz;
+  }
 }
 function salleDe(x, z){
   for (const [nom, s] of Object.entries(donnees.salles)) if (x > s.x0 && x < s.x1 && z > s.z0 && z < s.z1) return NOMS_SALLES[nom];
@@ -672,7 +693,7 @@ function noterPerf(tA, tB, tC){
 }
 function boucle(t){
   const tA = performance.now();
-  const dt = Math.min(0.05, (t - t0) / 1000); t0 = t;
+  const dt = Math.min(0.2, (t - t0) / 1000); t0 = t;
   if (ecran === 'jeu'){
     deplacer(dt);
     cible = viser();
