@@ -141,6 +141,7 @@ async function construire(){
   rendu = new THREE.WebGLRenderer({canvas:$('scene'), antialias:true, powerPreference:'high-performance'});
   rendu.toneMapping = THREE.AgXToneMapping;
   rendu.toneMappingExposure = 0.7;  // murs et sols clairs : sans cela tout sort blanc
+  rendu.info.autoReset = false;
   qualite = choisirQualite(rendu); Q = QUALITES[qualite];
   adapt.auto = !new URLSearchParams(location.search).get('qualite') && lire('hopital-qualite', 'auto') === 'auto';
   rendu.setPixelRatio(Math.min(devicePixelRatio || 1, Q.ratio));
@@ -718,6 +719,7 @@ function boucle(t){
   camera.position.set(J.x, OEIL + bob, J.z);
   camera.rotation.set(J.pitch, -J.yaw, 0);
   const tB = performance.now();
+  rendu.info.reset();          // une seule remise à zéro par image (le post-traitement fait plusieurs passes)
   if (composer) composer.render(dt); else rendu.render(scene, camera);
   noterPerf(tA, tB, performance.now());
   requestAnimationFrame(boucle);

@@ -385,7 +385,18 @@ l'étape du médecin, par la passerelle `window.jeu3d`. Pas encore relié depuis
   voir son LISEZ-MOI) : ne jamais retoucher `modeles/` à la main. Personnes : MakeHuman (CC0).
   Équipement : modelé pièce par pièce dans `equipement.py`.
 - La marche n'est permise que dans les salles, les couloirs (`couloirs` dans `hopital.json`) et les
-  embrasures de porte ; meubles (`solides`) et battants fermés arrêtent le pas.
+  embrasures de porte ; meubles (`solides`) et battants arrêtent le pas.
+- **Portes : `outils/hopital/portes.js`**, une classe `Porte` réutilisable (battant modelé autour de sa
+  charnière, paumelles, E pour ouvrir et refermer, passage au-delà de 60°, le battant ouvert est lui-même un
+  obstacle, on peut toujours s'en écarter). Une porte de service pas encore ouvert dans l'enquête est
+  `verrouillee` : c'est ce qui garde l'ordre des étapes. Nouvelle salle = son entrée dans `salles` + son
+  battant `battant_<salle>` modelé par `equipement.porte_battant`.
+- **Performance** : l'atelier range chaque objet dans une zone (`groupe@zone` : une salle, `couloir`,
+  `dehors`) ; la page ne dessine que la zone où l'on est, le couloir et les salles visibles par une porte
+  ouverte (`majZones`). Ne jamais refusionner les objets de zones différentes. Les personnes sont allégées
+  (`ALLEGEMENT` dans `humains.py`). Mesure : `?perf` dans l'adresse (images/s, triangles, appels de dessin)
+  et `tests/mesure.mjs` (avant/après sur des vues fixes). En qualité automatique, la page coupe le
+  post-traitement puis baisse la définition si elle passe sous 40 puis 28 images/s.
 - **Le hall est la pièce témoin** : banque d'accueil contre le mur de tasseaux (la secrétaire face à l'est),
   façade sud vitrée à portes automatiques (`porte_auto_g/d`, elles coulissent à l'approche), parvis et auvent,
   spots chauds, rasants sur les tasseaux, plafond de lames de chêne. Les autres services suivront sa recette.

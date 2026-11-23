@@ -29,13 +29,15 @@ async function ouvrir(options){
   // portes : fermée = infranchissable ; E ouvre (si le service est ouvert) ; on passe quand l'ouverture suffit ; E referme
   const pt = await p.evaluate(async () => {
     const attendre = ms => new Promise(r => setTimeout(r, ms));
+    // le rendu logiciel des tests tourne à ~1 image/s : on attend la fin réelle de l'animation, pas un délai fixe
+    const jusqua = async (f, max = 90000) => { const t = Date.now(); while (!f() && Date.now() - t < max) await attendre(200); };
     const b = portes.bloc, [cx, cz] = b.centre, res = {};
     res.fermeeBloque = !libre(cx, cz);
-    actionnerPorte(b); await attendre(2500);
+    actionnerPorte(b); await jusqua(() => b.angle > 1.55);
     res.ouverteLaissePasser = libre(cx, cz);
     const [hx, hz, ex, ez] = b.segment();
     res.battantSolide = !libre((hx + ex) / 2 + 0.05, (hz + ez) / 2);
-    actionnerPorte(b); await attendre(2500);
+    actionnerPorte(b); await jusqua(() => b.angle < 0.001);
     res.refermee = !libre(cx, cz) && b.angle < 0.01;
     const c = portes.consult; c.verrouillee = true; actionnerPorte(c); await attendre(800);
     res.verrouilleeResiste = c.angle === 0 && !c.ouverte;
