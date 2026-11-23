@@ -13,6 +13,7 @@ DONNEES = os.path.join(MH, 'mpfb2', 'src', 'mpfb', 'data')
 ACTIFS = os.path.join(MH, 'mh', 'assets')
 _BASE = None
 REFS = {}
+ALLEGEMENT = 0.4      # part des faces gardées pour chaque personne
 
 
 def base():
@@ -342,5 +343,9 @@ def personne(code, x, z, ry, sexe='male', age=0.3, origine='caucasian', peau='mi
     s = taille / h
     ob.data.transform(Matrix.Translation((0, 0, -min(zs))))
     ob.data.transform(Matrix.Translation(V(x, 0, z)) @ Matrix.Rotation(ry, 4, 'Z') @ Matrix.Scale(s, 4))
+    # allègement : ~45 % de faces en moins (vu à plus d'un mètre, la silhouette et le visage n'y perdent rien)
+    dec = ob.modifiers.new('alleger', 'DECIMATE'); dec.ratio = ALLEGEMENT; dec.use_collapse_triangulate = False
+    with bpy.context.temp_override(object=ob, active_object=ob):
+        bpy.ops.object.modifier_apply(modifier=dec.name)
     ob['groupe'] = nom; ob['lumiere'] = 'sonde'; ob['atlas'] = 'B'; ob['personnage'] = nom
     return ob

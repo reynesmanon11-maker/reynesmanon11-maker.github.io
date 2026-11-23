@@ -166,6 +166,10 @@ def matieres_equipement():
     u('jaune_dechets', lin((236, 190, 30)), rugosite=0.5)
     u('rouge', lin((190, 40, 36)), rugosite=0.4)
     u('pave_ext', lin((150, 148, 142)), rugosite=0.85)
+    u('store', lin((214, 210, 200)), rugosite=0.95)
+    # placage de chêne à l'échelle d'un vrai placage (le veinage du bois massif du cabinet est trop large pour une porte)
+    matieres.texturee('chene', 'hetre', 0.45, relief=0.6)
+    u('joint_ombre', lin((40, 42, 46)), rugosite=0.9)
     u('tapis_propre', lin((44, 48, 54)), rugosite=0.95)
     u('vert_dae', lin((30, 140, 80)), rugosite=0.4)
     u('led', lin((255, 255, 255)), emission=(1.0, 0.98, 0.95), force=8.0)
@@ -181,10 +185,11 @@ def matieres_equipement():
         m = matieres.verre(nom)
     for nom, f in (('ecran_caryotype', 'ecran_caryotype.jpg'), ('ecran_echo', 'ecran_echo.jpg'), ('ecran_moniteur', 'ecran_moniteur.jpg'),
                    ('ecran_scanner', 'ecran_scanner.jpg'), ('ecran_dossier', 'ecran_dossier.jpg'), ('ecran_electro', 'ecran_electro.jpg'),
-                   ('ecran_borne', 'ecran_borne.jpg'), ('ecran_tv', 'ecran_tv.jpg')):
+                   ('ecran_borne', 'ecran_borne.jpg'), ('ecran_tv', 'ecran_tv.jpg'), ('ecran_appel', 'ecran_tv.jpg'),
+                   ('ecran_sortie', 'sortie_secours.jpg')):
         image(nom, f, rugosite=0.1, ecran=True, force=1.6)
     for nom in ('affiche_appareil', 'affiche_adn', 'affiche_hormones', 'affiche_mains', 'affiche_bloc', 'plan_hall',
-                'signal_croisement', 'signal_ouest', 'signal_est', 'logo', 'clavier'):
+                'signal_croisement', 'signal_ouest', 'signal_est', 'logo', 'clavier', 'enseigne_accueil', 'photo_parc0', 'photo_parc1'):
         image(nom, nom + '.jpg', rugosite=0.6)
 
 
@@ -665,7 +670,7 @@ def scanner(nom, x, z, ry=0.0):
 def bureau(nom, x, z, ry, L=1.6, P=0.8, groupe='meubles', voile=True):
     """Bureau : plateau chêne à chant fin, piètement en luge d'acier laqué, voile de fond, caisson à tiroirs."""
     r = Rep(x, z, ry)
-    boite(nom + '_plateau', r, (0, 0.735, 0), (L, 0.03, P), 'hetre', ch=0.004, seg=2, groupe=groupe)
+    boite(nom + '_plateau', r, (0, 0.735, 0), (L, 0.03, P), 'chene', ch=0.004, seg=2, groupe=groupe)
     for s in (-1, 1):
         xx = s * (L / 2 - 0.06)
         boite(f'{nom}_montant{s}', r, (xx, 0.36, 0), (0.05, 0.72, 0.05), 'anthracite', ch=0.006, groupe=groupe)
@@ -728,7 +733,7 @@ def comptoir_accueil(nom, x0, x1, z0, z1, retour='x0'):
     return r
 
 
-def porte_battant(nom, a, b, zp, cote, mat_feuille='hetre'):
+def porte_battant(nom, a, b, zp, cote, mat_feuille='chene'):
     """Battant de porte de service, modelé autour de sa charnière (côté a) : âme en stratifié bois, chant,
     oculus vitré à cadre inox, plaque de propreté, béquille et rosace. Éclairé par sonde dans la page,
     qui le fait pivoter autour de la charnière."""
@@ -746,6 +751,9 @@ def porte_battant(nom, a, b, zp, cote, mat_feuille='hetre'):
             boite(f'{g}_ocu{s}{dx}{dy}', r, (L - 0.3 + dx, 1.45 + dy, zf), (w, h, 0.012), 'inox_brosse', ch=0.003, groupe=g, lumiere='sonde')
         cyl(f'{g}_rosace{s}', r, (L - 0.08, 1.0, zf), [(0, 0), (0.028, 0), (0.028, 0.008), (0, 0.008)], 'inox_brosse', n=16, axe=Matrix.Rotation(s * PI / 2, 3, 'X'), groupe=g, lumiere='sonde')
         tube(f'{g}_bequille{s}', [r.p(L - 0.08, 1.0, s * 0.03), r.p(L - 0.08, 1.0, s * 0.07), r.p(L - 0.22, 1.0, s * 0.07)], 0.011, 'inox_brosse', groupe=g, lumiere='sonde')
+    for y in (0.22, 1.05, 1.86):        # paumelles : nœuds du battant (tournent avec lui) et du dormant (fixes)
+        cyl(f'{g}_paumelle{y}', r, (-0.004, y, 0.0), [(0, 0), (0.011, 0), (0.011, 0.05), (0.007, 0.056), (0, 0.056)], 'inox_brosse', n=12, groupe=g, lumiere='sonde')
+        cyl(f'{g}_dormant{y}', r, (-0.004, y + 0.058, 0.0), [(0, 0), (0.011, 0), (0.011, 0.05), (0.006, 0.058), (0, 0.06)], 'inox_brosse', n=12, groupe='inox')
     boite(g + '_vitre', r, (L - 0.3, 1.45, 0), (0.22, 0.52, 0.008), 'verre_appareil', ch=0, groupe=g + '_vitre', lumiere='sonde')
 
 
@@ -763,11 +771,11 @@ def banque_accueil(nom, r, L=2.8, P=0.9):
     n = int(L / 0.065)
     for k in range(n):
         xx = -L / 2 + 0.04 + k * (L - 0.08) / (n - 1)
-        boite(f'{nom}_tasseau{k}', r, (xx, 0.56, zf - 0.08), (0.032, 0.92, 0.04), 'hetre', ch=0.004, groupe='tasseaux')
+        boite(f'{nom}_tasseau{k}', r, (xx, 0.56, zf - 0.08), (0.032, 0.92, 0.04), 'chene', ch=0.004, groupe='tasseaux')
     boite(nom + '_tablette', r, (0, 1.05, zf - 0.13), (L + 0.08, 0.04, 0.42), 'stratifie', ch=0.012, seg=3, groupe=g)
     boite(nom + '_plan', r, (0, 0.74, -0.1), (L - 0.06, 0.03, P - 0.3), 'stratifie', ch=0.006, groupe=g)
     for sx in (-1, 1):
-        boite(f'{nom}_joue{sx}', r, (sx * (L / 2 - 0.02), 0.55, -0.02), (0.05, 1.1, P - 0.02), 'hetre', ch=0.006, seg=2, groupe=g)
+        boite(f'{nom}_joue{sx}', r, (sx * (L / 2 - 0.02), 0.55, -0.02), (0.05, 1.1, P - 0.02), 'chene', ch=0.006, seg=2, groupe=g)
     # vitre de protection (hygiaphone) et ses pinces, avec un passe-documents
     boite(nom + '_vitre', r, (0, 1.37, zf - 0.27), (L - 0.3, 0.6, 0.008), 'verre_appareil', ch=0, groupe='verre')
     for k in range(4):
@@ -851,3 +859,44 @@ def mur_rideau(nom, x0, x1, z, y1=2.75, porte=(2.5, 4.5)):
             geo.pave(f'{g}_{p0:.2f}{q0:.2f}', p0, q0, z - 0.03, p1, q1, z + 0.01, 'alu', groupe=g, chanfrein=0.003, lumiere='sonde')
         geo.pave(f'{g}_verre', u0 + 0.05, 0.09, z - 0.014, u1 - 0.05, 2.0, z - 0.006, 'verre', groupe=g + '_vitre', chanfrein=0, cuire=0, lumiere='sonde')
         geo.pave(f'{g}_bande', u0 + 0.05, 1.3, z - 0.016, u1 - 0.05, 1.36, z - 0.015, 'sarcelle', groupe=g, chanfrein=0, lumiere='sonde')
+
+
+def plinthes_salle(nom, s, ouvertures, mat='laque_grise', h=0.08, e=0.012):
+    """Plinthes au pied des quatre murs d'une salle, interrompues aux portes. ouvertures : {cote: [(a, b), …]}."""
+    for cote, (plan, a0, a1, sens) in {'n': (s['z0'], s['x0'], s['x1'], 1), 's': (s['z1'], s['x0'], s['x1'], -1),
+                                         'o': (s['x0'], s['z0'], s['z1'], 1), 'e': (s['x1'], s['z0'], s['z1'], -1)}.items():
+        bornes = [a0]
+        for (a, b) in sorted(ouvertures.get(cote, [])):
+            bornes += [a, b]
+        bornes.append(a1)
+        for k in range(0, len(bornes) - 1, 2):
+            u0, u1 = bornes[k], bornes[k + 1]
+            if u1 - u0 < 0.05:
+                continue
+            if cote in 'ns':
+                geo.pave(f'pl_{nom}_{cote}{k}', u0, 0, min(plan, plan + sens * e), u1, h, max(plan, plan + sens * e), mat, groupe='plinthes', chanfrein=0.002)
+            else:
+                geo.pave(f'pl_{nom}_{cote}{k}', min(plan, plan + sens * e), 0, u0, max(plan, plan + sens * e), h, u1, mat, groupe='plinthes', chanfrein=0.002)
+
+
+def joint_creux(nom, s, H, e=0.012, h=0.018):
+    """Joint creux sombre à la rencontre des murs et du plafond : la ligne d'ombre des finitions soignées."""
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    for k, (a, b, c, d) in enumerate(((x0, z0, x1, z0 + e), (x0, z1 - e, x1, z1), (x0, z0, x0 + e, z1), (x1 - e, z0, x1, z1))):
+        geo.pave(f'jc_{nom}{k}', a, H - h, b, c, H, d, 'joint_ombre', groupe='plinthes', chanfrein=0)
+
+
+def chambranle(nom, a, b, h, plan, sens, l=0.07, e=0.014):
+    """Chambranle (encadrement mouluré) autour d'une baie de porte, sur une face de mur : deux montants et une traverse,
+    au profil adouci."""
+    z0, z1 = sorted((plan, plan + sens * e))
+    geo.pave(nom + '_g', a - l, 0, z0, a, h + l, z1, 'cadre', groupe='cadres', chanfrein=0.005, segments=2)
+    geo.pave(nom + '_d', b, 0, z0, b + l, h + l, z1, 'cadre', groupe='cadres', chanfrein=0.005, segments=2)
+    geo.pave(nom + '_h', a, h, z0, b, h + l, z1, 'cadre', groupe='cadres', chanfrein=0.005, segments=2)
+
+
+def store(nom, x0, x1, z, y_haut, y_bas):
+    """Store enrouleur en toile, son coffre et sa barre de charge."""
+    geo.pave(nom + '_coffre', x0, y_haut - 0.06, z - 0.05, x1, y_haut, z + 0.03, 'laque', groupe='meubles', chanfrein=0.01, segments=2)
+    geo.pave(nom + '_toile', x0 + 0.01, y_bas, z - 0.004, x1 - 0.01, y_haut - 0.06, z + 0.004, 'store', groupe='meubles', chanfrein=0)
+    geo.pave(nom + '_barre', x0 + 0.005, y_bas - 0.02, z - 0.01, x1 - 0.005, y_bas, z + 0.01, 'alu', groupe='inox', chanfrein=0.004)

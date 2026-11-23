@@ -1,6 +1,6 @@
 # Les images de l'hôpital : affiches (schémas de l'exercice de Yamina Lucas, photographiés par affiches.mjs),
 # écrans (caryotype, échographie, moniteur du bloc, scanner, dossier patient), plan « Vous êtes ici », signalétique.
-# python3 -I images_hopital.py <dossier des schémas> <dossier de sortie>
+# python3 -I images_hopital.py <dossier des schémas> <dossier de sortie> [panorama dehors.webp du cabinet]
 # Charte : bleu nuit #18212e, sarcelle #0b6b77 (celle de l'exercice), bois de chêne, blanc chaud.
 import sys, os, math, random
 import numpy as np
@@ -280,4 +280,24 @@ d.rectangle((0, 0, 24, 720), fill=SARC)
 d.text((80, 300), 'Pôle Femme-Enfant', font=F(80, 'Bold'), fill='white', anchor='lm')
 d.text((84, 400), 'Bienvenue', font=F(48), fill=(170, 210, 214), anchor='lm')
 im.save(os.path.join(OUT, 'ecran_tv.jpg'), quality=90)
+# pictogramme de sortie de secours (vert, personnage qui court vers une porte, flèche)
+im = Image.new('RGB', (800, 300), (20, 140, 70)); d = ImageDraw.Draw(im)
+d.rectangle((40, 40, 260, 260), outline='white', width=14)                    # la porte
+d.ellipse((380, 50, 440, 110), fill='white')                                  # tête
+d.line((405, 115, 370, 200), fill='white', width=30); d.line((370, 200, 430, 270), fill='white', width=26)
+d.line((370, 200, 310, 250), fill='white', width=26); d.line((395, 140, 460, 170), fill='white', width=22); d.line((395, 140, 330, 150), fill='white', width=22)
+d.polygon(((520, 150), (600, 90), (600, 125), (740, 125), (740, 175), (600, 175), (600, 210)), fill='white')
+im.save(os.path.join(OUT, 'sortie_secours.jpg'), quality=90)
+# enseigne suspendue de l'accueil
+im = Image.new('RGB', (1400, 260), NUIT); d = ImageDraw.Draw(im)
+d.rectangle((0, 0, 1400, 18), fill=SARC)
+d.text((700, 140), 'Accueil  ·  Admissions', font=F(96, 'SemiBold'), fill='white', anchor='mm')
+im.save(os.path.join(OUT, 'enseigne_accueil.jpg'), quality=90)
+# deux photographies de paysage, tirées du panorama du parc (Poly Haven, CC0)
+if len(sys.argv) > 3:            # troisième argument : le panorama du parc (Poly Haven, CC0), d'où l'on tire deux photographies
+    from PIL import ImageEnhance
+    pano = Image.open(sys.argv[3]).convert('RGB')
+    for k, (x, y) in enumerate(((300, 700), (2350, 720))):
+        ph = pano.crop((x, y, x + 900, y + 600))
+        ImageEnhance.Contrast(ImageEnhance.Color(ph).enhance(1.15)).enhance(1.08).save(os.path.join(OUT, f'photo_parc{k}.jpg'), quality=90)
 print('images prêtes')

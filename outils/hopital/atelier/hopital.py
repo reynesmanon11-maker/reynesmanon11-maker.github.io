@@ -8,7 +8,7 @@ sys.path.insert(1, os.environ.get('SCRIPTS_CABINET', os.path.join(ICI, '..', 'bl
 import geo, matieres, mobilier, accessoires
 for m in (geo, matieres, mobilier, accessoires):
     importlib.reload(m)
-from geo import V, pave, tour, balayer, objet, PI, TAU, pan_maille
+from geo import V, P, pave, tour, balayer, objet, PI, TAU, pan_maille
 from mathutils import Vector, Matrix
 from accessoires import ajouter, PH_C
 import personnages, humains, equipement
@@ -164,6 +164,15 @@ def murs():
             pave(nom + '_emb_g', dx0 - 0.03, 0, zr, dx0, PORTE_H, zc, 'cadre', groupe='cadres', chanfrein=0.004)
         pave(nom + '_emb_d', dx1, 0, zr, dx1 + 0.03, PORTE_H, zc, 'cadre', groupe='cadres', chanfrein=0.004)
         pave(nom + '_emb_h', dx0, PORTE_H, zr, dx1, PORTE_H + 0.03, zc, 'cadre', groupe='cadres', chanfrein=0.004)
+        # finitions : plinthes, joint creux au plafond, chambranles de la porte côté salle et côté couloir
+        cote_porte = 's' if r['top'] else 'n'
+        ouv = {cote_porte: [(dx0, dx1)]}
+        if nom == 'hall':
+            ouv['s'] = [(x0, x1)]
+        equipement.plinthes_salle(nom, {'x0': x0, 'x1': x1, 'z0': z0, 'z1': z1}, ouv)
+        equipement.joint_creux(nom, {'x0': x0, 'x1': x1, 'z0': z0, 'z1': z1}, H)
+        equipement.chambranle(f'chb_{nom}_salle', dx0, dx1, PORTE_H, z1 if r['top'] else z0, -1 if r['top'] else 1)
+        equipement.chambranle(f'chb_{nom}_couloir', dx0, dx1, PORTE_H, Z(CH[1]) if r['top'] else Z(CH[3]), 1 if r['top'] else -1)
         DONNEES['salles'][nom] = {'x0': x0, 'x1': x1, 'z0': z0, 'z1': z1, 'porte': [dx0, dx1], 'cote': 'sud' if r['top'] else 'nord',
                                   'z_porte': zr if r['top'] else zc, 'z_couloir': zc if r['top'] else zr}
         DONNEES['sondes'].append([round((x0 + x1) / 2, 2), 1.4, round((z0 + z1) / 2, 2)])
@@ -486,6 +495,36 @@ def meubler():
     accrocher('mains_hall', s, 'n', x0 + 0.9, 1.5, 0.42, 0.56, 'affiche_mains')
     E.distributeur('gel_hall', mur_rep(s, 'n', x0 + 1.55), 0, 1.2, 0)
     ajouter_ph('wall_clock', 'horloge_hall', x1 - 0.75, 2.5, z0 + 0.02, ry=0.0, ancre='centre')
+    # finitions et vie du hall : stores, sortie de secours, enseigne, afficheur d'appel, photographies, porte-revues…
+    for k, (a, b, yb) in enumerate(((x0 + 0.03, 2.48, 1.75), (4.52, x1 - 0.03, 1.95))):
+        E.store(f'store_hall{k}', a, b, z1 - 0.12, 2.72, yb)
+    rs = Rep((x0 + x1) / 2, z1 - 0.13, PI)
+    boite('sortie_boitier', rs, (0, 2.5, 0.02), (0.42, 0.17, 0.05), 'laque', ch=0.01, seg=2, groupe='petits')
+    plaque('sortie_face', rs, (0, 2.5, 0.046), 0.38, 0.14, 'ecran_sortie', groupe='ecran_sortie')
+    E.panneau_suspendu('enseigne_accueil', xb + 0.95, 5.0, PI / 2, 1.5, 0.28, 'enseigne_accueil', 2.42, H, deux_faces=False)
+    boite('appel_boitier', Rep(xb + 0.55, 3.75, PI / 2), (0, 2.05, 0), (0.56, 0.2, 0.05), 'noir_mat', ch=0.01, seg=2, groupe='petits')
+    plaque('appel_face', Rep(xb + 0.55, 3.75, PI / 2), (0, 2.05, 0.026), 0.5, 0.15, 'ecran_appel', groupe='ecran_appel')
+    for k in (0, 1):
+        cyl(f'appel_tige{k}', Rep(xb + 0.55, 3.75 + (k - 0.5) * 0.36), (0, 2.15, 0), [(0.005, 0), (0.005, 0.47), (0, 0.47)], 'inox_brosse', n=8, groupe='inox')
+    for k, zz in enumerate((2.75, 4.55)):
+        accrocher(f'photo_hall{k}', s, 'e', zz, 1.75, 0.9, 0.6, f'photo_parc{k}')
+    rr = mur_rep(s, 'e', 5.0)
+    boite('porte_revues', rr, (0, 1.05, 0.04), (0.42, 0.5, 0.08), 'inox_brosse', ch=0.006, groupe='inox')
+    for k in range(3):
+        boite(f'revue{k}', rr.sous(-0.13 + k * 0.13, 1.02 + (k % 2) * 0.04, 0.06, rx=-0.15), (0, 0.1, 0), (0.12, 0.2, 0.006),
+              ('sarcelle', 'plastique_rouge', 'plastique_bleu')[k], ch=0.001, groupe='petits')
+    ajouter_ph('wheelchair_01', 'fauteuil_roulant_hall', x1 - 0.55, 0, z1 - 2.1, ry=-2.6, tri=9000)
+    mobilier.solide(x1 - 1.0, z1 - 2.55, x1 - 0.1, z1 - 1.65)
+    ajouter_ph('metal_trash_can', 'poubelle_hall', x0 + 0.95, 0, z1 - 0.35, taille=0.6)
+    ajouter_ph('korean_fire_extinguisher_01', 'extincteur_hall', x0 + 2.35, 0, z0 + 0.2, ry=0.0)
+    ajouter_ph('fern_02', 'fougere_hall', x1 - 1.15, 0.43, 3.75, taille=0.45, tri=6000)
+    # sur la banque : imprimante, bannettes, chevalet
+    bq = Rep(xb - 0.25, 5.0, -PI / 2)
+    boite('imprimante', bq, (-1.1, 0.83, 0.05), (0.4, 0.17, 0.34), 'laque_grise', ch=0.02, seg=2, groupe='petits')
+    boite('imprimante_fente', bq, (-1.1, 0.88, 0.221), (0.3, 0.02, 0.004), 'noir_mat', ch=0, groupe='petits')
+    for k in range(3):
+        boite(f'bannette{k}', bq, (1.12, 0.77 + k * 0.06, 0.1), (0.26, 0.04, 0.34), ('plastique_bleu', 'anthracite', 'sarcelle')[k], ch=0.005, groupe='petits')
+        boite(f'feuilles{k}', bq, (1.12, 0.79 + k * 0.06, 0.1), (0.21, 0.01, 0.3), 'papier', ch=0.001, groupe='petits')
     DONNEES['interactifs'] = [
         {'id': 'borne', 'nom': "la borne d'accueil", 'p': [x1 - 0.45, 1.25, z1 - 1.0]},
         {'id': 'plan', 'nom': 'le plan du rez-de-chaussée', 'p': [x1 - 0.02, 1.5, 6.6]},
@@ -708,6 +747,41 @@ def personnes():
     DONNEES['personnes'] = place
 
 
+def zone_de(x, z):
+    """La zone d'un point : une salle, le couloir, ou le dehors."""
+    for nom, s in DONNEES['salles'].items():
+        if s['x0'] - 0.05 <= x <= s['x1'] + 0.05 and s['z0'] - 0.05 <= z <= s['z1'] + 0.05:
+            return nom
+    for c in (CH, CV):
+        if X(c[0]) - 0.6 <= x <= X(c[2]) + 0.6 and Z(c[1]) - 0.6 <= z <= Z(c[3]) + 0.6:
+            return 'couloir'
+    return 'dehors'
+
+
+# l'architecture (murs, sol, plafond, menuiseries…) reste d'un seul tenant : peu de faces, et visible de partout
+ARCHI_GLOBALE = {'murs', 'sol', 'plafond', 'cadres', 'menuiseries', 'chassis', 'lisses', 'plinthes', 'verre'}
+
+
+def decouper_par_zone():
+    """Chaque objet prend le nom de groupe « groupe@zone » : la fusion se fait alors salle par salle, et la page peut
+    ne dessiner que la zone où l'on se trouve (et ce qu'on voit par une porte ouverte)."""
+    from mathutils import Vector as Vec
+    for ob in list(bpy.data.collections['piece'].objects):
+        if ob.type != 'MESH':
+            continue
+        g = ob.get('groupe') or ob.name
+        if g in ARCHI_GLOBALE or g.startswith(('battant_', 'porte_auto_', 'medecin_')):
+            if g.startswith('medecin_'):
+                c = sum((ob.matrix_world @ Vec(b) for b in ob.bound_box), Vec()) / 8
+                ob['zone'] = zone_de(*[P(c)[0], P(c)[2]])
+            continue
+        c = sum((ob.matrix_world @ Vec(b) for b in ob.bound_box), Vec()) / 8
+        x, _, z = P(c)
+        zone = zone_de(x, z)
+        ob['groupe'] = f'{g}@{zone}'
+        ob['zone'] = zone
+
+
 vider()
 geo.collection('piece')
 materiaux()
@@ -718,6 +792,7 @@ meubler()
 portes()
 personnes()
 geo.collection('piece')
+decouper_par_zone()
 geo.reunir()
 DONNEES['soleil'] = ciel()
 DONNEES['solides'] = mobilier.SOLIDES
@@ -738,7 +813,7 @@ for nom, (p, d) in {'couloir': ((-10.5, 1.6, 0.0), (1, -0.05, 0)), 'cyto': ((-8.
 sc['atlas_A'] = ['murs', 'sol', 'plafond', 'cadres', 'menuiseries', 'chassis', 'lisses', 'plinthes']
 SONDE = ('luminaires', 'petits', 'chaises', 'inox', 'verre', 'led', 'signaletique', 'clavier', 'lettres', 'logo_plaque')
 for ob in bpy.data.collections['piece'].objects:
-    if ob.name in SONDE or ob.name.startswith(('ecran_', 'battant_', 'medecin_')) or ob.get('lumiere') == 'sonde':
+    if ob.name.split('@')[0] in SONDE or ob.name.startswith(('ecran_', 'battant_', 'medecin_', 'porte_auto_')) or ob.get('lumiere') == 'sonde':
         ob['lumiere'] = 'sonde'        # dalles lumineuses et écrans : la page les dessine d'elles-mêmes ; petits objets : sondes
 bpy.ops.wm.save_as_mainfile(filepath=SORTIE)
 json.dump(DONNEES, open(os.path.join(os.path.dirname(SORTIE), 'hopital_donnees.json'), 'w'), ensure_ascii=False, indent=0)

@@ -26,8 +26,28 @@ async function ouvrir(options){
 {
   const {p, err} = await ouvrir({viewport: {width: 1280, height: 720}});
   await p.evaluate(() => document.getElementById('b-entrer').click());
+  // portes : fermée = infranchissable ; E ouvre (si le service est ouvert) ; on passe quand l'ouverture suffit ; E referme
+  const pt = await p.evaluate(async () => {
+    const attendre = ms => new Promise(r => setTimeout(r, ms));
+    const b = portes.bloc, [cx, cz] = b.centre, res = {};
+    res.fermeeBloque = !libre(cx, cz);
+    actionnerPorte(b); await attendre(2500);
+    res.ouverteLaissePasser = libre(cx, cz);
+    const [hx, hz, ex, ez] = b.segment();
+    res.battantSolide = !libre((hx + ex) / 2 + 0.05, (hz + ez) / 2);
+    actionnerPorte(b); await attendre(2500);
+    res.refermee = !libre(cx, cz) && b.angle < 0.01;
+    const c = portes.consult; c.verrouillee = true; actionnerPorte(c); await attendre(800);
+    res.verrouilleeResiste = c.angle === 0 && !c.ouverte;
+    return res;
+  });
+  ok(pt.fermeeBloque, 'une porte fermée arrête le pas');
+  ok(pt.ouverteLaissePasser, 'E ouvre la porte, on passe une fois l’ouverture suffisante');
+  ok(pt.battantSolide, 'on ne traverse pas le battant ouvert');
+  ok(pt.refermee, 'E referme la porte');
+  ok(pt.verrouilleeResiste, 'la porte d’un service pas encore ouvert reste fermée');
   const r = await p.evaluate(() => {
-    for (const g of Object.values(portes)) { g.ouverte = true; g.angle = 1.5; }
+    for (const g of Object.values(portes)) { g.verrouillee = false; g.ouverte = true; g.angle = 1.6; }
     // parcours en largeur sur une grille de 10 cm, depuis la position de départ, avec la vraie fonction de collision
     let fuite = null; const pas = 0.1, vus = new Set(), file = [[Math.round(J.x / pas), Math.round(J.z / pas)]];
     vus.add(file[0].join(','));
