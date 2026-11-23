@@ -28,6 +28,8 @@ def a_cuire(ob):
 
 
 objets = [o for o in piece.objects if a_cuire(o)]
+if sc.get('atlas_A'):          # une autre scène (l'hôpital) peut dire quels groupes vont dans l'atlas A
+    ARCHI = set(sc['atlas_A'])
 for o in objets:
     o['atlas'] = 'A' if o.name in ARCHI or o.get('groupe') in ARCHI else 'B'
 groupes = {'A': [o for o in objets if o['atlas'] == 'A'], 'B': [o for o in objets if o['atlas'] == 'B']}

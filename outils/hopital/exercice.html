@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le garçon à utérus</title>
+<style>
+/* Plan : un dossier médical qui circule de service en service. Colonne de travail à gauche, dossier patient collé à droite. Thème unique « papier clinique ». */
+:root{
+  --paper:#e9edf1;
+  --card:#ffffff;
+  --ink:#18212e;
+  --muted:#556172;
+  --line:#d3dae3;
+  --accent:#0b6b77;
+  --accent-soft:#dcefF1;
+  --stamp:#b4361a;
+  --ok:#16794a;
+  --ok-soft:#e3f4ea;
+  --bad:#b42323;
+  --bad-soft:#fbe6e6;
+  --wolff:#2457c5;
+  --muller:#c8326f;
+  --chrom:#5d4a86;
+  --display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55}
+h1,h2,h3,h4{font-family:var(--display);line-height:1.15;text-wrap:balance;margin:0}
+h2{font-size:1.75rem;font-weight:800}
+h3{font-size:1.2rem;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* En-tête */
+.top{background:var(--ink);color:#fff;padding:14px 20px 0}
+.top-row{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;max-width:1280px;margin:0 auto}
+.brand{display:flex;flex-direction:column}
+.brand small{color:#b8c4d3;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+.brand h1{font-size:1.5rem;font-weight:800}
+.score{display:flex;gap:10px;align-items:center;font-variant-numeric:tabular-nums}
+.score .pill{background:#ffffff1a;border:1px solid #ffffff33;border-radius:999px;padding:4px 12px;font-size:.95rem}
+nav.steps{display:flex;gap:4px;overflow-x:auto;max-width:1280px;margin:12px auto 0;padding-bottom:0}
+nav.steps a{flex:0 0 auto;color:#dbe3ec;text-decoration:none;padding:9px 14px;border-radius:10px 10px 0 0;font-size:.92rem;display:flex;gap:8px;align-items:center;border:1px solid transparent;border-bottom:0}
+nav.steps a .n{font-family:var(--display);font-weight:800;background:#ffffff22;border-radius:6px;padding:0 7px}
+nav.steps a.current{background:var(--paper);color:var(--ink)}
+nav.steps a.current .n{background:var(--accent);color:#fff}
+nav.steps a.locked{opacity:.45}
+nav.steps a.complete .n{background:var(--ok);color:#fff}
+
+/* Mise en page */
+.wrap{max-width:1280px;margin:0 auto;padding:24px 20px 60px;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:24px;align-items:start}
+@media (max-width:980px){.wrap{grid-template-columns:1fr}.dossier{position:static!important}}
+main{display:flex;flex-direction:column;gap:20px;min-width:0}
+section.view{display:none;flex-direction:column;gap:20px}
+section.view.on{display:flex}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.card.locked-msg{border-style:dashed;color:var(--muted);text-align:center}
+.lede{font-size:1.1rem;max-width:68ch}
+.muted{color:var(--muted)}
+.small{font-size:.9rem}
+.task-head{display:flex;gap:12px;align-items:baseline;justify-content:space-between;flex-wrap:wrap}
+.badge{font-size:.8rem;font-weight:700;border-radius:999px;padding:3px 10px;background:var(--paper);color:var(--muted);white-space:nowrap}
+[data-task].done .badge{background:var(--ok-soft);color:var(--ok)}
+[data-task].done .badge::before{content:"✓ "}
+.gated{display:none!important}
+.persona{display:flex;gap:14px;align-items:center}
+.avatar{width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.2rem;flex:0 0 auto}
+.persona .role{font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.speech{background:var(--accent-soft);border-radius:4px 14px 14px 14px;padding:14px 16px;max-width:70ch}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:700}
+.btn:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent;color:var(--accent);border:2px solid var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.feedback{border-radius:10px;padding:10px 14px;font-size:.95rem}
+.feedback.ok{background:var(--ok-soft);color:var(--ok)}
+.feedback.bad{background:var(--bad-soft);color:var(--bad)}
+.feedback:empty{display:none}
+
+/* Accueil */
+.case{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:start}
+@media (max-width:640px){.case{grid-template-columns:1fr}}
+.stamp{font-family:var(--display);font-weight:800;color:var(--stamp);border:3px solid var(--stamp);border-radius:8px;padding:6px 12px;transform:rotate(-4deg);font-size:1.05rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;align-self:start}
+.mission{border-left:5px solid var(--stamp);padding:4px 0 4px 16px;display:flex;flex-direction:column;gap:8px;max-width:72ch}
+.route{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.route div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.92rem}
+.route b{display:block;font-family:var(--display)}
+input[type=text],input[type=number]{font:inherit;border:2px solid var(--line);border-radius:8px;padding:8px 10px;background:#fff;color:var(--ink)}
+input[type=number]{width:90px}
+
+/* QCM */
+.qcm{display:flex;flex-direction:column;gap:16px}
+.q{border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+.q.ok{border-color:var(--ok);background:var(--ok-soft)}
+.q.bad{border-color:var(--bad);background:var(--bad-soft)}
+.q legend,.q .qt{font-weight:700}
+.q label{display:flex;gap:10px;align-items:flex-start;padding:4px 6px;border-radius:6px;cursor:pointer}
+.q label:hover{background:#00000008}
+.q input{margin-top:5px}
+.q .expl{font-size:.92rem;color:var(--ink);border-top:1px dashed var(--line);padding-top:8px}
+
+/* Glisser-déposer */
+.dnd{display:flex;flex-direction:column;gap:14px}
+.bank{display:flex;flex-wrap:wrap;gap:8px;min-height:52px;padding:10px;border:2px dashed var(--line);border-radius:12px;background:#f6f8fa}
+.bank:empty::after{content:"Toutes les étiquettes sont placées.";color:var(--muted);font-size:.9rem}
+.chip{background:#fff;border:2px solid var(--ink);border-radius:8px;padding:6px 10px;font-size:.93rem;line-height:1.3;cursor:grab;user-select:none;touch-action:manipulation;display:inline-flex;align-items:center;gap:6px}
+.chip.sel{outline:3px solid var(--accent);outline-offset:2px;background:var(--accent-soft)}
+.chip.ok{border-color:var(--ok);background:var(--ok-soft)}
+.chip.bad{border-color:var(--bad);background:var(--bad-soft)}
+.chip svg{display:block}
+[data-zone]{border:2px dashed #9aa6b5;border-radius:10px;min-height:46px;padding:6px;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start;background:#fbfcfd;transition:background .15s}
+[data-zone].hover,[data-zone].target{background:var(--accent-soft);border-color:var(--accent)}
+.hint{font-size:.88rem;color:var(--muted)}
+
+/* Tableau des sexes */
+.sextable{display:grid;grid-template-columns:170px 1fr 1fr;gap:8px}
+.sextable .h{font-family:var(--display);font-weight:700;padding:6px 8px}
+.sextable .rh{font-weight:700;padding:8px;background:var(--paper);border-radius:8px;display:flex;align-items:center}
+@media (max-width:640px){.sextable{grid-template-columns:1fr 1fr}.sextable .rh{grid-column:1/-1}.sextable .corner{display:none}}
+
+/* Schémas */
+.schemas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media (max-width:760px){.schemas{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.panel h4{font-size:1rem;text-align:center}
+.panel svg{width:100%;height:auto;max-width:240px;margin:0 auto}
+.slots{display:grid;grid-template-columns:28px 1fr;gap:6px;align-items:center}
+.slots .num{font-family:var(--display);font-weight:800;background:var(--ink);color:#fff;border-radius:50%;width:26px;height:26px;display:grid;place-items:center;font-size:.85rem}
+.slots [data-zone]{min-height:40px}
+.hormone-zone{display:flex;gap:8px;align-items:center;font-size:.9rem}
+.hormone-zone [data-zone]{flex:1}
+
+/* Dialogue */
+.dialogue{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:16px}
+@media (max-width:760px){.dialogue{grid-template-columns:1fr}}
+.asks{display:flex;flex-direction:column;gap:8px}
+.ask{text-align:left;background:#fff;border:2px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--ink)}
+.ask:hover{border-color:var(--accent)}
+.ask.asked{opacity:.55;border-style:dashed}
+.log{display:flex;flex-direction:column;gap:10px;max-height:460px;overflow-y:auto;padding-right:4px}
+.log .me{align-self:flex-end;background:var(--ink);color:#fff;border-radius:14px 4px 14px 14px;padding:8px 12px;max-width:85%;font-size:.93rem}
+.log .doc{align-self:flex-start;background:var(--accent-soft);border-radius:4px 14px 14px 14px;padding:10px 14px;max-width:92%}
+.log .doc.key{border-left:4px solid var(--ok)}
+.gauge{height:10px;background:var(--paper);border-radius:99px;overflow:hidden}
+.gauge i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+
+/* Cartes examens */
+.exams{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.exam{background:#fff;border:2px solid var(--line);border-radius:12px;padding:14px;text-align:left;display:flex;flex-direction:column;gap:6px;color:var(--ink)}
+.exam:hover{border-color:var(--accent)}
+.exam .tag{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.exam b{font-family:var(--display);font-size:1.05rem}
+.exam.right{border-color:var(--ok);background:var(--ok-soft)}
+.exam.asked{border-style:dashed;opacity:.75}
+.exam:disabled{cursor:default}
+.exam.wrong{border-color:var(--bad);background:var(--bad-soft)}
+
+/* Caryotype */
+.karyo{display:flex;flex-wrap:wrap;gap:14px 10px;padding:14px;background:#f6f4fa;border-radius:12px;align-items:flex-end}
+.kcell{display:flex;flex-direction:column;align-items:center;gap:2px}
+.kcell .pair{display:flex;gap:3px;align-items:flex-end;min-height:20px}
+.kcell .lbl{font-size:.75rem;color:var(--muted);border-top:1px solid #b9b0cc;width:100%;text-align:center;font-variant-numeric:tabular-nums}
+.kcell [data-zone]{min-width:22px;min-height:34px;padding:2px;justify-content:center;align-items:flex-end}
+.kcell [data-zone="k23"]{min-width:48px}
+.kchips .chip{padding:6px 8px;flex-direction:column}
+.kchips .chip span{font-size:.75rem}
+
+/* Bilan */
+.bilan{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.bilan th,.bilan td{border-bottom:1px solid var(--line);padding:10px 8px;text-align:left;vertical-align:middle}
+.bilan th{font-family:var(--display);font-size:.95rem}
+.bar{height:14px;background:var(--paper);border-radius:99px;position:relative;min-width:140px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent)}
+.bar .ref{position:absolute;top:-4px;bottom:-4px;border-left:2px dashed var(--ink)}
+.flag{font-weight:700}
+.flag.lowv{color:var(--bad)}
+.flag.okv{color:var(--ok)}
+.sheet{border:1px solid var(--line);border-radius:12px;padding:16px;background:#fcfdfd;overflow-x:auto}
+.sheet header{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin-bottom:8px}
+
+/* Jost */
+.jost{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.jcard{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.jcard .exp{font-family:var(--display);font-weight:700}
+.jcard ul{margin:0;padding-left:18px;font-size:.93rem}
+.jcard .letter{font-family:var(--display);font-weight:800;background:var(--ink);color:#fff;border-radius:6px;padding:0 8px;margin-right:6px}
+
+/* Chaîne hormonale */
+.chain{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;align-items:stretch}
+@media (max-width:860px){.chain{grid-template-columns:1fr}}
+.link{border:2px solid var(--ink);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:#fff;position:relative}
+.link b{font-family:var(--display)}
+.link .step{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.link [data-zone]{margin-top:auto;min-height:44px}
+
+/* Hypothèses */
+.hyps{display:flex;flex-direction:column;gap:14px}
+.hyp{border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.hyp.solved-ok{border-color:var(--ok)}
+.hyp h4{font-size:1.05rem}
+.result{background:#f6f8fa;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.verdict{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* Séquence */
+.seq{font-family:"Courier New",monospace;font-size:1.15rem;display:flex;flex-wrap:wrap;gap:2px;letter-spacing:0}
+.seq span,.seq button{width:24px;height:30px;display:grid;place-items:center;border-radius:4px;border:1px solid var(--line);background:#fff;padding:0;font-family:inherit;font-size:inherit;color:var(--ink)}
+.seq button:hover{border-color:var(--accent)}
+.seq .hit{background:var(--ok-soft);border-color:var(--ok);font-weight:700}
+.seq .miss{background:var(--bad-soft);border-color:var(--bad)}
+.seq .gap{border:0;width:8px;background:transparent}
+.seqrow{display:grid;grid-template-columns:150px 1fr;gap:10px;align-items:center}
+@media (max-width:640px){.seqrow{grid-template-columns:1fr}}
+
+/* Frise */
+.frise{overflow-x:auto}
+.tl{display:grid;grid-template-columns:repeat(5,minmax(150px,1fr));gap:8px;min-width:780px}
+.tl .when{font-family:var(--display);font-weight:700;font-size:.95rem;border-top:4px solid var(--accent);padding-top:6px;font-variant-numeric:tabular-nums}
+.tl .when small{display:block;font-family:var(--body);font-weight:400;color:var(--muted)}
+.tl [data-zone]{min-height:90px}
+.conv{display:flex;flex-direction:column;gap:10px}
+.conv .line{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* Dossier */
+.dossier{position:sticky;top:16px;background:#f5ecd9;border:1px solid #d9c9a6;border-radius:6px 14px 14px 14px;padding:18px;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 0 #d9c9a6}
+.dossier h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dossier .id{font-size:.85rem;color:#6d5d3c}
+.field{border-top:1px solid #d9c9a6;padding-top:8px;display:flex;flex-direction:column;gap:2px}
+.field .k{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:#6d5d3c;font-weight:700}
+.field .v{font-size:.95rem}
+.field .v.empty{color:#9b8c6c;font-style:italic}
+.field.new .v{animation:flash 1.2s ease}
+@keyframes flash{0%{background:#ffe38a}100%{background:transparent}}
+@media (prefers-reduced-motion:reduce){.field.new .v{animation:none}.gauge i{transition:none}}
+
+/* Portraits */
+.portrait{width:96px;flex:0 0 auto}
+.portrait svg{width:100%;height:auto;display:block}
+section.view > .card:first-child .persona .portrait{width:124px}
+.speech.typing{cursor:pointer}
+.speech.typing::after{content:" ▸ cliquer pour tout afficher";font-size:.8rem;color:var(--muted)}
+
+/* Plan de l'hôpital */
+.mapcard{padding:14px 18px;gap:8px}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.maphead .here{font-family:var(--display);font-weight:700}
+.maphead .here span{color:var(--stamp)}
+#mapWrap{max-width:680px;width:100%;margin:0 auto}
+#mapWrap svg{width:100%;height:auto;display:block}
+.mapcard.closed #mapWrap{display:none}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:700;padding:4px 0;text-decoration:underline}
+
+/* Compte-rendu */
+.checklist{display:flex;flex-direction:column;gap:6px;margin:0;padding:0;list-style:none}
+.checklist label{display:flex;gap:10px;align-items:flex-start}
+.evid{margin:0;padding-left:20px}
+.foot{display:flex;gap:16px;justify-content:space-between;flex-wrap:wrap;font-size:.88rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.foot label{display:flex;gap:8px;align-items:center}
+.next{border:2px solid var(--ok);background:var(--ok-soft)}
+/* Ouvert depuis l'hôpital en 3D (?en3d) : on y va à pied, donc ni plan ni onglets d'étapes */
+body.en3d #mapCard, body.en3d nav.steps, body.en3d .card.next{display:none!important}
+body.en3d .top{padding-bottom:12px}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-row">
+    <div class="brand">
+      <small>SVT · Seconde · Jeu d'introduction</small>
+      <h1>Le garçon à utérus</h1>
+    </div>
+    <div class="score">
+      <span class="pill" id="groupPill">Équipe : –</span>
+      <span class="pill"><b id="points">0</b> points</span>
+    </div>
+  </div>
+  <nav class="steps" id="nav" aria-label="Étapes de l'enquête"></nav>
+</header>
+
+<div class="wrap">
+<main>
+<div class="card mapcard" id="mapCard">
+  <div class="maphead"><p class="here" id="mapHere" aria-live="polite">Vous êtes ici : <span>Hall d'accueil</span></p><button class="linkbtn" id="mapToggle" type="button">Masquer le plan</button></div>
+  <div id="mapWrap"></div>
+</div>
+
+<!-- ===================== ACCUEIL ===================== -->
+<section class="view" id="v-accueil">
+  <div class="card">
+    <div class="case">
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <h2>Un compte-rendu opératoire inattendu</h2>
+        <p class="lede">Mme D. est la maman d'un petit garçon. Elle n'a aucun doute sur le sexe biologique de son enfant, qui possède des organes génitaux externes typiquement masculins : pénis, bourses et testicules bien descendus dans les bourses.</p>
+        <p class="lede">Elle est donc très surprise lorsqu'à la suite d'une opération de son fils pour des problèmes abdominaux, le chirurgien lui annonce que son enfant possède <b>un utérus</b>.</p>
+      </div>
+      <div class="stamp">Cas n° 2nde-R1</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Votre mission</h3>
+    <div class="mission">
+      <p><b>Vous êtes le chirurgien qui suit l'enfant de Mme D.</b></p>
+      <p>Afin d'expliquer l'origine de cet utérus, vous allez mener une enquête en <b>6 étapes</b>. À chaque étape, vous serez en contact avec un spécialiste : vous lui poserez des questions, demanderez des examens et analyserez leurs résultats. Chaque information importante est ajoutée au dossier patient, à droite.</p>
+      <p>À la fin, vous rédigerez un compte-rendu expliquant comment cet enfant peut être de sexe biologique « masculin » tout en possédant un utérus.</p>
+    </div>
+    <div class="row">
+      <label for="groupName"><b>Nom de votre équipe</b></label>
+      <input type="text" id="groupName" placeholder="ex. : Équipe 3, Léa et Yanis" style="min-width:260px">
+      <button class="btn" id="startBtn">Commencer l'enquête</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== ÉTAPE 1 ===================== -->
+<section class="view" id="v-etape-1">
+  <div class="card">
+    <div class="persona">
+      <div class="portrait" data-who="DL"></div>
+      <div><div class="role">Étape 1 · Médecin</div><h2>Dr Lefèvre</h2></div>
+    </div>
+    <div class="speech">Avant d'expliquer le cas de cet enfant, vous devez comprendre comment l'appareil génital se met en place chez l'embryon. Commencez par regarder cette vidéo, puis venez me poser vos questions.</div>
+  </div>
+
+  <div class="card" data-task="qcm1">
+    <div class="task-head"><h3>1.1 · La vidéo</h3><span class="badge">QCM 1 à 8</span></div>
+    <p>Regardez la vidéo <b>« L'acquisition du phénotype sexuel »</b> (Réseau Canopé, 3 min 09), puis répondez aux questions.</p>
+    <div class="row"><a class="btn" href="https://tube.reseau-canope.fr/w/9wwVg6okqjcT1GaVdwVPVE" target="_blank" rel="noopener">Ouvrir la vidéo dans un nouvel onglet</a></div>
+    <div id="qcm1"></div>
+  </div>
+
+  <div class="card gated" data-task="dialogue" data-requires="qcm1">
+    <div class="task-head"><h3>1.2 · Questionnez le médecin</h3><span class="badge">Informations clés</span></div>
+    <p>Choisissez vos questions. Certaines font avancer l'enquête, d'autres non. Il vous faut les <b>6 informations clés</b> pour continuer.</p>
+    <div class="row small"><span>Informations recueillies : <b id="keyCount">0</b> / 6</span></div>
+    <div class="gauge"><i id="keyGauge"></i></div>
+    <div class="dialogue">
+      <div class="asks" id="asks"></div>
+      <div class="log" id="log" aria-live="polite"><div class="doc">Je vous écoute. Quelle est votre question ?</div></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="qcm2" data-requires="dialogue">
+    <div class="task-head"><h3>1.3 · Vérifiez ce que vous avez compris</h3><span class="badge">QCM 9 à 12</span></div>
+    <div id="qcm2"></div>
+  </div>
+
+  <div class="card gated" data-task="schema" data-requires="qcm2">
+    <div class="task-head"><h3>1.4 · Complétez les schémas de la différenciation</h3><span class="badge">Glisser-déposer</span></div>
+    <p class="hint">Sur tablette : touchez une étiquette, puis touchez la case où la placer. Sur ordinateur, vous pouvez aussi la faire glisser. Touchez une étiquette déjà placée pour la déplacer.</p>
+    <div class="dnd" id="dnd-schema">
+      <div class="bank"></div>
+      <div class="schemas">
+        <div class="panel">
+          <h4>Stade indifférencié<br><span class="muted small">avant 6 à 7 semaines, XX ou XY</span></h4>
+          <svg viewBox="0 0 220 260" role="img" aria-label="Schéma de l'appareil génital indifférencié">
+            <ellipse cx="60" cy="60" rx="16" ry="24" fill="#e8e2d0" stroke="#18212e" stroke-width="2"/>
+            <ellipse cx="160" cy="60" rx="16" ry="24" fill="#e8e2d0" stroke="#18212e" stroke-width="2"/>
+            <path d="M72 84 Q82 170 102 222" fill="none" stroke="#2457c5" stroke-width="5" stroke-linecap="round"/>
+            <path d="M148 84 Q138 170 118 222" fill="none" stroke="#2457c5" stroke-width="5" stroke-linecap="round"/>
+            <path d="M38 58 Q34 170 106 222" fill="none" stroke="#c8326f" stroke-width="5" stroke-linecap="round"/>
+            <path d="M182 58 Q186 170 114 222" fill="none" stroke="#c8326f" stroke-width="5" stroke-linecap="round"/>
+            <rect x="84" y="220" width="52" height="22" rx="8" fill="#f1d9a7" stroke="#18212e" stroke-width="2"/>
+            <g font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="13" fill="#fff">
+              <circle cx="60" cy="26" r="11" fill="#18212e"/><text x="60" y="31" text-anchor="middle">1</text>
+              <circle cx="100" cy="150" r="11" fill="#18212e"/><text x="100" y="155" text-anchor="middle">2</text>
+              <circle cx="22" cy="140" r="11" fill="#18212e"/><text x="22" y="145" text-anchor="middle">3</text>
+              <circle cx="110" cy="256" r="0"/><circle cx="160" cy="236" r="11" fill="#18212e"/><text x="160" y="241" text-anchor="middle">4</text>
+            </g>
+          </svg>
+          <div class="slots">
+            <span class="num">1</span><div data-zone="s1" data-cap="1"></div>
+            <span class="num">2</span><div data-zone="s2" data-cap="1"></div>
+            <span class="num">3</span><div data-zone="s3" data-cap="1"></div>
+            <span class="num">4</span><div data-zone="s4" data-cap="1"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Évolution masculine<br><span class="muted small">embryon XY</span></h4>
+          <div class="hormone-zone"><span>Sous l'effet de :</span><div data-zone="hm" data-cap="1"></div></div>
+          <svg viewBox="0 0 220 260" role="img" aria-label="Schéma de l'appareil génital masculin en formation">
+            <ellipse cx="62" cy="72" rx="17" ry="25" fill="#bcd0f5" stroke="#18212e" stroke-width="2"/>
+            <ellipse cx="158" cy="72" rx="17" ry="25" fill="#bcd0f5" stroke="#18212e" stroke-width="2"/>
+            <path d="M74 96 Q84 170 102 214" fill="none" stroke="#2457c5" stroke-width="7" stroke-linecap="round"/>
+            <path d="M146 96 Q136 170 118 214" fill="none" stroke="#2457c5" stroke-width="7" stroke-linecap="round"/>
+            <path d="M40 70 Q36 150 70 190" fill="none" stroke="#c8326f" stroke-width="3" stroke-dasharray="3 6" opacity=".7"/>
+            <path d="M180 70 Q184 150 150 190" fill="none" stroke="#c8326f" stroke-width="3" stroke-dasharray="3 6" opacity=".7"/>
+            <ellipse cx="110" cy="226" rx="24" ry="16" fill="#f1d9a7" stroke="#18212e" stroke-width="2"/>
+            <g font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="13" fill="#fff">
+              <circle cx="62" cy="34" r="11" fill="#18212e"/><text x="62" y="39" text-anchor="middle">5</text>
+              <circle cx="104" cy="150" r="11" fill="#18212e"/><text x="104" y="155" text-anchor="middle">6</text>
+              <circle cx="22" cy="130" r="11" fill="#18212e"/><text x="22" y="135" text-anchor="middle">7</text>
+              <circle cx="160" cy="236" r="11" fill="#18212e"/><text x="160" y="241" text-anchor="middle">8</text>
+            </g>
+          </svg>
+          <div class="slots">
+            <span class="num">5</span><div data-zone="s5" data-cap="1"></div>
+            <span class="num">6</span><div data-zone="s6" data-cap="1"></div>
+            <span class="num">7</span><div data-zone="s7" data-cap="1"></div>
+            <span class="num">8</span><div data-zone="s8" data-cap="1"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h4>Évolution féminine<br><span class="muted small">embryon XX</span></h4>
+          <div class="hormone-zone"><span>Sous l'effet de :</span><div data-zone="hf" data-cap="1"></div></div>
+          <svg viewBox="0 0 220 260" role="img" aria-label="Schéma de l'appareil génital féminin en formation">
+            <ellipse cx="34" cy="78" rx="14" ry="20" fill="#f5c6d8" stroke="#18212e" stroke-width="2"/>
+            <ellipse cx="186" cy="78" rx="14" ry="20" fill="#f5c6d8" stroke="#18212e" stroke-width="2"/>
+            <path d="M44 62 Q70 40 90 112" fill="none" stroke="#c8326f" stroke-width="6" stroke-linecap="round"/>
+            <path d="M176 62 Q150 40 130 112" fill="none" stroke="#c8326f" stroke-width="6" stroke-linecap="round"/>
+            <path d="M84 108 Q110 96 136 108 Q140 150 118 186 L102 186 Q80 150 84 108 Z" fill="#f5c6d8" stroke="#c8326f" stroke-width="4"/>
+            <rect x="100" y="186" width="20" height="48" rx="6" fill="#f5c6d8" stroke="#c8326f" stroke-width="4"/>
+            <path d="M48 96 Q60 170 96 214" fill="none" stroke="#2457c5" stroke-width="3" stroke-dasharray="3 6" opacity=".7"/>
+            <path d="M172 96 Q160 170 124 214" fill="none" stroke="#2457c5" stroke-width="3" stroke-dasharray="3 6" opacity=".7"/>
+            <g font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="13" fill="#fff">
+              <circle cx="34" cy="42" r="11" fill="#18212e"/><text x="34" y="47" text-anchor="middle">9</text>
+              <circle cx="70" cy="30" r="11" fill="#18212e"/><text x="70" y="35" text-anchor="middle">10</text>
+              <circle cx="156" cy="146" r="11" fill="#18212e"/><text x="156" y="151" text-anchor="middle">11</text>
+              <circle cx="146" cy="222" r="11" fill="#18212e"/><text x="146" y="227" text-anchor="middle">12</text>
+              <circle cx="40" cy="170" r="11" fill="#18212e"/><text x="40" y="175" text-anchor="middle">13</text>
+            </g>
+          </svg>
+          <div class="slots">
+            <span class="num">9</span><div data-zone="s9" data-cap="1"></div>
+            <span class="num">10</span><div data-zone="s10" data-cap="1"></div>
+            <span class="num">11</span><div data-zone="s11" data-cap="1"></div>
+            <span class="num">12</span><div data-zone="s12" data-cap="1"></div>
+            <span class="num">13</span><div data-zone="s13" data-cap="1"></div>
+          </div>
+        </div>
+      </div>
+      <p class="hint">Code couleur : en bleu, les canaux de Wolff ; en rose, les canaux de Müller ; en pointillés, un canal qui régresse.</p>
+      <div class="row"><button class="btn check">Vérifier mes schémas</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="tableau" data-requires="schema">
+    <div class="task-head"><h3>1.5 · Les quatre niveaux du sexe biologique</h3><span class="badge">Glisser-déposer</span></div>
+    <p>Placez chaque étiquette dans la bonne case du tableau.</p>
+    <div class="dnd" id="dnd-table">
+      <div class="bank"></div>
+      <div class="sextable">
+        <div class="h corner"></div><div class="h">Homme</div><div class="h">Femme</div>
+        <div class="rh">Sexe génétique</div><div data-zone="gen-h"></div><div data-zone="gen-f"></div>
+        <div class="rh">Sexe gonadique</div><div data-zone="gon-h"></div><div data-zone="gon-f"></div>
+        <div class="rh">Sexe anatomique</div><div data-zone="ana-h"></div><div data-zone="ana-f"></div>
+        <div class="rh">Sexe physiologique</div><div data-zone="phy-h"></div><div data-zone="phy-f"></div>
+      </div>
+      <div class="row"><button class="btn check">Vérifier mon tableau</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="exam1" data-requires="tableau">
+    <div class="task-head"><h3>Retour au bloc opératoire</h3><span class="badge">Choix de l'examen</span></div>
+    <div class="persona"><div class="portrait" data-who="CS"></div><div class="speech"><b>Dr Vasseur, cheffe de service :</b> Maintenant que vous connaissez les étapes de la différenciation sexuelle, par quel examen commencer pour comprendre le cas de cet enfant ?</div></div>
+    <div class="exams" id="exam1"></div>
+    <div class="feedback" id="exam1-fb"></div>
+  </div>
+  <div class="card next gated" data-requires="exam1"><p><b>Étape 1 terminée.</b> Rendez-vous chez le cytogénéticien.</p><div class="row"><a class="btn" href="#etape-2">Aller à l'étape 2</a></div></div>
+</section>
+
+<!-- ===================== ÉTAPE 2 ===================== -->
+<section class="view" id="v-etape-2">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="DB"></div><div><div class="role">Étape 2 · Cytogénéticien</div><h2>Dr Benali</h2></div></div>
+    <div class="speech">Bonjour ! Mon métier, c'est d'observer les chromosomes. Pour établir un caryotype, on cultive des cellules de l'enfant, on les bloque pendant leur division, puis on photographie leurs chromosomes, qui sont alors très condensés et bien visibles.</div>
+  </div>
+
+  <div class="card" data-task="chromatides">
+    <div class="task-head"><h3>2.1 · Chromosome à une ou deux chromatides</h3><span class="badge">Glisser-déposer + QCM</span></div>
+    <p>Avant la division, chaque chromosome se <b>duplique</b> : il passe d'une seule chromatide à deux chromatides identiques, reliées par le <b>centromère</b>. Classez ces chromosomes.</p>
+    <div class="dnd" id="dnd-chromatides">
+      <div class="bank kchips"></div>
+      <div class="sextable" style="grid-template-columns:1fr 1fr">
+        <div class="h">Chromosome à 1 chromatide</div><div class="h">Chromosome à 2 chromatides</div>
+        <div data-zone="c1" style="min-height:110px;align-items:flex-end"></div><div data-zone="c2" style="min-height:110px;align-items:flex-end"></div>
+      </div>
+      <div class="row"><button class="btn check">Vérifier</button></div>
+      <div class="feedback"></div>
+    </div>
+    <div id="qcm-chromatides" class="gated" data-requires="dnd-chromatides"></div>
+  </div>
+
+  <div class="card gated" data-task="caryo" data-requires="chromatides">
+    <div class="task-head"><h3>2.2 · Le caryotype de l'enfant</h3><span class="badge">Reconstitution + lecture</span></div>
+    <p>Quatre chromosomes se sont échappés pendant le classement. Replacez-les en vous aidant de leur <b>taille</b> et de la <b>position de leur centromère</b>. Les chromosomes sexuels se rangent en dernier.</p>
+    <div class="dnd" id="dnd-caryo">
+      <div class="bank kchips"></div>
+      <div class="karyo" id="karyo"></div>
+      <div class="row"><button class="btn check">Vérifier mon caryotype</button></div>
+      <div class="feedback"></div>
+    </div>
+    <div class="gated" data-requires="dnd-caryo" id="caryo-read">
+      <h3>Lecture du caryotype</h3>
+      <div class="conv">
+        <div class="line"><label for="nChr">Nombre total de chromosomes :</label><input type="number" id="nChr" min="0"></div>
+        <div class="line"><label for="nAuto">Nombre de paires d'autosomes (chromosomes non sexuels) :</label><input type="number" id="nAuto" min="0"></div>
+      </div>
+      <div id="qcm-caryo"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="zoom" data-requires="caryo">
+    <div class="task-head"><h3>2.3 · Du chromosome à l'ADN</h3><span class="badge">Associer les définitions</span></div>
+    <svg viewBox="0 0 860 170" role="img" aria-label="Zoom du chromosome à la séquence d'ADN" style="width:100%;height:auto">
+      <g transform="translate(40,20)">
+        <rect x="0" y="0" width="16" height="120" rx="8" fill="#5d4a86"/><rect x="20" y="0" width="16" height="120" rx="8" fill="#5d4a86"/>
+        <ellipse cx="-1" cy="48" rx="4" ry="5" fill="#fff"/><ellipse cx="37" cy="48" rx="4" ry="5" fill="#fff"/>
+        <rect x="14" y="44" width="8" height="8" fill="#5d4a86"/>
+        <text x="18" y="145" text-anchor="middle" font-size="13" fill="#18212e">Chromosome</text>
+      </g>
+      <path d="M100 80 h60" stroke="#556172" stroke-width="2" marker-end="url(#ar)"/>
+      <g transform="translate(190,20)">
+        <rect x="0" y="0" width="16" height="120" rx="8" fill="#5d4a86"/>
+        <text x="8" y="145" text-anchor="middle" font-size="13" fill="#18212e">Une chromatide</text>
+      </g>
+      <path d="M240 80 h60" stroke="#556172" stroke-width="2" marker-end="url(#ar)"/>
+      <g transform="translate(320,30)" fill="none" stroke-width="4">
+        <path d="M0 50 C25 0, 50 0, 75 50 S125 100, 150 50 S200 0, 225 50" stroke="#2457c5"/>
+        <path d="M0 50 C25 100, 50 100, 75 50 S125 0, 150 50 S200 100, 225 50" stroke="#c8326f"/>
+        <g stroke="#9aa6b5" stroke-width="2"><path d="M20 22 v56"/><path d="M45 15 v70"/><path d="M105 15 v70"/><path d="M130 22 v56"/><path d="M180 15 v70"/><path d="M205 22 v56"/></g>
+        <text x="112" y="125" text-anchor="middle" font-size="13" fill="#18212e" stroke="none">Molécule d'ADN (double hélice)</text>
+      </g>
+      <path d="M560 80 h50" stroke="#556172" stroke-width="2" marker-end="url(#ar)"/>
+      <g transform="translate(625,50)" font-family="Courier New, monospace" font-size="18">
+        <rect x="58" y="-4" width="118" height="36" rx="6" fill="#dcefF1" stroke="#0b6b77" stroke-width="2"/>
+        <text x="0" y="20" fill="#18212e">…TAC<tspan fill="#0b6b77" font-weight="700">ATGCGGCTC</tspan>GA…</text>
+        <text x="117" y="58" text-anchor="middle" font-size="13" font-family="Atkinson Hyperlegible, sans-serif" fill="#0b6b77">un gène</text>
+        <text x="90" y="86" text-anchor="middle" font-size="13" font-family="Atkinson Hyperlegible, sans-serif" fill="#18212e">Suite de nucléotides A, T, C, G</text>
+      </g>
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 L10 5 L0 10 z" fill="#556172"/></marker></defs>
+    </svg>
+    <div class="dnd" id="dnd-zoom">
+      <div class="bank"></div>
+      <div class="sextable" style="grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)">
+        <div class="rh">Molécule en double hélice, support de l'information génétique.</div><div data-zone="d-adn" data-cap="1"></div>
+        <div class="rh">Portion d'ADN, située à un endroit précis d'un chromosome, qui porte une information génétique.</div><div data-zone="d-gene" data-cap="1"></div>
+        <div class="rh">Unités qui s'enchaînent pour former l'ADN ; il en existe 4 sortes : A, T, C et G.</div><div data-zone="d-nuc" data-cap="1"></div>
+        <div class="rh">Chacune des deux copies identiques d'un chromosome dupliqué.</div><div data-zone="d-chrom" data-cap="1"></div>
+        <div class="rh">Zone où les deux chromatides d'un chromosome restent attachées.</div><div data-zone="d-cent" data-cap="1"></div>
+        <div class="rh">Version d'un gène : un même gène peut exister sous plusieurs versions.</div><div data-zone="d-all" data-cap="1"></div>
+      </div>
+      <div class="row"><button class="btn check">Vérifier</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="allele" data-requires="zoom">
+    <div class="task-head"><h3>2.4 · Gène et allèles : l'exemple des groupes sanguins</h3><span class="badge">QCM</span></div>
+    <div class="row" style="align-items:flex-start;gap:24px">
+      <svg viewBox="0 0 220 200" role="img" aria-label="Paire de chromosomes 9 portant deux allèles du gène du groupe sanguin" style="width:220px;height:auto">
+        <rect x="60" y="20" width="18" height="150" rx="9" fill="#5d4a86"/>
+        <rect x="140" y="20" width="18" height="150" rx="9" fill="#5d4a86"/>
+        <rect x="58" y="120" width="22" height="12" fill="#f2b84b" stroke="#18212e"/>
+        <rect x="138" y="120" width="22" height="12" fill="#7cc4a4" stroke="#18212e"/>
+        <text x="40" y="131" text-anchor="end" font-size="14" font-weight="700" fill="#18212e">A</text>
+        <text x="180" y="131" font-size="14" font-weight="700" fill="#18212e">O</text>
+        <text x="110" y="192" text-anchor="middle" font-size="13" fill="#18212e">Paire de chromosomes n° 9</text>
+        <path d="M80 126 h58" stroke="#18212e" stroke-dasharray="3 3"/>
+        <text x="110" y="112" text-anchor="middle" font-size="11" fill="#556172">même emplacement</text>
+      </svg>
+      <p style="max-width:52ch">Le gène qui détermine le groupe sanguin (système ABO) est situé sur la paire de chromosomes n° 9. Chez cette personne, un chromosome 9 porte la version <b>A</b> du gène, l'autre porte la version <b>O</b>. Ces deux chromosomes sont dits <b>homologues</b> : ils portent les mêmes gènes, aux mêmes emplacements.</p>
+    </div>
+    <div id="qcm-allele"></div>
+  </div>
+
+  <div class="card gated" data-task="sry" data-requires="allele">
+    <div class="task-head"><h3>2.5 · Où se trouve le gène SRY ?</h3><span class="badge">QCM</span></div>
+    <div class="row" style="align-items:flex-start;gap:24px">
+      <svg viewBox="0 0 200 200" role="img" aria-label="Chromosomes X et Y de l'enfant, avec le gène SRY repéré sur le Y" style="width:200px;height:auto">
+        <rect x="40" y="20" width="16" height="140" rx="8" fill="#5d4a86"/><rect x="60" y="20" width="16" height="140" rx="8" fill="#5d4a86"/>
+        <ellipse cx="39" cy="76" rx="4" ry="5" fill="#fff"/><ellipse cx="77" cy="76" rx="4" ry="5" fill="#fff"/>
+        <rect x="130" y="70" width="14" height="70" rx="7" fill="#5d4a86"/><rect x="148" y="70" width="14" height="70" rx="7" fill="#5d4a86"/>
+        <ellipse cx="129" cy="88" rx="3" ry="4" fill="#fff"/><ellipse cx="163" cy="88" rx="3" ry="4" fill="#fff"/>
+        <rect x="128" y="76" width="36" height="7" fill="#f2b84b" stroke="#18212e"/>
+        <text x="172" y="84" font-size="12" font-weight="700" fill="#18212e">SRY</text>
+        <text x="58" y="184" text-anchor="middle" font-size="14" fill="#18212e">X</text>
+        <text x="146" y="184" text-anchor="middle" font-size="14" fill="#18212e">Y</text>
+      </svg>
+      <p style="max-width:52ch">Le cytogénéticien a repéré le gène SRY grâce à une sonde fluorescente (technique FISH). Le signal n'apparaît que sur <b>un seul</b> des deux chromosomes sexuels de l'enfant.</p>
+    </div>
+    <div id="qcm-sry"></div>
+  </div>
+
+  <div class="card gated" data-task="exam2" data-requires="sry">
+    <div class="task-head"><h3>Retour au bloc opératoire</h3><span class="badge">Choix de l'examen</span></div>
+    <div class="persona"><div class="portrait" data-who="CS"></div><div class="speech"><b>Dr Vasseur, cheffe de service :</b> Votre patient est bien XY et porte le gène SRY : il a donc formé des testicules. Mais alors, pourquoi un utérus ? Quel examen faire maintenant ?</div></div>
+    <div class="exams" id="exam2"></div>
+    <div class="feedback" id="exam2-fb"></div>
+  </div>
+  <div class="card next gated" data-requires="exam2"><p><b>Étape 2 terminée.</b> Rendez-vous chez l'endocrinologue.</p><div class="row"><a class="btn" href="#etape-3">Aller à l'étape 3</a></div></div>
+</section>
+
+<!-- ===================== ÉTAPE 3 ===================== -->
+<section class="view" id="v-etape-3">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="DR"></div><div><div class="role">Étape 3 · Endocrinologue</div><h2>Dr Roche</h2></div></div>
+    <div class="speech">Je suis spécialiste des hormones. Nous allons faire une prise de sang à l'enfant. Avant cela, dites-moi ce que vous pensez trouver, puis choisissez les hormones à doser.</div>
+  </div>
+
+  <div class="card" data-task="hypo">
+    <div class="task-head"><h3>3.1 · Votre hypothèse</h3><span class="badge">Avant les résultats</span></div>
+    <p>D'après ce que vous a appris le médecin, quelle hormone pourrait être en cause dans la présence de l'utérus ?</p>
+    <div class="exams" id="hypo"></div>
+    <div class="feedback" id="hypo-fb"></div>
+  </div>
+
+  <div class="card gated" data-task="bilan" data-requires="hypo">
+    <div class="task-head"><h3>3.2 · Le bilan sanguin</h3><span class="badge">Demande de dosages</span></div>
+    <p style="max-width:72ch">Choisissez les hormones à doser dans le sang de l'enfant. Chaque dosage demandé s'ajoute à la feuille de résultats. Demandez ceux qui vous semblent utiles pour comprendre la présence de l'utérus.</p>
+    <div class="exams" id="dosages"></div>
+    <div class="feedback" id="dos-fb"></div>
+    <div class="sheet">
+      <header><b>Laboratoire de biologie médicale · Bilan hormonal</b><span class="muted small">Patient : fils de Mme D. · garçon, 4 ans</span></header>
+      <table class="bilan">
+        <thead><tr><th>Hormone</th><th>Résultat de l'enfant comparé à la valeur moyenne d'un garçon du même âge</th><th>Interprétation</th></tr></thead>
+        <tbody id="bilanRows"><tr class="empty"><td colspan="3" class="muted small">Aucun dosage demandé pour l'instant.</td></tr></tbody>
+      </table>
+      <p class="small muted" style="margin-top:8px">Trait pointillé : valeur moyenne d'un garçon du même âge. Valeurs simplifiées pour l'activité.</p>
+    </div>
+    <div class="gated" data-requires="dosages"><div id="hypo-back" class="feedback"></div><div id="qcm-bilan"></div></div>
+  </div>
+
+  <div class="card gated" data-task="jost" data-requires="bilan">
+    <div class="task-head"><h3>3.3 · Les expériences d'Alfred Jost</h3><span class="badge">QCM</span></div>
+    <p style="max-width:72ch">Dans les années 1940-1950, le biologiste français Alfred Jost a opéré des embryons de lapin <b>avant</b> la différenciation de leur appareil génital. Voici ses principaux résultats.</p>
+    <div class="jost">
+      <div class="jcard"><div class="exp"><span class="letter">A</span>Embryon mâle témoin, non opéré</div><ul><li>Canaux de Wolff : se développent</li><li>Canaux de Müller : régressent</li><li>Organes externes : mâles</li></ul></div>
+      <div class="jcard"><div class="exp"><span class="letter">B</span>Embryon mâle castré (testicules retirés)</div><ul><li>Canaux de Wolff : régressent</li><li>Canaux de Müller : se développent (trompes, utérus)</li><li>Organes externes : femelles</li></ul></div>
+      <div class="jcard"><div class="exp"><span class="letter">C</span>Embryon mâle castré + cristal de testostérone</div><ul><li>Canaux de Wolff : se développent</li><li>Canaux de Müller : se développent (utérus présent)</li><li>Organes externes : mâles</li></ul></div>
+      <div class="jcard"><div class="exp"><span class="letter">D</span>Embryon femelle + greffe d'un testicule près d'un ovaire</div><ul><li>Canal de Wolff : se maintient du côté de la greffe</li><li>Canal de Müller : régresse du côté de la greffe</li></ul></div>
+    </div>
+    <div id="qcm-jost"></div>
+  </div>
+
+  <div class="card gated" data-task="exam3" data-requires="jost">
+    <div class="task-head"><h3>Retour au bloc opératoire</h3><span class="badge">Choix de l'examen</span></div>
+    <div class="persona"><div class="portrait" data-who="CS"></div><div class="speech"><b>Dr Vasseur, cheffe de service :</b> Les testicules de l'enfant fabriquent de la testostérone, mais il n'y a pas d'AMH dans son sang. Qui peut nous aider à comprendre pourquoi ?</div></div>
+    <div class="exams" id="exam3"></div>
+    <div class="feedback" id="exam3-fb"></div>
+  </div>
+  <div class="card next gated" data-requires="exam3"><p><b>Étape 3 terminée.</b> Rendez-vous chez le généticien.</p><div class="row"><a class="btn" href="#etape-4">Aller à l'étape 4</a></div></div>
+</section>
+
+<!-- ===================== ÉTAPE 4 ===================== -->
+<section class="view" id="v-etape-4">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="DN"></div><div><div class="role">Étape 4 · Généticien</div><h2>Dr Nguyen</h2></div></div>
+    <div class="speech">Pour qu'un canal de Müller régresse, plusieurs maillons doivent fonctionner, du gène jusqu'à la cellule cible. Si un seul maillon manque, la chaîne est rompue. Cherchons lequel.</div>
+  </div>
+
+  <div class="card" data-task="chaine">
+    <div class="task-head"><h3>4.1 · La chaîne de communication hormonale de l'AMH</h3><span class="badge">Glisser-déposer</span></div>
+    <p>Placez chaque hypothèse sous le maillon de la chaîne qu'elle touche. Un maillon peut rester vide.</p>
+    <div class="dnd" id="dnd-chaine">
+      <div class="bank"></div>
+      <div class="chain">
+        <div class="link"><span class="step">Maillon 1</span><b>Gène AMH</b><span class="small">sur le chromosome 19, dans les cellules du testicule</span><div data-zone="m1"></div></div>
+        <div class="link"><span class="step">Maillon 2</span><b>Fabrication de l'AMH</b><span class="small">par des cellules du testicule</span><div data-zone="m2"></div></div>
+        <div class="link"><span class="step">Maillon 3</span><b>Transport par le sang</b><span class="small">jusqu'aux canaux de Müller</span><div data-zone="m3"></div></div>
+        <div class="link"><span class="step">Maillon 4</span><b>Récepteur de l'AMH</b><span class="small">à la surface des cellules des canaux de Müller</span><div data-zone="m4"></div></div>
+        <div class="link"><span class="step">Maillon 5</span><b>Régression</b><span class="small">des canaux de Müller</span><div data-zone="m5"></div></div>
+      </div>
+      <div class="row"><button class="btn check">Vérifier</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="electro" data-requires="chaine">
+    <div class="task-head"><h3>4.2 · Électrophorèse des protéines du sang</h3><span class="badge">Analyse de document</span></div>
+    <p style="max-width:72ch">L'électrophorèse sépare les protéines d'un échantillon selon leur taille : chaque protéine forme une bande à une hauteur précise. On compare ici le sérum d'un garçon du même âge (témoin) et celui de l'enfant.</p>
+    <div id="gel1"></div>
+    <div id="qcm-electro"></div>
+  </div>
+
+  <div class="card gated" data-task="hyp" data-requires="electro">
+    <div class="task-head"><h3>4.3 · Testez les trois hypothèses</h3><span class="badge">Démarche scientifique</span></div>
+    <p>Pour chaque hypothèse, consultez les examens disponibles, puis décidez si elle est <b>validée</b> ou <b>rejetée</b>.</p>
+    <div class="hyps">
+      <div class="hyp" id="h3">
+        <h4>H3 · Le récepteur de l'AMH ne fonctionne pas</h4>
+        <div class="row"><button class="btn ghost" data-reveal="r3a">Relire le résultat de l'électrophorèse</button></div>
+        <div class="result gated" id="r3a"><p>Dans le sérum de l'enfant, il n'y a <b>pas de bande AMH</b>. Réfléchissez : si seul le récepteur était défaillant, l'AMH serait-elle fabriquée ? Serait-elle présente dans le sang ?</p></div>
+        <div class="verdict"><span>Cette hypothèse est :</span><button class="btn ghost" data-v="h3:ok">Validée</button><button class="btn ghost" data-v="h3:no">Rejetée</button></div>
+        <div class="feedback"></div>
+      </div>
+      <div class="hyp" id="h2">
+        <h4>H2 · L'AMH est fabriquée, puis détruite par le système immunitaire de l'enfant</h4>
+        <div class="row"><button class="btn ghost" data-reveal="r2a">Recherche d'anticorps anti-AMH dans le sang</button><button class="btn ghost" data-reveal="r2b">Électrophorèse d'un extrait de testicule</button></div>
+        <div class="result gated" id="r2a"><p><b>Résultat :</b> aucun anticorps dirigé contre l'AMH n'est détecté dans le sang de l'enfant.</p></div>
+        <div class="result gated" id="r2b"><p>Un petit fragment de testicule a été prélevé pendant l'opération. On recherche l'AMH directement dans les cellules qui la fabriquent.</p><div id="gel2"></div></div>
+        <div class="verdict"><span>Cette hypothèse est :</span><button class="btn ghost" data-v="h2:ok">Validée</button><button class="btn ghost" data-v="h2:no">Rejetée</button></div>
+        <div class="feedback"></div>
+      </div>
+      <div class="hyp" id="h1">
+        <h4>H1 · Une mutation du gène AMH empêche la fabrication de l'hormone</h4>
+        <div class="row"><button class="btn ghost" data-reveal="r1a">Séquençage du gène AMH</button></div>
+        <div class="result gated" id="r1a" data-task="seq">
+          <p>On a lu l'ordre des nucléotides d'un fragment du gène AMH chez une personne sans anomalie (séquence de référence) et chez l'enfant. <b>Cliquez sur le nucléotide de l'enfant qui diffère de la référence.</b></p>
+          <div class="seqrow"><b class="small">Référence</b><div class="seq" id="seqRef"></div></div>
+          <div class="seqrow"><b class="small">Enfant</b><div class="seq" id="seqKid"></div></div>
+          <p class="small muted">Fragment simplifié, inventé pour l'activité.</p>
+          <div class="feedback" id="seq-fb"></div>
+        </div>
+        <div class="verdict"><span>Cette hypothèse est :</span><button class="btn ghost" data-v="h1:ok">Validée</button><button class="btn ghost" data-v="h1:no">Rejetée</button></div>
+        <div class="feedback"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="qcm-mut" data-requires="hyp">
+    <div class="task-head"><h3>4.4 · Mutation et allèles</h3><span class="badge">QCM</span></div>
+    <div class="speech">Une <b>mutation</b> est une modification de la séquence de l'ADN. Ici, elle a créé un nouvel <b>allèle</b> du gène AMH, qui ne permet plus de fabriquer l'hormone. Comme pour tous les gènes, l'enfant possède deux exemplaires de ce gène.</div>
+    <div id="qcm-mut"></div>
+  </div>
+
+  <div class="card next gated" data-requires="qcm-mut"><p><b>Étape 4 terminée.</b> Une dernière question reste à éclaircir : quand cet utérus s'est-il formé ?</p><div class="row"><a class="btn" href="#etape-5">Aller à l'étape 5</a></div></div>
+</section>
+
+<!-- ===================== ÉTAPE 5 ===================== -->
+<section class="view" id="v-etape-5">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="DP"></div><div><div class="role">Étape 5 · Échographiste</div><h2>Dr Petit</h2></div></div>
+    <div class="speech">Mme D. se demande si on aurait pu voir cet utérus pendant sa grossesse. Pour lui répondre, il faut d'abord parler la même langue que les médecins : en échographie, on compte en <b>semaines d'aménorrhée</b>.</div>
+  </div>
+
+  <div class="card" data-task="sa">
+    <div class="task-head"><h3>5.1 · Semaines d'aménorrhée ou semaines de développement ?</h3><span class="badge">Calcul</span></div>
+    <p style="max-width:72ch">Les <b>semaines d'aménorrhée (SA)</b> se comptent à partir du premier jour des dernières règles. La fécondation a lieu environ <b>2 semaines plus tard</b>. Les embryologistes, eux, comptent en <b>semaines de développement (SD)</b>, à partir de la fécondation.</p>
+    <div class="conv">
+      <div class="line"><label for="sa1">12 SA correspondent à</label><input type="number" id="sa1"><span>SD</span></div>
+      <div class="line"><label for="sa2">6 SD correspondent à</label><input type="number" id="sa2"><span>SA</span></div>
+      <div class="line"><label for="sa3">La 1re échographie a lieu entre 11 SA et 13 SA + 6 jours, soit entre 9 SD et</label><input type="number" id="sa3"><span>SD (arrondir à la semaine)</span></div>
+    </div>
+    <div class="row"><button class="btn" id="saCheck">Vérifier</button></div>
+    <div class="feedback" id="sa-fb"></div>
+  </div>
+
+  <div class="card gated" data-task="frise" data-requires="sa">
+    <div class="task-head"><h3>5.2 · La frise du développement de l'enfant</h3><span class="badge">Glisser-déposer</span></div>
+    <p>Placez chaque événement sous la bonne période. Les réponses du Dr Lefèvre (étape 1) vous aideront.</p>
+    <div class="dnd" id="dnd-frise">
+      <div class="bank"></div>
+      <div class="frise"><div class="tl">
+        <div><div class="when">8 SA<small>6 SD</small></div><div data-zone="t1" data-cap="1"></div></div>
+        <div><div class="when">9 à 10 SA<small>7 à 8 SD</small></div><div data-zone="t2" data-cap="1"></div></div>
+        <div><div class="when">10 à 12 SA<small>8 à 10 SD</small></div><div data-zone="t3" data-cap="1"></div></div>
+        <div><div class="when">À partir de 11 SA environ<small>9 SD</small></div><div data-zone="t4" data-cap="1"></div></div>
+        <div><div class="when">11 SA à 13 SA + 6 j<small>9 à 12 SD</small></div><div data-zone="t5" data-cap="1"></div></div>
+      </div></div>
+      <div class="row"><button class="btn check">Vérifier ma frise</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="qcm-echo" data-requires="frise">
+    <div class="task-head"><h3>5.3 · Aurait-on pu le voir ?</h3><span class="badge">QCM</span></div>
+    <div id="qcm-echo"></div>
+  </div>
+  <div class="card next gated" data-requires="qcm-echo"><p><b>Étape 5 terminée.</b> Mme D. a une dernière question : son fils pourra-t-il avoir des enfants ?</p><div class="row"><a class="btn" href="#etape-6">Aller à l'étape 6</a></div></div>
+</section>
+
+<!-- ===================== ÉTAPE 6 ===================== -->
+<section class="view" id="v-etape-6">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="DM"></div><div><div class="role">Étape 6 · Médecin de la reproduction</div><h2>Dr Morel</h2></div></div>
+    <div class="speech">Mme D. veut savoir si son fils sera fertile plus tard. Pour lui répondre, il faut savoir comment fonctionnent les gonades et comment sont produits les <b>gamètes</b> : spermatozoïdes chez l'homme, ovules chez la femme.</div>
+  </div>
+
+  <div class="card" data-task="qcm-gam">
+    <div class="task-head"><h3>6.1 · Testicules, ovaires et gamètes</h3><span class="badge">Vidéos + QCM</span></div>
+    <p>Regardez ces trois vidéos (Réseau Canopé), puis répondez aux questions.</p>
+    <div class="row">
+      <a class="btn" href="https://tube.reseau-canope.fr/w/cmEWiQD6i9SZLeeVmy7nsj" target="_blank" rel="noopener">Le fonctionnement du testicule</a>
+      <a class="btn ghost" href="https://tube.reseau-canope.fr/w/9cs42KchgVovR4dRGY7XzT" target="_blank" rel="noopener">Le cycle ovarien</a>
+      <a class="btn ghost" href="https://tube.reseau-canope.fr/w/1Qy23AAdXGSW7gkYQXsasf" target="_blank" rel="noopener">La régulation du cycle ovarien</a>
+    </div>
+    <div id="qcm-gam"></div>
+  </div>
+
+  <div class="card gated" data-task="fert-tri" data-requires="qcm-gam">
+    <div class="task-head"><h3>6.2 · Que pourra produire cet enfant à la puberté ?</h3><span class="badge">Glisser-déposer</span></div>
+    <p>Aidez-vous du dossier patient. Rappel : l'enfant possède des testicules fonctionnels et un utérus, mais <b>pas d'ovaires</b>.</p>
+    <div class="dnd" id="dnd-fert">
+      <div class="bank"></div>
+      <div class="sextable" style="grid-template-columns:1fr 1fr">
+        <div class="h">Possible chez lui</div><div class="h">Impossible chez lui</div>
+        <div data-zone="pos" style="min-height:90px"></div><div data-zone="imp" style="min-height:90px"></div>
+      </div>
+      <div class="row"><button class="btn check">Vérifier</button></div>
+      <div class="feedback"></div>
+    </div>
+  </div>
+
+  <div class="card gated" data-task="qcm-fert" data-requires="fert-tri">
+    <div class="task-head"><h3>6.3 · Que répondre à Mme D. ?</h3><span class="badge">QCM</span></div>
+    <div id="qcm-fert"></div>
+  </div>
+  <div class="card next gated" data-requires="qcm-fert"><p><b>Enquête terminée !</b> Vous avez toutes les données pour rédiger votre compte-rendu.</p><div class="row"><a class="btn" href="#compte-rendu">Rédiger le compte-rendu</a></div></div>
+</section>
+
+<!-- ===================== COMPTE-RENDU ===================== -->
+<section class="view" id="v-compte-rendu">
+  <div class="card">
+    <div class="persona"><div class="portrait" data-who="CS"></div><div><div class="role">Production finale</div><h2>Le compte-rendu du chirurgien</h2></div></div>
+    <div class="mission">
+      <p><b>Vous êtes le chirurgien qui suit l'enfant de Mme D.</b></p>
+      <p>Afin d'expliquer l'origine de cet utérus, proposez une série d'expériences et de données dont vous auriez besoin.</p>
+      <p>Une fois votre analyse faite, rédigez un compte-rendu expliquant comment son fils peut être de sexe biologique « masculin » tout en possédant aussi un utérus.</p>
+      <p>L'exposé devra comporter une introduction, un développement structuré, une conclusion et sera illustré par un ou plusieurs schémas à votre convenance permettant de mieux comprendre la différenciation du sexe masculin et féminin. Précisez dans votre explication à partir de quel stade l'utérus a commencé à se former, et dites s'il aurait été possible de détecter cette formation lors de la 1re échographie.</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>Les examens et données que vous avez réunis</h3>
+    <ul class="evid" id="evid"></ul>
+  </div>
+  <div class="card">
+    <h3>Avant de rendre votre copie, vérifiez</h3>
+    <ul class="checklist">
+      <li><label><input type="checkbox"> Mon introduction présente le cas et pose le problème à résoudre.</label></li>
+      <li><label><input type="checkbox"> Je présente les examens demandés et j'explique pourquoi je les ai demandés.</label></li>
+      <li><label><input type="checkbox"> J'utilise les quatre niveaux : sexe génétique, gonadique, anatomique, physiologique.</label></li>
+      <li><label><input type="checkbox"> J'explique le rôle de la testostérone et celui de l'AMH.</label></li>
+      <li><label><input type="checkbox"> J'explique l'origine de l'absence d'AMH (mutation, allèle).</label></li>
+      <li><label><input type="checkbox"> Je précise à partir de quel stade l'utérus a commencé à se former.</label></li>
+      <li><label><input type="checkbox"> Je dis si l'utérus pouvait être détecté à la 1re échographie, et pourquoi.</label></li>
+      <li><label><input type="checkbox"> J'ai réalisé au moins un schéma titré et légendé de la différenciation masculine et féminine.</label></li>
+      <li><label><input type="checkbox"> Ma conclusion répond au problème posé.</label></li>
+      <li><label><input type="checkbox"> Bonus : j'ouvre sur la fertilité future de l'enfant.</label></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Copier le dossier patient</h3>
+    <p class="muted small">Pour coller le dossier dans votre traitement de texte.</p>
+    <div class="row"><button class="btn" id="copyBtn">Copier le dossier</button><span id="copyMsg" class="small muted"></span></div>
+  </div>
+</section>
+
+<div class="foot">
+  <div class="row small">
+    <button class="btn ghost" id="profBtn" type="button" style="padding:4px 10px;font-size:.85rem;border-width:1px">Espace enseignant</button>
+    <span id="profBox" hidden class="row">
+      <label for="profCode">Code :</label><input type="text" id="profCode" autocomplete="off" style="width:120px;padding:4px 8px">
+      <button class="btn" id="profOk" type="button" style="padding:4px 10px">Valider</button>
+    </span>
+    <label id="teacherWrap" hidden><input type="checkbox" id="teacher"> Mode enseignant : tout débloquer</label>
+    <span id="profMsg"></span>
+  </div>
+  <button class="btn ghost" id="resetBtn">Recommencer l'enquête</button>
+</div>
+</main>
+
+<aside class="dossier" aria-label="Dossier patient">
+  <h3>Dossier patient <span class="id">N° 2nde-R1</span></h3>
+  <div class="small">Fils de Mme D. · 4 ans · opéré pour douleurs abdominales</div>
+  <div id="fields"></div>
+</aside>
+</div>
+
+<script>
+(function(){
+"use strict";
+var KEY = "jeu-garcon-uterus-v1";
+var S = {done:[], points:0, group:"", asked:[], teacher:false, hypo:null};
+try{ var raw = localStorage.getItem(KEY); if(raw){ var o = JSON.parse(raw); for(var k in o) S[k]=o[k]; } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function isDone(id){ return S.teacher || S.done.indexOf(id) >= 0; }
+function reallyDone(id){ return S.done.indexOf(id) >= 0; }
+function done(id, pts){ if(S.done.indexOf(id) < 0){ S.done.push(id); S.points += (pts||0); save(); } refresh(); }
+function $(s, r){ return (r||document).querySelector(s); }
+function $$(s, r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+function shuffle(a){ a = a.slice(); for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i]; a[i]=a[j]; a[j]=t; } return a; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+
+/* ---------- Étapes ---------- */
+var STEPS = [
+  {id:"accueil", n:"0", t:"Le cas", tasks:[]},
+  {id:"etape-1", n:"1", t:"Étape", tasks:["qcm1","dialogue","qcm2","schema","tableau","exam1"]},
+  {id:"etape-2", n:"2", t:"Étape", tasks:["chromatides","caryo","zoom","allele","sry","exam2"]},
+  {id:"etape-3", n:"3", t:"Étape", tasks:["hypo","dosages","bilan","jost","exam3"]},
+  {id:"etape-4", n:"4", t:"Étape", tasks:["chaine","electro","hyp","qcm-mut"]},
+  {id:"etape-5", n:"5", t:"Étape", tasks:["sa","frise","qcm-echo"]},
+  {id:"etape-6", n:"6", t:"Étape", tasks:["qcm-gam","fert-tri","qcm-fert"]},
+  {id:"compte-rendu", n:"✎", t:"Compte-rendu", tasks:[]}
+];
+function stepComplete(i){ return STEPS[i].tasks.every(isDone); }
+function stepUnlocked(i){ if(S.teacher || i===0) return true; if(i===1) return !!S.group || reallyDone("start"); return stepComplete(i-1) && stepUnlocked(i-1); }
+
+var nav = $("#nav");
+STEPS.forEach(function(s, i){
+  var a = document.createElement("a"); a.href = "#"+s.id; a.dataset.i = i;
+  a.innerHTML = '<span class="n">'+s.n+'</span>'+s.t; nav.appendChild(a);
+});
+
+function route(){
+  var h = (location.hash||"").replace("#","") || "accueil";
+  var idx = STEPS.findIndex(function(s){ return s.id===h; }); if(idx<0) idx=0;
+  if(!stepUnlocked(idx)){ idx = 0; for(var i=STEPS.length-1;i>=0;i--){ if(stepUnlocked(i)){ idx=i; break; } } }
+  $$("section.view").forEach(function(v){ v.classList.remove("on"); });
+  $("#v-"+STEPS[idx].id).classList.add("on");
+  $$("#nav a").forEach(function(a){ a.classList.toggle("current", +a.dataset.i===idx); });
+  if(STEPS[idx].id==="compte-rendu") renderEvid();
+  window.scrollTo(0,0);
+  goRoom(STEP_ROOM[idx]); setTimeout(typeVisible, 60);
+}
+window.addEventListener("hashchange", route);
+
+/* ---------- Dossier ---------- */
+var FIELDS = [
+  {k:"Sexe génétique", v:function(){ var t=[]; if(isDone("caryo")) t.push("46,XY : masculin"); if(isDone("sry")) t.push("gène SRY présent sur le chromosome Y"); return t.join(" · "); }},
+  {k:"Sexe gonadique", v:function(){ return isDone("bilan") ? "Testicules fonctionnels (sécrètent de la testostérone)" : (isDone("sry") ? "Testicules attendus (SRY présent)" : ""); }},
+  {k:"Sexe anatomique", v:function(){ return "Organes génitaux externes masculins, testicules dans les bourses… et un utérus !"; }},
+  {k:"Sexe physiologique", v:function(){ return isDone("bilan") ? "Testostérone normale pour l'âge · AMH indétectable" : ""; }},
+  {k:"Expériences de référence", v:function(){ return isDone("jost") ? "Jost : un mâle castré + testostérone garde un utérus → une autre hormone testiculaire (l'AMH) fait régresser les canaux de Müller" : ""; }},
+  {k:"Origine de l'utérus", v:function(){ return isDone("qcm-mut") ? "Mutation des deux allèles du gène AMH (chromosomes 19) → pas d'AMH → canaux de Müller non régressés → trompes et utérus" : (isDone("hyp") ? "Mutation du gène AMH" : ""); }},
+  {k:"Formation de l'utérus", v:function(){ return isDone("qcm-echo") ? "À partir de 9 SD environ (≈ 11 SA) ; non détectable à la 1re échographie" : ""; }},
+  {k:"Fertilité", v:function(){ return isDone("qcm-fert") ? "Spermatozoïdes possibles (testicules fonctionnels) mais fertilité à vérifier à l'âge adulte ; utérus non fonctionnel (pas d'ovaires)" : ""; }}
+];
+var prevVals = {};
+function renderDossier(){
+  var box = $("#fields"); var html = "";
+  FIELDS.forEach(function(f, i){ var v = f.v(); var isNew = v && prevVals[i]!==undefined && prevVals[i]!==v;
+    html += '<div class="field'+(isNew?" new":"")+'"><span class="k">'+f.k+'</span><span class="v'+(v?"":" empty")+'">'+(v?esc(v):"à compléter")+'</span></div>'; prevVals[i]=v; });
+  box.innerHTML = html;
+}
+function renderEvid(){
+  var L = [["caryo","Caryotype de l'enfant (cytogénétique)"],["sry","Localisation du gène SRY par sonde fluorescente (FISH)"],["bilan","Dosages hormonaux sanguins : testostérone et AMH"],["jost","Expériences d'Alfred Jost sur des embryons de lapin"],["electro","Électrophorèse des protéines du sérum"],["hyp","Recherche d'anticorps anti-AMH, électrophorèse d'un extrait de testicule, séquençage du gène AMH"],["frise","Chronologie du développement embryonnaire et date de la 1re échographie"],["qcm-gam","Fonctionnement des testicules et des ovaires, production des gamètes"]];
+  var h = L.filter(function(x){ return isDone(x[0]); }).map(function(x){ return "<li>"+x[1]+"</li>"; }).join("");
+  $("#evid").innerHTML = h || "<li class='muted'>Terminez les étapes pour remplir cette liste.</li>";
+}
+
+/* ---------- Rafraîchissement ---------- */
+function refresh(){
+  $("#points").textContent = S.points;
+  $("#groupPill").textContent = "Équipe : " + (S.group || "–");
+  $$("[data-task]").forEach(function(el){ el.classList.toggle("done", reallyDone(el.dataset.task)); });
+  $$("[data-requires]").forEach(function(el){ var req = el.dataset.requires.split(" "); el.classList.toggle("gated", !req.every(isDone)); });
+  $$("#nav a").forEach(function(a){ var i=+a.dataset.i; a.classList.toggle("locked", !stepUnlocked(i)); a.classList.toggle("complete", i>0 && STEPS[i].tasks.length && stepComplete(i)); });
+  renderDossier();
+  typeVisible();
+}
+
+/* ---------- QCM ---------- */
+function qcm(elId, qs, taskId, extra){
+  var el = document.getElementById(elId); var first = qs.map(function(){ return true; });
+  var html = '<div class="qcm">';
+  qs.forEach(function(q, i){
+    html += '<fieldset class="q" data-i="'+i+'"><legend class="qt">'+(q.n?q.n+". ":"")+q.q+'</legend>';
+    q.o.forEach(function(o, j){ html += '<label><input type="radio" name="'+elId+'-'+i+'" value="'+j+'" id="'+elId+'-'+i+'-'+j+'"><span>'+o+'</span></label>'; });
+    html += '<div class="expl" hidden></div></fieldset>';
+  });
+  html += '<div class="row"><button class="btn">Vérifier mes réponses</button></div><div class="feedback"></div></div>';
+  el.innerHTML = html;
+  $("button", el).addEventListener("click", function(){
+    var ok = 0, missing = 0;
+    qs.forEach(function(q, i){
+      var fs = $('.q[data-i="'+i+'"]', el); var sel = $('input:checked', fs); var ex = $(".expl", fs);
+      fs.classList.remove("ok","bad");
+      if(!sel){ missing++; return; }
+      if(+sel.value===q.a){ fs.classList.add("ok"); ok++; ex.hidden=false; ex.innerHTML = q.e; }
+      else { fs.classList.add("bad"); first[i]=false; ex.hidden=false; ex.innerHTML = "Ce n'est pas la bonne réponse. "+(q.h||"Relisez les informations de l'étape et réessayez."); }
+    });
+    var fb = $(".feedback", el);
+    if(missing){ fb.className="feedback bad"; fb.textContent = "Répondez à toutes les questions ("+missing+" sans réponse)."; return; }
+    var xerr = extra ? extra() : ""; if(xerr){ fb.className="feedback bad"; fb.textContent = xerr; return; }
+    react(el, ok===qs.length);
+    if(ok===qs.length){ var pts = first.filter(Boolean).length; fb.className="feedback ok"; fb.textContent="Toutes vos réponses sont justes. +"+pts+" points (1 point par bonne réponse du premier coup)."; done(taskId, pts); }
+    else { fb.className="feedback bad"; fb.textContent = ok+" bonne(s) réponse(s) sur "+qs.length+". Corrigez les questions en rouge."; }
+  });
+}
+
+/* ---------- Glisser-déposer ---------- */
+var selected = null;
+function dnd(rootId, chips, taskId, pts, onOk){
+  var root = document.getElementById(rootId); var bank = $(".bank", root);
+  var map = {};
+  shuffle(chips).forEach(function(c){
+    var d = document.createElement("div"); d.className="chip"; d.draggable=true; d.tabIndex=0; d.id = rootId+"-"+c.id; d.innerHTML = c.html || esc(c.t);
+    d.setAttribute("role","button"); map[d.id] = c; bank.appendChild(d);
+  });
+  function zones(){ return [bank].concat($$("[data-zone]", root)); }
+  function place(chip, zone){
+    var cap = zone.dataset.cap ? +zone.dataset.cap : 99;
+    if(zone!==bank && $$(".chip", zone).length >= cap){
+      var old = $(".chip", zone); bank.appendChild(old);
+    }
+    chip.classList.remove("sel","ok","bad"); zone.appendChild(chip); selected=null; clearTargets();
+  }
+  function clearTargets(){ $$(".target", root).forEach(function(z){ z.classList.remove("target"); }); }
+  root.addEventListener("click", function(e){
+    var chip = e.target.closest(".chip");
+    if(chip && root.contains(chip)){
+      e.stopPropagation();
+      if(selected===chip){ chip.classList.remove("sel"); selected=null; clearTargets(); return; }
+      if(selected && selected!==chip && chip.parentElement!==bank){ var z = chip.parentElement; place(selected, z); return; }
+      if(selected) selected.classList.remove("sel");
+      selected = chip; chip.classList.add("sel"); $$("[data-zone]", root).forEach(function(z){ z.classList.add("target"); }); return;
+    }
+    var zone = e.target.closest("[data-zone], .bank");
+    if(zone && selected && root.contains(selected)) place(selected, zone);
+  });
+  root.addEventListener("keydown", function(e){ if((e.key==="Enter"||e.key===" ") && e.target.classList.contains("chip")){ e.preventDefault(); e.target.click(); } });
+  root.addEventListener("dragstart", function(e){ var c=e.target.closest(".chip"); if(!c) return; try{ e.dataTransfer.setData("text/plain", c.id); }catch(x){} selected=c; });
+  zones().forEach(function(z){
+    z.addEventListener("dragover", function(e){ e.preventDefault(); z.classList.add("hover"); });
+    z.addEventListener("dragleave", function(){ z.classList.remove("hover"); });
+    z.addEventListener("drop", function(e){ e.preventDefault(); z.classList.remove("hover"); var id=""; try{ id=e.dataTransfer.getData("text/plain"); }catch(x){} var c=document.getElementById(id)||selected; if(c && root.contains(c)) place(c, z); });
+  });
+  var tries = 0;
+  $(".check", root).addEventListener("click", function(){
+    var fb = $(".feedback", root); tries++;
+    var all = $$(".chip", root); var wrong = 0, left = $$(".chip", bank).length;
+    all.forEach(function(c){ c.classList.remove("ok","bad"); var z = c.parentElement; if(z===bank) return; var ans = map[c.id].a; var good = Array.isArray(ans) ? ans.indexOf(z.dataset.zone)>=0 : ans===z.dataset.zone; c.classList.add(good?"ok":"bad"); if(!good) wrong++; });
+    react(root, !left && !wrong);
+    if(left){ fb.className="feedback bad"; fb.textContent = "Il reste "+left+" étiquette(s) à placer."+(wrong?" "+wrong+" étiquette(s) mal placée(s) en rouge.":""); return; }
+    if(wrong){ fb.className="feedback bad"; fb.textContent = wrong+" étiquette(s) mal placée(s), en rouge. Déplacez-les puis vérifiez à nouveau."; return; }
+    var p = Math.max(1, pts - (tries-1)); fb.className="feedback ok"; fb.textContent="Tout est bien placé. +"+p+" points."; if(onOk) onOk(); done(taskId, p);
+  });
+}
+
+/* ---------- Cartes examens ---------- */
+function exams(elId, cards, taskId, rec){
+  var el = document.getElementById(elId); var fb = document.getElementById(elId+"-fb"); var misses = 0;
+  cards.forEach(function(c){
+    var b = document.createElement("button"); b.className="exam"; b.type="button";
+    b.innerHTML = '<span class="tag">'+(c.tag||"Examen")+'</span><b>'+c.t+'</b>'+(c.d?'<span class="small muted">'+c.d+'</span>':"");
+    b.addEventListener("click", function(){
+      react(el, !!c.ok);
+      if(c.ok){ b.classList.add("right"); fb.className="feedback ok"; fb.innerHTML=c.fb; done(taskId, Math.max(0, 3-misses)); if(rec) rec(c); }
+      else { misses++; b.classList.add("wrong"); fb.className="feedback bad"; fb.innerHTML=c.fb; }
+    });
+    el.appendChild(b);
+  });
+}
+
+/* ---------- Dessin de chromosomes ---------- */
+function chrom(len, cen, two, color){
+  color = color || "#5d4a86"; var w = two ? 15 : 7; var h = len + 4; var y = 2 + Math.round(len*cen);
+  var s = '<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" aria-hidden="true">';
+  var xs = two ? [0.5, 8] : [0.5];
+  xs.forEach(function(x){
+    s += '<rect x="'+x+'" y="2" width="6.5" height="'+len+'" rx="3.2" fill="'+color+'"/>';
+    for(var b=0.18; b<1; b+=0.21){ var yy = 2 + Math.round(len*b); if(Math.abs(yy-y)>3) s += '<rect x="'+x+'" y="'+yy+'" width="6.5" height="1.6" fill="#ffffff66"/>'; }
+    s += '<ellipse cx="'+(x)+'" cy="'+y+'" rx="1.8" ry="2.2" fill="#f6f4fa"/><ellipse cx="'+(x+6.5)+'" cy="'+y+'" rx="1.8" ry="2.2" fill="#f6f4fa"/>';
+  });
+  return s + '</svg>';
+}
+var CH = {1:[248,.49],2:[242,.39],3:[198,.47],4:[190,.29],5:[181,.27],6:[171,.39],7:[159,.39],8:[145,.34],9:[138,.35],10:[134,.32],11:[135,.41],12:[133,.30],13:[114,.12],14:[107,.12],15:[102,.13],16:[90,.41],17:[83,.34],18:[80,.31],19:[59,.47],20:[64,.45],21:[47,.15],22:[51,.15],X:[156,.40],Y:[57,.27]};
+function L(n){ return Math.round(CH[n][0]*0.3); }
+
+/* ---------- Gel d'électrophorèse ---------- */
+function gel(lanes){
+  var W = 110*lanes.length + 80, H = 230;
+  var s = '<div style="overflow-x:auto"><svg viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Résultat d\'électrophorèse" style="width:100%;max-width:'+W+'px;height:auto">';
+  s += '<rect x="10" y="30" width="'+(110*lanes.length+10)+'" height="170" rx="6" fill="#1f2a3a"/>';
+  lanes.forEach(function(l, i){ var x = 25 + i*110;
+    s += '<rect x="'+x+'" y="36" width="80" height="8" fill="#0d1520"/>';
+    l.b.forEach(function(y){ s += '<rect x="'+(x+4)+'" y="'+y+'" width="72" height="7" rx="3" fill="#cfe9ff" opacity=".9"/>'; });
+    s += '<text x="'+(x+40)+'" y="218" text-anchor="middle" font-size="11" fill="#18212e">'+l.n+'</text>';
+    if(l.n2) s += '<text x="'+(x+40)+'" y="20" text-anchor="middle" font-size="11" fill="#18212e">'+l.n2+'</text>';
+  });
+  var ax = 110*lanes.length + 26;
+  s += '<path d="M'+(ax+18)+' 96 h-14" stroke="#b4361a" stroke-width="2"/><text x="'+(ax+22)+'" y="100" font-size="12" font-weight="700" fill="#b4361a">AMH</text>';
+  s += '<path d="M'+(ax+8)+' 50 v140" stroke="#556172" stroke-width="1" marker-end="url(#ar2)"/><defs><marker id="ar2" viewBox="0 0 10 10" refX="5" refY="9" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 0 L5 10 z" fill="#556172"/></marker></defs>';
+  return s + '</svg></div>';
+}
+
+/* =================== CONTENUS =================== */
+
+/* Accueil */
+$("#groupName").value = S.group || "";
+$("#startBtn").addEventListener("click", function(){
+  var v = $("#groupName").value.trim(); S.group = v || "Sans nom"; if(S.done.indexOf("start")<0) S.done.push("start"); save(); refresh(); location.hash = "#etape-1";
+});
+
+/* Étape 1 · QCM vidéo */
+qcm("qcm1", [
+  {n:1, q:"Avant la 8e semaine de développement, l'appareil génital de l'embryon est :", o:["déjà masculin ou féminin","indifférencié","absent","uniquement féminin"], a:1, e:"Jusqu'à 6 à 7 semaines, l'appareil génital est identique chez tous les embryons : on dit qu'il est <b>indifférencié</b>."},
+  {n:2, q:"Le sexe génétique d'un garçon correspond à la paire de chromosomes :", o:["XX","XY","YY","X seul"], a:1, e:"Un garçon possède un chromosome X et un chromosome Y."},
+  {n:3, q:"Le gène SRY est porté par :", o:["le chromosome X","le chromosome Y","tous les chromosomes","les ovaires"], a:1, e:"SRY est porté par le chromosome <b>Y</b>."},
+  {n:4, q:"Le gène SRY permet :", o:["la formation des ovaires","la transformation de la gonade indifférenciée en testicule","le déclenchement de la puberté","la production des ovules"], a:1, e:"Quand SRY est présent, la gonade indifférenciée devient un <b>testicule</b>."},
+  {n:5, q:"Ce qui oriente ensuite le développement des organes génitaux, ce sont :", o:["les chromosomes directement","les hormones produites par les gonades","l'alimentation de la mère","le hasard"], a:1, e:"Ce sont les <b>hormones</b> sécrétées par les gonades qui orientent la suite du développement."},
+  {n:6, q:"Les caractères sexuels primaires sont :", o:["la pilosité et la voix","les organes génitaux (gonades, voies génitales, organes externes)","la taille et la musculature","le comportement"], a:1, e:"Les caractères sexuels <b>primaires</b> sont les organes génitaux. Pilosité, voix, seins… sont des caractères <b>secondaires</b>, qui apparaissent à la puberté."},
+  {n:7, q:"À la naissance, l'appareil génital de l'enfant est :", o:["présent mais pas encore fonctionnel pour la reproduction","totalement fonctionnel","encore indifférencié","absent"], a:0, e:"L'appareil génital est en place à la naissance, mais il ne deviendra fonctionnel qu'à la <b>puberté</b>."},
+  {n:8, q:"La puberté est déclenchée par :", o:["une augmentation des sécrétions hormonales","l'apparition du gène SRY","la naissance","la formation des testicules"], a:0, e:"À la puberté, les sécrétions hormonales augmentent et transforment le corps."}
+], "qcm1");
+
+/* Étape 1 · Dialogue */
+var ASKS = [
+  {id:"k1", key:true, q:"Un embryon possède-t-il dès le départ des organes génitaux masculins ou féminins ?", r:"Non. Jusqu'à environ 6 semaines de développement, tous les embryons, XX comme XY, ont le même appareil génital, dit <b>indifférencié</b> : deux gonades qui peuvent devenir des testicules ou des ovaires, et <b>deux paires de canaux</b>, les canaux de Wolff et les canaux de Müller. Les canaux de Müller apparaissent vers la 6e semaine."},
+  {id:"f1", q:"L'alimentation de la mère détermine-t-elle le sexe du bébé ?", r:"Non, aucune influence. Le sexe génétique est fixé dès la fécondation, selon que le spermatozoïde apporte un chromosome X ou un chromosome Y."},
+  {id:"k2", key:true, q:"Qu'est-ce qui fait qu'une gonade devient un testicule ?", r:"Le gène <b>SRY</b>, porté par le chromosome Y. Vers la 7e semaine, s'il est présent, la gonade indifférenciée devient un testicule. Sans SRY, elle devient un ovaire."},
+  {id:"k3", key:true, q:"Que produisent les testicules de l'embryon ?", r:"Deux hormones : la <b>testostérone</b> et l'<b>hormone antimüllérienne</b>, qu'on appelle AMH. Les testicules commencent à les sécréter vers la 7e à 8e semaine de développement."},
+  {id:"f2", q:"Les garçons ont-ils plus de chromosomes que les filles ?", r:"Non : 46 chromosomes chacun. Seule la 23e paire diffère : XX chez la fille, XY chez le garçon."},
+  {id:"k4", key:true, q:"À quoi sert la testostérone ?", r:"Elle <b>maintient les canaux de Wolff</b>, qui deviennent les spermiductes, et elle <b>masculinise les organes génitaux externes</b> : pénis et scrotum."},
+  {id:"k5", key:true, q:"À quoi sert l'AMH ?", r:"Elle <b>fait régresser les canaux de Müller</b>. Chez un garçon, ils disparaissent entre la 8e et la 10e semaine de développement."},
+  {id:"f3", q:"Peut-on choisir le sexe de son bébé ?", r:"Ce n'est pas la question qui nous aidera pour cet enfant. Concentrons-nous sur la façon dont l'appareil génital se met en place."},
+  {id:"k6", key:true, q:"Que se passe-t-il chez un embryon XX, qui n'a pas de testicules ?", r:"Sans testostérone, les canaux de Wolff régressent. Sans AMH, les canaux de Müller se maintiennent et forment les <b>trompes</b>, l'<b>utérus</b> et le haut du <b>vagin</b>. Leurs parties basses fusionnent à partir de la 9e semaine environ pour former l'utérus. Les organes génitaux externes deviennent féminins."},
+  {id:"f4", q:"Le sexe se voit-il dès la première échographie ?", r:"Pas de façon fiable : à ce stade, les organes génitaux sont encore minuscules. Vous en reparlerez avec l'échographiste."}
+];
+(function(){
+  var box = $("#asks"), log = $("#log");
+  function keys(){ return ASKS.filter(function(a){ return a.key && S.asked.indexOf(a.id)>=0; }).length; }
+  function upd(){ var k = keys(); $("#keyCount").textContent = k; $("#keyGauge").style.width = (k/6*100)+"%"; if(k===6) done("dialogue", 3); }
+  function say(a, scroll){
+    var me = document.createElement("div"); me.className="me"; me.textContent = a.q; log.appendChild(me);
+    var d = document.createElement("div"); d.className = "doc"+(a.key?" key":""); d.innerHTML = a.r + (a.key ? '<div class="small" style="color:var(--ok);margin-top:6px"><b>Information clé ajoutée.</b></div>' : ""); log.appendChild(d);
+    if(scroll){ typewrite(d); react(box, !!a.key); log.scrollTop = log.scrollHeight; var keep = setInterval(function(){ log.scrollTop = log.scrollHeight; if(!d.classList.contains("typing")) clearInterval(keep); }, 120); }
+  }
+  ASKS.forEach(function(a){
+    var b = document.createElement("button"); b.className="ask"; b.type="button"; b.textContent = a.q;
+    if(S.asked.indexOf(a.id)>=0){ b.classList.add("asked"); say(a,false); }
+    b.addEventListener("click", function(){ if(S.asked.indexOf(a.id)<0){ S.asked.push(a.id); save(); } b.classList.add("asked"); say(a,true); upd(); });
+    box.appendChild(b);
+  });
+  upd();
+})();
+
+/* Étape 1 · QCM 9-12 */
+qcm("qcm2", [
+  {n:9, q:"Chez l'embryon au stade indifférencié, on trouve :", o:["uniquement les canaux de Wolff","uniquement les canaux de Müller","les deux paires de canaux, de Wolff et de Müller","aucun canal"], a:2, e:"Tout embryon possède au départ <b>les deux paires</b> de canaux."},
+  {n:10, q:"La testostérone, produite par les testicules de l'embryon, permet :", o:["le maintien et le développement des canaux de Wolff (futurs spermiductes) et la masculinisation des organes génitaux externes","la régression des canaux de Wolff","la formation de l'utérus","la formation des testicules"], a:0, e:"La testostérone agit sur les canaux de <b>Wolff</b> et sur les organes génitaux <b>externes</b>."},
+  {n:11, q:"L'hormone antimüllérienne (AMH), produite par les testicules de l'embryon, provoque :", o:["le développement de l'utérus","la régression des canaux de Müller","la descente des testicules","la production de spermatozoïdes"], a:1, e:"Son nom le dit : l'AMH agit <b>contre</b> les canaux de Müller, qui régressent."},
+  {n:12, q:"Chez un embryon XX, en l'absence de testostérone et d'AMH :", o:["les canaux de Wolff se développent","les canaux de Müller se développent en trompes, utérus et haut du vagin, et les canaux de Wolff régressent","les deux paires de canaux se développent","aucun organe génital ne se forme"], a:1, e:"Sans hormones testiculaires, l'évolution se fait vers le phénotype <b>féminin</b>."}
+], "qcm2");
+
+/* Étape 1 · Schémas */
+dnd("dnd-schema", [
+  {id:"a1", t:"Gonade indifférenciée", a:"s1"},
+  {id:"a2", t:"Canal de Wolff", a:"s2"},
+  {id:"a3", t:"Canal de Müller", a:"s3"},
+  {id:"a4", t:"Sinus urogénital", a:"s4"},
+  {id:"a5", t:"Testicule", a:"s5"},
+  {id:"a6", t:"Spermiducte (issu du canal de Wolff)", a:"s6"},
+  {id:"a7", t:"Canal de Müller qui régresse", a:"s7"},
+  {id:"a8", t:"Prostate", a:"s8"},
+  {id:"a9", t:"Ovaire", a:"s9"},
+  {id:"a10", t:"Trompe", a:"s10"},
+  {id:"a11", t:"Utérus", a:"s11"},
+  {id:"a12", t:"Vagin", a:"s12"},
+  {id:"a13", t:"Canal de Wolff qui régresse", a:"s13"},
+  {id:"h1", t:"Testostérone + AMH", a:"hm"},
+  {id:"h2", t:"Ni testostérone, ni AMH", a:"hf"}
+], "schema", 5);
+
+/* Étape 1 · Tableau */
+dnd("dnd-table", [
+  {id:"t1", t:"Chromosomes XY", a:"gen-h"}, {id:"t2", t:"Gène SRY présent", a:"gen-h"},
+  {id:"t3", t:"Chromosomes XX", a:"gen-f"}, {id:"t4", t:"Pas de gène SRY", a:"gen-f"},
+  {id:"t5", t:"Testicules", a:"gon-h"}, {id:"t6", t:"Ovaires", a:"gon-f"},
+  {id:"t7", t:"Spermiductes, prostate", a:"ana-h"}, {id:"t8", t:"Pénis, scrotum", a:"ana-h"},
+  {id:"t9", t:"Trompes, utérus, vagin", a:"ana-f"}, {id:"t10", t:"Vulve", a:"ana-f"},
+  {id:"t11", t:"Testostérone sécrétée en continu", a:"phy-h"}, {id:"t12", t:"Production continue de spermatozoïdes", a:"phy-h"},
+  {id:"t13", t:"Œstrogènes et progestérone sécrétés par cycles", a:"phy-f"}, {id:"t14", t:"Ovulation cyclique, environ tous les 28 jours", a:"phy-f"}
+], "tableau", 5);
+
+/* Étape 1 · Examen */
+exams("exam1", [
+  {tag:"Biologie", t:"Groupe sanguin", fb:"Cet examen ne nous apprendra rien sur le sexe de l'enfant."},
+  {tag:"Hormones", t:"Dosages hormonaux", fb:"Pertinent, mais commençons par la base : quel est son sexe génétique ?"},
+  {tag:"Génétique", t:"Étude du caryotype", ok:true, fb:"Bonne idée : vérifions d'abord son sexe génétique. Je vous envoie chez le cytogénéticien."},
+  {tag:"Imagerie", t:"Radiographie du squelette", fb:"Hors sujet pour notre question."},
+  {tag:"Tissus", t:"Analyse des gonades", fb:"Utile plus tard. D'abord, que disent ses chromosomes ?"}
+], "exam1");
+
+/* Étape 2 · Chromatides */
+dnd("dnd-chromatides", [
+  {id:"x1", html: chrom(70,.4,true)+"<span>a</span>", a:"c2"},
+  {id:"x2", html: chrom(70,.4,false)+"<span>b</span>", a:"c1"},
+  {id:"x3", html: chrom(40,.15,true)+"<span>c</span>", a:"c2"},
+  {id:"x4", html: chrom(40,.15,false)+"<span>d</span>", a:"c1"},
+  {id:"x5", html: chrom(55,.3,true)+"<span>e</span>", a:"c2"}
+], "dnd-chromatides", 2);
+qcm("qcm-chromatides", [
+  {q:"Les chromosomes d'un caryotype sont formés de deux chromatides, car :", o:["ils viennent de cellules bloquées pendant leur division, après la duplication de l'ADN","ils viennent des deux parents","chaque chromatide correspond à un chromosome sexuel","l'ADN est toujours présent en deux exemplaires"], a:0, e:"Avant de se diviser, la cellule <b>duplique</b> son ADN : chaque chromosome possède alors deux chromatides identiques."}
+], "chromatides");
+
+/* Étape 2 · Caryotype */
+(function(){
+  var k = $("#karyo"); var h = "";
+  var order = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22];
+  order.forEach(function(n){
+    var pair;
+    if(n===1) pair = chrom(L(1),CH[1][1],true) + '<div data-zone="k1" data-cap="1"></div>';
+    else if(n===21) pair = chrom(L(21),CH[21][1],true) + '<div data-zone="k21" data-cap="1"></div>';
+    else pair = chrom(L(n),CH[n][1],true) + chrom(L(n),CH[n][1],true);
+    h += '<div class="kcell"><div class="pair">'+pair+'</div><span class="lbl">'+n+'</span></div>';
+  });
+  h += '<div class="kcell"><div class="pair"><div data-zone="k23" data-cap="2"></div></div><span class="lbl">23e paire</span></div>';
+  k.innerHTML = h;
+})();
+dnd("dnd-caryo", [
+  {id:"kx", html: chrom(L("X"),CH.X[1],true)+"<span>a</span>", a:"k23"},
+  {id:"ky", html: chrom(L("Y"),CH.Y[1],true)+"<span>b</span>", a:"k23"},
+  {id:"k1c", html: chrom(L(1),CH[1][1],true)+"<span>c</span>", a:"k1"},
+  {id:"k21c", html: chrom(L(21),CH[21][1],true)+"<span>d</span>", a:"k21"}
+], "dnd-caryo", 3);
+qcm("qcm-caryo", [
+  {q:"La 23e paire de l'enfant est formée :", o:["de deux chromosomes X","d'un chromosome X et d'un chromosome Y","de deux chromosomes Y","d'un seul chromosome X"], a:1, e:"Un grand chromosome (X) et un petit (Y) : l'enfant est <b>XY</b>."},
+  {q:"On peut donc conclure que le sexe génétique de l'enfant est :", o:["féminin","masculin","impossible à déterminer","à la fois masculin et féminin"], a:1, e:"Formule chromosomique <b>46,XY</b> : sexe génétique masculin."}
+], "caryo", function(){
+  var a = +$("#nChr").value, b = +$("#nAuto").value, m = "";
+  if(a!==46) m += "Recomptez le nombre total de chromosomes. ";
+  if(b!==22) m += "Recomptez les paires numérotées (sans la 23e paire).";
+  return m;
+});
+
+/* Étape 2 · Zoom */
+dnd("dnd-zoom", [
+  {id:"z1", t:"ADN", a:"d-adn"}, {id:"z2", t:"Gène", a:"d-gene"}, {id:"z3", t:"Nucléotides", a:"d-nuc"},
+  {id:"z4", t:"Chromatide", a:"d-chrom"}, {id:"z5", t:"Centromère", a:"d-cent"}, {id:"z6", t:"Allèle", a:"d-all"}
+], "zoom", 4);
+
+/* Étape 2 · Allèle */
+qcm("qcm-allele", [
+  {q:"Sur cette paire de chromosomes 9, A et O sont :", o:["deux gènes différents","deux allèles d'un même gène","deux chromosomes différents","deux nucléotides"], a:1, e:"A et O sont deux <b>versions</b> du même gène, situées au même emplacement : ce sont deux <b>allèles</b>."},
+  {q:"Pourquoi cette personne possède-t-elle deux exemplaires du gène du groupe sanguin ?", o:["Parce que les chromosomes vont par paires : un chromosome de chaque paire vient du père, l'autre de la mère","Parce que le gène s'est dupliqué par erreur","Parce que tous les gènes sont sur le chromosome X","Parce qu'elle a deux groupes sanguins"], a:0, e:"Chaque paire de chromosomes réunit un chromosome <b>paternel</b> et un chromosome <b>maternel</b>."}
+], "allele");
+
+/* Étape 2 · SRY */
+qcm("qcm-sry", [
+  {q:"Le chromosome X de l'enfant porte-t-il un allèle du gène SRY ?", o:["Oui, l'allèle féminin du gène SRY","Oui, le même allèle que sur le Y","Non : le gène SRY n'existe que sur le chromosome Y","Non, car l'enfant n'a pas de chromosome X"], a:2, h:"Regardez où apparaît le signal fluorescent.", e:"Les chromosomes X et Y ne sont pas homologues sur toute leur longueur : <b>SRY n'existe que sur le Y</b>. Il n'a donc pas d'allèle sur le X."},
+  {q:"Puisque l'enfant porte le gène SRY, on s'attend à ce que :", o:["ses gonades soient devenues des testicules","ses gonades soient devenues des ovaires","il n'ait pas de gonades","il ait un utérus"], a:0, e:"SRY oriente la gonade indifférenciée vers un <b>testicule</b>. L'utérus reste donc à expliquer…"}
+], "sry");
+
+/* Étape 2 · Examen */
+exams("exam2", [
+  {tag:"Génétique", t:"Refaire un caryotype", fb:"Inutile : le caryotype est clair, 46,XY."},
+  {tag:"Hormones", t:"Dosages hormonaux", ok:true, fb:"Exactement. Si les testicules sont là, vérifions qu'ils fabriquent bien leurs deux hormones. Direction l'endocrinologue."},
+  {tag:"Biologie", t:"Groupe sanguin", fb:"Il ne nous apprendra rien sur l'utérus."},
+  {tag:"Imagerie", t:"IRM du cerveau", fb:"Le cerveau n'est pas en cause dans la formation de l'utérus."}
+], "exam2");
+
+/* Étape 3 · Hypothèse */
+exams("hypo", [
+  {tag:"Hypothèse", t:"La testostérone", ok:true, fb:"Hypothèse notée. Voyons les résultats."},
+  {tag:"Hypothèse", t:"L'AMH", ok:true, fb:"Hypothèse notée. Voyons les résultats."},
+  {tag:"Hypothèse", t:"Les deux", ok:true, fb:"Hypothèse notée. Voyons les résultats."},
+  {tag:"Hypothèse", t:"Les œstrogènes", ok:true, fb:"Hypothèse notée. Voyons les résultats."}
+], "hypo", function(c){ S.hypo = c.t; save(); showHypoBack(); });
+function showHypoBack(){
+  var el = $("#hypo-back"); if(!S.hypo){ el.className="feedback"; el.textContent=""; return; }
+  var ok = S.hypo==="L'AMH";
+  el.className = "feedback "+(ok?"ok":"bad");
+  el.innerHTML = "Votre hypothèse : <b>"+esc(S.hypo)+"</b>. "+(ok ? "Les résultats vont dans votre sens." : "Comparez votre hypothèse aux résultats : est-elle confirmée ?");
+}
+showHypoBack();
+qcm("qcm-bilan", [
+  {q:"Quel résultat explique que l'enfant ait des organes génitaux externes masculins ?", o:["L'AMH indétectable","La testostérone normale","Les deux résultats","Aucun des deux"], a:1, e:"La testostérone a masculinisé les organes génitaux externes et maintenu les canaux de Wolff."},
+  {q:"Quel résultat peut expliquer la présence de l'utérus ?", o:["La testostérone normale","L'AMH indétectable","Aucun des deux","Les deux"], a:1, e:"Sans AMH, les canaux de Müller n'ont pas régressé : ils ont formé un utérus et des trompes."},
+  {q:"La testostérone normale montre aussi que :", o:["l'enfant possède des testicules fonctionnels","l'enfant possède des ovaires","l'enfant n'a pas de gonades","l'enfant est XX"], a:0, e:"Ce sont les testicules qui sécrètent la testostérone : ils fonctionnent."}
+], "bilan");
+
+
+/* Étape 3 · Dosages à la demande */
+var DOS = [
+  {id:"testo", t:"Testostérone", w:48, col:"", flag:"okv", res:"Normale pour l'âge", fb:"Résultat ajouté : la testostérone de l'enfant est normale pour un garçon de son âge.", key:true},
+  {id:"amh", t:"AMH (hormone antimüllérienne)", w:1, col:"var(--bad)", flag:"lowv", res:"Indétectable", fb:"Résultat ajouté : l'AMH est indétectable dans le sang de l'enfant !", key:true},
+  {id:"oestro", t:"Œstrogènes", w:50, col:"", flag:"okv", res:"Normaux pour un garçon de cet âge", fb:"Résultat ajouté : les œstrogènes sont normaux pour un garçon de cet âge. Ils n'expliquent pas l'utérus."},
+  {id:"proges", t:"Progestérone", w:50, col:"", flag:"okv", res:"Normale pour un garçon de cet âge", fb:"Résultat ajouté : la progestérone est normale pour un garçon de cet âge. Elle n'explique pas l'utérus."},
+  {id:"insu", t:"Insuline", w:52, col:"", flag:"okv", res:"Normale", fb:"Résultat ajouté : l'insuline est normale. Cette hormone régule la glycémie, elle n'a pas de lien avec l'appareil génital."}
+];
+S.dos = S.dos || [];
+function addRow(d){
+  var tb = $("#bilanRows"), e = $(".empty", tb); if(e) e.remove();
+  if($('[data-dos="'+d.id+'"]', tb)) return;
+  var tr = document.createElement("tr"); tr.dataset.dos = d.id;
+  tr.innerHTML = '<td>'+d.t+'</td><td><div class="bar"><i style="width:'+d.w+'%'+(d.col?';background:'+d.col:'')+'"></i><span class="ref" style="left:50%"></span></div></td><td class="flag '+d.flag+'">'+d.res+'</td>';
+  tb.appendChild(tr);
+}
+(function(){
+  var box = $("#dosages"), fb = $("#dos-fb");
+  function check(){ if(S.dos.indexOf("testo")>=0 && S.dos.indexOf("amh")>=0) done("dosages", 0); }
+  DOS.forEach(function(d){
+    var b = document.createElement("button"); b.className = "exam"; b.type = "button";
+    b.innerHTML = '<span class="tag">Dosage sanguin</span><b>'+d.t+'</b>';
+    if(S.dos.indexOf(d.id)>=0){ b.classList.add(d.key?"right":"asked"); b.disabled = true; addRow(d); }
+    b.addEventListener("click", function(){
+      if(S.dos.indexOf(d.id)<0){ S.dos.push(d.id); save(); }
+      b.disabled = true; b.classList.add(d.key?"right":"asked"); addRow(d);
+      fb.className = "feedback "+(d.key?"ok":""); fb.textContent = d.fb;
+      if(d.id==="amh") react(b, true);
+      if(S.dos.indexOf("testo")>=0 && S.dos.indexOf("amh")<0 && d.id!=="testo") fb.textContent += " Une autre hormone produite par les testicules pourrait être utile à doser.";
+      check();
+    });
+    box.appendChild(b);
+  });
+  check();
+})();
+/* Étape 3 · Jost */
+qcm("qcm-jost", [
+  {q:"Quelle expérience reproduit le mieux la situation de l'enfant (organes masculins + utérus) ?", o:["A","B","C","D"], a:2, e:"Dans l'expérience C, il y a de la testostérone mais <b>pas d'autre hormone testiculaire</b> : comme chez l'enfant, l'appareil est masculin… avec un utérus."},
+  {q:"La comparaison des expériences A et C montre que :", o:["la testostérone suffit à faire régresser les canaux de Müller","la testostérone ne suffit pas : le testicule produit une autre substance qui fait régresser les canaux de Müller","les canaux de Müller régressent toujours","la testostérone fait régresser les canaux de Wolff"], a:1, e:"Jost en a déduit l'existence d'une autre hormone testiculaire, identifiée plus tard : l'<b>AMH</b>."},
+  {q:"L'expérience D montre que :", o:["les testicules agissent seulement à proximité, sur les canaux voisins","les testicules transforment les ovaires","les ovaires font régresser les canaux de Wolff","la greffe n'a aucun effet"], a:0, e:"Le testicule greffé agit sur les canaux situés <b>de son côté</b> : ses hormones agissent localement."}
+], "jost");
+
+/* Étape 3 · Examen */
+exams("exam3", [
+  {tag:"Spécialiste", t:"Un cardiologue", fb:"Le cœur n'a rien à voir avec la fabrication de l'AMH."},
+  {tag:"Spécialiste", t:"Un généticien", ok:true, fb:"Oui : l'AMH est fabriquée à partir d'une information génétique. Allons voir le généticien."},
+  {tag:"Spécialiste", t:"Un nutritionniste", fb:"L'alimentation de l'enfant n'explique pas l'absence d'AMH avant sa naissance."},
+  {tag:"Examen", t:"Refaire la prise de sang", fb:"Le résultat est fiable : pas d'AMH. Il faut maintenant comprendre pourquoi."}
+], "exam3");
+
+/* Étape 4 · Chaîne */
+dnd("dnd-chaine", [
+  {id:"hy1", t:"H1 : mutation du gène, l'AMH n'est pas fabriquée", a:["m1","m2"]},
+  {id:"hy2", t:"H2 : AMH fabriquée puis détruite par le système immunitaire", a:"m3"},
+  {id:"hy3", t:"H3 : récepteur de l'AMH non fonctionnel", a:"m4"}
+], "chaine", 3);
+
+/* Étape 4 · Électrophorèse */
+$("#gel1").innerHTML = gel([
+  {n:"AMH purifiée", n2:"Référence", b:[93]},
+  {n:"Sérum témoin", n2:"Garçon, 4 ans", b:[58,93,132,160]},
+  {n:"Sérum de l'enfant", n2:"Fils de Mme D.", b:[58,132,160]}
+]);
+$("#gel2").innerHTML = gel([
+  {n:"AMH purifiée", n2:"Référence", b:[93]},
+  {n:"Testicule témoin", n2:"Garçon, 4 ans", b:[66,93,120,150]},
+  {n:"Testicule de l'enfant", n2:"Fils de Mme D.", b:[66,120,150]}
+]);
+qcm("qcm-electro", [
+  {q:"Que montre cette électrophorèse ?", o:["L'AMH est présente dans le sang de l'enfant","L'AMH est absente du sang de l'enfant, alors que ses autres protéines sont présentes","Le sang de l'enfant ne contient aucune protéine","L'enfant a plus d'AMH que le témoin"], a:1, e:"La bande à la hauteur de l'AMH purifiée manque <b>seulement</b> chez l'enfant : le dosage sanguin est confirmé."}
+], "electro");
+
+/* Étape 4 · Hypothèses */
+(function(){
+  var solved = {h1:false,h2:false,h3:false};
+  $$("[data-reveal]").forEach(function(b){ b.addEventListener("click", function(){ var r = document.getElementById(b.dataset.reveal); r.classList.remove("gated"); r.removeAttribute("data-requires"); b.disabled = true; }); });
+  var RIGHT = {h1:"ok", h2:"no", h3:"no"};
+  var WHY = {
+    h3:{good:"Bien vu : si seul le récepteur était défaillant, l'AMH serait fabriquée normalement et présente dans le sang. Or il n'y en a pas : H3 est rejetée.", bad:"Relisez le résultat : si seul le récepteur ne fonctionnait pas, l'AMH serait-elle absente du sang ?"},
+    h2:{good:"Exact : pas d'anticorps anti-AMH, et pas d'AMH même dans les cellules du testicule. L'hormone n'est donc pas détruite : elle n'est même pas fabriquée. H2 est rejetée.", bad:"Consultez les deux examens : l'AMH est-elle présente dans le testicule ? Y a-t-il des anticorps ?"},
+    h1:{good:"Oui : la séquence du gène AMH de l'enfant est modifiée, et l'hormone n'est pas fabriquée. H1 est validée.", bad:"Regardez à nouveau le séquençage : la séquence de l'enfant est-elle identique à la référence ?"}
+  };
+  $$("[data-v]").forEach(function(b){ b.addEventListener("click", function(){
+    var p = b.dataset.v.split(":"), h = p[0], v = p[1]; var box = document.getElementById(h); var fb = $(".verdict + .feedback", box);
+    if(h==="h1" && !isDone("seq")){ fb.className="feedback bad"; fb.textContent="Réalisez d'abord le séquençage du gène AMH."; return; }
+    if(h==="h3" && document.getElementById("r3a").classList.contains("gated")){ fb.className="feedback bad"; fb.textContent="Relisez d'abord le résultat de l'électrophorèse."; return; }
+    if(h==="h2" && (document.getElementById("r2a").classList.contains("gated") || document.getElementById("r2b").classList.contains("gated"))){ fb.className="feedback bad"; fb.textContent="Consultez d'abord les deux examens disponibles."; return; }
+    react(box, v===RIGHT[h]);
+    if(v===RIGHT[h]){ fb.className="feedback ok"; fb.textContent=WHY[h].good; box.classList.add("solved-ok"); solved[h]=true; $$("[data-v]", box).forEach(function(x){ x.disabled=true; }); }
+    else { fb.className="feedback bad"; fb.textContent=WHY[h].bad; }
+    if(solved.h1 && solved.h2 && solved.h3) done("hyp", 4);
+  }); });
+  /* séquence */
+  var ref = "ATGCGGCTCTGGCAGGCCACTGCCGTCGAG", kid = ref.slice(0,11)+"A"+ref.slice(12), pos = 11;
+  function grp(s, i){ return (i>0 && i%3===0) ? '<span class="gap" aria-hidden="true"></span>' : ""; }
+  $("#seqRef").innerHTML = ref.split("").map(function(c,i){ return grp(ref,i)+'<span>'+c+'</span>'; }).join("");
+  $("#seqKid").innerHTML = kid.split("").map(function(c,i){ return grp(kid,i)+'<button type="button" data-p="'+i+'" aria-label="Nucléotide '+(i+1)+' : '+c+'">'+c+'</button>'; }).join("");
+  var miss = 0;
+  $("#seqKid").addEventListener("click", function(e){ var b = e.target.closest("button"); if(!b) return; var i=+b.dataset.p; var fb=$("#seq-fb");
+    react(b, i===pos);
+    if(i===pos){ b.classList.add("hit"); fb.className="feedback ok"; fb.innerHTML="Trouvé : en position 12, le nucléotide <b>G</b> de la référence est remplacé par un <b>A</b> chez l'enfant. C'est une <b>mutation</b> par substitution."; done("seq", Math.max(1,3-miss)); }
+    else { miss++; b.classList.add("miss"); fb.className="feedback bad"; fb.textContent="Ce nucléotide est identique à celui de la référence. Comparez lettre par lettre."; }
+  });
+})();
+
+/* Étape 4 · Mutation */
+qcm("qcm-mut", [
+  {q:"Une mutation, c'est :", o:["une modification de la séquence des nucléotides de l'ADN","la perte d'un chromosome entier","une maladie contagieuse","un changement de sexe génétique"], a:0, e:"Une mutation modifie la <b>séquence</b> de l'ADN. Ici, un seul nucléotide a changé."},
+  {q:"La mutation a créé :", o:["un nouveau gène","un nouvel allèle du gène AMH","un nouveau chromosome","une nouvelle hormone"], a:1, e:"Le gène est toujours le même (AMH), mais il existe maintenant sous une nouvelle <b>version</b> : un allèle muté."},
+  {q:"Combien d'exemplaires du gène AMH possède chaque cellule de l'enfant, et d'où viennent-ils ?", o:["Un seul, venant de sa mère","Deux, un sur chaque chromosome 19 : l'un hérité de son père, l'autre de sa mère","Deux, tous les deux venant de son père","Quatre, un sur chaque chromatide"], a:1, e:"Comme pour tous les gènes non sexuels, il y en a <b>deux</b> : un sur chaque chromosome 19 de la paire. Chez cet enfant, les <b>deux allèles sont mutés</b>, c'est pourquoi aucune AMH n'est fabriquée."}
+], "qcm-mut");
+
+/* Étape 5 · SA */
+$("#saCheck").addEventListener("click", function(){
+  var a=+$("#sa1").value, b=+$("#sa2").value, c=+$("#sa3").value, fb=$("#sa-fb"), err=[];
+  if(a!==10) err.push("12 SA : retirez les 2 semaines qui précèdent la fécondation.");
+  if(b!==8) err.push("6 SD : ajoutez les 2 semaines qui précèdent la fécondation.");
+  if(c!==12) err.push("13 SA + 6 jours, c'est presque 14 SA.");
+  react(fb, !err.length);
+  if(err.length){ fb.className="feedback bad"; fb.innerHTML = err.join("<br>"); }
+  else { fb.className="feedback ok"; fb.textContent="Tout est juste : SD = SA − 2. +3 points."; done("sa", 3); }
+});
+
+/* Étape 5 · Frise */
+dnd("dnd-frise", [
+  {id:"e1", t:"Apparition des canaux de Müller, chez tous les embryons", a:"t1"},
+  {id:"e2", t:"Les testicules commencent à sécréter testostérone et AMH", a:"t2"},
+  {id:"e3", t:"Chez un garçon sans anomalie : régression des canaux de Müller", a:"t3"},
+  {id:"e4", t:"Chez le fils de Mme D. : fusion des canaux de Müller, l'utérus commence à se former", a:"t4"},
+  {id:"e5", t:"1re échographie de la grossesse", a:"t5"}
+], "frise", 4);
+
+/* Étape 5 · Échographie */
+qcm("qcm-echo", [
+  {q:"À partir de quel stade l'utérus de l'enfant a-t-il commencé à se former ?", o:["Dès la fécondation","Vers 9 semaines de développement (environ 11 SA), à partir des canaux de Müller apparus vers 6 SD","À la naissance","À la puberté"], a:1, e:"Les canaux de Müller existent dès 6 SD chez tout embryon. Chez l'enfant, faute d'AMH, ils n'ont pas régressé et leurs parties basses ont fusionné à partir de 9 SD environ pour former l'utérus."},
+  {q:"Aurait-on pu détecter cet utérus lors de la 1re échographie ?", o:["Oui, c'est l'objectif de cette échographie","Non : l'utérus en formation ne mesure que quelques millimètres, et on ne le cherche pas chez un fœtus que rien ne distingue d'un garçon","Oui, mais seulement chez les filles","Non, car l'utérus ne se forme qu'après la naissance"], a:1, e:"À 11-13 SA, l'utérus en formation est minuscule. De plus, les organes génitaux externes de l'enfant sont masculins : rien n'incite à chercher un utérus."}
+], "qcm-echo");
+
+/* Étape 6 · Gamètes */
+qcm("qcm-gam", [
+  {q:"Chez l'homme, les spermatozoïdes sont produits :", o:["dans les tubes séminifères des testicules","dans la prostate","dans les spermiductes","dans la vessie"], a:0, e:"Les spermatozoïdes sont fabriqués dans les <b>tubes séminifères</b> des testicules, puis transportés par les spermiductes."},
+  {q:"La production des spermatozoïdes :", o:["est continue de la puberté jusqu'à la fin de la vie, et dépend de la testostérone","est cyclique, une fois par mois","commence dès la naissance","ne dépend d'aucune hormone"], a:0, e:"À partir de la puberté, la production est <b>continue</b>. Elle dépend de la <b>testostérone</b>, elle-même contrôlée par des hormones du cerveau (hypothalamus et hypophyse)."},
+  {q:"Chez la femme, les ovules sont produits :", o:["par les ovaires, en général un par cycle d'environ 28 jours","par l'utérus, en continu","par les trompes, une fois par an","par le vagin"], a:0, e:"Les <b>ovaires</b> libèrent en général un ovule par cycle, de la puberté à la ménopause."},
+  {q:"Le rôle de l'utérus est :", o:["de produire les ovules","d'accueillir et de nourrir l'embryon pendant la grossesse","de produire la testostérone","de produire les spermatozoïdes"], a:1, e:"L'utérus accueille l'embryon. Sa paroi interne se prépare à chaque cycle sous l'effet des <b>hormones ovariennes</b>."}
+], "qcm-gam");
+dnd("dnd-fert", [
+  {id:"f1", t:"Fabriquer des spermatozoïdes", a:"pos"},
+  {id:"f2", t:"Sécréter de la testostérone", a:"pos"},
+  {id:"f3", t:"Fabriquer des ovules", a:"imp"},
+  {id:"f4", t:"Sécréter des œstrogènes et de la progestérone par cycles", a:"imp"},
+  {id:"f5", t:"Avoir des règles", a:"imp"},
+  {id:"f6", t:"Porter un bébé dans son utérus", a:"imp"}
+], "fert-tri", 3);
+qcm("qcm-fert", [
+  {q:"Pourquoi l'utérus de l'enfant ne pourra-t-il jamais fonctionner ?", o:["Parce qu'il n'a pas d'ovaires : pas d'ovules, ni d'hormones ovariennes pour préparer l'utérus","Parce que l'utérus est trop petit chez les garçons","Parce que la testostérone détruit l'utérus","Parce qu'il est XY, et que l'utérus ne fonctionne que dans les cellules XX"], a:0, e:"Sans ovaires, il n'y a ni ovule ni cycle hormonal ovarien : l'utérus ne peut pas fonctionner."},
+  {q:"Que peut-on répondre à Mme D. sur la fertilité future de son fils ?", o:["Il sera forcément stérile","Ses testicules fonctionnent : il pourra probablement produire des spermatozoïdes, mais sa fertilité devra être vérifiée à l'âge adulte","Il pourra avoir des enfants en les portant lui-même","On ne peut rien dire du tout"], a:1, e:"Ses testicules sont descendus et fabriquent de la testostérone : c'est encourageant. Mais chez ces patients, les restes des canaux de Müller peuvent gêner les testicules ou les spermiductes. Une analyse du sperme (spermogramme) à l'âge adulte le dira."}
+], "qcm-fert");
+
+/* ---------- Compte-rendu : copie ---------- */
+$("#copyBtn").addEventListener("click", function(){
+  var t = "DOSSIER PATIENT – Fils de Mme D. (équipe : "+(S.group||"–")+")\n";
+  FIELDS.forEach(function(f){ t += "- "+f.k+" : "+(f.v()||"à compléter")+"\n"; });
+  var m = $("#copyMsg");
+  try{ navigator.clipboard.writeText(t).then(function(){ m.textContent="Dossier copié."; }, function(){ m.textContent="La copie a été refusée par le navigateur : sélectionnez le dossier à droite et copiez-le."; }); }
+  catch(e){ m.textContent="La copie n'est pas possible ici : sélectionnez le dossier à droite et copiez-le."; }
+});
+
+/* ---------- Pied de page ---------- */
+var PROF_CODE = "MULLER";
+function showTeacher(){ $("#teacherWrap").hidden = false; $("#profBox").hidden = true; $("#profBtn").hidden = true; }
+if(S.teacher || S.prof) showTeacher();
+$("#profBtn").addEventListener("click", function(){ $("#profBox").hidden = false; $("#profCode").focus(); });
+function tryCode(){
+  if($("#profCode").value.trim().toUpperCase() === PROF_CODE){ S.prof = true; save(); $("#profMsg").textContent = ""; showTeacher(); }
+  else { $("#profMsg").textContent = "Code incorrect."; }
+}
+$("#profOk").addEventListener("click", tryCode);
+$("#profCode").addEventListener("keydown", function(e){ if(e.key==="Enter") tryCode(); });
+$("#teacher").checked = !!S.teacher;
+$("#teacher").addEventListener("change", function(){ S.teacher = this.checked; save(); refresh(); });
+var armed = false;
+$("#resetBtn").addEventListener("click", function(){
+  if(!armed){ armed=true; this.textContent="Cliquez à nouveau pour tout effacer"; var b=this; setTimeout(function(){ armed=false; b.textContent="Recommencer l'enquête"; }, 4000); return; }
+  try{ localStorage.removeItem(KEY); }catch(e){}
+  location.hash = "#accueil"; location.reload();
+});
+
+/* =================== PERSONNAGES =================== */
+var PEOPLE = {
+  CS:{name:"Dr Vasseur, cheffe de service", bg:"#f6e0d8", skin:"#e8b38e", hair:"cap", hc:"#4f8f86", bc:"#5a3a24", coat:"#7fbfb2", shirt:"#4f8f86", acc:"mask"},
+  DL:{name:"Dr Lefèvre, médecin", bg:"#e4f0fb", skin:"#f1c39f", hair:"bun", hc:"#6b3f24", shirt:"#7aa7d9", acc:"stetho"},
+  DB:{name:"Dr Benali, cytogénéticien", bg:"#ece6f6", skin:"#b97a50", hair:"short", hc:"#1d1a19", shirt:"#5d4a86", acc:"micro", glasses:true, beard:true},
+  DR:{name:"Dr Roche, endocrinologue", bg:"#fbeede", skin:"#f0c7a8", hair:"receding", hc:"#c9c9c9", shirt:"#b4361a", acc:"tubes", moustache:true},
+  DN:{name:"Dr Nguyen, généticienne", bg:"#e3f4ea", skin:"#f2d2a9", hair:"long", hc:"#16110f", shirt:"#16794a", acc:"dna"},
+  DP:{name:"Dr Petit, échographiste", bg:"#e1eef7", skin:"#f5d0b5", hair:"short", hc:"#b5562a", shirt:"#2457c5", acc:"probe", freckles:true},
+  DM:{name:"Dr Morel, médecin de la reproduction", bg:"#f9e3ec", skin:"#8d5a3b", hair:"curly", hc:"#2a1a12", shirt:"#c8326f", acc:"clipboard", glasses:true}
+};
+function portraitSVG(who, mood){
+  var P = PEOPLE[who]; if(!P) return ""; var s = '<svg viewBox="0 0 170 190" role="img" aria-label="'+esc(P.name)+'">';
+  var bc = P.bc || P.hc, lip = P.beard ? "#f3e3d6" : "#a5523a";
+  s += '<rect width="170" height="190" rx="14" fill="'+P.bg+'"/>';
+  if(P.hair==="long") s += '<path d="M50 84 Q48 38 85 38 Q122 38 120 84 L124 134 L102 134 L106 74 Q85 56 64 74 L68 134 L46 134 Z" fill="'+P.hc+'"/>';
+  if(P.hair==="curly"){ for(var a=0;a<=12;a++){ var t=Math.PI*(0.95+a*0.092); s += '<circle cx="'+(85+38*Math.cos(t)).toFixed(1)+'" cy="'+(84+40*Math.sin(t)).toFixed(1)+'" r="12" fill="'+P.hc+'"/>'; } }
+  s += '<path d="M25 190 Q30 132 85 128 Q140 132 145 190 Z" fill="'+(P.coat||"#fff")+'" stroke="#c7d0db" stroke-width="2"/>';
+  s += '<path d="M70 130 L85 160 L100 130" fill="'+P.shirt+'"/>';
+  if(P.acc==="micro") s += '<g transform="translate(124,98)" fill="#5d4a86"><rect x="0" y="62" width="34" height="9"/><rect x="12" y="18" width="10" height="46"/><rect x="6" y="6" width="14" height="22" rx="3" transform="rotate(-20 13 17)"/><rect x="20" y="40" width="14" height="5"/></g>';
+  if(P.acc==="tubes") s += '<g transform="translate(118,130)"><rect x="0" y="34" width="44" height="10" rx="2" fill="#8a6a4a"/>'+[4,17,30].map(function(x,i){ return '<rect x="'+x+'" y="'+(4+i*3)+'" width="9" height="34" rx="4" fill="#fff" stroke="#18212e"/><rect x="'+x+'" y="'+(22+i*2)+'" width="9" height="'+(16-i*2)+'" rx="4" fill="#c0392b"/>'; }).join("")+'</g>';
+  s += '<rect x="76" y="106" width="18" height="24" fill="'+P.skin+'"/><rect x="76" y="106" width="18" height="24" fill="#00000018"/>';
+  s += '<ellipse cx="55" cy="85" rx="5" ry="7" fill="'+P.skin+'"/><ellipse cx="115" cy="85" rx="5" ry="7" fill="'+P.skin+'"/>';
+  s += '<ellipse cx="85" cy="80" rx="30" ry="35" fill="'+P.skin+'"/>';
+  var hc = 'fill="'+P.hc+'"';
+  if(P.hair==="bun") s += '<path d="M55 78 Q55 40 85 42 Q117 40 115 80 Q108 58 85 58 Q64 60 55 78 Z" '+hc+'/><circle cx="85" cy="38" r="13" '+hc+'/>';
+  if(P.hair==="short") s += '<path d="M55 76 Q56 42 85 43 Q114 42 115 76 Q107 56 85 56 Q63 56 55 76 Z" '+hc+'/>';
+  if(P.hair==="receding") s += '<path d="M55 88 Q52 62 64 52 Q60 70 64 82 Z M115 88 Q118 62 106 52 Q110 70 106 82 Z" '+hc+'/><path d="M76 47 q9 -5 18 0" stroke="'+P.hc+'" stroke-width="3" fill="none"/>';
+  if(P.hair==="long") s += '<path d="M56 74 Q58 42 85 42 Q112 42 114 74 Q100 58 85 60 Q70 58 56 74 Z" '+hc+'/>';
+  if(P.hair==="curly"){ for(var b=0;b<7;b++){ var u=Math.PI*(1.12+b*0.127); s += '<circle cx="'+(85+30*Math.cos(u)).toFixed(1)+'" cy="'+(76+30*Math.sin(u)).toFixed(1)+'" r="10" '+hc+'/>'; } }
+  if(P.hair==="cap") s += '<path d="M52 74 Q52 34 85 34 Q118 34 118 74 Q102 62 85 62 Q68 62 52 74 Z" '+hc+'/><g fill="#ffffff55"><circle cx="70" cy="48" r="2"/><circle cx="85" cy="42" r="2"/><circle cx="100" cy="48" r="2"/><circle cx="78" cy="56" r="2"/><circle cx="94" cy="56" r="2"/></g>';
+  if(P.beard) s += '<path d="M60 94 Q85 126 110 94 Q108 112 85 117 Q62 112 60 94 Z" fill="'+P.hc+'"/>';
+  if(P.moustache) s += '<path d="M74 94 q11 -7 22 0 q-11 5 -22 0 Z" fill="'+P.hc+'"/>';
+  if(P.freckles) s += '<g fill="#c9835b"><circle cx="70" cy="92" r="1.3"/><circle cx="74" cy="95" r="1.3"/><circle cx="67" cy="96" r="1.3"/><circle cx="100" cy="92" r="1.3"/><circle cx="96" cy="95" r="1.3"/><circle cx="103" cy="96" r="1.3"/></g>';
+  if(mood==="happy"){
+    s += '<path d="M70 83 q4 -5 8 0 M92 83 q4 -5 8 0" stroke="#18212e" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M68 71 q5 -5 11 -2 M91 69 q5 -3 11 2" stroke="'+bc+'" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M74 98 q11 12 22 0 Z" stroke="'+lip+'" stroke-width="3" fill="#fff" stroke-linejoin="round"/>';
+  } else if(mood==="frown"){
+    s += '<circle cx="74" cy="84" r="3" fill="#18212e"/><circle cx="96" cy="84" r="3" fill="#18212e"/>';
+    s += '<path d="M67 72 l12 5 M103 72 l-12 5" stroke="'+bc+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M77 105 q8 -7 16 0" stroke="'+lip+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  } else {
+    s += '<circle cx="74" cy="82" r="3" fill="#18212e"/><circle cx="96" cy="82" r="3" fill="#18212e"/>';
+    s += '<path d="M69 74 q5 -3 10 0 M91 74 q5 -3 10 0" stroke="'+bc+'" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    s += '<path d="M77 101 q8 2 16 0" stroke="'+lip+'" stroke-width="3" fill="none" stroke-linecap="round"/>';
+  }
+  if(P.glasses) s += '<g fill="none" stroke="#18212e" stroke-width="2.5"><circle cx="74" cy="83" r="9"/><circle cx="96" cy="83" r="9"/><path d="M83 83 h4 M65 82 l-9 -2 M105 82 l9 -2"/></g>';
+  if(P.acc==="mask") s += '<path d="M64 110 q21 9 42 0 l-3 13 q-18 7 -36 0 Z" fill="#a9d6e5" stroke="#5c8fa0" stroke-width="1.5"/><path d="M64 111 L56 88 M106 111 L114 88" stroke="#5c8fa0" stroke-width="1.5"/>';
+  if(P.acc==="stetho") s += '<path d="M62 136 Q55 170 76 176" fill="none" stroke="#3a3f47" stroke-width="3"/><path d="M108 136 Q112 156 100 162" fill="none" stroke="#3a3f47" stroke-width="3"/><circle cx="78" cy="176" r="5" fill="#9aa6b5" stroke="#3a3f47" stroke-width="2"/>';
+  if(P.acc==="dna") s += '<g transform="translate(104,146)"><rect width="30" height="20" rx="3" fill="#fff" stroke="#16794a" stroke-width="2"/><path d="M6 4 Q15 10 24 16 M6 16 Q15 10 24 4" stroke="#16794a" stroke-width="2" fill="none"/></g>';
+  if(P.acc==="probe") s += '<path d="M40 176 Q30 184 22 190" stroke="#18212e" stroke-width="2" fill="none"/><g transform="translate(36,138) rotate(-22)"><rect width="16" height="34" rx="7" fill="#d8dee6" stroke="#18212e" stroke-width="1.5"/><rect y="28" width="16" height="9" rx="3" fill="#18212e"/></g>';
+  if(P.acc==="clipboard") s += '<g transform="translate(108,136) rotate(8)"><rect width="34" height="46" rx="3" fill="#c8a46a" stroke="#18212e"/><rect x="4" y="6" width="26" height="36" fill="#fff"/><rect x="11" y="-3" width="12" height="7" rx="2" fill="#9aa6b5"/><path d="M8 16h18M8 23h18M8 30h12" stroke="#9aa6b5" stroke-width="2"/></g>';
+  return s + '</svg>';
+}
+function setMood(el, mood){ el.innerHTML = portraitSVG(el.dataset.who, mood||"neutral"); el.dataset.mood = mood||"neutral"; }
+$$(".portrait").forEach(function(el){ setMood(el, "neutral"); });
+function react(el, ok){
+  if(!el) return;
+  var card = el.closest(".card"), p = card && $(".portrait", card);
+  if(!p){ var sec = el.closest("section.view"); p = sec && $(".portrait", sec); }
+  if(!p) return;
+  setMood(p, ok ? "happy" : "frown"); clearTimeout(p._t); p._t = setTimeout(function(){ setMood(p, "neutral"); }, 2600);
+}
+
+/* =================== TEXTE PROGRESSIF =================== */
+var REDUCE = false; try{ REDUCE = window.matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){}
+function typewrite(el){
+  if(el._typed) return; el._typed = true; if(REDUCE) return;
+  var nodes = [], w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null, false), n;
+  while((n = w.nextNode())) nodes.push(n);
+  var texts = nodes.map(function(x){ return x.nodeValue; }); nodes.forEach(function(x){ x.nodeValue = ""; });
+  var i = 0, j = 0, timer; el.classList.add("typing");
+  function finish(){ clearInterval(timer); nodes.forEach(function(x,k){ x.nodeValue = texts[k]; }); el.classList.remove("typing"); }
+  el.addEventListener("click", finish, {once:true});
+  timer = setInterval(function(){
+    if(i >= nodes.length){ finish(); return; }
+    j += 2; nodes[i].nodeValue = texts[i].slice(0, j); if(j >= texts[i].length){ i++; j = 0; }
+  }, 18);
+}
+function typeVisible(){
+  var sec = $("section.view.on"); if(!sec) return;
+  $$(".speech", sec).forEach(function(sp){ if(!sp.closest(".gated")) typewrite(sp); });
+}
+
+/* =================== PLAN DE L'HÔPITAL =================== */
+var ROOMS = {
+  cyto:{x:20,y:20,w:270,h:205,door:155,top:true,l:["Laboratoire de","cytogénétique"],c:"#ece6f6"},
+  bloc:{x:300,y:20,w:110,h:205,door:355,top:true,l:["Bloc","opératoire"],c:"#d6ece9"},
+  endo:{x:490,y:20,w:190,h:205,door:585,top:true,l:["Endocrinologie"],c:"#fbeede"},
+  gene:{x:690,y:20,w:190,h:205,door:785,top:true,l:["Génétique"],c:"#e3f4ea"},
+  repro:{x:20,y:305,w:190,h:195,door:115,l:["Médecine de la","reproduction"],c:"#f9e3ec"},
+  consult:{x:220,y:305,w:190,h:195,door:315,l:["Consultations"],c:"#e4f0fb"},
+  hall:{x:490,y:305,w:120,h:195,door:550,l:["Hall","d'accueil"],c:"#f6ead2"},
+  imagerie:{x:620,y:305,w:260,h:195,door:750,l:["Imagerie médicale"],c:"#e1eef7"}
+};
+var STEP_ROOM = ["hall","consult","cyto","endo","gene","imagerie","repro","bloc"];
+var FURN = {
+  bloc:'<rect x="325" y="118" width="60" height="24" rx="4" fill="#fff" stroke="#18212e"/><circle cx="355" cy="98" r="12" fill="#fffbe0" stroke="#18212e"/>',
+  cyto:'<rect x="35" y="112" width="240" height="18" fill="#fff" stroke="#18212e"/><g fill="#5d4a86"><rect x="44" y="104" width="18" height="6"/><rect x="50" y="86" width="5" height="18"/><circle cx="53" cy="84" r="4"/><rect x="248" y="104" width="18" height="6"/><rect x="254" y="86" width="5" height="18"/><circle cx="257" cy="84" r="4"/></g>',
+  endo:'<rect x="505" y="118" width="160" height="16" fill="#fff" stroke="#18212e"/><g stroke="#18212e">'+[515,527,539,551].map(function(x){ return '<rect x="'+x+'" y="96" width="7" height="22" rx="3" fill="#fff"/><rect x="'+x+'" y="108" width="7" height="10" rx="3" fill="#c0392b"/>'; }).join("")+'</g><circle cx="640" cy="104" r="10" fill="#9fb3c8"/>',
+  gene:'<g stroke="#18212e"><rect x="705" y="90" width="58" height="38" rx="3" fill="#18212e"/><rect x="805" y="90" width="58" height="38" rx="3" fill="#18212e"/></g><path d="M715 100 q19 9 38 18 M715 118 q19 -9 38 -18 M815 100 q19 9 38 18 M815 118 q19 -9 38 -18" stroke="#7cd3a6" stroke-width="2" fill="none"/>',
+  consult:'<rect x="235" y="380" width="60" height="30" fill="#fff" stroke="#18212e"/><rect x="330" y="372" width="66" height="36" rx="6" fill="#fff" stroke="#18212e"/><rect x="330" y="372" width="18" height="36" rx="6" fill="#dbe7f3" stroke="#18212e"/>',
+  hall:'<rect x="505" y="388" width="90" height="13" rx="4" fill="#d9c9a6"/><rect x="505" y="416" width="90" height="13" rx="4" fill="#d9c9a6"/><circle cx="508" cy="450" r="9" fill="#7cb07c"/>',
+  imagerie:'<rect x="640" y="385" width="84" height="34" rx="6" fill="#fff" stroke="#18212e"/><rect x="815" y="368" width="44" height="30" rx="3" fill="#18212e"/><path d="M826 390 q11 -16 22 0" stroke="#9fd0f0" stroke-width="2" fill="none"/><rect x="835" y="398" width="4" height="26" fill="#18212e"/>',
+  repro:'<rect x="35" y="385" width="70" height="30" fill="#fff" stroke="#18212e"/><circle cx="140" cy="398" r="9" fill="#9fb3c8"/><circle cx="170" cy="398" r="9" fill="#9fb3c8"/>'
+};
+function roomKnown(id){
+  if(id==="hall" || id==="bloc") return true;
+  var i = STEP_ROOM.indexOf(id); return i > 0 && stepUnlocked(i);
+}
+function spot(id){ var r = ROOMS[id]; return r.top ? [r.door, r.y+r.h-42] : [r.door, r.y+42]; }
+function doorY(id){ var r = ROOMS[id]; return r.top ? r.y+r.h : r.y; }
+function drawMap(cur){
+  var s = '<svg viewBox="0 0 900 520" role="img" aria-label="Plan de l\'hôpital" font-family="Atkinson Hyperlegible, sans-serif">';
+  s += '<rect width="900" height="520" rx="16" fill="#cfd8e2"/>';
+  s += '<rect x="20" y="240" width="860" height="50" fill="#f3efe6"/><rect x="425" y="20" width="50" height="480" fill="#f3efe6"/>';
+  s += '<path d="M20 265 H880" stroke="#e2dccf" stroke-dasharray="14 10"/>';
+  Object.keys(ROOMS).forEach(function(id){
+    var r = ROOMS[id], known = roomKnown(id), here = id===cur;
+    s += '<rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" fill="'+(known?r.c:"#b9c3cf")+'" stroke="'+(here?"#b4361a":"#18212e")+'" stroke-width="'+(here?4:2)+'"/>';
+    s += '<rect x="'+(r.door-20)+'" y="'+(r.top ? r.y+r.h-2 : 288)+'" width="40" height="'+(r.top ? 17 : 19)+'" fill="#f3efe6"/>';
+    if(known){
+      s += FURN[id]||"";
+      var ys = r.top ? [r.y+36, r.y+58] : (r.l.length>1 ? [r.y+r.h-38, r.y+r.h-14] : [r.y+r.h-16]);
+      r.l.forEach(function(t,k){ s += '<text x="'+(r.x+r.w/2)+'" y="'+ys[k]+'" text-anchor="middle" font-size="20" font-weight="700" fill="#18212e">'+t+'</text>'; });
+    } else {
+      s += '<text x="'+(r.x+r.w/2)+'" y="'+(r.y+r.h/2+12)+'" text-anchor="middle" font-size="34" font-weight="700" fill="#8a96a6">?</text>';
+    }
+  });
+  s += '<path id="trail" d="" fill="none" stroke="#b4361a" stroke-width="4" stroke-dasharray="2 9" stroke-linecap="round"/>';
+  var p = spot(cur);
+  s += '<g id="me" transform="translate('+p[0]+','+p[1]+')"><circle r="20" fill="#b4361a" opacity=".2"/><circle cy="-7" r="8" fill="#6b4226"/><path d="M-11 13 Q0 -5 11 13 Z" fill="#0b6b77"/><rect x="-17" y="-36" width="34" height="16" rx="8" fill="#18212e"/><text y="-24" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">Vous</text></g>';
+  $("#mapWrap").innerHTML = s + '</svg>';
+}
+function roomName(id){ return roomKnown(id) ? ROOMS[id].l.join(" ") : "?"; }
+var moving = null;
+function goRoom(target){
+  var from = S.room || "hall";
+  if(!ROOMS[target]) return;
+  if(moving){ cancelAnimationFrame(moving); moving = null; }
+  if(from === target){ drawMap(target); $("#mapHere").innerHTML = 'Vous êtes ici : <span>'+esc(roomName(target))+'</span>'; return; }
+  drawMap(from);
+  var a = spot(from), b = spot(target);
+  var pts = [a, [ROOMS[from].door, doorY(from)], [ROOMS[from].door, 265], [ROOMS[target].door, 265], [ROOMS[target].door, doorY(target)], b];
+  $("#trail").setAttribute("d", "M"+pts.map(function(q){ return q.join(" "); }).join(" L"));
+  $("#mapHere").innerHTML = 'En route vers : <span>'+esc(roomName(target))+'</span>';
+  S.room = target; save();
+  var segs = [], total = 0; for(var i=1;i<pts.length;i++){ var d = Math.hypot(pts[i][0]-pts[i-1][0], pts[i][1]-pts[i-1][1]); segs.push(d); total += d; }
+  function arrive(){ moving = null; drawMap(target); var t = $("#trail"); t.setAttribute("d", "M"+pts.map(function(q){ return q.join(" "); }).join(" L")); $("#mapHere").innerHTML = 'Vous êtes ici : <span>'+esc(roomName(target))+'</span>'; }
+  if(REDUCE){ arrive(); return; }
+  var me = $("#me"), t0 = null, speed = 0.32;
+  function frame(ts){
+    if(t0===null) t0 = ts; var dist = Math.min(total, (ts-t0)*speed), acc = 0, k = 0;
+    while(k < segs.length-1 && acc + segs[k] < dist){ acc += segs[k]; k++; }
+    var f = segs[k] ? (dist-acc)/segs[k] : 1, x = pts[k][0] + (pts[k+1][0]-pts[k][0])*f, y = pts[k][1] + (pts[k+1][1]-pts[k][1])*f;
+    me.setAttribute("transform", "translate("+x.toFixed(1)+","+y.toFixed(1)+")");
+    if(dist < total) moving = requestAnimationFrame(frame); else arrive();
+  }
+  moving = requestAnimationFrame(frame);
+}
+try{ if(localStorage.getItem(KEY+"-map")==="closed") $("#mapCard").classList.add("closed"); }catch(e){}
+function mapLabel(){ $("#mapToggle").textContent = $("#mapCard").classList.contains("closed") ? "Afficher le plan" : "Masquer le plan"; }
+mapLabel();
+$("#mapToggle").addEventListener("click", function(){ var c = $("#mapCard").classList.toggle("closed"); try{ localStorage.setItem(KEY+"-map", c?"closed":"open"); }catch(e){} mapLabel(); });
+
+/* Passerelle pour l'hôpital en 3D (outils/hopital/index.html) : savoir quelles étapes sont ouvertes,
+   lesquelles sont finies, et ouvrir une étape quand on parle au médecin de la pièce. */
+if(/[?&]en3d/.test(location.search)) document.body.classList.add("en3d");
+window.jeu3d = {
+  etapes: STEPS.map(function(s){ return s.id; }),
+  salles: STEP_ROOM.slice(),
+  ouverte: function(i){ return stepUnlocked(i); },
+  finie: function(i){ return stepComplete(i); },
+  points: function(){ return S.points; },
+  equipe: function(){ return S.group || ""; },
+  aller: function(id){ if(location.hash === "#"+id) route(); else location.hash = id; }
+};
+refresh(); route();
+})();
+</script>
+</body>
+</html>

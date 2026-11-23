@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Le garçon à utérus — l'hôpital en 3D</title>
+<style>
+:root{--encre:#18212e;--accent:#0b6b77;--papier:#e9edf1;--tampon:#b4361a;
+  --titre:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;--texte:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#cfd8e2;color:var(--encre);font-family:var(--texte)}
+#scene{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.hidden{display:none!important}
+button{font:inherit;cursor:pointer}
+/* accueil */
+#accueil{position:fixed;inset:0;display:grid;place-items:center;background:linear-gradient(180deg,#18212ecc,#18212ef2);z-index:20;padding:16px}
+#accueil .carte{background:#fff;border-radius:18px;max-width:620px;width:100%;padding:26px 26px 22px;box-shadow:0 20px 60px #0006}
+#accueil small{color:#556172;text-transform:uppercase;letter-spacing:.05em;font-size:.82rem}
+#accueil h1{font-family:var(--titre);font-size:2rem;margin:.2em 0 .4em;line-height:1.1}
+#accueil p{line-height:1.5;margin:.5em 0}
+.btn{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:700}
+.btn:disabled{opacity:.6;cursor:wait}
+.lien{background:none;border:0;color:var(--accent);text-decoration:underline;padding:0}
+#chargement{color:#556172;font-size:.95rem;min-height:1.5em}
+/* interface du jeu */
+#hud{position:fixed;left:12px;right:12px;top:10px;display:flex;justify-content:space-between;gap:8px;z-index:5;pointer-events:none}
+#hud .pastille{background:#18212ee6;color:#fff;border-radius:999px;padding:7px 14px;font-size:.95rem;pointer-events:auto}
+#objectif{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);background:#18212ee6;color:#fff;border-radius:12px;padding:9px 16px;
+  max-width:min(92vw,640px);text-align:center;z-index:5;font-size:.98rem;line-height:1.4}
+#viseur{position:fixed;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #18212e88;z-index:4;pointer-events:none}
+#invite{position:fixed;left:50%;top:calc(50% + 26px);transform:translateX(-50%);background:#fff;color:var(--encre);border-radius:999px;padding:8px 16px;
+  font-weight:700;z-index:5;box-shadow:0 6px 20px #0004;white-space:nowrap}
+#invite kbd{background:var(--encre);color:#fff;border-radius:6px;padding:1px 7px;margin-left:6px;font-family:inherit}
+#bulle{position:fixed;left:50%;top:18%;transform:translateX(-50%);background:#fff;border-radius:14px;padding:12px 16px;max-width:min(90vw,520px);
+  box-shadow:0 10px 30px #0005;z-index:5;line-height:1.45}
+#bulle b{display:block;font-family:var(--titre);margin-bottom:2px}
+/* panneau de l'exercice : la conversation avec le médecin */
+#panneau{position:fixed;top:0;right:0;bottom:0;width:min(980px,72vw);background:var(--papier);z-index:10;display:flex;flex-direction:column;
+  box-shadow:-20px 0 60px #0005;transform:translateX(102%);transition:transform .35s ease}
+#panneau.ouvert{transform:none}
+#panneau header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--encre);color:#fff}
+#panneau header .qui{flex:1;font-family:var(--titre);font-weight:800;font-size:1.15rem}
+#panneau header .qui small{display:block;font-family:var(--texte);font-weight:400;font-size:.85rem;color:#b8c4d3}
+#panneau iframe{flex:1;border:0;width:100%;background:var(--papier)}
+#fermer{background:#ffffff22;color:#fff;border:1px solid #ffffff44;border-radius:10px;padding:8px 14px}
+@media (max-width:820px){#panneau{width:100vw}}
+/* tactile */
+#manette{position:fixed;left:18px;bottom:70px;width:120px;height:120px;border-radius:50%;background:#ffffff33;border:2px solid #ffffff66;z-index:4;display:none}
+#manette i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:#ffffffaa}
+body.tactile #manette{display:block}
+#b-parler{position:fixed;right:18px;bottom:80px;z-index:5;border-radius:999px;padding:14px 20px}
+@media (prefers-reduced-motion:reduce){#panneau{transition:none}}
+</style>
+</head>
+<body>
+<canvas id="scene" tabindex="0" aria-label="L'hôpital en 3D"></canvas>
+<div id="hud" class="hidden"><span class="pastille" id="lieu">Hall d'accueil</span><span class="pastille" id="score">0 point</span></div>
+<div id="viseur" class="hidden"></div>
+<div id="invite" class="hidden"></div>
+<div id="bulle" class="hidden"></div>
+<div id="objectif" class="hidden"></div>
+<div id="manette"><i></i></div>
+<button class="btn hidden" id="b-parler" type="button">Parler</button>
+
+<div id="accueil">
+  <div class="carte">
+    <small>SVT · Seconde · Enquête en 3D</small>
+    <h1>Le garçon à utérus</h1>
+    <p>Un petit garçon, opéré pour des douleurs abdominales, a… un utérus. Vous êtes le chirurgien qui le suit : allez de service en service, parlez aux spécialistes, demandez les examens, et expliquez à sa maman ce qui s'est passé.</p>
+    <p><b>Ordinateur</b> : clic dans la vue pour regarder à la souris, <b>Z Q S D</b> ou flèches pour marcher, <b>E</b> pour parler.<br>
+       <b>Tablette ou téléphone</b> : un pouce à gauche pour marcher, un doigt à droite pour regarder, bouton « Parler ».</p>
+    <p id="chargement">Chargement de l'hôpital…</p>
+    <p><button class="btn" id="b-entrer" type="button" disabled>Patientez…</button></p>
+    <p style="font-size:.85rem;color:#556172">Les questions et les documents sont ceux de l'activité « Le garçon à utérus » conçue par une collègue de SVT ; ce bâtiment en 3D n'en change que la façon de circuler. Progression gardée dans ce navigateur. Modèles et textures sous licence libre : <button class="lien" id="b-credits" type="button">crédits</button>.</p>
+    <ul id="credits" class="hidden" style="font-size:.8rem;max-height:160px;overflow:auto;color:#556172"></ul>
+  </div>
+</div>
+
+<aside id="panneau" aria-hidden="true">
+  <header><div class="qui" id="qui">—</div><button id="fermer" type="button">Retour dans l'hôpital ✕</button></header>
+  <iframe id="exercice" title="L'enquête" src="exercice.html?en3d"></iframe>
+</aside>
+
+<!-- Three.js est celui du cabinet des curiosités, copié dans le dépôt : aucun site extérieur n'est appelé. -->
+<script type="importmap">
+{ "imports": { "three": "../cabinet/vendor/three-r187/three.module.js", "three/addons/": "../cabinet/vendor/three-r187/addons/" } }
+</script>
+<script type="module" src="hopital.js"></script>
+</body>
+</html>
