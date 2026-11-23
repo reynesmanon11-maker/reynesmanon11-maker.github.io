@@ -62,7 +62,8 @@ async function postTraitement(){
     ao.updateGtaoMaterial({radius:0.3, distanceExponent:1.4, thickness:1.2, scale:1.0, samples:12});
     composer.addPass(ao);
   }
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(t.x, t.y), 0.32, 0.55, 0.95));
+  // seules les sources (LED, dalles lumineuses, ciel) dépassent ce seuil : les murs éclairés restent nets
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(t.x, t.y), 0.22, 0.4, 6.0));
   composer.addPass(new OutputPass());
   composer.addPass(new ShaderPass(ETALONNAGE));
 }
@@ -91,6 +92,7 @@ const portes = {};                // salle → {pivot, ouverte, angle, cible, re
 const gens = {};                  // code → {pivot, yaw0, yaw}
 const enseignes = {};             // salle → {canvas, tex, etat}
 const portesAuto = [];            // vantaux coulissants de l'entrée
+const sources = [];               // matières qui émettent (LED, dalles) : intensifiées pour le halo, après la capture des sondes
 let cibleObjet = null;            // objet du décor qu'on peut utiliser (borne, plan, gel…)
 
 /* ------------------------------------------------------------ matières */
@@ -107,6 +109,7 @@ function verre(src){
   const opa = src.opacity >= 0.3 && src.opacity < 1 ? src.opacity * 0.85 : 0.08;
   const m = new THREE.MeshStandardMaterial({color:src.color, roughness:0.04, transparent:true, opacity:opa, depthWrite:false, side:THREE.DoubleSide});
   m.userData.verre = true;
+  if (Q.post) m.envMapIntensity = 0.25;   // en HDR, le reflet n'est plus plafonné avant le mélange : on le tempère
   return m;
 }
 const estVerre = m => (m.transmission > 0) || (m.transparent && m.opacity < 0.5 && !m.map) || /verre|glass/i.test(m.name);
@@ -149,11 +152,17 @@ async function construire(){
       if (cache.has(cle)) return cache.get(cle);
       let n;
       if (estVerre(m)) n = verre(m);
-      else if (/^(panneau|ecran)$/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.name === 'panneau' ? 0xffffff : 0x5a8ec0});
+      else if (/^(panneau|ecran)$/.test(m.name)){
+        n = new THREE.MeshBasicMaterial({color: m.name === 'panneau' ? new THREE.Color(1, 1, 0.95) : 0x5a8ec0});
+        if (m.name === 'panneau') sources.push(n);
+      }
       // écrans allumés (leur image est leur lumière) et LED : dessinés tels quels, sans éclairage
       else if (/^ecran_/.test(m.name) && m.name !== 'ecran_tv') n = new THREE.MeshBasicMaterial({map: m.emissiveMap || m.map, color: 0xffffff});
       else if (m.name === 'ecran_tv') n = new THREE.MeshBasicMaterial({map: tele.tex});
-      else if (/^(led|voyant)/.test(m.name)) n = new THREE.MeshBasicMaterial({color: (m.emissive && m.emissive.getHex() ? m.emissive : m.color).clone().multiplyScalar(2.6)});
+      else if (/^(led|voyant)/.test(m.name)){
+        n = new THREE.MeshBasicMaterial({color: (m.emissive && m.emissive.getHex() ? m.emissive : m.color).clone().multiplyScalar(1.6)});
+        sources.push(n);
+      }
       else if (atlas){ n = m.clone(); n.lightMap = cartes[atlas]; n.lightMapIntensity = Math.PI * d.lumiere[atlas].max * GAIN; lumiereCuite(n); }
       else n = m;
       // affiches, plaques et touches : collées à un demi-millimètre de leur support, elles passent toujours devant
@@ -209,6 +218,7 @@ async function construire(){
     if (o.material.length === 1) o.material = o.material[0];
   });
   if (Q.post){
+    for (const m of new Set(sources)) m.color.multiplyScalar(6);
     $('chargement').textContent = 'Réglage de l’image…';
     try { await postTraitement(); } catch (e){ console.warn('post-traitement indisponible', e); composer = null; }
   }

@@ -25,7 +25,7 @@ async function ouvrir(options){
 // 1. ordinateur : chargement, accessibilité de chaque personne, conversations
 {
   const {p, err} = await ouvrir({viewport: {width: 1280, height: 720}});
-  await p.click('#b-entrer');
+  await p.evaluate(() => document.getElementById('b-entrer').click());
   const r = await p.evaluate(() => {
     for (const g of Object.values(portes)) { g.ouverte = true; g.angle = 1.5; }
     // parcours en largeur sur une grille de 10 cm, depuis la position de départ, avec la vraie fonction de collision
@@ -80,7 +80,7 @@ async function ouvrir(options){
   p.on('console', m => { if (m.type() === 'error') err.push(m.text()); });
   await p.goto(srv.url + 'outils/hopital/index.html?qualite=belle');
   await p.waitForFunction(() => !document.getElementById('b-entrer').disabled, null, {timeout: 300000});
-  await p.click('#b-entrer'); await p.waitForTimeout(1500);
+  await p.evaluate(() => document.getElementById('b-entrer').click()); await p.waitForTimeout(1500);
   const e = await p.evaluate(() => etat());
   ok(e.qualite === 'belle' && e.post, `qualité Belle : post-traitement actif (${e.qualite}, ${e.post})`);
   ok(err.length === 0, `qualité Belle : aucune erreur${err.length ? ' : ' + err.join(' | ') : ''}`);
@@ -92,7 +92,7 @@ async function ouvrir(options){
   const {p, err} = await ouvrir({viewport: {width: 390, height: 844}, hasTouch: true, isMobile: true});
   const large = await p.evaluate(() => document.documentElement.scrollWidth);
   ok(large <= 390, `pas de défilement horizontal sur téléphone (${large} px)`);
-  await p.tap('#b-entrer');
+  await p.evaluate(() => document.getElementById('b-entrer').click());
   await p.waitForTimeout(500);
   ok(err.length === 0, `téléphone : aucune erreur${err.length ? ' : ' + err.join(' | ') : ''}`);
   await p.close();

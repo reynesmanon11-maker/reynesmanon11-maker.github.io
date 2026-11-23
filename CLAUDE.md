@@ -386,6 +386,18 @@ l'étape du médecin, par la passerelle `window.jeu3d`. Pas encore relié depuis
   Équipement : modelé pièce par pièce dans `equipement.py`.
 - La marche n'est permise que dans les salles, les couloirs (`couloirs` dans `hopital.json`) et les
   embrasures de porte ; meubles (`solides`) et battants fermés arrêtent le pas.
+- **Le hall est la pièce témoin** : banque d'accueil contre le mur de tasseaux (la secrétaire face à l'est),
+  façade sud vitrée à portes automatiques (`porte_auto_g/d`, elles coulissent à l'approche), parvis et auvent,
+  spots chauds, rasants sur les tasseaux, plafond de lames de chêne. Les autres services suivront sa recette.
+- **Objets utilisables** (touche E) : décrits par `interactifs` dans `hopital.json` (écrits par `hopital.py`),
+  leur effet est dans `OBJETS` (`hopital.js`) : borne (état de l'enquête), plan (aussi touche M), écran
+  d'information animé, gel, fontaine, sortie. Le « carnet de découvertes » (clé `hopital-decouvertes`)
+  est un bonus : il ne touche jamais au score de l'exercice.
+- **Trois qualités** (clé `hopital-qualite`, `?qualite=legere|belle|tresbelle`) : légère = rendu cuit
+  seul (choisie d'office sans carte graphique, donc dans les tests) ; belle = halo des sources, étalonnage,
+  anticrénelage ; très belle = plus occlusion ambiante. Modules de post-traitement de Three.js r187 copiés
+  dans `outils/hopital/vendor/three-r187-post/`, jamais retouchés. Les sources lumineuses ne sont
+  intensifiées qu'après la capture des sondes, sinon les vitres deviennent laiteuses.
 - Avant de publier, depuis `outils/hopital/` : `NODE_PATH=/opt/node22/lib/node_modules
   CHROMIUM=/opt/pw-browsers/chromium node tests/parcours.mjs` (chargement sans erreur, chaque médecin
   atteignable à pied, chaque conversation ouvre l'enquête, téléphone).
