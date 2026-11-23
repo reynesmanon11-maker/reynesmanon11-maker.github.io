@@ -64,6 +64,7 @@ function carte(chargeur, f){
 async function construire(){
   rendu = new THREE.WebGLRenderer({canvas:$('scene'), antialias:true, powerPreference:'high-performance'});
   rendu.toneMapping = THREE.AgXToneMapping;
+  rendu.toneMappingExposure = 0.82; // murs et sols clairs : sans cela tout sort blanc
   rendu.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, 1, 0.05, 300);
