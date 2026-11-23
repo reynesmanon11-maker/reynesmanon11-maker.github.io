@@ -51,12 +51,33 @@ button{font:inherit;cursor:pointer}
 #manette i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:#ffffffaa}
 body.tactile #manette{display:block}
 #b-parler{position:fixed;right:18px;bottom:80px;z-index:5;border-radius:999px;padding:14px 20px}
-@media (prefers-reduced-motion:reduce){#panneau{transition:none}}
+/* fiches : borne d'accueil, plan */
+#fiche{position:fixed;inset:0;display:grid;place-items:center;background:#18212e99;z-index:12;padding:16px}
+#fiche .carte{background:#fff;border-radius:16px;max-width:760px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px #0007}
+#fiche header{display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--encre);color:#fff;border-radius:16px 16px 0 0;position:sticky;top:0}
+#fiche header h2{flex:1;margin:0;font-family:var(--titre);font-size:1.2rem}
+#fiche-corps{padding:14px 18px 18px;line-height:1.5}
+#fiche .plan{width:100%;height:auto;display:block;font-family:var(--texte);font-weight:700}
+#fiche .legende{font-size:.9rem;color:#556172}
+#fiche .legende .pt{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--tampon);vertical-align:middle}
+#fiche .ticket{font-family:var(--titre);font-size:1.6rem;font-weight:800;color:var(--accent);margin:.2em 0}
+#fiche ol.etapes{list-style:none;padding:0;margin:.6em 0 0}
+#fiche ol.etapes li{padding:8px 10px;border-radius:10px;margin:4px 0;background:#eef1f4}
+#fiche ol.etapes li.fini{background:#dcefe9}#fiche ol.etapes li.ouvert{background:#d9eef0;font-weight:700}
+#fiche ol.etapes li span{display:inline-block;width:1.6em}
+kbd{background:var(--encre);color:#fff;border-radius:6px;padding:1px 7px;font-family:inherit}
+#decouvertes.flash{animation:flash 1.2s ease}
+@keyframes flash{0%{background:#0b6b77;transform:scale(1.15)}100%{background:#18212ee6;transform:none}}
+#b-plan{position:fixed;right:12px;top:52px;z-index:5;border-radius:999px;padding:8px 14px;background:#18212ee6}
+#qualite-ligne{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.92rem;color:#556172}
+#qualite{font:inherit;padding:6px 8px;border-radius:8px;border:1px solid #c3ccd6}
+@media (prefers-reduced-motion:reduce){#panneau{transition:none}#decouvertes.flash{animation:none}}
 </style>
 </head>
 <body>
 <canvas id="scene" tabindex="0" aria-label="L'hôpital en 3D"></canvas>
-<div id="hud" class="hidden"><span class="pastille" id="lieu">Hall d'accueil</span><span class="pastille" id="score">0 point</span></div>
+<div id="hud" class="hidden"><span class="pastille" id="lieu">Hall d'accueil</span><span><span class="pastille hidden" id="decouvertes"></span> <span class="pastille" id="score">0 point</span></span></div>
+<button class="btn hidden" id="b-plan" type="button">Plan <kbd>M</kbd></button>
 <div id="viseur" class="hidden"></div>
 <div id="invite" class="hidden"></div>
 <div id="bulle" class="hidden"></div>
@@ -69,13 +90,21 @@ body.tactile #manette{display:block}
     <small>SVT · Seconde · Enquête en 3D</small>
     <h1>Le garçon à utérus</h1>
     <p>Un petit garçon, opéré pour des douleurs abdominales, a… un utérus. Vous êtes le chirurgien qui le suit : allez de service en service, parlez aux spécialistes, demandez les examens, et expliquez à sa maman ce qui s'est passé.</p>
-    <p><b>Ordinateur</b> : clic dans la vue pour regarder à la souris, <b>Z Q S D</b> ou flèches pour marcher, <b>E</b> pour parler.<br>
+    <p><b>Ordinateur</b> : clic dans la vue pour regarder à la souris, <b>Z Q S D</b> ou flèches pour marcher, <b>E</b> pour parler ou utiliser un objet, <b>M</b> pour le plan.<br>
        <b>Tablette ou téléphone</b> : un pouce à gauche pour marcher, un doigt à droite pour regarder, bouton « Parler ».</p>
     <p id="chargement">Chargement de l'hôpital…</p>
     <p><button class="btn" id="b-entrer" type="button" disabled>Patientez…</button></p>
+    <p id="qualite-ligne"><label for="qualite">Qualité de l’image</label>
+      <select id="qualite"><option value="auto">Automatique</option><option value="legere">Légère (ordinateurs du lycée)</option><option value="belle">Belle</option><option value="tresbelle">Très belle (carte graphique)</option></select>
+      <span id="qualite-info"></span></p>
     <p style="font-size:.85rem;color:#556172">Les questions et les documents sont ceux de l'activité « Le garçon à utérus » conçue par Yamina Lucas, professeure de SVT ; ce bâtiment en 3D n'en change que la façon de circuler. Progression gardée dans ce navigateur. Modèles et textures sous licence libre : <button class="lien" id="b-credits" type="button">crédits</button>.</p>
     <ul id="credits" class="hidden" style="font-size:.8rem;max-height:160px;overflow:auto;color:#556172"></ul>
   </div>
+</div>
+
+<div id="fiche" class="hidden" role="dialog" aria-modal="true" aria-labelledby="fiche-titre">
+  <div class="carte"><header><h2 id="fiche-titre">—</h2><button id="fiche-fermer" class="btn" type="button" style="background:#ffffff22;border:1px solid #ffffff44">Fermer ✕</button></header>
+  <div id="fiche-corps"></div></div>
 </div>
 
 <aside id="panneau" aria-hidden="true">

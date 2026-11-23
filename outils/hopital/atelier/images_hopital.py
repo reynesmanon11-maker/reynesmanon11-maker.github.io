@@ -267,4 +267,17 @@ for j, n in enumerate((14, 14, 13, 12)):
         d.rounded_rectangle((x, y, x + 52, y + 50), 6, fill=(62, 65, 70))
 d.rounded_rectangle((180, 236 - 12 - 4, 560, 246), 6, fill=(62, 65, 70))
 im.save(os.path.join(OUT, 'clavier.jpg'), quality=90)
+# écran de la borne d'accueil
+im = Image.new('RGB', (840, 540), (246, 248, 250)); d = ImageDraw.Draw(im)
+d.rectangle((0, 0, 840, 90), fill=SARC); d.text((30, 45), 'Bienvenue', font=F(44, 'Bold'), fill='white', anchor='lm')
+for k, t in enumerate(("Je m'enregistre", 'Je cherche un service', 'Plan du rez-de-chaussée')):
+    d.rounded_rectangle((40, 130 + k * 125, 800, 230 + k * 125), 18, fill='white', outline=(200, 210, 218), width=3)
+    d.text((80, 180 + k * 125), t, font=F(36, 'SemiBold'), fill=NUIT, anchor='lm')
+im.save(os.path.join(OUT, 'ecran_borne.jpg'), quality=90)
+# écran d'information (image de repli : la page dessine ses propres diapositives)
+im = Image.new('RGB', (1280, 720), NUIT); d = ImageDraw.Draw(im)
+d.rectangle((0, 0, 24, 720), fill=SARC)
+d.text((80, 300), 'Pôle Femme-Enfant', font=F(80, 'Bold'), fill='white', anchor='lm')
+d.text((84, 400), 'Bienvenue', font=F(48), fill=(170, 210, 214), anchor='lm')
+im.save(os.path.join(OUT, 'ecran_tv.jpg'), quality=90)
 print('images prêtes')

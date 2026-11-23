@@ -12,6 +12,60 @@ const DOSSIER = 'modeles/';
 const GAIN = 2.4;                 // la cuisson est en unités physiques : exposition de la page
 const OEIL = 1.62, RAYON = 0.26, PORTEE = 2.3;
 const reduit = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+const lire = (cle, defaut) => { try { return localStorage.getItem(cle) ?? defaut; } catch (e){ return defaut; } };
+const ecrire = (cle, v) => { try { localStorage.setItem(cle, v); } catch (e){ /* navigation privée : tant pis */ } };
+
+/* ------------------------------------------------------------ qualités */
+// Légère : le rendu cuit tel quel (ordinateurs du lycée). Belle : halo des lumières, étalonnage, anticrénelage.
+// Très belle : en plus, occlusion ambiante (les ombres de contact entre les objets) et plus de pixels.
+const QUALITES = {
+  legere:    {nom:'Légère',     post:false, ao:false, ratio:1.25, sonde:96},
+  belle:     {nom:'Belle',      post:true,  ao:false, ratio:1.5,  sonde:160},
+  tresbelle: {nom:'Très belle', post:true,  ao:true,  ratio:2,    sonde:256}
+};
+function choisirQualite(r){
+  const q = new URLSearchParams(location.search).get('qualite') || lire('hopital-qualite', 'auto');
+  if (QUALITES[q]) return q;
+  const gl = r.getContext(), ext = gl.getExtension('WEBGL_debug_renderer_info');
+  const carte = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+  if (/swiftshader|llvmpipe|software|softpipe/i.test(carte) || (matchMedia && matchMedia('(pointer: coarse)').matches)) return 'legere';
+  return 'belle';
+}
+let Q = QUALITES.legere, qualite = 'legere', composer = null;
+const ETALONNAGE = {
+  uniforms: {tDiffuse:{value:null}},
+  vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main(){
+      vec4 c = texture2D(tDiffuse, vUv); vec3 x = c.rgb;
+      float l = dot(x, vec3(0.2126, 0.7152, 0.0722));
+      x = mix(vec3(l), x, 1.07);                       // un peu plus de couleur
+      x = (x - 0.5) * 1.05 + 0.5;                      // un peu plus de contraste
+      x *= vec3(1.015, 1.0, 0.975);                    // une pointe de chaleur
+      float v = smoothstep(0.9, 0.3, length(vUv - 0.5));
+      x *= mix(0.84, 1.0, v);                          // vignetage discret
+      gl_FragColor = vec4(clamp(x, 0.0, 1.0), c.a);
+    }`
+};
+async function postTraitement(){
+  const P = './vendor/three-r187-post/postprocessing/';
+  const [{EffectComposer}, {RenderPass}, {UnrealBloomPass}, {OutputPass}, {ShaderPass}] = await Promise.all(
+    ['EffectComposer', 'RenderPass', 'UnrealBloomPass', 'OutputPass', 'ShaderPass'].map(n => import(P + n + '.js')));
+  const t = rendu.getDrawingBufferSize(new THREE.Vector2());
+  const cible = new THREE.WebGLRenderTarget(t.x, t.y, {type:THREE.HalfFloatType, samples:4});
+  composer = new EffectComposer(rendu, cible);
+  composer.addPass(new RenderPass(scene, camera));
+  if (Q.ao){
+    const {GTAOPass} = await import(P + 'GTAOPass.js');
+    const ao = new GTAOPass(scene, camera, t.x, t.y);
+    ao.blendIntensity = 0.75;
+    ao.updateGtaoMaterial({radius:0.3, distanceExponent:1.4, thickness:1.2, scale:1.0, samples:12});
+    composer.addPass(ao);
+  }
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(t.x, t.y), 0.32, 0.55, 0.95));
+  composer.addPass(new OutputPass());
+  composer.addPass(new ShaderPass(ETALONNAGE));
+}
 
 /* ------------------------------------------------------------ les personnes et leurs services */
 const PERSONNES = {
@@ -28,7 +82,7 @@ const NOMS_SALLES = {hall:"Hall d'accueil", consult:'Consultations', cyto:'Labor
   imagerie:'Imagerie médicale', repro:'Médecine de la reproduction', bloc:'Bloc opératoire'};
 
 /* ------------------------------------------------------------ état */
-const J = {x:3.3, z:3.2, yaw:Math.PI, pitch:-0.05};   // dans le hall, face à l'accueil
+const J = {x:3.9, z:2.6, yaw:-2.64, pitch:-0.06};   // dans le hall, près de la porte, face à la banque d'accueil
 const touches = new Set();
 let rendu, scene, camera, donnees, exo = null;
 let ecran = 'accueil', parle = null, cible = null;
@@ -36,6 +90,8 @@ const solides = [];               // rectangles fixes [x0, z0, x1, z1]
 const portes = {};                // salle → {pivot, ouverte, angle, cible, rect}
 const gens = {};                  // code → {pivot, yaw0, yaw}
 const enseignes = {};             // salle → {canvas, tex, etat}
+const portesAuto = [];            // vantaux coulissants de l'entrée
+let cibleObjet = null;            // objet du décor qu'on peut utiliser (borne, plan, gel…)
 
 /* ------------------------------------------------------------ matières */
 const SANS_DIFFUS_IBL = THREE.ShaderChunk.lights_fragment_maps.replace('iblIrradiance += getIBLIrradiance( geometryNormal );', '');
@@ -65,7 +121,8 @@ async function construire(){
   rendu = new THREE.WebGLRenderer({canvas:$('scene'), antialias:true, powerPreference:'high-performance'});
   rendu.toneMapping = THREE.AgXToneMapping;
   rendu.toneMappingExposure = 0.7;  // murs et sols clairs : sans cela tout sort blanc
-  rendu.setPixelRatio(Math.min(devicePixelRatio || 1, 1.5));
+  qualite = choisirQualite(rendu); Q = QUALITES[qualite];
+  rendu.setPixelRatio(Math.min(devicePixelRatio || 1, Q.ratio));
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(62, 1, 0.05, 300);
   camera.rotation.order = 'YXZ';
@@ -94,8 +151,9 @@ async function construire(){
       if (estVerre(m)) n = verre(m);
       else if (/^(panneau|ecran)$/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.name === 'panneau' ? 0xffffff : 0x5a8ec0});
       // écrans allumés (leur image est leur lumière) et LED : dessinés tels quels, sans éclairage
-      else if (/^ecran_/.test(m.name)) n = new THREE.MeshBasicMaterial({map: m.emissiveMap || m.map, color: 0xffffff});
-      else if (/^(led|voyant)/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.emissive && m.emissive.getHex() ? m.emissive : m.color});
+      else if (/^ecran_/.test(m.name) && m.name !== 'ecran_tv') n = new THREE.MeshBasicMaterial({map: m.emissiveMap || m.map, color: 0xffffff});
+      else if (m.name === 'ecran_tv') n = new THREE.MeshBasicMaterial({map: tele.tex});
+      else if (/^(led|voyant)/.test(m.name)) n = new THREE.MeshBasicMaterial({color: (m.emissive && m.emissive.getHex() ? m.emissive : m.color).clone().multiplyScalar(2.6)});
       else if (atlas){ n = m.clone(); n.lightMap = cartes[atlas]; n.lightMapIntensity = Math.PI * d.lumiere[atlas].max * GAIN; lumiereCuite(n); }
       else n = m;
       // affiches, plaques et touches : collées à un demi-millimètre de leur support, elles passent toujours devant
@@ -117,6 +175,12 @@ async function construire(){
     gens[code] = {pivot, yaw0:0, yaw:0, p:p.p, salle:p.salle, etape:p.etape};
   }
   for (const s of d.solides) solides.push(s);
+  for (const cote of ['g', 'd']){
+    const objs = ['porte_auto_' + cote, 'porte_auto_' + cote + '_vitre'].map(n => modele.scene.getObjectByName(n)).filter(Boolean);
+    if (!objs.length) continue;
+    const g = new THREE.Group(); scene.add(g); for (const o of objs) g.attach(o);
+    portesAuto.push({g, sens: cote === 'g' ? -1 : 1, ouverture:0});
+  }
   ombresDeContact();
   construirePortes();
   // lumière des objets mobiles et des personnes : un peu d'ambiance, et les sondes
@@ -124,7 +188,7 @@ async function construire(){
   $('chargement').textContent = 'Lumière des pièces…';
   const pmrem = new THREE.PMREMGenerator(rendu), envs = [];
   for (const p of d.sondes){
-    const cible = new THREE.WebGLCubeRenderTarget(96, {type:THREE.HalfFloatType}), cam = new THREE.CubeCamera(0.05, 120, cible);
+    const cible = new THREE.WebGLCubeRenderTarget(Q.sonde, {type:THREE.HalfFloatType}), cam = new THREE.CubeCamera(0.05, 120, cible);
     cam.position.set(...p); scene.add(cam); cam.update(rendu, scene); scene.remove(cam);
     envs.push(pmrem.fromCubemap(cible.texture).texture); cible.dispose();
   }
@@ -144,6 +208,10 @@ async function construire(){
     });
     if (o.material.length === 1) o.material = o.material[0];
   });
+  if (Q.post){
+    $('chargement').textContent = 'Réglage de l’image…';
+    try { await postTraitement(); } catch (e){ console.warn('post-traitement indisponible', e); composer = null; }
+  }
 }
 
 /* ------------------------------------------------------------ ombres de contact */
@@ -322,14 +390,123 @@ function bulle(nom, texte){
   clearTimeout(bulleT); bulleT = setTimeout(() => $('bulle').classList.add('hidden'), 6000);
 }
 
+/* ------------------------------------------------------------ l'écran d'information du hall */
+// Une toile dessinée par la page : bienvenue et heure, consigne d'hygiène, et l'objectif de l'équipe, en boucle.
+const tele = (() => {
+  const c = document.createElement('canvas'); c.width = 1024; c.height = 576;
+  const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.flipY = false;
+  return {c, tex, diapo: 0, t: 0};
+})();
+function dessinerTele(){
+  const x = tele.c.getContext('2d'), W = 1024, H = 576;
+  x.fillStyle = '#18212e'; x.fillRect(0, 0, W, H);
+  x.fillStyle = '#0b6b77'; x.fillRect(0, 0, 18, H);
+  x.fillStyle = '#ffffff'; x.textBaseline = 'middle';
+  const h = new Date(), heure = String(h.getHours()).padStart(2, '0') + ':' + String(h.getMinutes()).padStart(2, '0');
+  x.font = '600 34px "Segoe UI", system-ui, sans-serif'; x.textAlign = 'right'; x.fillStyle = '#9fd3d8'; x.fillText(heure, W - 40, 50);
+  x.textAlign = 'left';
+  const D = [
+    ['Pôle Femme-Enfant', 'Bienvenue. L’accueil est à votre gauche en entrant.'],
+    ['Hygiène des mains', 'Un geste avant d’entrer dans un service : le gel, près de la porte.'],
+    ['Votre enquête', ($('objectif') && $('objectif').textContent) || 'Présentez-vous à l’accueil.'],
+    ['Le saviez-vous ?', 'Appuyez sur M pour ouvrir le plan du rez-de-chaussée.']
+  ][tele.diapo % 4];
+  x.fillStyle = '#ffffff'; x.font = '800 64px "Segoe UI", system-ui, sans-serif'; x.fillText(D[0], 60, 220);
+  x.fillStyle = '#c9d6e2'; x.font = '400 36px "Segoe UI", system-ui, sans-serif';
+  const mots = D[1].split(' '); let ligne = '', y = 320;
+  for (const m of mots){ if (x.measureText(ligne + m).width > 880){ x.fillText(ligne, 60, y); ligne = ''; y += 48; } ligne += m + ' '; }
+  x.fillText(ligne, 60, y);
+  for (let k = 0; k < 4; k++){ x.fillStyle = k === tele.diapo % 4 ? '#0b6b77' : '#3a4656'; x.beginPath(); x.arc(70 + k * 34, 520, 9, 0, 7); x.fill(); }
+  tele.tex.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------ objets du décor qu'on peut utiliser */
+const OBJETS = {
+  borne:    {verbe:'Utiliser', faire: () => ficheBorne()},
+  plan:     {verbe:'Consulter', faire: () => fichePlan()},
+  tv:       {verbe:'Regarder', faire: () => { tele.diapo++; tele.t = 0; dessinerTele(); }},
+  gel:      {verbe:'Se frictionner les mains avec', faire: () => bulle('Hygiène', 'Paume contre paume, dos des mains, entre les doigts, pouces, bout des doigts… 30 secondes : vos mains sont prêtes pour entrer dans un service.')},
+  fontaine: {verbe:'Boire à', faire: () => bulle('Fontaine', 'Un verre d’eau fraîche. Bien hydraté, on raisonne mieux !')},
+  sortie:   {verbe:'Sortir par', faire: () => bulle('Entrée', exo && exo.ouverte(7) && exo.finie(7) ? 'Enquête bouclée : merci pour Mme D. et son fils !' : 'Pas encore : le petit patient et sa maman comptent sur votre enquête.')}
+};
+const decouvertes = new Set((() => { try { return JSON.parse(lire('hopital-decouvertes', '[]')); } catch (e){ return []; } })());
+function utiliser(id){
+  const o = OBJETS[id]; if (!o) return;
+  o.faire();
+  if (!decouvertes.has(id)){ decouvertes.add(id); ecrire('hopital-decouvertes', JSON.stringify([...decouvertes])); majDecouvertes(true); }
+}
+function majDecouvertes(nouveau){
+  const n = decouvertes.size, total = (donnees.interactifs || []).length;
+  const el = $('decouvertes'); if (!el || !total) return;
+  el.textContent = `Découvertes ${n}/${total}`; el.classList.toggle('hidden', n === 0);
+  if (nouveau){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+}
+function viserObjet(){
+  let mieux = null, score = 0;
+  const fx = Math.sin(J.yaw), fz = -Math.cos(J.yaw);
+  for (const o of donnees.interactifs || []){
+    const dx = o.p[0] - J.x, dz = o.p[2] - J.z, d = Math.hypot(dx, dz);
+    if (d > 2.0 || d < 0.05) continue;
+    const c = (dx * fx + dz * fz) / d;
+    if (c > 0.75 && c / d > score){ score = c / d; mieux = o; }
+  }
+  return mieux;
+}
+
+/* ------------------------------------------------------------ fiches : borne d'accueil et plan */
+function ouvrirFiche(titre, html){
+  ecran = 'fiche';
+  document.exitPointerLock && document.exitPointerLock();
+  $('fiche-titre').textContent = titre; $('fiche-corps').innerHTML = html;
+  $('fiche').classList.remove('hidden'); $('invite').classList.add('hidden');
+  $('fiche-fermer').focus();
+}
+function fermerFiche(){ if (ecran !== 'fiche') return; $('fiche').classList.add('hidden'); ecran = 'jeu'; $('scene').focus(); }
+function etatEtape(k){ return !exo ? 'ferme' : exo.finie(k) ? 'fini' : exo.ouverte(k) ? 'ouvert' : 'ferme'; }
+function ficheBorne(){
+  const equipe = exo && exo.equipe();
+  let h = equipe ? `<p>Équipe <b>${equipe.replace(/[<>&]/g, '')}</b> · ${exo.points()} point${exo.points() > 1 ? 's' : ''}</p>`
+                 : `<p class="ticket">Ticket n° ${String(17 + decouvertes.size).padStart(3, '0')}</p><p>Présentez-vous à la banque d’accueil, à gauche : on inscrira votre équipe et on vous ouvrira les services.</p>`;
+  h += '<ol class="etapes">';
+  for (const [code, g] of Object.entries(gens)){
+    const k = exo ? exo.etapes.indexOf(g.etape) : -1;
+    if (k < 1 || k > 6) continue;
+    const e = etatEtape(k), P = PERSONNES[code];
+    h += `<li class="${e}"><span>${e === 'fini' ? '✓' : e === 'ouvert' ? '→' : '🔒'}</span> Étape ${k} · ${e === 'ferme' ? 'service encore fermé' : P.nom + ', ' + NOMS_SALLES[g.salle]}</li>`;
+  }
+  h += '</ol>';
+  ouvrirFiche('Borne d’accueil', h);
+}
+function fichePlan(){
+  const S = donnees.salles, xs = Object.values(S).flatMap(s => [s.x0, s.x1]), zs = Object.values(S).flatMap(s => [s.z0, s.z1]);
+  const x0 = Math.min(...xs) - 0.3, z0 = Math.min(...zs) - 0.3, W = Math.max(...xs) - x0 + 0.3, Hh = Math.max(...zs) - z0 + 0.3;
+  let svg = `<svg viewBox="${x0} ${z0} ${W} ${Hh}" class="plan" role="img" aria-label="Plan du rez-de-chaussée">`;
+  for (const c of donnees.couloirs || []) svg += `<rect x="${c[0]}" y="${c[1]}" width="${c[2] - c[0]}" height="${c[3] - c[1]}" fill="#e8e2d6"/>`;
+  const objectif = $('objectif').textContent;
+  for (const [nom, s] of Object.entries(S)){
+    const g = Object.values(gens).find(x => x.salle === nom), k = g && exo ? exo.etapes.indexOf(g.etape) : -1;
+    const e = nom === 'hall' || nom === 'bloc' ? 'connu' : k >= 1 ? etatEtape(k) : 'ferme';
+    const fond = {connu:'#f3ead6', fini:'#d7ece6', ouvert:'#d9eef0', ferme:'#c3ccd6'}[e];
+    const vise = g && objectif.includes(NOMS_SALLES[nom]);
+    svg += `<rect x="${s.x0}" y="${s.z0}" width="${s.x1 - s.x0}" height="${s.z1 - s.z0}" fill="${fond}" stroke="${vise ? '#b4361a' : '#18212e'}" stroke-width="${vise ? 0.18 : 0.08}"/>`;
+    const t = e === 'ferme' ? '?' : NOMS_SALLES[nom] + (e === 'fini' ? ' ✓' : '');
+    svg += `<text x="${(s.x0 + s.x1) / 2}" y="${(s.z0 + s.z1) / 2}" font-size="${e === 'ferme' ? 1.2 : 0.55}" text-anchor="middle" dominant-baseline="middle" fill="#18212e">${t}</text>`;
+  }
+  const fx = Math.sin(J.yaw), fz = -Math.cos(J.yaw);
+  svg += `<g transform="translate(${J.x} ${J.z}) rotate(${Math.atan2(fz, fx) * 180 / Math.PI})"><circle r="0.32" fill="#b4361a"/><path d="M0.2 -0.22 L0.75 0 L0.2 0.22 Z" fill="#b4361a"/></g></svg>`;
+  ouvrirFiche('Plan du rez-de-chaussée', svg + `<p class="legende"><span class="pt"></span> vous êtes ici · encadré rouge : votre objectif · « ? » : service pas encore ouvert. Touche <kbd>M</kbd> pour rouvrir ce plan.</p>`);
+}
+
 /* ------------------------------------------------------------ commandes */
 function brancher(){
   const sc = $('scene');
   addEventListener('keydown', e => {
     if (ecran === 'panneau'){ if (e.key === 'Escape') fermerPanneau(); return; }
+    if (ecran === 'fiche'){ if (e.key === 'Escape' || e.code === 'KeyM' || e.code === 'KeyE') fermerFiche(); return; }
     if (ecran !== 'jeu') return;
     touches.add(e.code);
-    if (e.code === 'KeyE' || e.code === 'Enter') parler(cible);
+    if (e.code === 'KeyE' || e.code === 'Enter'){ if (cible) parler(cible); else if (cibleObjet) utiliser(cibleObjet.id); }
+    if (e.code === 'KeyM') fichePlan();
     if (e.code.startsWith('Arrow')) e.preventDefault();
   });
   addEventListener('keyup', e => touches.delete(e.code));
@@ -337,6 +514,7 @@ function brancher(){
   sc.addEventListener('click', () => {
     if (ecran !== 'jeu') return;
     if (cible){ parler(cible); return; }
+    if (cibleObjet){ utiliser(cibleObjet.id); return; }
     if (!document.body.classList.contains('tactile') && sc.requestPointerLock) sc.requestPointerLock();
   });
   addEventListener('mousemove', e => {
@@ -363,7 +541,10 @@ function brancher(){
     if (e.pointerId === regard.id) regard.id = null;
   };
   sc.addEventListener('pointerup', fin); sc.addEventListener('pointercancel', fin);
-  $('b-parler').addEventListener('click', () => parler(cible));
+  $('b-parler').addEventListener('click', () => { if (cible) parler(cible); else if (cibleObjet) utiliser(cibleObjet.id); });
+  $('fiche-fermer').addEventListener('click', fermerFiche);
+  $('b-plan').addEventListener('click', () => { if (ecran === 'jeu') fichePlan(); else fermerFiche(); });
+  $('qualite').addEventListener('change', e => { ecrire('hopital-qualite', e.target.value); const u = new URL(location.href); u.searchParams.delete('qualite'); location.href = u.href; });
   $('fermer').addEventListener('click', fermerPanneau);
   $('b-credits').addEventListener('click', () => $('credits').classList.toggle('hidden'));
   addEventListener('resize', redimensionner);
@@ -371,22 +552,26 @@ function brancher(){
 function redimensionner(){
   if (!rendu) return;
   rendu.setSize(innerWidth, innerHeight, false);
+  if (composer){ const t = rendu.getDrawingBufferSize(new THREE.Vector2()); composer.setSize(innerWidth, innerHeight); composer.setPixelRatio(rendu.getPixelRatio()); }
   camera.aspect = innerWidth / innerHeight;
   camera.fov = innerWidth < innerHeight ? 78 : 62;
   camera.updateProjectionMatrix();
 }
 
 /* ------------------------------------------------------------ boucle */
-let t0 = performance.now();
+let t0 = performance.now(), pas = 0;
 function boucle(t){
   const dt = Math.min(0.05, (t - t0) / 1000); t0 = t;
   if (ecran === 'jeu'){
     deplacer(dt);
     cible = viser();
+    cibleObjet = cible ? null : viserObjet();
     const P = cible && PERSONNES[cible];
-    $('invite').classList.toggle('hidden', !cible || document.body.classList.contains('tactile'));
-    $('b-parler').classList.toggle('hidden', !cible || !document.body.classList.contains('tactile'));
-    if (cible){ $('invite').innerHTML = `Parler à ${P.nom === 'Accueil' ? 'l’accueil' : P.nom}<kbd>E</kbd>`; $('b-parler').textContent = `Parler à ${P.nom === 'Accueil' ? 'l’accueil' : P.nom}`; }
+    const quoi = cible ? `Parler à ${P.nom === 'Accueil' ? 'l’accueil' : P.nom}` : cibleObjet ? `${OBJETS[cibleObjet.id].verbe} ${cibleObjet.nom}` : '';
+    const tactile = document.body.classList.contains('tactile');
+    $('invite').classList.toggle('hidden', !quoi || tactile);
+    $('b-parler').classList.toggle('hidden', !quoi || !tactile);
+    if (quoi){ $('invite').innerHTML = `${quoi}<kbd>E</kbd>`; $('b-parler').textContent = quoi; }
     $('lieu').textContent = salleDe(J.x, J.z);
   }
   // les personnes se tournent vers le visiteur quand il approche ; les portes s'ouvrent ou se ferment
@@ -406,9 +591,22 @@ function boucle(t){
     p.angle += (but - p.angle) * Math.min(1, dt * (reduit() ? 30 : 2.5));
     p.g.rotation.y = p.sens * p.angle;
   }
-  camera.position.set(J.x, OEIL, J.z);
+  // l'écran d'information change de diapositive toutes les 7 secondes
+  tele.t += dt; if (tele.t > 7){ tele.t = 0; tele.diapo++; dessinerTele(); }
+  // portes de l'entrée : elles s'écartent quand on approche
+  if (portesAuto.length){
+    const h = donnees.salles.hall, pres = Math.abs(J.x - (h.x0 + h.x1) / 2) < 1.6 && h.z1 - J.z < 2.2 && J.z < h.z1 + 0.5;
+    for (const p of portesAuto){ p.ouverture += ((pres ? 0.85 : 0) - p.ouverture) * Math.min(1, dt * (reduit() ? 30 : 3)); p.g.position.x = p.sens * p.ouverture; }
+  }
+  // un peu de vie : respiration des personnes, balancement du pas
+  const tt = t / 1000;
+  if (!reduit()) for (const g of Object.values(gens)) g.pivot.scale.y = 1 + 0.0045 * Math.sin(tt * 1.7 + g.p[0]);
+  const marche = ecran === 'jeu' && !reduit() && ['KeyW', 'KeyZ', 'KeyS', 'ArrowUp', 'ArrowDown', 'KeyA', 'KeyQ', 'KeyD'].some(k => touches.has(k)) || manette.id !== null;
+  pas = marche ? pas + dt * 8.5 : pas;
+  const bob = marche && !reduit() ? Math.sin(pas) * 0.022 : 0;
+  camera.position.set(J.x, OEIL + bob, J.z);
   camera.rotation.set(J.pitch, -J.yaw, 0);
-  rendu.render(scene, camera);
+  if (composer) composer.render(dt); else rendu.render(scene, camera);
   requestAnimationFrame(boucle);
 }
 
@@ -427,16 +625,21 @@ async function demarrer(){
   exo = pret();
   if (!exo){ $('chargement').textContent = 'L’enquête n’a pas pu être chargée.'; return; }
   majAvancement();
+  majDecouvertes(false);
+  dessinerTele();
+  $('qualite').value = new URLSearchParams(location.search).get('qualite') || lire('hopital-qualite', 'auto');
+  $('qualite-info').textContent = `Qualité utilisée : ${Q.nom}`;
   for (const p of Object.values(portes)) p.angle = p.ouverte ? 1.5 : 0;
   $('chargement').textContent = 'Prêt.';
   const b = $('b-entrer'); b.disabled = false; b.textContent = 'Entrer dans l’hôpital';
   b.addEventListener('click', () => {
     $('accueil').classList.add('hidden');
-    for (const id of ['hud', 'viseur', 'objectif']) $(id).classList.remove('hidden');
+    for (const id of ['hud', 'viseur', 'objectif', 'b-plan']) $(id).classList.remove('hidden');
     ecran = 'jeu'; $('scene').focus();
     bulle('Accueil', exo.equipe() ? 'Bon retour ! Votre dossier vous attend : la suite de l’enquête est indiquée en bas de l’écran.' : PERSONNES.AC.salut);
   });
   requestAnimationFrame(boucle);
-  Object.assign(window, {J, parler, fermerPanneau, gens, portes, libre, etat: () => ({ecran, cible, parle, pret: !!exo})});
+  Object.assign(window, {J, parler, fermerPanneau, gens, portes, libre, utiliser, fichePlan, fermerFiche,
+    etat: () => ({ecran, cible, objet: cibleObjet && cibleObjet.id, parle, pret: !!exo, qualite, post: !!composer, decouvertes: decouvertes.size})});
 }
 demarrer();

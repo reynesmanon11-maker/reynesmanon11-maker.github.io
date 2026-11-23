@@ -40,6 +40,7 @@ liste += [
 sortie = {k: d[k] for k in ('salles', 'personnes', 'sondes', 'soleil')}
 sortie['solides'] = d['solides']
 sortie['couloirs'] = d['couloirs']
+sortie['interactifs'] = d.get('interactifs', [])
 sortie['lumiere'] = {k: {'max': round(v['max'], 5)} for k, v in lum.items()}
 sortie['credits'] = liste
 json.dump(sortie, open(os.path.join(DEST, 'hopital.json'), 'w'), ensure_ascii=False, separators=(',', ':'))

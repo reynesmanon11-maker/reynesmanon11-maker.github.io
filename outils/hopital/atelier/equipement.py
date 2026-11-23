@@ -165,6 +165,8 @@ def matieres_equipement():
     u('ambre', lin((150, 80, 20)), rugosite=0.15)
     u('jaune_dechets', lin((236, 190, 30)), rugosite=0.5)
     u('rouge', lin((190, 40, 36)), rugosite=0.4)
+    u('pave_ext', lin((150, 148, 142)), rugosite=0.85)
+    u('tapis_propre', lin((44, 48, 54)), rugosite=0.95)
     u('vert_dae', lin((30, 140, 80)), rugosite=0.4)
     u('led', lin((255, 255, 255)), emission=(1.0, 0.98, 0.95), force=8.0)
     u('led_sarcelle', lin((90, 200, 210)), emission=lin((90, 200, 210)), force=6.0)
@@ -178,7 +180,8 @@ def matieres_equipement():
     for nom in ('verre_appareil',):
         m = matieres.verre(nom)
     for nom, f in (('ecran_caryotype', 'ecran_caryotype.jpg'), ('ecran_echo', 'ecran_echo.jpg'), ('ecran_moniteur', 'ecran_moniteur.jpg'),
-                   ('ecran_scanner', 'ecran_scanner.jpg'), ('ecran_dossier', 'ecran_dossier.jpg'), ('ecran_electro', 'ecran_electro.jpg')):
+                   ('ecran_scanner', 'ecran_scanner.jpg'), ('ecran_dossier', 'ecran_dossier.jpg'), ('ecran_electro', 'ecran_electro.jpg'),
+                   ('ecran_borne', 'ecran_borne.jpg'), ('ecran_tv', 'ecran_tv.jpg')):
         image(nom, f, rugosite=0.1, ecran=True, force=1.6)
     for nom in ('affiche_appareil', 'affiche_adn', 'affiche_hormones', 'affiche_mains', 'affiche_bloc', 'plan_hall',
                 'signal_croisement', 'signal_ouest', 'signal_est', 'logo', 'clavier'):
@@ -744,3 +747,107 @@ def porte_battant(nom, a, b, zp, cote, mat_feuille='hetre'):
         cyl(f'{g}_rosace{s}', r, (L - 0.08, 1.0, zf), [(0, 0), (0.028, 0), (0.028, 0.008), (0, 0.008)], 'inox_brosse', n=16, axe=Matrix.Rotation(s * PI / 2, 3, 'X'), groupe=g, lumiere='sonde')
         tube(f'{g}_bequille{s}', [r.p(L - 0.08, 1.0, s * 0.03), r.p(L - 0.08, 1.0, s * 0.07), r.p(L - 0.22, 1.0, s * 0.07)], 0.011, 'inox_brosse', groupe=g, lumiere='sonde')
     boite(g + '_vitre', r, (L - 0.3, 1.45, 0), (0.22, 0.52, 0.008), 'verre_appareil', ch=0, groupe=g + '_vitre', lumiere='sonde')
+
+
+# ------------------------------------------------------------------ hall d'accueil
+def banque_accueil(nom, r, L=2.8, P=0.9):
+    """Banque d'accueil dans le repère r (façade vers +z local, longueur selon x) : carcasse laquée, façade de
+    tasseaux de chêne sur fond sarcelle, plinthe en retrait éclairée par un ruban de LED, tablette haute en
+    solid surface avec vitre de protection à pinces inox, plan de travail bas derrière, joues en chêne."""
+    g = 'meubles'
+    zf = P / 2
+    boite(nom + '_carcasse', r, (0, 0.55, -0.05), (L, 0.9, P - 0.1), 'laque', ch=0.004, groupe=g)
+    boite(nom + '_plinthe', r, (0, 0.05, -0.08), (L - 0.04, 0.1, P - 0.2), 'anthracite', ch=0.002, groupe=g)
+    boite(nom + '_ruban', r, (0, 0.095, zf - 0.12), (L - 0.06, 0.008, 0.012), 'led_chaude', ch=0, groupe='led')
+    boite(nom + '_fond', r, (0, 0.56, zf - 0.11), (L - 0.02, 0.92, 0.02), 'sarcelle', ch=0.002, groupe=g)
+    n = int(L / 0.065)
+    for k in range(n):
+        xx = -L / 2 + 0.04 + k * (L - 0.08) / (n - 1)
+        boite(f'{nom}_tasseau{k}', r, (xx, 0.56, zf - 0.08), (0.032, 0.92, 0.04), 'hetre', ch=0.004, groupe='tasseaux')
+    boite(nom + '_tablette', r, (0, 1.05, zf - 0.13), (L + 0.08, 0.04, 0.42), 'stratifie', ch=0.012, seg=3, groupe=g)
+    boite(nom + '_plan', r, (0, 0.74, -0.1), (L - 0.06, 0.03, P - 0.3), 'stratifie', ch=0.006, groupe=g)
+    for sx in (-1, 1):
+        boite(f'{nom}_joue{sx}', r, (sx * (L / 2 - 0.02), 0.55, -0.02), (0.05, 1.1, P - 0.02), 'hetre', ch=0.006, seg=2, groupe=g)
+    # vitre de protection (hygiaphone) et ses pinces, avec un passe-documents
+    boite(nom + '_vitre', r, (0, 1.37, zf - 0.27), (L - 0.3, 0.6, 0.008), 'verre_appareil', ch=0, groupe='verre')
+    for k in range(4):
+        xx = -L / 2 + 0.25 + k * (L - 0.5) / 3
+        boite(f'{nom}_pince{k}', r, (xx, 1.1, zf - 0.27), (0.05, 0.06, 0.03), 'inox_brosse', ch=0.006, groupe='petits')
+    # sur la tablette : sonnette, présentoir à brochures, pot à stylos, flacon de gel
+    cyl(nom + '_sonnette', r, (0.3, 1.07, zf - 0.08), [(0, 0), (0.04, 0), (0.042, 0.008), (0.035, 0.03), (0.01, 0.045), (0.006, 0.055), (0, 0.055)], 'chrome', n=20, groupe='petits')
+    boite(nom + '_presentoir', r, (-0.85, 1.14, zf - 0.1), (0.36, 0.14, 0.09), 'verre_appareil', ch=0.004, groupe='verre')
+    for k, img in enumerate(('affiche_mains', 'affiche_hormones', 'plan_hall')):
+        plaque(f'{nom}_brochure{k}', r.sous(-0.97 + k * 0.12, 1.07, zf - 0.06, rx=-0.25), (0, 0.08, 0), 0.1, 0.15, img, groupe='clavier')
+    cyl(nom + '_pot', r, (0.85, 1.07, zf - 0.12), [(0, 0), (0.035, 0), (0.035, 0.1), (0, 0.1)], 'anthracite', n=16, groupe='petits')
+    for k in range(3):
+        cyl(f'{nom}_stylo{k}', r.sous(0.85 + (k - 1) * 0.012, 1.1, zf - 0.12, rz=(k - 1) * 0.15), (0, 0, 0), [(0.004, 0), (0.004, 0.14), (0, 0.15)],
+            ('plastique_bleu', 'noir_mat', 'rouge')[k], n=6, groupe='petits')
+    cyl(nom + '_gel', r, (1.15, 1.07, zf - 0.12), [(0, 0), (0.03, 0), (0.03, 0.14), (0.012, 0.16), (0.012, 0.19), (0, 0.19)], 'verre_appareil', n=14, groupe='verre')
+    cyl(nom + '_pompe', r, (1.15, 1.26, zf - 0.12), [(0.01, 0), (0.01, 0.02), (0.03, 0.025), (0.03, 0.035), (0, 0.035)], 'laque', n=10, groupe='petits')
+
+
+def downlight(nom, x, z, h, rayon=0.08):
+    """Spot encastré : collerette inox et diffuseur lumineux, affleurant au plafond."""
+    r = Rep(x, z)
+    cyl(nom + '_col', r, (0, h - 0.012, 0), [(rayon * 0.8, 0), (rayon * 1.25, 0.004), (rayon * 1.25, 0.012), (0, 0.012)], 'inox_brosse', n=24, groupe='petits')
+    cyl(nom + '_dif', r, (0, h - 0.014, 0), [(0, 0), (rayon * 0.78, 0), (rayon * 0.78, 0.003), (0, 0.003)], 'led_chaude', n=24, groupe='led')
+
+
+def borne(nom, x, z, ry):
+    """Borne d'accueil interactive : pied galbé laqué, écran tactile incliné, imprimante à ticket, lecteur de carte."""
+    r = Rep(x, z, ry)
+    boite(nom + '_socle', r, (0, 0.02, 0), (0.5, 0.04, 0.42), 'anthracite', ch=0.01, seg=2, groupe='meubles')
+    boite(nom + '_fut', r, (0, 0.6, -0.03), (0.4, 1.12, 0.26), 'laque', ch=0.06, seg=4, groupe='meubles')
+    boite(nom + '_bande', r, (0, 0.6, 0.101), (0.06, 1.0, 0.01), 'sarcelle', ch=0.004, groupe='meubles')
+    t = r.sous(0, 1.22, 0.04, rx=-0.45)
+    boite(nom + '_tete', t, (0, 0, -0.03), (0.5, 0.36, 0.08), 'laque', ch=0.03, seg=3, groupe='meubles')
+    plaque(nom + '_ecran', t, (0, 0.0, 0.011), 0.42, 0.27, 'ecran_borne', groupe='ecran_borne')
+    boite(nom + '_ticket', r, (0.0, 0.9, 0.105), (0.16, 0.02, 0.012), 'noir_mat', ch=0.004, groupe='petits')
+    boite(nom + '_ticket_papier', r, (0.0, 0.88, 0.11), (0.06, 0.05, 0.002), 'papier', ch=0, groupe='petits')
+    boite(nom + '_lecteur', r, (0.0, 1.0, 0.105), (0.12, 0.05, 0.02), 'anthracite', ch=0.006, groupe='petits')
+    c, s = abs(math.cos(ry)), abs(math.sin(ry))
+    mobilier.solide(x - (c * 0.5 + s * 0.42) / 2 - 0.05, z - (s * 0.5 + c * 0.42) / 2 - 0.05, x + (c * 0.5 + s * 0.42) / 2 + 0.05, z + (s * 0.5 + c * 0.42) / 2 + 0.05)
+
+
+def fontaine(nom, x, z, ry):
+    """Fontaine à eau sur pied : carrosserie inox, bonbonne bleutée, robinets, égouttoir, distributeur de gobelets."""
+    r = Rep(x, z, ry)
+    boite(nom + '_corps', r, (0, 0.5, 0), (0.32, 1.0, 0.32), 'inox_brosse', ch=0.02, seg=2, groupe='meubles')
+    boite(nom + '_facade', r, (0, 0.82, 0.161), (0.26, 0.2, 0.004), 'anthracite', ch=0.002, groupe='meubles')
+    cyl(nom + '_bonbonne', r, (0, 1.0, 0), [(0.03, 0), (0.06, 0.02), (0.13, 0.06), (0.135, 0.12), (0.13, 0.3), (0.135, 0.34), (0.12, 0.4), (0.05, 0.43), (0, 0.44)],
+        'verre_appareil', n=28, groupe='verre')
+    cyl(nom + '_eau', r, (0, 1.03, 0), [(0, 0), (0.12, 0.03), (0.125, 0.3), (0, 0.3)], 'plastique_bleu', n=24, groupe='petits')
+    for s in (-1, 1):
+        boite(f'{nom}_robinet{s}', r, (s * 0.06, 0.85, 0.18), (0.035, 0.05, 0.04), 'plastique_bleu' if s < 0 else 'plastique_rouge', ch=0.008, groupe='petits')
+    boite(nom + '_egouttoir', r, (0, 0.62, 0.17), (0.24, 0.02, 0.08), 'anthracite', ch=0.004, groupe='petits')
+    cyl(nom + '_gobelets', r, (0.21, 0.6, 0.05), [(0.04, 0), (0.04, 0.35), (0, 0.35)], 'laque', n=16, groupe='petits')
+    mobilier.solide(x - 0.25, z - 0.25, x + 0.25, z + 0.25)
+
+
+def mur_rideau(nom, x0, x1, z, y1=2.75, porte=(2.5, 4.5)):
+    """Façade vitrée : montants et traverses d'aluminium, vitrages toute hauteur, et au centre deux vantaux
+    coulissants (portes automatiques) sous leur caisson de mécanisme. Les vantaux sont des objets à part,
+    éclairés par sonde, que la page peut faire coulisser."""
+    a, b = porte
+    xs = sorted(set([x0 + 0.03, a, b, x1 - 0.03] + [x0 + (a - x0) * k / 2 for k in (1,)] + [b + (x1 - b) * k / 2 for k in (1,)]))
+    for xx in xs:
+        geo.pave(f'{nom}_montant{xx:.2f}', xx - 0.03, 0, z - 0.06, xx + 0.03, y1, z + 0.06, 'alu', groupe='chassis', chanfrein=0.004)
+    geo.pave(f'{nom}_seuil', x0, -0.01, z - 0.08, x1, 0.02, z + 0.08, 'alu', groupe='chassis', chanfrein=0.004)
+    geo.pave(f'{nom}_traverse', x0, 2.3, z - 0.06, x1, 2.36, z + 0.06, 'alu', groupe='chassis', chanfrein=0.004)
+    geo.pave(f'{nom}_chapeau', x0, y1 - 0.04, z - 0.07, x1, y1, z + 0.07, 'alu', groupe='chassis', chanfrein=0.004)
+    geo.pave(f'{nom}_caisson', a - 0.05, 2.08, z - 0.12, b + 0.05, 2.3, z - 0.02, 'alu', groupe='chassis', chanfrein=0.006)
+    boite(f'{nom}_radar', Rep((a + b) / 2, z - 0.125), (0, 2.12, 0), (0.12, 0.04, 0.03), 'anthracite', ch=0.008, groupe='petits')
+    for i in range(len(xs) - 1):
+        u0, u1 = xs[i] + 0.03, xs[i + 1] - 0.03
+        if u0 >= a - 0.01 and u1 <= b + 0.01:
+            geo.pave(f'{nom}_imposte{i}', u0, 2.36, z - 0.004, u1, y1 - 0.04, z + 0.004, 'verre', groupe='verre', chanfrein=0, cuire=0)
+            continue
+        geo.pave(f'{nom}_vitrage{i}', u0, 0.02, z - 0.004, u1, 2.3, z + 0.004, 'verre', groupe='verre', chanfrein=0, cuire=0)
+        geo.pave(f'{nom}_imposte{i}', u0, 2.36, z - 0.004, u1, y1 - 0.04, z + 0.004, 'verre', groupe='verre', chanfrein=0, cuire=0)
+    m = (a + b) / 2
+    for cote, (u0, u1) in (('g', (a, m)), ('d', (m, b))):
+        g = f'porte_auto_{cote}'
+        for (p0, p1, q0, q1) in ((u0, u1, 0.02, 0.09), (u0, u1, 2.0, 2.06), (u0, u0 + 0.05, 0.02, 2.06), (u1 - 0.05, u1, 0.02, 2.06)):
+            geo.pave(f'{g}_{p0:.2f}{q0:.2f}', p0, q0, z - 0.03, p1, q1, z + 0.01, 'alu', groupe=g, chanfrein=0.003, lumiere='sonde')
+        geo.pave(f'{g}_verre', u0 + 0.05, 0.09, z - 0.014, u1 - 0.05, 2.0, z - 0.006, 'verre', groupe=g + '_vitre', chanfrein=0, cuire=0, lumiere='sonde')
+        geo.pave(f'{g}_bande', u0 + 0.05, 1.3, z - 0.016, u1 - 0.05, 1.36, z - 0.015, 'sarcelle', groupe=g, chanfrein=0, lumiere='sonde')

@@ -58,7 +58,32 @@ async function ouvrir(options){
     ok(e.ecran === 'panneau' && e.parle === code, `parler à ${code} ouvre l'enquête`);
   }
   await p.evaluate(() => fermerPanneau());
+  // objets du hall : chacun s'utilise sans erreur ; le plan s'ouvre et se ferme
+  const nb = await p.evaluate(async () => {
+    const r = await fetch('modeles/hopital.json').then(x => x.json());
+    for (const o of r.interactifs || []) utiliser(o.id), fermerFiche();
+    return (r.interactifs || []).length;
+  });
+  ok(nb >= 6, `${nb} objets utilisables dans le hall`);
+  await p.evaluate(() => fichePlan());
+  ok((await p.evaluate(() => etat().ecran)) === 'fiche' && await p.$eval('#fiche-corps svg', e => !!e), 'le plan s’ouvre (touche M)');
+  await p.evaluate(() => fermerFiche());
   ok(err.length === 0, `aucune erreur en console${err.length ? ' : ' + err.join(' | ') : ''}`);
+  await p.close();
+}
+
+// 1 bis. qualité « Belle » : post-traitement (halo, étalonnage) sans erreur
+{
+  const p = await nav.newPage({viewport: {width: 1280, height: 720}});
+  const err = [];
+  p.on('pageerror', e => err.push(e.message));
+  p.on('console', m => { if (m.type() === 'error') err.push(m.text()); });
+  await p.goto(srv.url + 'outils/hopital/index.html?qualite=belle');
+  await p.waitForFunction(() => !document.getElementById('b-entrer').disabled, null, {timeout: 300000});
+  await p.click('#b-entrer'); await p.waitForTimeout(1500);
+  const e = await p.evaluate(() => etat());
+  ok(e.qualite === 'belle' && e.post, `qualité Belle : post-traitement actif (${e.qualite}, ${e.post})`);
+  ok(err.length === 0, `qualité Belle : aucune erreur${err.length ? ' : ' + err.join(' | ') : ''}`);
   await p.close();
 }
 

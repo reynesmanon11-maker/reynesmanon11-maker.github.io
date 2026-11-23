@@ -137,12 +137,12 @@ def murs():
         if r['x'] + r['w'] == 880:
             f_e = fenetres_cote(z0 + 0.6, z1 - 0.6, n=1, larg=1.8)
         if nom == 'hall':
-            f_s = [((x0 + x1) / 2 - 0.9, (x0 + x1) / 2 + 0.9)]   # porte d'entrée vitrée
+            f_s = [(x0, x1)]                                       # façade vitrée toute largeur (mur-rideau)
         couleur = 'mur_' + nom
         fond_n = couleur if r['top'] else 'mur_blanc'          # le mur face à la porte prend la couleur du service
         fond_s = couleur if not r['top'] else 'mur_blanc'
         tn = [(a, b, F_BAS, F_HAUT) for a, b in f_n] + ([] if r['top'] else porte)
-        ts = [(a, b, F_BAS if nom != 'hall' else 0.0, F_HAUT if nom != 'hall' else 2.4) for a, b in f_s] + (porte if r['top'] else [])
+        ts = [(a, b, F_BAS if nom != 'hall' else 0.0, F_HAUT if nom != 'hall' else 2.75) for a, b in f_s] + (porte if r['top'] else [])
         pan_maille(nom + '_n', 'z', z0, +1, x0, x1, 0, H, tn, fond_n, 'murs')
         pan_maille(nom + '_s', 'z', z1, -1, x0, x1, 0, H, ts, fond_s, 'murs')
         pan_maille(nom + '_o', 'x', x0, +1, z0, z1, 0, H, [(a, b, F_BAS, F_HAUT) for a, b in f_o], 'mur_blanc', 'murs')
@@ -151,7 +151,7 @@ def murs():
             fenetre(f'{nom}_fn{k}', 'z', z0, -1, a, b)
         for k, (a, b) in enumerate(f_s):
             if nom == 'hall':
-                fenetre(f'{nom}_entree', 'z', z1, +1, a, b, y0=0.0, y1=2.4)
+                equipement.mur_rideau('facade', x0, x1, z1, y1=2.75, porte=((x0 + x1) / 2 - 1.0, (x0 + x1) / 2 + 1.0))
             else:
                 fenetre(f'{nom}_fs{k}', 'z', z1, +1, a, b)
         for k, (a, b) in enumerate(f_o):
@@ -207,6 +207,8 @@ def luminaires():
     """Dalles lumineuses encastrées (60 × 60 cm) : une lampe de surface dans chacune, pour la cuisson."""
     pos = []
     for nom, r in ROOMS.items():
+        if nom == 'hall':
+            continue
         x0, x1, z0, z1 = X(r['x']), X(r['x'] + r['w']), Z(r['y']), Z(r['y'] + r['h'])
         nx, nz = max(1, round((x1 - x0) / 2.6)), max(1, round((z1 - z0) / 2.6))
         pos += [((x0 + (x1 - x0) * (i + 0.5) / nx), (z0 + (z1 - z0) * (j + 0.5) / nz)) for i in range(nx) for j in range(nz)]
@@ -223,6 +225,49 @@ def luminaires():
     return len(pos)
 
 
+def lampe(nom, type_, x, y, z, energie, couleur=(1.0, 0.86, 0.72), vers=(0, -1, 0), cone=1.9, flou=0.8, taille=0.05):
+    """Une lampe pour la cuisson (collection « contexte », jamais exportée)."""
+    ctx = geo.collection('contexte')
+    l = bpy.data.lights.new(nom, type_); l.energy = energie; l.color = couleur
+    if type_ == 'SPOT':
+        l.spot_size = cone; l.spot_blend = flou; l.shadow_soft_size = taille
+    elif type_ == 'AREA':
+        l.shape = 'RECTANGLE'; l.size, l.size_y = taille
+    o = bpy.data.objects.new(nom, l); ctx.objects.link(o)
+    o.location = V(x, y, z)
+    o.rotation_euler = V(*vers).to_track_quat('-Z', 'Y').to_euler()
+    geo.collection('piece')
+
+
+def lumieres_hall():
+    """Ambiance du hall : spots encastrés blanc chaud, lumière rasante sur les tasseaux, plafond de lames de chêne
+    éclairé au-dessus de la banque, auvent éclairé dehors."""
+    s = DONNEES['salles']['hall']
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    for k, (x, z) in enumerate(((3.85, 2.3), (3.85, 4.3), (3.85, 6.3), (4.95, 3.3), (4.95, 5.4), (3.5, 7.6), (4.95, 7.3))):
+        equipement.downlight(f'spot_hall{k}', x, z, H)
+        lampe(f'spot_hall{k}', 'SPOT', x, H - 0.03, z, 55.0, cone=1.75, flou=0.85)
+    for k in range(5):        # lumière rasante sur le mur de tasseaux
+        z = z0 + 0.9 + k * (z1 - z0 - 1.8) / 4
+        equipement.downlight(f'rasant_hall{k}', x0 + 0.16, z, H, rayon=0.045)
+        lampe(f'rasant_hall{k}', 'SPOT', x0 + 0.16, H - 0.03, z, 22.0, cone=0.9, flou=0.6, vers=(-0.12, -1, 0))
+    # plafond de lames de chêne au-dessus de la banque, deux lignes lumineuses dessous
+    for k in range(int(3.2 / 0.1)):
+        zz = 3.4 + k * 0.1
+        pave(f'lame_plafond{k}', x0 + 0.25, 2.62, zz - 0.02, x0 + 2.0, 2.72, zz + 0.02, 'hetre', chanfrein=0.004, groupe='tasseaux', fil='y')
+    for dx in (0.65, 1.6):
+        pave(f'ligne_led{dx}', x0 + dx - 0.02, 2.605, 3.45, x0 + dx + 0.02, 2.62, 6.55, 'led_chaude', chanfrein=0, groupe='led')
+        lampe(f'ligne_led{dx}', 'AREA', x0 + dx, 2.6, 5.0, 60.0, taille=(0.04, 3.0), vers=(0, -1, 0))
+    # dehors : auvent et parvis
+    pave('parvis', x0 - 3.0, -0.03, z1 + 0.08, x1 + 3.0, -0.01, z1 + 5.0, 'pave_ext', chanfrein=0, groupe='sol')
+    pave('auvent', x0 - 0.6, 2.95, z1 + 0.08, x1 + 0.6, 3.15, z1 + 2.8, 'laque', chanfrein=0.01, groupe='meubles')
+    for xx in (x0 - 0.3, x1 + 0.3):
+        cyl(f'poteau{xx:.1f}', Rep(xx, z1 + 2.5), (0, 0, 0), [(0.07, 0), (0.07, 2.95), (0, 2.95)], 'alu', n=20, groupe='meubles')
+    for k, xx in enumerate((x0 + 0.6, (x0 + x1) / 2, x1 - 0.6)):
+        equipement.downlight(f'spot_auvent{k}', xx, z1 + 1.4, 2.95)
+        lampe(f'spot_auvent{k}', 'SPOT', xx, 2.92, z1 + 1.4, 40.0, cone=1.6)
+
+
 def ciel():
     sc = bpy.context.scene
     w = bpy.data.worlds.new('ciel'); sc.world = w; w.use_nodes = True
@@ -232,7 +277,7 @@ def ciel():
     s.sun_elevation = math.asin(sol.y)
     nt.links.new(s.outputs['Color'], fond.inputs['Color']); fond.inputs['Strength'].default_value = 0.4
     ctx = geo.collection('contexte')
-    l = bpy.data.lights.new('soleil', 'SUN'); l.energy = 3.0; l.angle = math.radians(1.5); l.color = (1.0, 0.95, 0.88)
+    l = bpy.data.lights.new('soleil', 'SUN'); l.energy = 4.0; l.angle = math.radians(1.5); l.color = (1.0, 0.95, 0.88)
     o = bpy.data.objects.new('soleil', l); ctx.objects.link(o)
     o.rotation_euler = V(*sol).to_track_quat('Z', 'Y').to_euler()
     import bmesh
@@ -403,42 +448,52 @@ def meubler():
     # ------------------------------------------------ hall d'accueil
     s = S['hall']
     x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
-    E.comptoir_accueil('accueil', x0 + 0.3, x0 + 2.6, z1 - 2.3, z1 - 0.9)
-    mobilier.solide(x0, z1 - 2.4, x0 + 2.65, z1 - 0.85)
-    r = Rep((x0 + 0.3 + x0 + 2.6) / 2, z1 - 2.3 - 0.031, PI)
-    texte('lettres_accueil', 'Accueil', r, (0.25, 0.62, 0), 0.2, 0.02, 'laque', groupe='lettres')
-    logo(r, (-0.62, 0.62, 0.0), 0.13, 'logo_accueil')
-    comptoir = Rep((x0 + 0.3 + x0 + 2.6) / 2, z1 - 1.6, PI)
-    E.poste('pc_accueil1', comptoir, -0.55, 0.75, 0.0, img='ecran_dossier')
-    E.poste('pc_accueil2', comptoir, 0.6, 0.75, 0.05, img='ecran_dossier')
-    boite('telephone_accueil', comptoir, (0.05, 0.78, 0.2), (0.18, 0.06, 0.2), 'anthracite', ch=0.015, seg=2, groupe='petits')
-    for k in range(3):
-        boite(f'brochure{k}', Rep(x0 + 0.8 + k * 0.5, z1 - 2.2, PI), (0, 1.12, 0), (0.15, 0.12, 0.08), 'laque', ch=0.003, groupe='petits')
-        plaque(f'brochure_img{k}', Rep(x0 + 0.8 + k * 0.5, z1 - 2.24, PI, 1.06), (0, 0.1, 0.0), 0.13, 0.17, ('affiche_mains', 'affiche_hormones', 'plan_hall')[k], groupe='clavier')
-    E.chaise_bureau('chaise_accueil', x0 + 1.45, z1 - 1.05, PI * 0.95)
-    # mur de tasseaux de chêne à l'ouest, logo et nom du pôle
-    for k in range(int((z1 - 2.6 - (z0 + 0.25)) / 0.08)):
+    xb = x0 + 1.2                                     # axe de la banque (façade vers l'est, en x = x0 + 1.65)
+    rb = Rep(xb, 5.0, PI / 2)
+    E.banque_accueil('banque', rb, L=2.8, P=0.9)
+    mobilier.solide(xb - 0.45, 3.55, xb + 0.5, 6.45)
+    texte('lettres_accueil', 'Accueil', rb, (0.3, 0.68, 0.48), 0.2, 0.02, 'laque', groupe='lettres')
+    logo(rb, (-0.58, 0.68, 0.47), 0.13, 'logo_accueil')
+    poste_r = Rep(xb - 0.25, 5.0, -PI / 2)
+    E.poste('pc_accueil1', poste_r, -0.5, 0.75, 0.0, img='ecran_dossier')
+    E.poste('pc_accueil2', poste_r, 0.65, 0.75, 0.05, img='ecran_dossier')
+    boite('telephone_accueil', poste_r, (0.1, 0.785, 0.2), (0.18, 0.06, 0.2), 'anthracite', ch=0.015, seg=2, groupe='petits')
+    E.chaise_bureau('chaise_accueil', x0 + 0.42, 4.15, PI / 2)
+    # mur de tasseaux de chêne derrière la banque, nom du pôle et logo au-dessus de la secrétaire
+    for k in range(int((z1 - z0 - 0.6) / 0.08)):
         zz = z0 + 0.3 + k * 0.08
         pave(f'tasseau_mur{k}', x0, 0.1, zz - 0.022, x0 + 0.035, H - 0.02, zz + 0.022, 'hetre', chanfrein=0.003, groupe='tasseaux', fil='y')
-    rmur = mur_rep(s, 'o', (z0 + z1 - 2.6) / 2)
-    texte('lettres_pole', 'Pôle Femme-Enfant', rmur, (0, 2.25, 0.04), 0.16, 0.015, 'laque', groupe='lettres')
-    logo(rmur, (0, 1.7, 0.04), 0.28, 'logo_mur')
-    # attente : sièges, table basse, plantes, plan « Vous êtes ici »
-    E.chaises_attente('attente_hall', x1 - 0.42, z0 + 2.3, -PI / 2, n=3)
-    ajouter_ph('modern_coffee_table_01', 'table_hall', x1 - 1.15, 0, z0 + 2.3, ry=PI / 2, taille=0.9)
-    ajouter_ph('potted_plant_04', 'plante_hall1', x1 - 0.45, 0, z0 + 0.5, taille=1.6, tri=9000)
-    ajouter_ph('potted_plant_01', 'plante_hall2', x1 - 0.5, 0, z1 - 0.5, taille=1.4, tri=9000)
-    ajouter_ph('potted_plant_02', 'plante_hall3', x0 + 0.4, 0, z1 - 0.35, taille=1.0, tri=8000)
-    mobilier.solide(x1 - 0.85, z0, x1, z0 + 0.85); mobilier.solide(x1 - 0.85, z1 - 0.9, x1, z1)
-    accrocher('plan_hall', s, 'e', z0 + 4.4, 1.55, 1.2, 0.8, 'plan_hall')
-    accrocher('mains_hall', s, 'n', x0 + 0.8, 1.45, 0.45, 0.6, 'affiche_mains')
-    E.distributeur('gel_hall', mur_rep(s, 'n', x1 - 0.5), 0, 1.15, 0)
-    ajouter_ph('wall_clock', 'horloge_hall', x1 - 0.02, 2.3, z0 + 4.4, ry=-PI / 2, ancre='centre')
-    # suspensions au-dessus de la banque
-    for k, dx in enumerate((0.9, 2.0)):
-        cyl(f'suspension{k}', Rep(x0 + dx, z1 - 2.1), (0, H - 0.75, 0), [(0, 0), (0.16, 0.0), (0.17, 0.02), (0.09, 0.22), (0.012, 0.25), (0.006, 0.75), (0, 0.75)],
-            'anthracite', n=28, groupe='petits')
-        cyl(f'suspension_led{k}', Rep(x0 + dx, z1 - 2.1), (0, H - 0.752, 0), [(0, 0), (0.15, 0), (0.15, 0.003), (0, 0.003)], 'led_chaude', n=28, groupe='led')
+    rmur = mur_rep(s, 'o', 5.0)
+    texte('lettres_pole', 'Pôle Femme-Enfant', rmur, (0.2, 2.2, 0.04), 0.17, 0.015, 'laque', groupe='lettres')
+    logo(rmur, (-1.35, 2.2, 0.04), 0.2, 'logo_mur')
+    # attente à l'est : sièges, table basse, écran d'information, fontaine, plantes
+    E.chaises_attente('attente_hall', x1 - 0.42, 3.75, -PI / 2, n=3)
+    ajouter_ph('modern_coffee_table_01', 'table_hall', x1 - 1.15, 0, 3.75, ry=PI / 2, taille=0.9)
+    mobilier.solide(x1 - 1.45, 3.4, x1 - 0.85, 4.1)
+    E.ecran_plat('tv_hall', mur_rep(s, 'n', x1 - 0.75), (0, 1.85, 0.05), 0.98, 0.55, 'ecran_tv', pied=False, epaisseur=0.05)
+    E.fontaine('fontaine_hall', x1 - 0.3, 5.6, -PI / 2)
+    ajouter_ph('potted_plant_04', 'plante_hall1', x1 - 0.42, 0, 2.05, taille=1.7, tri=9000)
+    mobilier.solide(x1 - 0.8, 1.6, x1, 2.5)
+    ajouter_ph('potted_plant_01', 'plante_hall2', x0 + 0.45, 0, z1 - 0.55, taille=1.5, tri=9000)
+    ajouter_ph('potted_plant_02', 'plante_hall3', x0 + 0.45, 0, 2.0, taille=1.1, tri=8000)
+    mobilier.solide(x0, z1 - 1.0, x0 + 0.9, z1); mobilier.solide(x0, 1.4, x0 + 0.8, 2.4)
+    # entrée : borne, tapis de propreté, plan « Vous êtes ici » ; ligne de guidage au sol jusqu'au couloir
+    E.borne('borne_hall', x1 - 0.45, z1 - 1.0, -PI / 2 - 0.5)
+    pave('tapis_entree', 2.6, 0.003, z1 - 1.3, 4.4, 0.008, z1 - 0.05, 'tapis_propre', chanfrein=0.002, groupe='sol')
+    pave('ligne_sol', 3.46, 0.003, z0 - 0.6, 3.54, 0.0045, z1 - 1.4, 'sarcelle', chanfrein=0, groupe='sol')
+    pave('ligne_couloir', -0.04, 0.003, -0.04, 3.54, 0.0045, 0.04, 'sarcelle', chanfrein=0, groupe='sol')
+    accrocher('plan_hall', s, 'e', 6.6, 1.5, 1.05, 0.7, 'plan_hall')
+    accrocher('mains_hall', s, 'n', x0 + 0.9, 1.5, 0.42, 0.56, 'affiche_mains')
+    E.distributeur('gel_hall', mur_rep(s, 'n', x0 + 1.55), 0, 1.2, 0)
+    ajouter_ph('wall_clock', 'horloge_hall', x1 - 0.75, 2.5, z0 + 0.02, ry=0.0, ancre='centre')
+    DONNEES['interactifs'] = [
+        {'id': 'borne', 'nom': "la borne d'accueil", 'p': [x1 - 0.45, 1.25, z1 - 1.0]},
+        {'id': 'plan', 'nom': 'le plan du rez-de-chaussée', 'p': [x1 - 0.02, 1.5, 6.6]},
+        {'id': 'tv', 'nom': "l'écran d'information", 'p': [x1 - 0.75, 1.85, z0 + 0.05]},
+        {'id': 'gel', 'nom': 'le gel hydro-alcoolique', 'p': [x0 + 1.55, 1.2, z0 + 0.06]},
+        {'id': 'fontaine', 'nom': 'la fontaine à eau', 'p': [x1 - 0.3, 0.9, 5.6]},
+        {'id': 'sortie', 'nom': "les portes de l'entrée", 'p': [(x0 + x1) / 2, 1.1, z1 - 0.05]},
+    ]
 
     # ------------------------------------------------ consultations (Dr Lefèvre)
     s = S['consult']
@@ -640,7 +695,7 @@ def personnes():
         s = S[salle]
         xm = (s['porte'][0] + s['porte'][1]) / 2
         if salle == 'hall':
-            x, z, ry = s['x0'] + 1.45, s['z1'] - 1.5, PI * 0.95
+            x, z, ry = s['x0'] + 0.42, 5.0, PI / 2
         elif salle == 'bloc':
             x, z, ry = (s['x0'] + s['x1']) / 2 + 0.3, s['z1'] - 1.6, 0.15
         elif s['cote'] == 'sud':
@@ -658,6 +713,7 @@ geo.collection('piece')
 materiaux()
 murs()
 n_lum = luminaires()
+lumieres_hall()
 meubler()
 portes()
 personnes()
