@@ -93,6 +93,9 @@ async function construire(){
       let n;
       if (estVerre(m)) n = verre(m);
       else if (/^(panneau|ecran)$/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.name === 'panneau' ? 0xffffff : 0x5a8ec0});
+      // écrans allumés (leur image est leur lumière) et LED : dessinés tels quels, sans éclairage
+      else if (/^ecran_/.test(m.name)) n = new THREE.MeshBasicMaterial({map: m.emissiveMap || m.map, color: 0xffffff});
+      else if (/^(led|voyant)/.test(m.name)) n = new THREE.MeshBasicMaterial({color: m.emissive && m.emissive.getHex() ? m.emissive : m.color});
       else if (atlas){ n = m.clone(); n.lightMap = cartes[atlas]; n.lightMapIntensity = Math.PI * d.lumiere[atlas].max * GAIN; lumiereCuite(n); }
       else n = m;
       cache.set(cle, n);
@@ -112,6 +115,7 @@ async function construire(){
     gens[code] = {pivot, yaw0:0, yaw:0, p:p.p, salle:p.salle, etape:p.etape};
   }
   for (const s of d.solides) solides.push(s);
+  ombresDeContact();
   construirePortes();
   // lumière des objets mobiles et des personnes : un peu d'ambiance, et les sondes
   scene.add(new THREE.HemisphereLight(0xf4f1ea, 0x8a8478, 0.35));
@@ -140,13 +144,41 @@ async function construire(){
   });
 }
 
+/* ------------------------------------------------------------ ombres de contact */
+// La lumière cuite est douce et vient du plafond : sous les pieds, l'ombre serrée qui « pose » un corps au sol
+// manquerait. Une tache sombre aux bords fondus, sous chaque personne, la remplace.
+function ombresDeContact(){
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 4, 64, 64, 62);
+  g.addColorStop(0, 'rgba(0,0,0,0.55)'); g.addColorStop(0.45, 'rgba(0,0,0,0.3)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+  x.fillStyle = g; x.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.MeshBasicMaterial({map:tex, transparent:true, depthWrite:false, polygonOffset:true, polygonOffsetFactor:-2});
+  for (const g of Object.values(gens)){
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.85, 0.6), mat);
+    m.rotation.x = -Math.PI / 2; m.position.set(0, 0.006, 0); m.renderOrder = 1;
+    g.pivot.add(m);
+  }
+}
+
 /* ------------------------------------------------------------ portes et enseignes */
 const COULEURS = {cyto:'#ece6f6', bloc:'#d6ece9', endo:'#fbeede', gene:'#e3f4ea', repro:'#f9e3ec', consult:'#e4f0fb', hall:'#f6ead2', imagerie:'#e1eef7'};
 function construirePortes(){
   for (const [nom, s] of Object.entries(donnees.salles)){
     if (nom === 'hall') { enseigne(nom, s); continue; }
     const [a, b] = s.porte, L = b - a - 0.02, zp = s.z_porte;
-    // le battant : bois clair, hublot, poignée ; charnière côté a, il s'ouvre vers l'intérieur de la pièce
+    const sens = s.cote === 'sud' ? 1 : -1;            // la pièce est du côté −z (porte au sud) ou +z
+    const rect = [a, Math.min(zp, s.z_couloir) - 0.02, b, Math.max(zp, s.z_couloir) + 0.02];
+    // le battant modelé dans Blender (âme bois, oculus, plaque de propreté, béquilles) pivote sur sa charnière
+    const modeles = ['battant_' + nom, 'battant_' + nom + '_vitre'].map(n => scene.getObjectByName(n)).filter(Boolean);
+    if (modeles.length){
+      const g = new THREE.Group(); g.position.set(a + 0.01, 0, zp); scene.add(g);
+      for (const o of modeles) g.attach(o);
+      portes[nom] = {g, ouverte:false, angle:0, sens, rect};
+      enseigne(nom, s);
+      continue;
+    }
+    // à défaut : un battant dessiné ici (bois clair, hublot, poignée), charnière côté a
     const g = new THREE.Group();
     const bois = new THREE.MeshStandardMaterial({color:0xc9a27a, roughness:0.5});
     const feuille = new THREE.Mesh(new THREE.BoxGeometry(L, 2.06, 0.045), bois); feuille.position.set(L/2, 1.03, 0);
@@ -157,8 +189,7 @@ function construirePortes(){
     g.add(feuille, hublot, poignee);
     g.position.set(a + 0.01, 0, zp);
     scene.add(g);
-    const sens = s.cote === 'sud' ? 1 : -1;            // la pièce est du côté −z (porte au sud) ou +z
-    portes[nom] = {g, ouverte:false, angle:0, sens, rect:[a, Math.min(zp, s.z_couloir) - 0.02, b, Math.max(zp, s.z_couloir) + 0.02]};
+    portes[nom] = {g, ouverte:false, angle:0, sens, rect};
     enseigne(nom, s);
   }
 }
@@ -176,15 +207,15 @@ function dessinerEnseigne(nom, connue, ouverte, numero){
   const E = enseignes[nom]; const etat = connue + '|' + ouverte + '|' + numero;
   if (!E || E.etat === etat) return; E.etat = etat;
   const x = E.c.getContext('2d');
-  x.fillStyle = connue ? COULEURS[nom] : '#b9c3cf'; x.fillRect(0, 0, 512, 128);
-  x.fillStyle = '#18212e'; x.fillRect(0, 0, 512, 10); x.fillRect(0, 118, 512, 10);
+  x.fillStyle = connue ? '#18212e' : '#3a4656'; x.fillRect(0, 0, 512, 128);
+  x.fillStyle = connue ? COULEURS[nom] : '#6b7685'; x.fillRect(0, 0, 14, 128);
   x.textAlign = 'center'; x.textBaseline = 'middle';
   if (connue){
-    x.font = '700 40px "Segoe UI", system-ui, sans-serif';
+    x.font = '700 40px "Segoe UI", system-ui, sans-serif'; x.fillStyle = '#ffffff';
     const t = NOMS_SALLES[nom]; const mots = t.length > 22 ? [t.slice(0, t.lastIndexOf(' ', 22)), t.slice(t.lastIndexOf(' ', 22) + 1)] : [t];
     mots.forEach((m, i) => x.fillText(m, 256 + (numero ? 24 : 0), 64 + (i - (mots.length - 1) / 2) * 44));
-    if (numero){ x.fillStyle = ouverte ? '#0b6b77' : '#8a96a6'; x.beginPath(); x.arc(52, 64, 34, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = '800 40px system-ui'; x.fillText(numero, 52, 66); }
-  } else { x.font = '800 70px system-ui'; x.fillStyle = '#6b7685'; x.fillText('?', 256, 66); }
+    if (numero){ x.fillStyle = ouverte ? '#0b6b77' : '#5d6878'; x.beginPath(); x.arc(52, 64, 34, 0, 7); x.fill(); x.fillStyle = '#fff'; x.font = '800 40px system-ui'; x.fillText(numero, 52, 66); }
+  } else { x.font = '800 70px system-ui'; x.fillStyle = '#c3ccd6'; x.fillText('?', 256, 66); }
   E.tex.needsUpdate = true;
 }
 
@@ -392,6 +423,6 @@ async function demarrer(){
     bulle('Accueil', exo.equipe() ? 'Bon retour ! Votre dossier vous attend : la suite de l’enquête est indiquée en bas de l’écran.' : PERSONNES.AC.salut);
   });
   requestAnimationFrame(boucle);
-  Object.assign(window, {J, parler, fermerPanneau, gens, portes, etat: () => ({ecran, cible, parle, pret: !!exo})});
+  Object.assign(window, {J, parler, fermerPanneau, gens, portes, libre, etat: () => ({ecran, cible, parle, pret: !!exo})});
 }
 demarrer();

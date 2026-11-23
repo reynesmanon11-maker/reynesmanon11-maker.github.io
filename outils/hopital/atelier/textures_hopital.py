@@ -38,6 +38,35 @@ src = np.asarray(Image.open(os.path.join(os.path.dirname(OUT), '..', 'blender', 
 Ls = lin(src); moy = Ls.reshape(-1, 3).mean(0)
 for nom, c in SALLES.items():
     if nom != 'blanc':
-        c = tuple(max(0, min(255, int(v + (v - sum(c) / 3) * 2.6 - 22))) for v in c)
+        c = tuple(max(0, min(255, int(v + (v - sum(c) / 3) * 1.7 - 16))) for v in c)
     Image.fromarray(srgb(Ls * (lin(c) / moy)).round().astype(np.uint8)).save(f'{OUT}/mur_{nom}.jpg', quality=92)
 print('murs teintés')
+
+# sols de la charte : vinyle hospitalier gris-bleu moucheté (couloirs, services), vinyle vert d'eau (bloc),
+# grès cérame 60 × 60 cm du hall (l'image couvre 1,2 m)
+for nom, base, mouch in (('vinyle', (138, 150, 162), ((190, 198, 206), (96, 104, 114), (160, 176, 190))),
+                         ('vinyle_bloc', (150, 176, 172), ((200, 214, 210), (110, 130, 128), (170, 196, 192)))):
+    nuage = bruit(n, 3.6, 61)
+    L = lin(base)[None, None, :] * (1 + 0.06 * nuage[..., None])
+    for coul, dens in zip(mouch, (0.06, 0.04, 0.02)):
+        m = r.random((n, n)) < dens
+        m = m | np.roll(m, 1, 0)
+        L[m] = L[m] * 0.45 + lin(coul) * 0.55
+    Image.fromarray(srgb(L).round().astype(np.uint8)).save(f'{OUT}/{nom}_couleur.jpg', quality=92)
+    rug = np.clip(0.24 + 0.08 * bruit(n, 2.6, 62), 0.12, 0.5)
+    Image.fromarray((np.stack([np.ones((n, n)), rug, np.zeros((n, n))], -1) * 255).round().astype(np.uint8)).save(f'{OUT}/{nom}_arm.jpg', quality=92)
+m = 1024
+y, x = np.mgrid[0:m, 0:m]
+c = np.ones((m, m, 3)) * lin((206, 202, 194))
+for k, (i, j) in enumerate(((0, 0), (0, 1), (1, 0), (1, 1))):
+    zone = (x // 512 == i) & (y // 512 == j)
+    c[zone] *= 1 + 0.035 * (k - 1.5) / 1.5
+c *= (1 + 0.05 * bruit(m, 4.0, 63) + 0.02 * bruit(m, 1.5, 64))[..., None]
+veine = bruit(m, 5.0, 65)
+c[veine > 0.75] *= 0.94
+joint = (np.minimum(x % 512, 511 - x % 512) < 3) | (np.minimum(y % 512, 511 - y % 512) < 3)
+c[joint] = lin((150, 146, 140))
+Image.fromarray(srgb(c).round().astype(np.uint8)).save(f'{OUT}/carrelage_couleur.jpg', quality=92)
+rug = np.where(joint, 0.8, np.clip(0.2 + 0.06 * bruit(m, 3.0, 66), 0.1, 0.4))
+Image.fromarray((np.stack([np.where(joint, 0.7, 1.0), rug, np.zeros((m, m))], -1) * 255).round().astype(np.uint8)).save(f'{OUT}/carrelage_arm.jpg', quality=92)
+print('sols de la charte')

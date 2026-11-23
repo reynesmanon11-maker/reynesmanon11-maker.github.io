@@ -11,8 +11,10 @@ for m in (geo, matieres, mobilier, accessoires):
 from geo import V, pave, tour, balayer, objet, PI, TAU, pan_maille
 from mathutils import Vector, Matrix
 from accessoires import ajouter, PH_C
-import personnages, humains
-importlib.reload(humains)
+import personnages, humains, equipement
+importlib.reload(humains); importlib.reload(equipement)
+from equipement import Rep, boite, cyl, tube, plaque, texte
+equipement.IMG = os.path.join(ICI, 'tex_img')
 
 args = sys.argv[sys.argv.index('--') + 1:]
 TEX_CAB, TEX_HOP, SORTIE = args
@@ -52,6 +54,9 @@ def materiaux():
     T = matieres.TEX
     T['lino'] = {'couleur': f'{TEX_HOP}/lino_couleur.jpg', 'arm': f'{TEX_HOP}/lino_arm.jpg', 'relief': None}
     matieres.texturee('lino', 'lino', 2.0, relief=0)
+    for nom in ('vinyle', 'vinyle_bloc', 'carrelage'):
+        T[nom] = {'couleur': f'{TEX_HOP}/{nom}_couleur.jpg', 'arm': f'{TEX_HOP}/{nom}_arm.jpg', 'relief': None}
+        matieres.texturee(nom, nom, 1.2 if nom == 'carrelage' else 2.0, relief=0)
     T['dalles'] = {'couleur': f'{TEX_HOP}/plafond_couleur.jpg', 'arm': None, 'relief': None}
     matieres.texturee('dalles', 'dalles', 1.2, rugosite=0.9, metal=0.0)
     lin = matieres.lin
@@ -72,6 +77,7 @@ def materiaux():
     matieres.unie('alu', lin((176, 180, 184)), rugosite=0.35, metal=1.0)
     matieres.unie('caoutchouc', lin((40, 40, 42)), rugosite=0.8)
     matieres.unie('main_courante', lin((168, 124, 84)), rugosite=0.4)
+    equipement.matieres_equipement()
 
 
 def teinter(m, cible, ref):
@@ -187,10 +193,13 @@ def murs():
             a, b = bornes[k], bornes[k + 1]
             if b - a < 0.3:
                 continue
-            pave(f'mc_{nom}{k}', a, 0.88, plan + sens * 0.04, b, 0.95, plan + sens * 0.09, 'main_courante', groupe='main_courante', chanfrein=0.012, segments=3)
+            equipement.lisse(f'lisse_{nom}{k}', [(a, plan + sens * 0.002), (b, plan + sens * 0.002)], (0, 0, sens), y=0.92)
             pave(f'pl_{nom}{k}', a, 0.0, plan, b, 0.1, plan + sens * 0.012, 'plinthe', groupe='plinthes', chanfrein=0.002)
     # sol et plafond
-    pave('sol', X(5), -0.05, Z(5), X(895), 0, Z(515), 'lino', chanfrein=0, groupe='sol', densite=1.0)
+    pave('sol', X(5), -0.05, Z(5), X(895), 0, Z(515), 'vinyle', chanfrein=0, groupe='sol', densite=1.0)
+    for nom, mat in (('hall', 'carrelage'), ('bloc', 'vinyle_bloc')):
+        r = ROOMS[nom]
+        pave('sol_' + nom, X(r['x']), 0, Z(r['y']), X(r['x'] + r['w']), 0.003, Z(r['y'] + r['h']), mat, chanfrein=0, groupe='sol')
     pave('plafond', X(5), H, Z(5), X(895), H + 0.05, Z(515), 'dalles', chanfrein=0, groupe='plafond', densite=0.5)
 
 
@@ -361,119 +370,265 @@ def portoir(x, y, z, couleurs):
         tour(f'tube{x}_{k}_liq', [(0.0, 0.0), (0.007, 0.003), (0.007, 0.06), (0.0, 0.06)], c, centre=(tx, y + 0.015, z), n=10, groupe=c, cuire=0)
 
 
+def logo(r, c, R, nom):
+    """Logo de l'hôpital : une croix blanche sur un disque sarcelle, en relief."""
+    x, y, z = c
+    cyl(nom + '_disque', r, (x, y, z), [(0, 0), (R, 0), (R, 0.012), (0, 0.012)], 'sarcelle', n=48, axe='z', groupe='logo_plaque')
+    for (w, h) in ((R * 0.36, R * 1.2), (R * 1.2, R * 0.36)):
+        boite(f'{nom}_croix{w:.2f}', r, (x, y, z + 0.016), (w, h, 0.008), 'laque', ch=0.003, groupe='logo_plaque')
+
+
+def mur_rep(s, cote, t, y=0.0):
+    """Repère posé sur la face intérieure d'un mur de la salle s, tourné vers la pièce. cote : n, s, o, e ; t : position le long du mur."""
+    if cote == 'n':
+        return Rep(t, s['z0'], 0.0, y)
+    if cote == 's':
+        return Rep(t, s['z1'], PI, y)
+    if cote == 'o':
+        return Rep(s['x0'], t, PI / 2, y)
+    return Rep(s['x1'], t, -PI / 2, y)
+
+
+def accrocher(nom, s, cote, t, y, w, h, img):
+    equipement.cadre_affiche(nom, mur_rep(s, cote, t), (0, y, 0.002), w, h, img)
+
+
+def ajouter_ph(src, nom, x, y, z, ry=0.0, titre=None, **kw):
+    ajouter(src, nom, x, y, z, ry=ry, credit=PH_C(titre or src.replace('_', ' ').title(), '', src), **kw)
+
+
 def meubler():
     S = DONNEES['salles']
-    lin = matieres.lin
-    for nom, c in (('sang', (150, 24, 30)), ('serum', (214, 190, 90)), ('bleu', (60, 110, 180))):
-        m = matieres.unie(nom, lin(c), rugosite=0.1)
-        b = m.node_tree.nodes['Principled BSDF']; b.inputs['Alpha'].default_value = 0.8; m['verre'] = 1
-    # --- hall d'accueil
+    E = equipement
+    # ------------------------------------------------ hall d'accueil
     s = S['hall']
-    comptoir(s['x0'] + 0.3, s['x0'] + 2.6, s['z1'] - 2.3, s['z1'] - 0.9)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    E.comptoir_accueil('accueil', x0 + 0.3, x0 + 2.6, z1 - 2.3, z1 - 0.9)
+    mobilier.solide(x0, z1 - 2.4, x0 + 2.65, z1 - 0.85)
+    r = Rep((x0 + 0.3 + x0 + 2.6) / 2, z1 - 2.3 - 0.031, PI)
+    texte('lettres_accueil', 'Accueil', r, (0.25, 0.62, 0), 0.2, 0.02, 'laque', groupe='lettres')
+    logo(r, (-0.62, 0.62, 0.0), 0.13, 'logo_accueil')
+    comptoir = Rep((x0 + 0.3 + x0 + 2.6) / 2, z1 - 1.6, PI)
+    E.poste('pc_accueil1', comptoir, -0.55, 0.75, 0.0, img='ecran_dossier')
+    E.poste('pc_accueil2', comptoir, 0.6, 0.75, 0.05, img='ecran_dossier')
+    boite('telephone_accueil', comptoir, (0.05, 0.78, 0.2), (0.18, 0.06, 0.2), 'anthracite', ch=0.015, seg=2, groupe='petits')
     for k in range(3):
-        ajouter('plastic_monobloc_chair_01', f'chaise_hall{k}', s['x1'] - 0.45, 0, s['z0'] + 2.3 + k * 0.7, ry=-PI / 2, densite=0.5,
-                credit=PH_C('Plastic Monobloc Chair 01', '', 'plastic_monobloc_chair_01'))
-    mobilier.solide(s['x1'] - 0.8, s['z0'] + 1.9, s['x1'], s['z0'] + 4.0)
-    ajouter('potted_plant_01', 'plante_hall', s['x1'] - 0.5, 0, s['z1'] - 0.5, taille=1.3, tri=9000, credit=PH_C('Potted Plant 01', '', 'potted_plant_01'))
-    mobilier.solide(s['x1'] - 0.85, s['z1'] - 0.85, s['x1'], s['z1'])
-    ajouter('wall_clock', 'horloge_hall', s['x0'] + 0.02, 2.2, (s['z0'] + s['z1']) / 2, ry=PI / 2, ancre='centre', credit=PH_C('Wall Clock', '', 'wall_clock'))
-    ajouter('classic_laptop', 'pc_accueil', s['x0'] + 1.4, 0.75, s['z1'] - 1.6, ry=0.0, taille=0.4, credit=PH_C('Classic Laptop', '', 'classic_laptop'))
-    ajouter('WetFloorSign_01', 'panneau_sol', s['x1'] - 0.6, 0, s['z0'] + 1.2, ry=0.6, credit=PH_C('Wet Floor Sign 01', '', 'WetFloorSign_01'))
-    # --- consultations (Dr Lefèvre)
+        boite(f'brochure{k}', Rep(x0 + 0.8 + k * 0.5, z1 - 2.2, PI), (0, 1.12, 0), (0.15, 0.12, 0.08), 'laque', ch=0.003, groupe='petits')
+        plaque(f'brochure_img{k}', Rep(x0 + 0.8 + k * 0.5, z1 - 2.24, PI, 1.06), (0, 0.1, 0.0), 0.13, 0.17, ('affiche_mains', 'affiche_hormones', 'plan_hall')[k], groupe='clavier')
+    E.chaise_bureau('chaise_accueil', x0 + 1.45, z1 - 1.05, PI * 0.95)
+    # mur de tasseaux de chêne à l'ouest, logo et nom du pôle
+    for k in range(int((z1 - 2.6 - (z0 + 0.25)) / 0.08)):
+        zz = z0 + 0.3 + k * 0.08
+        pave(f'tasseau_mur{k}', x0, 0.1, zz - 0.022, x0 + 0.035, H - 0.02, zz + 0.022, 'hetre', chanfrein=0.003, groupe='tasseaux', fil='y')
+    rmur = mur_rep(s, 'o', (z0 + z1 - 2.6) / 2)
+    texte('lettres_pole', 'Pôle Femme-Enfant', rmur, (0, 2.25, 0.04), 0.16, 0.015, 'laque', groupe='lettres')
+    logo(rmur, (0, 1.7, 0.04), 0.28, 'logo_mur')
+    # attente : sièges, table basse, plantes, plan « Vous êtes ici »
+    E.chaises_attente('attente_hall', x1 - 0.42, z0 + 2.3, -PI / 2, n=3)
+    ajouter_ph('modern_coffee_table_01', 'table_hall', x1 - 1.15, 0, z0 + 2.3, ry=PI / 2, taille=0.9)
+    ajouter_ph('potted_plant_04', 'plante_hall1', x1 - 0.45, 0, z0 + 0.5, taille=1.6, tri=9000)
+    ajouter_ph('potted_plant_01', 'plante_hall2', x1 - 0.5, 0, z1 - 0.5, taille=1.4, tri=9000)
+    ajouter_ph('potted_plant_02', 'plante_hall3', x0 + 0.4, 0, z1 - 0.35, taille=1.0, tri=8000)
+    mobilier.solide(x1 - 0.85, z0, x1, z0 + 0.85); mobilier.solide(x1 - 0.85, z1 - 0.9, x1, z1)
+    accrocher('plan_hall', s, 'e', z0 + 4.4, 1.55, 1.2, 0.8, 'plan_hall')
+    accrocher('mains_hall', s, 'n', x0 + 0.8, 1.45, 0.45, 0.6, 'affiche_mains')
+    E.distributeur('gel_hall', mur_rep(s, 'n', x1 - 0.5), 0, 1.15, 0)
+    ajouter_ph('wall_clock', 'horloge_hall', x1 - 0.02, 2.3, z0 + 4.4, ry=-PI / 2, ancre='centre')
+    # suspensions au-dessus de la banque
+    for k, dx in enumerate((0.9, 2.0)):
+        cyl(f'suspension{k}', Rep(x0 + dx, z1 - 2.1), (0, H - 0.75, 0), [(0, 0), (0.16, 0.0), (0.17, 0.02), (0.09, 0.22), (0.012, 0.25), (0.006, 0.75), (0, 0.75)],
+            'anthracite', n=28, groupe='petits')
+        cyl(f'suspension_led{k}', Rep(x0 + dx, z1 - 2.1), (0, H - 0.752, 0), [(0, 0), (0.15, 0), (0.15, 0.003), (0, 0.003)], 'led_chaude', n=28, groupe='led')
+
+    # ------------------------------------------------ consultations (Dr Lefèvre)
     s = S['consult']
-    ajouter('metal_office_desk', 'bureau_consult', (s['x0'] + s['x1']) / 2 - 0.6, 0, s['z1'] - 1.1, ry=PI, credit=PH_C('Metal Office Desk', '', 'metal_office_desk'))
-    mobilier.solide((s['x0'] + s['x1']) / 2 - 1.4, s['z1'] - 1.55, (s['x0'] + s['x1']) / 2 + 0.2, s['z1'] - 0.7)
-    ajouter('modern_arm_chair_01', 'fauteuil_consult', (s['x0'] + s['x1']) / 2 - 0.6, 0, s['z1'] - 0.35, ry=PI, taille=0.95, credit=PH_C('Modern Arm Chair 01', '', 'modern_arm_chair_01'))
-    for k, dx in enumerate((-1.1, -0.1)):
-        ajouter('plastic_monobloc_chair_01', f'chaise_consult{k}', (s['x0'] + s['x1']) / 2 + dx, 0, s['z1'] - 2.1, ry=0.0,
-                credit=PH_C('Plastic Monobloc Chair 01', '', 'plastic_monobloc_chair_01'))
-    ajouter('classic_laptop', 'pc_consult', (s['x0'] + s['x1']) / 2 - 0.4, 0.79, s['z1'] - 1.1, ry=PI, taille=0.38, credit=PH_C('Classic Laptop', '', 'classic_laptop'))
-    table_examen('examen_consult', s['x0'] + 0.6, (s['z0'] + s['z1']) / 2 + 0.6, ry=PI / 2)
-    ajouter('steel_frame_shelves_01', 'etagere_consult', s['x1'] - 0.35, 0, (s['z0'] + s['z1']) / 2, ry=-PI / 2, taille=1.9, credit=PH_C('Steel Frame Shelves 01', '', 'steel_frame_shelves_01'))
-    mobilier.solide(s['x1'] - 0.7, (s['z0'] + s['z1']) / 2 - 0.5, s['x1'], (s['z0'] + s['z1']) / 2 + 0.5)
-    ajouter('medical_box', 'trousse_consult', s['x1'] - 0.35, 1.08, (s['z0'] + s['z1']) / 2, ry=-PI / 2, credit=PH_C('Medical Box', '', 'medical_box'))
-    ajouter('potted_plant_02', 'plante_consult', s['x1'] - 0.5, 0, s['z1'] - 0.5, taille=0.9, tri=8000, credit=PH_C('Potted Plant 02', '', 'potted_plant_02'))
-    # --- cytogénétique (Dr Benali)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    xm = (x0 + x1) / 2
+    b = E.bureau('bureau_consult', xm + 0.9, z1 - 1.3, PI)
+    E.poste('pc_consult', b, -0.2, 0.75, -0.05, img='ecran_dossier')
+    boite('dossiers_consult', b, (0.5, 0.79, 0.1), (0.3, 0.08, 0.24), 'plastique_bleu', ch=0.004, groupe='petits')
+    E.chaise_bureau('chaise_dl', xm + 0.9, z1 - 0.55, PI)
+    for k, dx in enumerate((0.45, 1.35)):
+        E.chaise_bureau(f'chaise_patient{k}', xm + dx, z1 - 2.05, 0.15 - k * 0.3, tissu='tissu_sarcelle')
+    E.table_examen('examen_consult', x0 + 0.55, (z0 + z1) / 2 + 0.9, ry=PI / 2)
+    accrocher('affiche_appareil', s, 'o', (z0 + z1) / 2 + 0.9, 1.65, 1.5, 1.0, 'affiche_appareil')
+    E.paillasse_labo('consult_evier', x1 - 0.6, x1, z0 + 1.6, z0 + 3.0, dos=x1, etagere=False, mat_dessus='stratifie')
+    cyl('evier_consult', Rep(x1 - 0.3, z0 + 2.3), (0, 0.885, 0), [(0.0, 0.0), (0.17, 0.0), (0.19, 0.016), (0.2, 0.016), (0.0, 0.017)], 'inox_brosse', n=24, groupe='inox')
+    tube('robinet_consult', [Rep(x1 - 0.06, z0 + 2.3).p(0, 0.9, 0), Rep(x1 - 0.06, z0 + 2.3).p(0, 1.15, 0), Rep(x1 - 0.06, z0 + 2.3).p(-0.2, 1.15, 0),
+                             Rep(x1 - 0.06, z0 + 2.3).p(-0.22, 1.08, 0)], 0.012, 'chrome', groupe='inox')
+    E.distributeur('gel_consult', mur_rep(s, 'e', z0 + 1.6), 0, 1.25, 0)
+    accrocher('mains_consult', s, 'e', z0 + 2.9, 1.65, 0.36, 0.48, 'affiche_mains')
+    E.armoire_vitree('armoire_consult', x1 - 0.25, z1 - 1.6, -PI / 2, L=1.0, H=1.9, P=0.4)
+    mobilier.solide(x1 - 0.5, z1 - 2.15, x1, z1 - 1.05)
+    ajouter_ph('potted_plant_02', 'plante_consult', x0 + 0.45, 0, z1 - 0.45, taille=1.0, tri=8000)
+    E.potence('tensio_consult', x0 + 1.4, (z0 + z1) / 2 - 0.4)
+
+    # ------------------------------------------------ cytogénétique (Dr Benali)
     s = S['cyto']
-    paillasse('cyto_mur', s['x0'] + 0.3, s['x1'] - 0.3, s['z0'], s['z0'] + 0.7, dos=s['z0'])
-    paillasse('cyto_ilot', s['x0'] + 1.6, s['x1'] - 3.2, (s['z0'] + s['z1']) / 2 - 0.5, (s['z0'] + s['z1']) / 2 + 0.5)
-    for k, dx in enumerate((1.4, 4.6)):
-        ajouter('industrial_microscope', f'microscope_cyto{k}', s['x0'] + dx, 0.9, s['z0'] + 0.35, ry=0.0, credit=PH_C('Industrial Microscope', '', 'industrial_microscope'))
-        ajouter('metal_stool_01', f'tabouret_cyto{k}', s['x0'] + dx, 0, s['z0'] + 1.1, credit=PH_C('Metal Stool 01', '', 'metal_stool_01'))
-    ajouter('chemistry_set', 'chimie_cyto', s['x0'] + 3.2, 0.9, (s['z0'] + s['z1']) / 2, ry=0.0, taille=0.9, tri=12000, credit=PH_C('Chemistry Set', '', 'chemistry_set'))
-    ajouter('bunsen_burner', 'bunsen_cyto', s['x0'] + 5.0, 0.9, (s['z0'] + s['z1']) / 2 + 0.1, credit=PH_C('Bunsen Burner', '', 'bunsen_burner'))
-    ajouter('korean_fire_extinguisher_01', 'extincteur_cyto', s['x0'] + 0.25, 0, s['z1'] - 0.4, ry=PI / 2, credit=PH_C('Korean Fire Extinguisher 01', '', 'korean_fire_extinguisher_01'))
-    ajouter('steel_frame_shelves_01', 'etagere_cyto', s['x0'] + 0.35, 0, (s['z0'] + s['z1']) / 2 + 0.6, ry=PI / 2, taille=1.9,
-            credit=PH_C('Steel Frame Shelves 01', '', 'steel_frame_shelves_01'))
-    mobilier.solide(s['x0'], (s['z0'] + s['z1']) / 2 + 0.1, s['x0'] + 0.7, (s['z0'] + s['z1']) / 2 + 1.1)
-    ajouter('binder_notebook', 'classeurs_cyto', s['x0'] + 0.35, 1.3, (s['z0'] + s['z1']) / 2 + 0.6, ry=PI / 2, credit=PH_C('Binder Notebook', '', 'binder_notebook'))
-    # --- bloc opératoire (Dr Vasseur)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    rp = E.paillasse_labo('cyto_mur', x0 + 0.3, x1 - 1.4, z0, z0 + 0.75, dos=z0)
+    for k, dx in enumerate((-3.0, -0.6, 1.8)):
+        E.microscope(f'microscope_cyto{k}', rp, dx, 0.9, 0.05)
+        E.ecran_plat(f'caryo_cyto{k}', rp, (dx + 0.6, 0.9 + 0.31 + 0.15, -0.12), 0.53, 0.3, 'ecran_caryotype')
+        E.chaise_bureau(f'tabouret_cyto{k}', x0 + 0.3 + (x1 - 1.4 - x0 - 0.3) / 2 + dx + 0.2, z0 + 1.15, 0.0)
+    E.portoir('portoir_cyto0', rp, 3.0, 0.9, 0.1)
+    E.pipette('pipette_cyto0', rp, 3.3, 0.9, 0.15)
+    rp2 = E.paillasse_labo('cyto_ilot', x0 + 2.0, x1 - 3.4, (z0 + z1) / 2 - 0.45, (z0 + z1) / 2 + 0.45)
+    E.centrifugeuse('centri_cyto', rp2, -1.2, 0.9, 0.0)
+    for k, dx in enumerate((-0.3, 0.1, 0.5)):
+        E.portoir(f'portoir_ilot{k}', rp2, dx, 0.9, -0.15 + k * 0.08, n=10)
+    E.pipette('pipette_cyto1', rp2, 0.9, 0.9, 0.1, a=-0.3)
+    E.poste('pc_cyto', rp2, 1.5, 0.9, -0.1, img='ecran_caryotype')
+    E.poste_securite('psm_cyto', x0 + 0.45, z1 - 1.6, PI / 2, L=1.4)
+    E.armoire_vitree('armoire_cyto1', x1 - 0.25, z0 + 1.2, -PI / 2, L=1.0, H=2.0)
+    E.armoire_vitree('armoire_cyto2', x1 - 0.25, z0 + 2.25, -PI / 2, L=1.0, H=2.0)
+    mobilier.solide(x1 - 0.5, z0 + 0.65, x1, z0 + 2.8)
+    accrocher('adn_cyto', s, 's', x0 + 2.2, 1.65, 1.2, 0.9, 'affiche_adn')
+    E.distributeur('gel_cyto', mur_rep(s, 's', x0 + 6.6), 0, 1.25, 0)
+    ajouter_ph('korean_fire_extinguisher_01', 'extincteur_cyto', x1 - 0.25, 0, z1 - 0.4, ry=-PI / 2)
+
+    # ------------------------------------------------ bloc opératoire (Dr Vasseur)
     s = S['bloc']
-    table_operation((s['x0'] + s['x1']) / 2, (s['z0'] + s['z1']) / 2 - 0.6)
-    ajouter('industrial_storage_cart', 'chariot_bloc', s['x0'] + 0.6, 0, s['z0'] + 1.0, ry=PI / 2, taille=1.1, credit=PH_C('Industrial Storage Cart', '', 'industrial_storage_cart'))
-    mobilier.solide(s['x0'], s['z0'] + 0.45, s['x0'] + 1.0, s['z0'] + 1.55)
-    ajouter('medical_box', 'trousse_bloc', s['x1'] - 0.5, 0.0, s['z0'] + 0.5, credit=PH_C('Medical Box', '', 'medical_box'))
-    # --- endocrinologie (Dr Roche)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    xm = (x0 + x1) / 2
+    E.table_operation('table_bloc', xm - 0.1, z0 + 2.9, ry=PI / 2)
+    E.scialytique('scialytique', xm - 0.1, z0 + 2.9, H, coupoles=((-0.45, 0.3, 1.85), (0.5, -0.25, 1.95)))
+    E.bras_plafonnier('bras_bloc', x1 - 1.5, z0 + 1.6, H)
+    E.respirateur('respirateur', x1 - 0.65, z0 + 1.3, ry=-PI / 2 - 0.3)
+    E.chariot_instruments('instruments1', x0 + 0.65, z0 + 3.4, ry=PI / 2)
+    E.chariot_instruments('instruments2', xm + 0.9, z0 + 4.4, ry=0.2)
+    mobilier.solide(x0 + 0.35, z0 + 2.95, x0 + 0.95, z0 + 3.85); mobilier.solide(xm + 0.45, z0 + 4.1, xm + 1.35, z0 + 4.7)
+    E.potence('perfusion_bloc', xm - 0.75, z0 + 1.6)
+    E.armoire_vitree('armoire_bloc1', x0 + 0.25, z0 + 0.9, PI / 2, L=1.0, H=2.1)
+    E.armoire_vitree('armoire_bloc2', x0 + 0.25, z0 + 1.95, PI / 2, L=1.0, H=2.1)
+    mobilier.solide(x0, z0 + 0.35, x0 + 0.5, z0 + 2.5)
+    ajouter_ph('metal_trash_can', 'poubelle_bloc', x1 - 0.3, 0, z1 - 1.0, taille=0.55)
+    accrocher('consigne_bloc', s, 's', x0 + 0.75, 1.6, 0.6, 0.4, 'affiche_bloc')
+    E.distributeur('gel_bloc', mur_rep(s, 's', x1 - 0.4), 0, 1.25, 0)
+
+    # ------------------------------------------------ endocrinologie (Dr Roche)
     s = S['endo']
-    paillasse('endo_mur', s['x0'] + 0.3, s['x1'] - 0.3, s['z0'], s['z0'] + 0.7, dos=s['z0'])
-    portoir(s['x0'] + 1.2, 0.9, s['z0'] + 0.35, ['sang', 'sang', 'serum', 'sang', 'serum'])
-    portoir(s['x0'] + 1.6, 0.9, s['z0'] + 0.4, ['serum', 'sang', 'bleu'])
-    ajouter('medical_box', 'trousse_endo', s['x0'] + 2.6, 0.9, s['z0'] + 0.35, credit=PH_C('Medical Box', '', 'medical_box'))
-    ajouter('clipboard', 'bloc_notes_endo', s['x0'] + 3.4, 0.9, s['z0'] + 0.35, ry=0.3, credit=PH_C('Clipboard', '', 'clipboard'))
-    ajouter('metal_office_desk', 'bureau_endo', s['x1'] - 1.2, 0, (s['z0'] + s['z1']) / 2 + 0.4, ry=-PI / 2, credit=PH_C('Metal Office Desk', '', 'metal_office_desk'))
-    mobilier.solide(s['x1'] - 1.6, (s['z0'] + s['z1']) / 2 - 0.4, s['x1'] - 0.8, (s['z0'] + s['z1']) / 2 + 1.2)
-    ajouter('classic_laptop', 'pc_endo', s['x1'] - 1.2, 0.79, (s['z0'] + s['z1']) / 2 + 0.4, ry=-PI / 2, taille=0.36, credit=PH_C('Classic Laptop', '', 'classic_laptop'))
-    ajouter('metal_stool_01', 'tabouret_endo', s['x0'] + 2.0, 0, s['z0'] + 1.1, credit=PH_C('Metal Stool 01', '', 'metal_stool_01'))
-    # --- génétique (Dr Nguyen)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    rp = E.paillasse_labo('endo_mur', x0 + 0.3, x1 - 0.3, z0, z0 + 0.7, dos=z0)
+    E.centrifugeuse('centri_endo', rp, -1.9, 0.9, 0.0)
+    for k in range(3):
+        E.portoir(f'portoir_endo{k}', rp, -0.9 + k * 0.35, 0.9, 0.05 + (k % 2) * 0.1)
+    E.poste('pc_endo', rp, 1.5, 0.9, -0.05, img='ecran_dossier')
+    E.chaise_bureau('chaise_endo', x0 + 0.3 + (x1 - x0 - 0.6) / 2 + 1.5, z0 + 1.15, 0.0)
+    b = E.bureau('bureau_endo', x1 - 1.2, (z0 + z1) / 2 + 0.5, -PI / 2, L=1.5)
+    E.poste('pc_endo2', b, 0.0, 0.75, -0.05)
+    E.chaise_bureau('chaise_endo2', x1 - 0.5, (z0 + z1) / 2 + 0.5, -PI / 2)
+    E.chaise_bureau('fauteuil_prelevement', x0 + 1.2, z1 - 2.2, 0.6, tissu='tissu_sarcelle')
+    accrocher('glandes_endo', s, 'o', (z0 + z1) / 2, 1.6, 0.75, 1.0, 'affiche_hormones')
+    E.armoire_vitree('armoire_endo', x0 + 0.25, z0 + 2.0, PI / 2, L=0.9, H=1.9)
+    mobilier.solide(x0, z0 + 1.5, x0 + 0.5, z0 + 2.5)
+    E.distributeur('gel_endo', mur_rep(s, 's', x0 + 0.5), 0, 1.25, 0)
+
+    # ------------------------------------------------ génétique (Dr Nguyen)
     s = S['gene']
-    paillasse('gene_mur', s['x0'] + 0.3, s['x1'] - 0.3, s['z0'], s['z0'] + 0.7, dos=s['z0'])
-    sequenceur(s['x0'] + 1.3, s['z0'] + 0.35)
-    for k, dx in enumerate((3.0, 4.6)):
-        ajouter('classic_laptop', f'pc_gene{k}', s['x0'] + dx, 0.9, s['z0'] + 0.35, ry=0.0, taille=0.38, credit=PH_C('Classic Laptop', '', 'classic_laptop'))
-        ajouter('metal_stool_01', f'tabouret_gene{k}', s['x0'] + dx, 0, s['z0'] + 1.1, credit=PH_C('Metal Stool 01', '', 'metal_stool_01'))
-    ajouter('modern_wooden_cabinet', 'meuble_gene', s['x1'] - 0.3, 0, (s['z0'] + s['z1']) / 2 + 0.5, ry=-PI / 2, taille=2.0, credit=PH_C('Modern Wooden Cabinet', '', 'modern_wooden_cabinet'))
-    mobilier.solide(s['x1'] - 0.6, (s['z0'] + s['z1']) / 2 - 0.5, s['x1'], (s['z0'] + s['z1']) / 2 + 1.5)
-    ajouter('cardboard_box_01', 'carton_gene', s['x1'] - 0.35, 0.68, (s['z0'] + s['z1']) / 2 + 0.2, ry=0.3, credit=PH_C('Cardboard Box 01', '', 'cardboard_box_01'))
-    # --- imagerie (Dr Petit)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    rp = E.paillasse_labo('gene_mur', x0 + 0.3, x1 - 0.3, z0, z0 + 0.7, dos=z0)
+    boite('sequenceur', rp, (-2.0, 0.9 + 0.3, -0.02), (0.9, 0.6, 0.6), 'laque', ch=0.04, seg=3, groupe='meubles')
+    boite('sequenceur_porte', rp, (-2.15, 1.2, 0.282), (0.5, 0.45, 0.02), 'anthracite', ch=0.01, seg=2, groupe='meubles')
+    boite('sequenceur_vitre', rp, (-2.15, 1.25, 0.293), (0.4, 0.3, 0.004), 'verre_appareil', ch=0, groupe='verre')
+    boite('sequenceur_led', rp, (-1.7, 1.42, 0.282), (0.16, 0.02, 0.01), 'led_sarcelle', ch=0, groupe='led')
+    E.ecran_plat('ecran_seq', rp, (-1.75, 1.22, 0.29), 0.2, 0.13, 'ecran_dossier', pied=False)
+    E.poste('pc_gene1', rp, 0.0, 0.9, -0.05, img='ecran_electro')
+    E.poste('pc_gene2', rp, 1.6, 0.9, -0.05, img='ecran_caryotype')
+    for k, dx in enumerate((0.0, 1.6)):
+        E.chaise_bureau(f'chaise_gene{k}', x0 + 0.3 + (x1 - x0 - 0.6) / 2 + dx, z0 + 1.15, 0.0)
+    E.portoir('portoir_gene', rp, 0.8, 0.9, 0.1)
+    E.poste_securite('psm_gene', x1 - 0.45, z1 - 1.25, -PI / 2, L=1.3)
+    accrocher('adn_gene', s, 'o', (z0 + z1) / 2, 1.65, 1.2, 0.9, 'affiche_adn')
+    E.armoire_vitree('armoire_gene', x0 + 0.25, z1 - 1.4, PI / 2, L=1.0, H=2.0)
+    mobilier.solide(x0, z1 - 1.95, x0 + 0.5, z1 - 0.85)
+
+    # ------------------------------------------------ imagerie (Dr Petit) : salle d'échographie, et derrière sa vitre, le scanner
     s = S['imagerie']
-    table_examen('examen_echo', (s['x0'] + s['x1']) / 2 + 1.0, s['z1'] - 1.3, ry=0.0, couleur='skai_bleu')
-    echographe((s['x0'] + s['x1']) / 2 - 0.6, s['z1'] - 1.3, -PI / 2)
-    ajouter('wheelchair_01', 'fauteuil_roulant', s['x1'] - 0.7, 0, s['z0'] + 1.0, ry=-2.2, tri=9000, credit=PH_C('Wheelchair 01', '', 'wheelchair_01'))
-    mobilier.solide(s['x1'] - 1.2, s['z0'] + 0.5, s['x1'] - 0.2, s['z0'] + 1.5)
-    ajouter('metal_office_desk', 'bureau_imagerie', s['x0'] + 1.3, 0, s['z1'] - 0.9, ry=PI, credit=PH_C('Metal Office Desk', '', 'metal_office_desk'))
-    mobilier.solide(s['x0'] + 0.5, s['z1'] - 1.3, s['x0'] + 2.1, s['z1'] - 0.5)
-    ajouter('classic_laptop', 'pc_imagerie', s['x0'] + 1.3, 0.79, s['z1'] - 0.9, ry=PI, taille=0.36, credit=PH_C('Classic Laptop', '', 'classic_laptop'))
-    ajouter('potted_plant_02', 'plante_imagerie', s['x0'] + 0.5, 0, s['z0'] + 1.6, taille=0.9, tri=8000, credit=PH_C('Potted Plant 02', '', 'potted_plant_02'))
-    # --- médecine de la reproduction (Dr Morel)
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    xp = x1 - 3.2                                     # cloison vitrée du scanner
+    zo = z0 + 1.6                                     # passage vers le scanner (au nord de la cloison)
+    pave('cloison_bas', xp - 0.06, 0, zo + 1.1, xp + 0.06, 0.95, z1, 'mur_imagerie', groupe='murs', chanfrein=0.003)
+    pave('cloison_haut', xp - 0.06, 2.25, zo + 1.1, xp + 0.06, H, z1, 'mur_blanc', groupe='murs', chanfrein=0.003)
+    pave('cloison_tete', xp - 0.06, 0, zo, xp + 0.06, H, zo + 0.08, 'cadre', groupe='cadres', chanfrein=0.003)
+    pave('cloison_linteau', xp - 0.06, 2.2, zo, xp + 0.06, H, zo + 1.1, 'mur_blanc', groupe='murs', chanfrein=0.003)
+    for zz in (zo + 1.1, zo + 2.8, zo + 4.5, z1 - 0.03):
+        pave(f'cloison_montant{zz:.1f}', xp - 0.05, 0.95, zz - 0.03, xp + 0.05, 2.25, zz + 0.03, 'alu', groupe='chassis', chanfrein=0.003)
+    for yy in (0.95, 2.25):
+        pave(f'cloison_traverse{yy}', xp - 0.05, yy - 0.025, zo + 1.1, xp + 0.05, yy + 0.025, z1, 'alu', groupe='chassis', chanfrein=0.003)
+    pave('cloison_vitre', xp - 0.004, 0.97, zo + 1.12, xp + 0.004, 2.23, z1 - 0.05, 'verre', groupe='verre', chanfrein=0, cuire=0)
+    mobilier.solide(xp - 0.08, zo + 1.1, xp + 0.08, z1)
+    E.scanner('scanner', x1 - 1.6, z0 + 2.3, ry=-PI / 2)
+    E.ecran_plat('ecran_scanner_mur', mur_rep(s, 'e', z0 + 6.1), (0, 1.6, 0.05), 0.9, 0.5, 'ecran_scanner', pied=False, epaisseur=0.04)
+    # console de commande, côté échographie, face à la vitre
+    b = E.bureau('console_scanner', xp - 0.5, (zo + 1.1 + z1) / 2 + 0.4, -PI / 2, L=2.2, P=0.75)
+    for k, dz in enumerate((-0.65, 0.0, 0.65)):
+        E.poste(f'pc_scanner{k}', b, dz, 0.75, -0.1, img='ecran_scanner' if k != 1 else 'ecran_dossier', clavier=(k == 1))
+    E.chaise_bureau('chaise_scanner', xp - 1.3, (zo + 1.1 + z1) / 2 + 0.4, PI / 2)
+    # échographie : divan, échographe, écran de la patiente, bureau
+    E.table_examen('examen_echo', x0 + 1.9, z1 - 1.25, ry=0.0, skai='nuit_skai')
+    E.echographe('echographe', x0 + 3.4, z1 - 1.2, ry=-PI / 2 - 0.35)
+    E.ecran_plat('ecran_patiente', mur_rep(s, 's', x0 + 1.9), (0, 1.75, 0.05), 0.9, 0.5, 'ecran_echo', pied=False, epaisseur=0.04)
+    E.chaise_bureau('tabouret_echo', x0 + 3.3, z1 - 2.0, -PI / 2 - 0.4)
+    b = E.bureau('bureau_imagerie', x0 + 1.0, z0 + 1.7, PI / 2, L=1.4)
+    E.poste('pc_imagerie', b, 0.0, 0.75, -0.05, img='ecran_echo')
+    E.chaise_bureau('chaise_imagerie', x0 + 1.75, z0 + 1.7, PI / 2)
+    E.distributeur('gel_imagerie', mur_rep(s, 'n', x0 + 2.6), 0, 1.25, 0)
+    ajouter_ph('wheelchair_01', 'fauteuil_roulant', xp - 0.6, z0 + 0.9, ry=-2.2, tri=9000) if False else None
+    ajouter_ph('potted_plant_02', 'plante_imagerie', x0 + 0.45, 0, z1 - 0.4, taille=0.9, tri=8000)
+
+    # ------------------------------------------------ médecine de la reproduction (Dr Morel)
     s = S['repro']
-    ajouter('metal_office_desk', 'bureau_repro', (s['x0'] + s['x1']) / 2 + 0.6, 0, s['z1'] - 1.1, ry=PI, credit=PH_C('Metal Office Desk', '', 'metal_office_desk'))
-    mobilier.solide((s['x0'] + s['x1']) / 2 - 0.2, s['z1'] - 1.55, (s['x0'] + s['x1']) / 2 + 1.4, s['z1'] - 0.7)
-    ajouter('industrial_microscope', 'microscope_repro', (s['x0'] + s['x1']) / 2 + 1.0, 0.79, s['z1'] - 1.2, ry=PI, taille=0.4, credit=PH_C('Industrial Microscope', '', 'industrial_microscope'))
-    ajouter('sofa_02', 'canape_repro', s['x0'] + 0.5, 0, (s['z0'] + s['z1']) / 2, ry=PI / 2, taille=1.8, credit=PH_C('Sofa 02', '', 'sofa_02'))
-    mobilier.solide(s['x0'], (s['z0'] + s['z1']) / 2 - 0.95, s['x0'] + 0.9, (s['z0'] + s['z1']) / 2 + 0.95)
-    ajouter('modern_coffee_table_01', 'table_basse_repro', s['x0'] + 1.5, 0, (s['z0'] + s['z1']) / 2, ry=0.0, credit=PH_C('Modern Coffee Table 01', '', 'modern_coffee_table_01'))
-    mobilier.solide(s['x0'] + 1.2, (s['z0'] + s['z1']) / 2 - 0.6, s['x0'] + 1.8, (s['z0'] + s['z1']) / 2 + 0.6)
-    ajouter('potted_plant_01', 'plante_repro', s['x1'] - 0.5, 0, s['z0'] + 1.4, taille=1.2, tri=9000, credit=PH_C('Potted Plant 01', '', 'potted_plant_01'))
-    # --- couloirs : chaises d'attente, extincteur
-    for k in range(4):
-        ajouter('plastic_monobloc_chair_01', f'chaise_couloir{k}', X(640) + k * 0.6, 0, Z(CH[1]) + 0.32, ry=PI, densite=0.4,
-                credit=PH_C('Plastic Monobloc Chair 01', '', 'plastic_monobloc_chair_01'))
-    mobilier.solide(X(640) - 0.35, Z(CH[1]), X(640) + 2.15, Z(CH[1]) + 0.65)
-    ajouter('korean_fire_extinguisher_01', 'extincteur_couloir', X(CV[0]) + 0.2, 0, Z(120), ry=PI / 2, credit=PH_C('Korean Fire Extinguisher 01', '', 'korean_fire_extinguisher_01'))
-    ajouter('potted_plant_02', 'plante_couloir', X(CH[2]) - 0.5, 0, Z(CH[3]) - 0.45, taille=0.9, tri=8000, credit=PH_C('Potted Plant 02', '', 'potted_plant_02'))
+    x0, x1, z0, z1 = s['x0'], s['x1'], s['z0'], s['z1']
+    xm = (x0 + x1) / 2
+    b = E.bureau('bureau_repro', xm + 0.9, z1 - 1.3, PI)
+    E.poste('pc_repro', b, -0.2, 0.75, -0.05)
+    E.microscope('microscope_repro', b, 0.45, 0.75, 0.05)
+    E.chaise_bureau('chaise_dm', xm + 0.9, z1 - 0.55, PI)
+    for k, dx in enumerate((0.45, 1.35)):
+        E.chaise_bureau(f'chaise_couple{k}', xm + dx, z1 - 2.05, 0.15 - k * 0.3, tissu='tissu_sarcelle')
+    ajouter_ph('sofa_02', 'canape_repro', x0 + 0.5, 0, (z0 + z1) / 2, ry=PI / 2, taille=1.9)
+    mobilier.solide(x0, (z0 + z1) / 2 - 1.0, x0 + 0.95, (z0 + z1) / 2 + 1.0)
+    ajouter_ph('modern_coffee_table_01', 'table_basse_repro', x0 + 1.5, 0, (z0 + z1) / 2, ry=0.0, taille=0.9)
+    mobilier.solide(x0 + 1.15, (z0 + z1) / 2 - 0.45, x0 + 1.85, (z0 + z1) / 2 + 0.45)
+    ajouter_ph('potted_plant_01', 'plante_repro', x1 - 0.5, 0, z0 + 1.4, taille=1.3, tri=9000)
+    accrocher('appareil_repro', s, 'e', z0 + 2.4, 1.65, 1.2, 0.8, 'affiche_appareil')
+    E.armoire_vitree('armoire_repro', x1 - 0.25, z1 - 1.6, -PI / 2, L=1.0, H=1.9, P=0.4)
+    mobilier.solide(x1 - 0.5, z1 - 2.15, x1, z1 - 1.05)
+
+    # ------------------------------------------------ couloirs : signalétique, sièges, chariot, extincteurs, distributeurs
+    yh = 2.5
+    E.panneau_suspendu('signal_croisement', 2.2, 0.0, 0.0, 1.5, 0.39, 'signal_croisement', yh, H, deux_faces=False)
+    E.panneau_suspendu('signal_ouest', X(CH[0]) + 4.0, 0.0, -PI / 2, 1.4, 0.14, 'signal_ouest', yh, H, deux_faces=False)
+    E.panneau_suspendu('signal_est', X(CH[2]) - 4.0, 0.0, PI / 2, 1.4, 0.14, 'signal_est', yh, H, deux_faces=False)
+    E.chaises_attente('attente_couloir', X(640), Z(CH[1]) + 0.36, PI, n=3)
+    E.chaises_attente('attente_couloir2', X(200), Z(CH[3]) - 0.36, 0.0, n=3)
+    ajouter_ph('korean_fire_extinguisher_01', 'extincteur_couloir', X(CV[0]) + 0.2, 0, Z(120), ry=PI / 2)
+    ajouter_ph('potted_plant_02', 'plante_couloir', X(CH[2]) - 0.5, 0, Z(CH[3]) - 0.45, taille=0.9, tri=8000)
+    for k, xx in enumerate((X(250), X(700))):
+        E.distributeur(f'gel_couloir{k}', Rep(xx, Z(CH[1]), 0.0), 0, 1.25, 0)
+    E.potence('potence_couloir', X(860), Z(CH[1]) + 0.3)
     DONNEES['sondes'] += [[x, 1.4, 0.0] for x in (X(100), X(300), X(600), X(800))] + [[0.0, 1.4, z] for z in (Z(80), Z(450))]
+
+
+def portes():
+    """Battants des portes de service, modelés autour de leur charnière (la page les fait pivoter)."""
+    for nom, s in DONNEES['salles'].items():
+        if nom == 'hall':
+            continue
+        equipement.porte_battant(nom, s['porte'][0], s['porte'][1], s['z_porte'], s['cote'])
 
 
 BLOUSE = (0.86, 0.87, 0.88)
 HUMAINS = {
     'AC': dict(sexe='female', age=0.2, origine='african', peau='young_african_female', cheveux='braid01', tenue='female_elegantsuit01', couleur_tenue=(0.05, 0.36, 0.42), chaussures='shoes05', taille=1.66, yeux='brown'),
-    'DL': dict(sexe='female', age=0.35, origine='caucasian', peau='young_caucasian_female', cheveux='ponytail01', tenue='female_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.68, yeux='bluegreen'),
-    'DB': dict(sexe='male', age=0.4, origine='african', peau='middleage_african_male', cheveux='short04', tenue='male_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes02', taille=1.80, yeux='brown'),
+    'DL': dict(sexe='female', age=0.35, origine='caucasian', peau='young_caucasian_female', cheveux='ponytail01', tenue='female_casualsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.68, yeux='bluegreen'),
+    'DB': dict(sexe='male', age=0.4, origine='african', peau='middleage_african_male', cheveux='short04', tenue='male_casualsuit06', couleur_tenue=BLOUSE, chaussures='shoes02', taille=1.80, yeux='brown'),
     'DR': dict(sexe='male', age=0.62, origine='caucasian', peau='old_caucasian_male', cheveux='short01', tenue='male_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes02', taille=1.74, yeux='blue'),
-    'DN': dict(sexe='female', age=0.3, origine='asian', peau='young_asian_female', cheveux='long01', tenue='female_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.62, yeux='brown'),
-    'DP': dict(sexe='male', age=0.25, origine='caucasian', peau='young_caucasian_male', cheveux='short02', tenue='male_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes02', taille=1.78, yeux='bluegreen'),
-    'DM': dict(sexe='female', age=0.45, origine='african', peau='middleage_african_female', cheveux='afro01', tenue='female_elegantsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.70, yeux='brown'),
-    'CS': dict(sexe='female', age=0.45, origine='caucasian', peau='middleage_caucasian_female', cheveux='bob01', tenue='female_casualsuit02', couleur_tenue=(0.32, 0.6, 0.55), chaussures='shoes05', taille=1.70, yeux='blue'),
+    'DN': dict(sexe='female', age=0.3, origine='asian', peau='young_asian_female', cheveux='long01', tenue='female_casualsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.62, yeux='brown'),
+    'DP': dict(sexe='male', age=0.25, origine='caucasian', peau='young_caucasian_male', cheveux='short02', tenue='male_casualsuit01', couleur_tenue=BLOUSE, chaussures='shoes02', taille=1.78, yeux='bluegreen'),
+    'DM': dict(sexe='female', age=0.45, origine='african', peau='middleage_african_female', cheveux='afro01', tenue='female_casualsuit01', couleur_tenue=BLOUSE, chaussures='shoes05', taille=1.70, yeux='brown'),
+    'CS': dict(sexe='female', age=0.45, origine='caucasian', peau='middleage_caucasian_female', cheveux='bob01', tenue='female_casualsuit01', couleur_tenue=(0.32, 0.6, 0.55), chaussures='shoes05', taille=1.70, yeux='blue'),
 }
 
 
@@ -504,6 +659,7 @@ materiaux()
 murs()
 n_lum = luminaires()
 meubler()
+portes()
 personnes()
 geo.collection('piece')
 geo.reunir()
@@ -522,10 +678,11 @@ for nom, (p, d) in {'couloir': ((-10.5, 1.6, 0.0), (1, -0.05, 0)), 'cyto': ((-8.
     c = bpy.data.cameras.new(nom); c.sensor_fit = 'VERTICAL'; c.angle_y = 1.1; c.clip_start = 0.04
     o = bpy.data.objects.new('cam_' + nom, c); ctx.objects.link(o)
     o.location = V(*p); o.rotation_euler = V(*Vector(d).normalized()).to_track_quat('-Z', 'Y').to_euler()
-sc['atlas_A'] = ['murs', 'sol', 'plafond', 'cadres', 'menuiseries', 'chassis', 'main_courante', 'plinthes']
+sc['atlas_A'] = ['murs', 'sol', 'plafond', 'cadres', 'menuiseries', 'chassis', 'lisses', 'plinthes']
+SONDE = ('luminaires', 'petits', 'chaises', 'inox', 'verre', 'led', 'signaletique', 'clavier', 'lettres', 'logo_plaque')
 for ob in bpy.data.collections['piece'].objects:
-    if ob.name == 'luminaires':
-        ob['lumiere'] = 'sonde'        # dalles lumineuses : la page les dessine d'elles-mêmes
+    if ob.name in SONDE or ob.name.startswith(('ecran_', 'battant_', 'medecin_')) or ob.get('lumiere') == 'sonde':
+        ob['lumiere'] = 'sonde'        # dalles lumineuses et écrans : la page les dessine d'elles-mêmes ; petits objets : sondes
 bpy.ops.wm.save_as_mainfile(filepath=SORTIE)
 json.dump(DONNEES, open(os.path.join(os.path.dirname(SORTIE), 'hopital_donnees.json'), 'w'), ensure_ascii=False, indent=0)
 nb = sum(len(o.data.polygons) for o in bpy.data.collections['piece'].objects if o.type == 'MESH')

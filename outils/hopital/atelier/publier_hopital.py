@@ -32,7 +32,9 @@ liste += [
     {'titre': 'MakeHuman : corps, visages, peaux, yeux, cheveux, vêtements et squelette', 'sert': 'les médecins et le personnel',
      'auteurs': 'Data Collection AB, Joel Palmius, Jonas Hauquier et la communauté MakeHuman', 'licence': 'CC0', 'site': 'MakeHuman',
      'source': 'https://static.makehumancommunity.org/assets/assetdownload.html'},
-    {'titre': 'Bâtiment, mobilier de laboratoire, linoléum, faux plafond, teintes des murs', 'sert': 'modelés et dessinés par programme pour cette activité',
+    {'titre': "Activité « Le garçon à utérus » : questions, documents, et schémas repris en affiches", 'sert': "l'enquête et les affiches des services",
+     'auteurs': 'Yamina Lucas, professeure de SVT', 'licence': "activité d'origine", 'site': 'exercice.html', 'source': 'exercice.html'},
+    {'titre': "Bâtiment, équipement médical (scanner, échographe, bloc, laboratoire), mobilier, écrans, signalétique, sols et teintes des murs", 'sert': 'modelés et dessinés par programme pour cette activité',
      'auteurs': 'cabinet des curiosités (programme)', 'licence': 'CC0', 'site': 'ce site', 'source': 'https://reynesmanon11-maker.github.io/outils/hopital/'},
 ]
 sortie = {k: d[k] for k in ('salles', 'personnes', 'sondes', 'soleil')}
